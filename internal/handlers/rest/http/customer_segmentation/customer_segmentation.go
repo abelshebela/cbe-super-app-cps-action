@@ -65,6 +65,7 @@ func (c *CustomerSegmentationAdapter) CreateCustomerSegmentation(w http.Response
 	req.CapitilizeCustomerSegmentationRequest()
 
 	if err := c.svc.Create(ctx, req); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[CreateCustomerSegmentation] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -126,6 +127,7 @@ func (c *CustomerSegmentationAdapter) UpdateCustomerSegmentation(w http.Response
 	req.CapitilizeCustomerSegmentationRequest()
 
 	if err := c.svc.Update(ctx, id, req); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[UpdateCustomerSegmentation] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -244,6 +246,7 @@ func (c *CustomerSegmentationAdapter) DeleteCustomerSegmentation(w http.Response
 	}
 
 	if err := c.svc.Delete(ctx, id); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[DeleteCustomerSegmentation] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -289,6 +292,7 @@ func (c *CustomerSegmentationAdapter) Enable(w http.ResponseWriter, r *http.Requ
 	}
 
 	if err := c.svc.EnableOrDisable(ctx, id, true); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[Enable] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -334,6 +338,7 @@ func (c *CustomerSegmentationAdapter) Disable(w http.ResponseWriter, r *http.Req
 	}
 
 	if err := c.svc.EnableOrDisable(ctx, id, false); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[Disable] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())

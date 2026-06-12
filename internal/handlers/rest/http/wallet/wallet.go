@@ -85,6 +85,7 @@ func (a *walletAdapter) CreateWallet(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if err := a.walletApp.CreateWallet(ctx, req); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[WalletH][Create] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -162,6 +163,7 @@ func (a *walletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
 
 	span.SetAttributes(attribute.String("wallet.id", id))
 	if err := a.walletApp.UpdateWallet(ctx, id, req); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[WalletH][Update] svc err id: %s: %v", id, err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -196,6 +198,9 @@ func (a *walletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
 func (a *walletAdapter) DeleteWallet(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "deleteWallet", "handler", "wallet")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		span.RecordError(errors.New("wallet ID is required for delete"))
@@ -206,6 +211,7 @@ func (a *walletAdapter) DeleteWallet(w http.ResponseWriter, r *http.Request) {
 	span.SetAttributes(attribute.String("wallet.id", id))
 
 	if err := a.walletApp.DeleteWallet(ctx, id); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -246,6 +252,7 @@ func (a *walletAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 
 	span.SetAttributes(attribute.String("wallet.id", id))
 	if err := a.walletApp.EnableOrDisableWallet(ctx, id, true); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -291,6 +298,7 @@ func (a *walletAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 
 	span.SetAttributes(attribute.String("wallet.id", id))
 	if err := a.walletApp.EnableOrDisableWallet(ctx, id, false); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return

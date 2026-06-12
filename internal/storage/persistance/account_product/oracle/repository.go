@@ -8,11 +8,11 @@ import (
 	"strings"
 	"time"
 
+	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
-	"cbe-super-app-cps-action/internal/constants/lib"
 	ap_core "cbe-super-app-cps-action/internal/storage/persistance/account_product/oracle/core"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -54,6 +54,7 @@ func (r *repository) Create(ctx context.Context, ap *imodel.AccountProduct) erro
 		}
 		return nil
 	}
+
 	return r.createInner(ctx, ap)
 }
 
@@ -61,18 +62,17 @@ func (r *repository) createInner(ctx context.Context, ap *imodel.AccountProduct)
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
 	q := `INSERT INTO ACCOUNT_PRODUCTS
-		(CBS_PRODUCT_CODE, PRODUCT_NAME, PRODUCT_TAG_LINE, PRODUCT_LINE,
+		(CBS_PRODUCT_CODE, PRODUCT_NAME, PRODUCT_TAG_LINE,
 		 ACCOUNT_CATEGORY_ID, ACCOUNT_CURRENCY,
 		 MINIMUM_OPENING_BALANCE, MINIMUM_MAINTENANCE_FEE, INTEREST_FEE,
 		 FAQ_URL, PRODUCT_FEATURES, HAS_PHYSICAL_CARD, HAS_VIRTUAL_CARD,
 		 PRODUCT_ICON, PRODUCT_COVER_IMAGE, IS_ENABLED, IS_DELETED)
-		VALUES (:1, :2, :3, :4, HEXTORAW(:5), :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17)`
+		VALUES (:1, :2, :3, HEXTORAW(:4), :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16)`
 
 	if _, err := r.db.ExecContext(ctx, q,
 		ap.CBSProductCode,
 		ap.ProductName,
 		ap.ProductTagLine,
-		ap.ProductLine,
 		ap.AccountCategoryID,
 		ap.AccountCurrency,
 		ap.MinimumOpeningBalance,

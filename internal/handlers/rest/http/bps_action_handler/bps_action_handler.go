@@ -58,6 +58,7 @@ func (a *bpsActionAdapter) AuditorAction(w http.ResponseWriter, r *http.Request)
 	// Load action (to resolve module/request_action)
 	action, err := a.bpsActionApplication.GetBPSActionByActionCode(ctx, actionCode, "")
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		if err.Error() == localization.ErrorActionNotFound.Code {
 			localization.SendErrorByCodeResponse(w, localization.ErrorActionDataNotFound.Code)
@@ -115,6 +116,7 @@ func (a *bpsActionAdapter) AuditorAction(w http.ResponseWriter, r *http.Request)
 	}
 	ctx = context.WithValue(ctx, constants.ContextKey("user_data"), userData)
 	if err := a.bpsActionApplication.AuditorMark(ctx, actionCode, auditor, 0, reqBody.CustomerBar); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -163,6 +165,7 @@ func (a *bpsActionAdapter) ApproveBPSAction(w http.ResponseWriter, r *http.Reque
 	span.SetAttributes(attribute.String("cps_action.code", actionCode))
 	action, err := a.bpsActionApplication.GetBPSActionByActionCode(ctx, actionCode, "")
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -173,6 +176,7 @@ func (a *bpsActionAdapter) ApproveBPSAction(w http.ResponseWriter, r *http.Reque
 	}
 	ctx = context.WithValue(ctx, constants.ContextKey("user_data"), userData)
 	if err := a.bpsActionApplication.ApproveBPSAction(ctx, action); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, localization.ErrorUnexpectedError.Code)
 		return
@@ -224,6 +228,7 @@ func (a *bpsActionAdapter) RejectBPSAction(w http.ResponseWriter, r *http.Reques
 	// Fetch action
 	action, err := a.bpsActionApplication.GetBPSActionByActionCode(ctx, actionCode, "")
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -235,6 +240,7 @@ func (a *bpsActionAdapter) RejectBPSAction(w http.ResponseWriter, r *http.Reques
 	ctx = context.WithValue(ctx, constants.ContextKey("user_data"), userData)
 	ctx = context.WithValue(ctx, constants.ContextKey("rejection_reason"), req.RejectionReason)
 	if err := a.bpsActionApplication.RejectBPSAction(ctx, actionCode, action); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, localization.ErrorUnexpectedError.Code)
 		return
@@ -1012,6 +1018,7 @@ func (a *bpsActionAdapter) ApproverCheckerAllocations(w http.ResponseWriter, r *
 	// maker, checker, auditor, portalCards
 	_, _, checkerMods, _, err := repo.PopulateUserApproverAllocations(ctx, roleCode)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -1101,6 +1108,7 @@ func (a *bpsActionAdapter) ApproverAuditorAllocations(w http.ResponseWriter, r *
 	// maker, checker, auditor, portalCards
 	_, _, _, auditorMods, err := repo.PopulateUserApproverAllocations(ctx, roleCode)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return

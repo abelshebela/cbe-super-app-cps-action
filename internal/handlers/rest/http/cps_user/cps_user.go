@@ -74,6 +74,7 @@ func (h *handler) CreateUserRequest(w http.ResponseWriter, r *http.Request) {
 	req.PhoneNumber = formattedPhone
 	span.SetAttributes(attribute.String("cps_user.phone", formattedPhone))
 	if err := h.svc.CreateUserRequest(ctx, req); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[CreateUserRequest] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -141,6 +142,7 @@ func (h *handler) UpdateUserRequest(w http.ResponseWriter, r *http.Request) {
 	span.SetAttributes(attribute.String("cps_user.code", userCode))
 
 	if err := h.svc.UpdateUserRequest(ctx, userCode, req); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[UpdateUserRequest] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -343,6 +345,7 @@ func (h *handler) DeleteUserRequest(w http.ResponseWriter, r *http.Request) {
 	span.SetAttributes(attribute.String("cps_user.code", userCode))
 
 	if err := h.svc.DeleteUserRequest(ctx, userCode); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[DeleteUserRequest] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -401,6 +404,7 @@ func (h *handler) DisableUser(w http.ResponseWriter, r *http.Request) {
 	span.SetAttributes(attribute.String("cps_user.code", userCode))
 
 	if err := h.svc.DisableUser(ctx, userCode); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[DisableUser] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -458,6 +462,7 @@ func (h *handler) EnableUser(w http.ResponseWriter, r *http.Request) {
 	span.SetAttributes(attribute.String("cps_user.code", userCode))
 
 	if err := h.svc.EnableUser(ctx, userCode); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[EnableUser] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())

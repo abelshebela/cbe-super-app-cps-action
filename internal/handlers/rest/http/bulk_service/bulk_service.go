@@ -14,7 +14,7 @@ import (
 	"net/http"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
-	util "cbe-super-app-cps-action/pkgs/utils"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	"go.opentelemetry.io/otel/attribute"
 
@@ -53,20 +53,20 @@ func InitBulkServiceAdapter(bulk_service service.BulkService, logger utils.Logge
 //	@Security		BearerAuth
 //	@Router			/bulk_services [get]
 func (h *bulk_serviceAdapter) GetAllBulkServices(w http.ResponseWriter, r *http.Request) {
-	ctx, span := util.TraceLogger(r.Context(), "handler", "getAllBulkServices", "handler", "bulkService")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllBulkServices", "handler", "bulkService")
 	defer span.End()
-	log := util.LoggerFromCtx(ctx, h.logger)
-	filter_params := util.ExtractFilterParams(r)
+	log := local_util.LoggerFromCtx(ctx, h.logger)
+	filter_params := local_util.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
 
-	if err := util.NoSpecialChars(search); err != nil {
+	if err := local_util.NoSpecialChars(search); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	if err := util.NoSpecialChars(filter); err != nil {
+	if err := local_util.NoSpecialChars(filter); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -101,9 +101,9 @@ func (h *bulk_serviceAdapter) GetAllBulkServices(w http.ResponseWriter, r *http.
 //	@Security		BearerAuth
 //	@Router			/bulk_services/enable [post]
 func (h *bulk_serviceAdapter) EnableBulkService(w http.ResponseWriter, r *http.Request) {
-	ctx, span := util.TraceLogger(r.Context(), "handler", "enableBulkService", "handler", "bulkService")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableBulkService", "handler", "bulkService")
 	defer span.End()
-	log := util.LoggerFromCtx(ctx, h.logger)
+	log := local_util.LoggerFromCtx(ctx, h.logger)
 	var req dto.BulkServiceDTO
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -116,6 +116,7 @@ func (h *bulk_serviceAdapter) EnableBulkService(w http.ResponseWriter, r *http.R
 	span.SetAttributes(attribute.Int("bulk_service.keys_count", len(req.Keys)))
 	err := h.bulkService.EnableBulkService(ctx, req.Keys)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[EnableBulkService] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -141,9 +142,9 @@ func (h *bulk_serviceAdapter) EnableBulkService(w http.ResponseWriter, r *http.R
 //	@Security		BearerAuth
 //	@Router			/bulk_services/disable [post]
 func (h *bulk_serviceAdapter) DisableBulkService(w http.ResponseWriter, r *http.Request) {
-	ctx, span := util.TraceLogger(r.Context(), "handler", "disableBulkService", "handler", "bulkService")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableBulkService", "handler", "bulkService")
 	defer span.End()
-	log := util.LoggerFromCtx(ctx, h.logger)
+	log := local_util.LoggerFromCtx(ctx, h.logger)
 	var req dto.BulkServiceDTO
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -156,6 +157,7 @@ func (h *bulk_serviceAdapter) DisableBulkService(w http.ResponseWriter, r *http.
 	span.SetAttributes(attribute.Int("bulk_service.keys_count", len(req.Keys)))
 	err := h.bulkService.DisableBulkService(ctx, req.Keys)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[DisableBulkService] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())

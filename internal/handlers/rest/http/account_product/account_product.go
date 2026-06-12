@@ -107,6 +107,7 @@ func (h *accountProductAdapter) Create(w http.ResponseWriter, r *http.Request) {
 	span.SetAttributes(attribute.String("ap.code", req.CBSProductCode))
 
 	if err := h.svc.Create(ctx, req); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[APHandler][Create] service err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -155,6 +156,7 @@ func (h *accountProductAdapter) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.svc.Update(ctx, id, req); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[APHandler][Update] service err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -177,6 +179,10 @@ func (h *accountProductAdapter) Delete(w http.ResponseWriter, r *http.Request) {
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, h.logger)
 
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
+
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
@@ -185,6 +191,7 @@ func (h *accountProductAdapter) Delete(w http.ResponseWriter, r *http.Request) {
 	span.SetAttributes(attribute.String("ap.id", id))
 
 	if err := h.svc.Delete(ctx, id); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[APHandler][Delete] service err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -192,7 +199,7 @@ func (h *accountProductAdapter) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Infof("[APHandler][Delete] request sent id=%s", id)
-	w = localization.ApplyActionCodeHeaderFromWriter(w, r.Context())
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessAPDeleteRequestSent, nil)
 }
 
@@ -213,6 +220,7 @@ func (h *accountProductAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 	span.SetAttributes(attribute.String("ap.id", id))
 
 	if err := h.svc.EnableOrDisable(ctx, id, true); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[APHandler][Enable] service err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -247,6 +255,7 @@ func (h *accountProductAdapter) Disable(w http.ResponseWriter, r *http.Request) 
 	span.SetAttributes(attribute.String("ap.id", id))
 
 	if err := h.svc.EnableOrDisable(ctx, id, false); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[APHandler][Disable] service err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())

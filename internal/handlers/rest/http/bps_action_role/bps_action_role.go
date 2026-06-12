@@ -209,6 +209,7 @@ func (h *BPSActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 	err := h.service.Create(ctx, action_role)
 
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[BpsRoleH][Create] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -263,6 +264,7 @@ func (h *BPSActionRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 	span.SetAttributes(attribute.String("cps_action_role.code", code))
 	err := h.service.Update(ctx, code, req)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[BpsRoleH][Update] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -308,6 +310,7 @@ func (h *BPSActionRoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
 	}
 	span.SetAttributes(attribute.String("cps_action_role.code", code))
 	if err := h.service.Enable(ctx, code); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[BpsRoleH][Enable] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -352,6 +355,7 @@ func (h *BPSActionRoleHandler) Disable(w http.ResponseWriter, r *http.Request) {
 	}
 	span.SetAttributes(attribute.String("cps_action_role.code", code))
 	if err := h.service.Disable(ctx, code); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[BpsRoleH][Disable] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -397,6 +401,7 @@ func (h *BPSActionRoleHandler) Delete(w http.ResponseWriter, r *http.Request) {
 
 	span.SetAttributes(attribute.String("bps_action_role.code", code))
 	if err := h.service.Delete(ctx, code); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[BpsRoleH][Delete] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())

@@ -5,7 +5,7 @@ import (
 	deviceversion "cbe-super-app-cps-action/internal/constants/interfaces/device_version"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/service"
-	common_utils "cbe-super-app-cps-action/pkgs/utils"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"encoding/json"
 	"net/http"
@@ -43,9 +43,9 @@ func InitDeviceVersionAdapter(s service.DeviceVersionServiceSrv, logger utils.Lo
 //	@Security		BearerAuth
 //	@Router			/device_versions [post]
 func (h *deviceVersionAdapter) CreateDeviceVersion(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "createDeviceVersion", "handler", "deviceVersion")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createDeviceVersion", "handler", "deviceVersion")
 	defer span.End()
-	log := common_utils.LoggerFromCtx(ctx, h.logger)
+	log := local_util.LoggerFromCtx(ctx, h.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	localization.UpdateWriterContext(w, ctx)
@@ -71,6 +71,7 @@ func (h *deviceVersionAdapter) CreateDeviceVersion(w http.ResponseWriter, r *htt
 		attribute.String("device_version.version", req.LatestVersion),
 	)
 	if err := h.svc.CreateDeviceVersion(ctx, req); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[CreateDeviceVersion] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -103,9 +104,9 @@ func (h *deviceVersionAdapter) CreateDeviceVersion(w http.ResponseWriter, r *htt
 //	@Security		BearerAuth
 //	@Router			/device_versions/{id} [patch]
 func (h *deviceVersionAdapter) UpdateDeviceVersion(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "updateDeviceVersion", "handler", "deviceVersion")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateDeviceVersion", "handler", "deviceVersion")
 	defer span.End()
-	log := common_utils.LoggerFromCtx(ctx, h.logger)
+	log := local_util.LoggerFromCtx(ctx, h.logger)
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
@@ -143,6 +144,7 @@ func (h *deviceVersionAdapter) UpdateDeviceVersion(w http.ResponseWriter, r *htt
 		attribute.String("device_version.version", req.LatestVersion),
 	)
 	if err := h.svc.UpdateDeviceVersion(ctx, id, req); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[UpdateDeviceVersion] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -185,20 +187,20 @@ func (h *deviceVersionAdapter) UpdateDeviceVersion(w http.ResponseWriter, r *htt
 //	@Security		BearerAuth
 //	@Router			/device_versions [get]
 func (h *deviceVersionAdapter) GetAllDeviceVersions(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "getAllDeviceVersions", "handler", "deviceVersion")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllDeviceVersions", "handler", "deviceVersion")
 	defer span.End()
-	log := common_utils.LoggerFromCtx(ctx, h.logger)
-	filterParams := common_utils.ExtractFilterParams(r)
+	log := local_util.LoggerFromCtx(ctx, h.logger)
+	filterParams := local_util.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
 
-	if err := common_utils.NoSpecialChars(search); err != nil {
+	if err := local_util.NoSpecialChars(search); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	if err := common_utils.NoSpecialChars(filter); err != nil {
+	if err := local_util.NoSpecialChars(filter); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -237,9 +239,9 @@ func (h *deviceVersionAdapter) GetAllDeviceVersions(w http.ResponseWriter, r *ht
 //	@Security		BearerAuth
 //	@Router			/device_versions/{id} [get]
 func (h *deviceVersionAdapter) GetDeviceVersionByID(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "getDeviceVersionById", "handler", "deviceVersion")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getDeviceVersionById", "handler", "deviceVersion")
 	defer span.End()
-	log := common_utils.LoggerFromCtx(ctx, h.logger)
+	log := local_util.LoggerFromCtx(ctx, h.logger)
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
@@ -273,9 +275,9 @@ func (h *deviceVersionAdapter) GetDeviceVersionByID(w http.ResponseWriter, r *ht
 //	@Security		BearerAuth
 //	@Router			/device_versions/enable/{id} [patch]
 func (h *deviceVersionAdapter) Enable(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "enableDeviceVersion", "handler", "deviceVersion")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableDeviceVersion", "handler", "deviceVersion")
 	defer span.End()
-	log := common_utils.LoggerFromCtx(ctx, h.logger)
+	log := local_util.LoggerFromCtx(ctx, h.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	localization.UpdateWriterContext(w, ctx)
@@ -286,6 +288,7 @@ func (h *deviceVersionAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 	}
 	span.SetAttributes(attribute.String("device_version.id", id))
 	if err := h.svc.EnableDisableDeviceVersion(ctx, id, true); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[Enable] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -317,9 +320,9 @@ func (h *deviceVersionAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/device_version/disable/{id} [patch]
 func (h *deviceVersionAdapter) Disable(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "disableDeviceVersion", "handler", "deviceVersion")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableDeviceVersion", "handler", "deviceVersion")
 	defer span.End()
-	log := common_utils.LoggerFromCtx(ctx, h.logger)
+	log := local_util.LoggerFromCtx(ctx, h.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	localization.UpdateWriterContext(w, ctx)
@@ -331,6 +334,7 @@ func (h *deviceVersionAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	}
 	span.SetAttributes(attribute.String("device_version.id", id))
 	if err := h.svc.EnableDisableDeviceVersion(ctx, id, false); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[Disable] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())

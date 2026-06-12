@@ -110,6 +110,7 @@ func (h *termAndConditionAdapter) Upload(w http.ResponseWriter, r *http.Request)
 	)
 
 	if err := h.svc.Upload(ctx, req); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[TACHandler][Upload] service err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -132,6 +133,10 @@ func (h *termAndConditionAdapter) Delete(w http.ResponseWriter, r *http.Request)
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, h.logger)
 
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
+
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
@@ -140,6 +145,8 @@ func (h *termAndConditionAdapter) Delete(w http.ResponseWriter, r *http.Request)
 	span.SetAttributes(attribute.String("tac.id", id))
 
 	if err := h.svc.Delete(ctx, id); err != nil {
+
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[TACHandler][Delete] service err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -147,6 +154,6 @@ func (h *termAndConditionAdapter) Delete(w http.ResponseWriter, r *http.Request)
 	}
 
 	log.Infof("[TACHandler][Delete] request sent id=%s", id)
-	w = localization.ApplyActionCodeHeaderFromWriter(w, r.Context())
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessTACDeleteRequestSent, nil)
 }

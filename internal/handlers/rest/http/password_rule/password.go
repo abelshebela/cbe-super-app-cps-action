@@ -123,6 +123,7 @@ func (p *passwordRuleHandler) RequestPasswordRuleUpdate(w http.ResponseWriter, r
 
 	err := p.service.RequestPasswordRuleUpdate(ctx, id, req)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("id", id)))
 		log.Errorf("[RequestPasswordRuleUpdate] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())

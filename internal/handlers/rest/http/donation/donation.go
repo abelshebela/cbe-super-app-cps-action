@@ -94,6 +94,7 @@ func (d *donationAdapter) CreateDonation(w http.ResponseWriter, r *http.Request)
 
 	fmt.Println(">>> [HANDLER] CreateDonation - calling service CreateDonation")
 	if err := d.donationApp.CreateDonation(ctx, req); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		fmt.Println(">>> [HANDLER] CreateDonation - service ERROR:", err)
 		span.RecordError(err)
 		log.Errorf("[DonationH][Create] svc err: %v", err)
@@ -177,6 +178,7 @@ func (d *donationAdapter) UpdateDonation(w http.ResponseWriter, r *http.Request)
 	fmt.Println(">>> [HANDLER] UpdateDonation - calling service UpdateDonation")
 	err = d.donationApp.UpdateDonation(ctx, id, req)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		fmt.Println(">>> [HANDLER] UpdateDonation - service ERROR:", err)
 		span.RecordError(err)
 		log.Errorf("[DonationH][Update] svc err: %v", err)
@@ -344,6 +346,7 @@ func (d *donationAdapter) UpdateDonationImage(w http.ResponseWriter, r *http.Req
 
 	span.SetAttributes(attribute.String("donation.id", id))
 	if err := d.donationApp.UpdateDonationImage(ctx, id, req); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[DonationH][UpdateImage] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -407,6 +410,7 @@ func (d *donationAdapter) DeleteDonationImage(w http.ResponseWriter, r *http.Req
 		attribute.String("donation.image_id", req.ImageID),
 	)
 	if err := d.donationApp.DeleteDonationImage(ctx, id, req.ImageID); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[DonationH][DeleteImage] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -468,6 +472,7 @@ func (d *donationAdapter) AddDonationImage(w http.ResponseWriter, r *http.Reques
 
 	span.SetAttributes(attribute.String("donation.id", id))
 	if err := d.donationApp.AddDonationImage(ctx, id, req); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[DonationH][AddImage] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -514,6 +519,7 @@ func (d *donationAdapter) EnableDonation(w http.ResponseWriter, r *http.Request)
 	span.SetAttributes(attribute.String("donation.id", id))
 	fmt.Println(">>> [HANDLER] EnableDonation - calling service")
 	if err := d.donationApp.EnableDonation(ctx, id); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		fmt.Println(">>> [HANDLER] EnableDonation - service ERROR:", err)
 		span.RecordError(err)
 		log.Errorf("[DonationH][Enable] svc err: %v", err)
@@ -565,6 +571,7 @@ func (d *donationAdapter) DisableDonation(w http.ResponseWriter, r *http.Request
 	span.SetAttributes(attribute.String("donation.id", id))
 	fmt.Println(">>> [HANDLER] DisableDonation - calling service")
 	if err := d.donationApp.DisableDonation(ctx, id); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		fmt.Println(">>> [HANDLER] DisableDonation - service ERROR:", err)
 		span.RecordError(err)
 		log.Errorf("[DonationH][Disable] svc err: %v", err)
@@ -662,6 +669,7 @@ func (a *donationAdapter) ExportDonationList(w http.ResponseWriter, r *http.Requ
 	fmt.Println(">>> [HANDLER] ExportDonationList - calling service ExportDonationData")
 	fileLink, err := a.donationApp.ExportDonationData(ctx, startDate, endDate, fileType)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		fmt.Println(">>> [HANDLER] ExportDonationList - service ERROR:", err)
 		span.RecordError(err)
 		log.Errorf("[DonationH][Export] svc err: %v", err)
@@ -707,6 +715,7 @@ func (d *donationAdapter) DeleteDonation(w http.ResponseWriter, r *http.Request)
 
 	span.SetAttributes(attribute.String("donation.id", id))
 	if err := d.donationApp.DeleteDonation(ctx, id); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[DonationH][Delete] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
