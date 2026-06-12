@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -852,7 +853,9 @@ func GetActionNameFromPath(method, path string) string {
 	}
 
 	// Handle special cases for news endpoints
+	fmt.Println("path: %v", relPath)
 	if strings.Contains(relPath, "news") {
+		fmt.Println("failed to get action group: %v", relPath)
 		return "ARTICLE"
 	}
 	// SHORTVIDEO, ARTICLECATEGORY
