@@ -1542,6 +1542,8 @@ const (
 	// Term and Condition messages
 	MsgTACUploadRequestSent = "Term and condition upload request sent successfully"
 	MsgTACUploaded          = "Term and condition uploaded successfully"
+	MsgTACUpdateRequestSent = "Term and condition update request sent successfully"
+	MsgTACUpdated           = "Term and condition updated successfully"
 	MsgTACDeleteRequestSent = "Term and condition delete request sent successfully"
 	MsgTACDeleted           = "Term and condition deleted successfully"
 	MsgTACsRetrieved        = "Terms and conditions retrieved successfully"
