@@ -22,6 +22,7 @@ import (
 type roleDelegation struct {
 	repo         storage.RoleDelegationRepository
 	jobTitleRepo storage.JobRoleRepository
+	roleRepo     storage.RoleRepository
 	cpsUserRepo  storage.CpsUserRepository
 	bpsUserRepo  storage.BPSUserRepository
 	department   storage.DepartmentRepository
@@ -142,7 +143,7 @@ func (r *roleDelegation) CreateWithExistingUser(ctx context.Context, roleDelegat
 		}
 		roleDelegation.DelegatedUserFullName = user.FullName
 		roleDelegation.DelegatedUserUserCode = user.UserCode
-		roleDelegation.DelegatedUserDepartmentOrBranch = user.DelegationID.Hex()
+		// roleDelegation.DelegatedUserDepartmentOrBranch = user.DelegationID.Hex()
 		roleDelegation.DelegatedUserJobTitle = user.JobTitle
 		roleDelegation.DelegatedUserExistingRole = user.Role
 		roleDelegation.DelegatedUserPhoneNumber = user.PhoneNumber
@@ -167,8 +168,8 @@ func (r *roleDelegation) CreateWithExistingUser(ctx context.Context, roleDelegat
 		}
 	} else {
 		department, err := r.department.FindByID(ctx, roleDelegation.NewDepartmentOrBranch)
-		if department == nil || !department.Enabled {
-			r.logger.Errorf("[RoleDelegation/Create] Department not found: %s err: %v", roleDelegation.DelegatedUserDepartmentOrBranch, err.Error())
+		if err != nil || department == nil || !department.Enabled {
+			r.logger.Errorf("[RoleDelegation/Create] Department not found: %s err: %v", roleDelegation.DelegatedUserDepartmentOrBranch, err)
 			return localization.ErrorInvalidDelegationDepartment
 		}
 	}
@@ -191,7 +192,7 @@ func (r *roleDelegation) CreateWithNewUser(ctx context.Context, roleDelegation i
 	}
 	if roleDelegation.DelegatedUserUserType == "BPS" {
 		user, err := r.bpsUserRepo.FindByOr(ctx, roleDelegation.DelegatedUserPhoneNumber, roleDelegation.DelegatedUserEmail, roleDelegation.DelegatedUserID)
-		if err != nil {
+		if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 			r.logger.Errorf("[RoleDelegation/Create] Failed to find BPS user: %v", err)
 			return localization.ErrorUnexpectedError
 		}
@@ -246,24 +247,31 @@ func (r *roleDelegation) CreateWithNewUser(ctx context.Context, roleDelegation i
 		return errors.New(localization.ErrorRoleNotFound.Code)
 	}
 	if roleDelegation.DelegationType == "BPS" {
-		if branches, err := r.branchRepo.GetBranchesByIds(ctx, []string{roleDelegation.NewDepartmentOrBranch}); err != nil || branches == nil || len(branches) == 0 {
+		if branch, err := r.branchRepo.GetBranchByCode(ctx, roleDelegation.NewDepartmentOrBranch); err != nil || branch == nil {
 			r.logger.Errorf("[RoleDelegation/Create] Branch not found: %s", roleDelegation.NewDepartmentOrBranch)
-			return localization.ErrorInvalidDelegationDepartment
+			return localization.ErrorInvalidDelegationBranch
 		}
 	} else {
 		department, err := r.department.FindByID(ctx, roleDelegation.NewDepartmentOrBranch)
-		if department == nil || !department.Enabled {
-			r.logger.Errorf("[RoleDelegation/Create] Department not found: %s err: %v", roleDelegation.DelegatedUserDepartmentOrBranch, err.Error())
+		if err != nil || department == nil || !department.Enabled {
+			r.logger.Errorf("[RoleDelegation/Create] Department not found: %s err: %v", roleDelegation.NewDepartmentOrBranch, err)
 			return localization.ErrorInvalidDelegationDepartment
 		}
 		roleDelegation.NewDepartmentOrBranch = department.ID.Hex()
 
-		existingDep, err := r.department.FindByID(ctx, roleDelegation.DelegatedUserDepartmentOrBranch)
-		if existingDep == nil || !existingDep.Enabled {
-			r.logger.Errorf("[RoleDelegation/Create] Department not found: %s err: %v", roleDelegation.DelegatedUserDepartmentOrBranch, err.Error())
-			return localization.ErrorInvalidDelegationDepartment
+		if roleDelegation.DelegatedUserExistingRole == "CPS" {
+			existingDep, err := r.department.FindByID(ctx, roleDelegation.DelegatedUserDepartmentOrBranch)
+			if err != nil || existingDep == nil || !existingDep.Enabled {
+				r.logger.Errorf("[RoleDelegation/Create] Department not found: %s err: %v", roleDelegation.DelegatedUserDepartmentOrBranch, err)
+				return localization.ErrorInvalidDelegationDepartment
+			}
+			roleDelegation.DelegatedUserDepartmentOrBranch = existingDep.ID.Hex()
+		} else {
+			if branch, err := r.branchRepo.GetBranchByCode(ctx, roleDelegation.DelegatedUserDepartmentOrBranch); err != nil || branch == nil {
+				r.logger.Errorf("[RoleDelegation/Create] Branch not found: %s", roleDelegation.NewDepartmentOrBranch)
+				return localization.ErrorInvalidDelegationBranch
+			}
 		}
-		roleDelegation.DelegatedUserDepartmentOrBranch = existingDep.ID.Hex()
 	}
 
 	roleDelegation.Enable = true
@@ -385,8 +393,15 @@ func (r *roleDelegation) FindById(ctx context.Context, id string) (*imodel.RoleD
 		} else {
 			r.logger.Errorf("[RoleDelegation/FindById] failed to find delegator department by id: %v", err)
 		}
-		if role, err := r.jobTitleRepo.FindByRole(ctx, roleDelegation.NewRoleID); err == nil && role != nil {
-			roleDelegation.DelegatedUserExistingRole = role.Role
+
+		if role, err := r.roleRepo.FindByCode(ctx, roleDelegation.DelegatedUserExistingRole); err == nil && role != nil {
+			roleDelegation.DelegatedUserExistingRole = role.Name
+		} else {
+			r.logger.Errorf("[RoleDelegation/FindById] failed to find job role by id: %v", err)
+		}
+
+		if role, err := r.roleRepo.FindByCode(ctx, roleDelegation.NewRoleID); err == nil && role != nil {
+			roleDelegation.NewRoleID = role.Name
 		} else {
 			r.logger.Errorf("[RoleDelegation/FindById] failed to find job role by id: %v", err)
 		}
@@ -429,11 +444,12 @@ func (r *roleDelegation) Update(ctx context.Context, id string, update imodel.Ro
 	return r.cpsService.CreateCPSAction(ctx, &cpsModel)
 }
 
-func NewRoleDelegationService(repo storage.RoleDelegationRepository, jobTitleRepo storage.JobRoleRepository, cpsUserRepo storage.CpsUserRepository, bpsUserRepo storage.BPSUserRepository, department storage.DepartmentRepository, branchRepo storage.AccountBlockRepository, cpsService service.CPSActionService, logger utils.Logger) service.RoleDelegationService {
+func NewRoleDelegationService(repo storage.RoleDelegationRepository, jobTitleRepo storage.JobRoleRepository, cpsUserRepo storage.CpsUserRepository, bpsUserRepo storage.BPSUserRepository, department storage.DepartmentRepository, roleRepo storage.RoleRepository, branchRepo storage.AccountBlockRepository, cpsService service.CPSActionService, logger utils.Logger) service.RoleDelegationService {
 	return &roleDelegation{
 		cpsService:   cpsService,
 		repo:         repo,
 		jobTitleRepo: jobTitleRepo,
+		roleRepo:     roleRepo,
 		cpsUserRepo:  cpsUserRepo,
 		bpsUserRepo:  bpsUserRepo,
 		branchRepo:   branchRepo,

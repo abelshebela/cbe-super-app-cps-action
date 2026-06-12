@@ -37,13 +37,14 @@ type cpsUserService struct {
 	bpsRepo           storage.BPSUserRepository
 }
 
-func NewCPSUserService(repo storage.CpsUserRepository, JobRoleRepo storage.JobRoleRepository, approverRepo storage.CPSActionApproveIndexRepository, bpsApproverRepo storage.BPSActionApproveIndexRepository, departmentRepo storage.DepartmentRepository, permission service.PermissionService, cps service.CPSActionService, bps storage.BPSUserRepository, logger shared_utils.Logger) service.CPSUserService {
+func NewCPSUserService(repo storage.CpsUserRepository, JobRoleRepo storage.JobRoleRepository, approverRepo storage.CPSActionApproveIndexRepository, bpsApproverRepo storage.BPSActionApproveIndexRepository, departmentRepo storage.DepartmentRepository, permission service.PermissionService, cps service.CPSActionService, bps storage.BPSUserRepository, roleDelegation storage.RoleDelegationRepository, logger shared_utils.Logger) service.CPSUserService {
 	return &cpsUserService{
 		repo:              repo,
 		bpsRepo:           bps,
 		jobRoleRepo:       JobRoleRepo,
 		approverRepo:      approverRepo,
 		bpsApproverRepo:   bpsApproverRepo,
+		roleDelegation:    roleDelegation,
 		permissionService: permission,
 		cpsService:        cps,
 		logger:            logger,
@@ -564,7 +565,8 @@ func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) 
 	populated, err := s.repo.GetPopulatedWithRole(ctx, userCode)
 	if err != nil {
 		span.AddEvent("failed to get populated by id", trace.WithAttributes(attribute.String("error", err.Error())))
-		if err.Error() != localization.ErrorFileNotFound.Code {
+		if !errors.Is(err, localization.ErrorUserNotFound) {
+			s.logger.Errorf("[GetCpsUserDetail] cps user not found for user code: %s in GetPopulatedWithRole", userCode)
 			return nil, err
 		}
 
@@ -576,7 +578,7 @@ func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) 
 		}
 	}
 
-	s.logger.Infof("[GetCpsUserDetail] fetched populated user: %v", populated)
+	s.logger.Infof("[GetCpsUserDetail] fetched populated user: %+v", populated)
 
 	var makerAlloc, checkerAlloc, auditorAlloc, portalCard, bpsCheckerAlloc, bpsAuditorAlloc []string
 	var roles *imodel.JobRole

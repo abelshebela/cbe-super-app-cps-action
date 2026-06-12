@@ -324,7 +324,10 @@ func (r *roleDelegationRepository) FindByUsername(ctx context.Context, id string
 	data, err := r.repo.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		log.Errorf("[RoleDelegationRepository][FindAllWithPagination] failed to fetch role delegations: %v", err)
-		return nil, local_util.HandleDBError(err)
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return &types.PaginatedResponse[[]imodel.RoleDelegation]{}, localization.ErrRoleDelegationForUserNotFound
+		}
+		return nil, localization.ErrorUnexpectedError
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
@@ -347,7 +350,10 @@ func (r *roleDelegationRepository) FindByUserCode(ctx context.Context, usercode 
 	}, bson.M{})
 	if err != nil {
 		log.Errorf("[RoleDelegationRepository][FindByUsername] failed to fetch role delegations: %v", err)
-		return nil, local_util.HandleDBError(err)
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, localization.ErrorUserNotFound
+		}
+		return nil, localization.ErrorUnexpectedError
 	}
 
 	return &cpsuser.CpsUserPopulatedResponse{
@@ -365,6 +371,7 @@ func (r *roleDelegationRepository) FindByUserCode(ctx context.Context, usercode 
 		UserName:           data.DelegatedUserID,
 		Realm:              data.DelegatedUserUserType,
 		IsDelegationActive: true,
+		DelegatedRole:      data.NewRoleID,
 	}, nil
 }
 
