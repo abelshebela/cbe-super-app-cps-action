@@ -48,8 +48,11 @@ func ParseUploadRequest(r *http.Request, logger utils.Logger) (tac_dto.CreateTAC
 
 func MapToResponse(m *imodel.AccountOpeningTerms) tac_dto.TACResponse {
 	return tac_dto.TACResponse{
-		ID:                     m.ID,
-		AccountProductID:       m.AccountProductID,
+		ID: m.ID,
+		AccountProduct: tac_dto.TACAccountProduct{
+			ID:          m.AccountProductID,
+			ProductName: m.ProductName,
+		},
 		ActivationTime:         m.ActivationTime,
 		VersionLabel:           m.VersionLabel,
 		TermsAndConditionsPath: m.TermsAndConditionsPath,

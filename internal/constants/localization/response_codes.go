@@ -10032,6 +10032,13 @@ var (
 		Type:       "error",
 	}
 
+	ErrorAPHasActiveTerms = ResponseCode{
+		Code:       "ERROR_AP_HAS_ACTIVE_TERMS",
+		StatusCode: StatusConflict,
+		Message:    MsgAPHasActiveTerms,
+		Type:       "error",
+	}
+
 	// Term and Condition success codes
 	SuccessTACUploadRequestSent = ResponseCode{
 		Code:       "SUCCESS_TAC_UPLOAD_REQUEST_SENT",
