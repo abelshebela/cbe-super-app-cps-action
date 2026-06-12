@@ -285,16 +285,157 @@ func (r *roleDelegationRepository) FindAllWithPagination(ctx context.Context, fi
 		return &types.PaginatedResponse[[]imodel.RoleDelegation]{}, nil
 	}
 
-	data, err := r.repo.FindAllWithPaginationD(ctx, dal.FilterParam{
-		Filter:     filter,
-		Projection: bson.M{},
-		Sort:       bson.D{bson.E{Key: "created_at", Value: -1}},
-		Skip:       skip,
-		Limit:      limit,
-	})
+	pipeline := mongo.Pipeline{
+		bson.D{{Key: "$match", Value: filter}},
+		bson.D{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},
+		bson.D{{Key: "$skip", Value: skip}},
+		bson.D{{Key: "$limit", Value: limit}},
+		bson.D{{Key: "$addFields", Value: bson.M{
+			"new_department_obj_id": bson.M{
+				"$convert": bson.M{
+					"input":   "$new_department_or_branch",
+					"to":      "objectId",
+					"onError": nil,
+					"onNull":  nil,
+				},
+			},
+			"delegated_department_obj_id": bson.M{
+				"$convert": bson.M{
+					"input":   "$delegated_user_department_or_branch",
+					"to":      "objectId",
+					"onError": nil,
+					"onNull":  nil,
+				},
+			},
+		}}},
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from":         "department",
+			"localField":   "new_department_obj_id",
+			"foreignField": "_id",
+			"as":           "new_department_info",
+		}}},
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from":         "department",
+			"localField":   "delegated_department_obj_id",
+			"foreignField": "_id",
+			"as":           "delegated_department_info",
+		}}},
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from": "job_roles",
+			"let":  bson.M{"role_value": "$new_role_id"},
+			"pipeline": mongo.Pipeline{
+				bson.D{{Key: "$match", Value: bson.M{
+					"$expr": bson.M{"$and": bson.A{
+						bson.M{"$ne": bson.A{"$is_deleted", true}},
+						bson.M{"$or": bson.A{
+							bson.M{"$eq": bson.A{"$code", "$$role_value"}},
+							bson.M{"$eq": bson.A{"$role", "$$role_value"}},
+							bson.M{"$eq": bson.A{"$name", "$$role_value"}},
+							bson.M{"$eq": bson.A{"$job_title", "$$role_value"}},
+						}},
+					}},
+				}}},
+				bson.D{{Key: "$limit", Value: 1}},
+			},
+			"as": "new_role_info",
+		}}},
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from": "job_roles",
+			"let":  bson.M{"role_value": "$delegated_user_existing_role"},
+			"pipeline": mongo.Pipeline{
+				bson.D{{Key: "$match", Value: bson.M{
+					"$expr": bson.M{"$and": bson.A{
+						bson.M{"$ne": bson.A{"$is_deleted", true}},
+						bson.M{"$or": bson.A{
+							bson.M{"$eq": bson.A{"$code", "$$role_value"}},
+							bson.M{"$eq": bson.A{"$role", "$$role_value"}},
+							bson.M{"$eq": bson.A{"$name", "$$role_value"}},
+							bson.M{"$eq": bson.A{"$job_title", "$$role_value"}},
+						}},
+					}},
+				}}},
+				bson.D{{Key: "$limit", Value: 1}},
+			},
+			"as": "delegated_role_info",
+		}}},
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from": "job_roles",
+			"let":  bson.M{"role_value": "$delegator_user_role"},
+			"pipeline": mongo.Pipeline{
+				bson.D{{Key: "$match", Value: bson.M{
+					"$expr": bson.M{"$and": bson.A{
+						bson.M{"$ne": bson.A{"$is_deleted", true}},
+						bson.M{"$or": bson.A{
+							bson.M{"$eq": bson.A{"$code", "$$role_value"}},
+							bson.M{"$eq": bson.A{"$role", "$$role_value"}},
+							bson.M{"$eq": bson.A{"$name", "$$role_value"}},
+							bson.M{"$eq": bson.A{"$job_title", "$$role_value"}},
+						}},
+					}},
+				}}},
+				bson.D{{Key: "$limit", Value: 1}},
+			},
+			"as": "delegator_role_info",
+		}}},
+		bson.D{{Key: "$addFields", Value: bson.M{
+			"new_department_or_branch_name": bson.M{
+				"$cond": bson.A{
+					bson.M{"$eq": bson.A{"$delegation_type", "BPS"}},
+					"$new_department_or_branch",
+					bson.M{"$ifNull": bson.A{bson.M{"$arrayElemAt": bson.A{"$new_department_info.department", 0}}, ""}},
+				},
+			},
+			"delegated_user_department_or_branch_name": bson.M{
+				"$cond": bson.A{
+					bson.M{"$eq": bson.A{"$delegated_user_user_type", "BPS"}},
+					"$delegated_user_department_or_branch",
+					bson.M{"$ifNull": bson.A{bson.M{"$arrayElemAt": bson.A{"$delegated_department_info.department", 0}}, ""}},
+				},
+			},
+			"new_role_id_name": bson.M{"$ifNull": bson.A{
+				bson.M{"$arrayElemAt": bson.A{"$new_role_info.name", 0}},
+				bson.M{"$ifNull": bson.A{
+					bson.M{"$arrayElemAt": bson.A{"$new_role_info.job_title", 0}},
+					bson.M{"$ifNull": bson.A{bson.M{"$arrayElemAt": bson.A{"$new_role_info.role_name", 0}}, ""}},
+				}},
+			}},
+			"delegated_user_existing_role_name": bson.M{"$ifNull": bson.A{
+				bson.M{"$arrayElemAt": bson.A{"$delegated_role_info.name", 0}},
+				bson.M{"$ifNull": bson.A{
+					bson.M{"$arrayElemAt": bson.A{"$delegated_role_info.job_title", 0}},
+					bson.M{"$ifNull": bson.A{bson.M{"$arrayElemAt": bson.A{"$delegated_role_info.role_name", 0}}, ""}},
+				}},
+			}},
+			"delegator_user_role_name": bson.M{"$ifNull": bson.A{
+				bson.M{"$arrayElemAt": bson.A{"$delegator_role_info.name", 0}},
+				bson.M{"$ifNull": bson.A{
+					bson.M{"$arrayElemAt": bson.A{"$delegator_role_info.job_title", 0}},
+					bson.M{"$ifNull": bson.A{bson.M{"$arrayElemAt": bson.A{"$delegator_role_info.role_name", 0}}, ""}},
+				}},
+			}},
+		}}},
+		bson.D{{Key: "$project", Value: bson.M{
+			"new_department_obj_id":       0,
+			"delegated_department_obj_id": 0,
+			"new_department_info":         0,
+			"delegated_department_info":   0,
+			"new_role_info":               0,
+			"delegated_role_info":         0,
+			"delegator_role_info":         0,
+		}}},
+	}
+
+	cursor, err := r.collection.Aggregate(ctx, pipeline)
 	if err != nil {
 		log.Errorf("[RoleDelegationRepository][FindByUsername] failed to fetch role delegations: %v", err)
 		return nil, local_util.HandleDBError(err)
+	}
+	defer cursor.Close(ctx)
+
+	var data []imodel.RoleDelegation
+	if err = cursor.All(ctx, &data); err != nil {
+		log.Errorf("[RoleDelegationRepository][FindByUsername] failed to decode role delegations: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
@@ -303,6 +444,80 @@ func (r *roleDelegationRepository) FindAllWithPagination(ctx context.Context, fi
 		Meta: meta,
 	}, nil
 }
+
+// // FindAllWithPagination implements [storage.RoleDelegationRepository].
+// func (r *roleDelegationRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.RoleDelegation], error) {
+// 	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+// 	searchKeys := bson.M{}
+// 	if filterParam.Search != "" {
+// 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
+// 		searchKeys["$or"] = []bson.M{
+// 			{"delegated_user_job_title": searchRegex},
+// 			{"delegated_user_id": searchRegex},
+// 			{"delegated_user_email": searchRegex},
+// 			{"delegated_user_phone_number": searchRegex},
+// 			{"delegated_user_full_name": searchRegex},
+// 		}
+// 	}
+
+// 	allowedKeys := []string{"enable", "delegated_user_email", "delegated_user_phone_number", "delegated_user_job_title", "delegated_user_id", "delegated_user_full_name", "start_at", "end_at"}
+// 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
+
+// 	if val, ok := filterParam.Filters["portal"]; ok {
+// 		if val == "BPS" || val == "CPS" {
+// 			filter["delegation_type"] = val
+// 		}
+// 	}
+
+// 	if val, ok := filterParam.Filters["status"]; ok {
+// 		if val == "Expired" {
+// 			filter["enable"] = true
+// 			filter["end_at"] = bson.M{"$lte": time.Now()}
+// 		}
+// 		if val == "Revoked" {
+// 			filter["enable"] = false
+// 		}
+// 		if val == "Active" {
+// 			filter["enable"] = true
+// 			filter["start_at"] = bson.M{"$lte": time.Now()}
+// 			filter["end_at"] = bson.M{"$gt": time.Now()}
+// 		}
+// 		if val == "Suspended" {
+// 			filter["enable"] = true
+// 			filter["start_at"] = bson.M{"$gt": time.Now()}
+// 			filter["end_at"] = bson.M{"$gt": time.Now()}
+// 		}
+// 	}
+
+// 	total, err := r.repo.TotalCount(ctx, filter)
+// 	if err != nil {
+// 		log.Errorf("[RoleDelegationRepository][FindByUsername] failed to count role delegations: %v", err)
+// 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+// 	}
+
+// 	if total <= 0 || skip >= total {
+// 		return &types.PaginatedResponse[[]imodel.RoleDelegation]{}, nil
+// 	}
+
+// 	data, err := r.repo.FindAllWithPaginationD(ctx, dal.FilterParam{
+// 		Filter:     filter,
+// 		Projection: bson.M{},
+// 		Sort:       bson.D{bson.E{Key: "created_at", Value: -1}},
+// 		Skip:       skip,
+// 		Limit:      limit,
+// 	})
+// 	if err != nil {
+// 		log.Errorf("[RoleDelegationRepository][FindByUsername] failed to fetch role delegations: %v", err)
+// 		return nil, local_util.HandleDBError(err)
+// 	}
+
+// 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
+// 	return &types.PaginatedResponse[[]imodel.RoleDelegation]{
+// 		Data: data,
+// 		Meta: meta,
+// 	}, nil
+// }
 
 func (r *roleDelegationRepository) FindByUsername(ctx context.Context, id string, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.RoleDelegation], error) {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
