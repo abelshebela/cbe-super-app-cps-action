@@ -54,7 +54,7 @@ func (r *roleDelegation) Authorize(ctx context.Context, cpsAction *model.CPSActi
 		log.Errorf("[RoleDelegation Service][Authorize] map to RoleDelegation failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	log.Infof("[RoleDelegation Service][Authorize] CPS action data as RoleDelegation: %v", roleDelegation)
+	log.Infof("[RoleDelegation Service][Authorize] CPS action data as RoleDelegation: %+v", roleDelegation)
 	if cpsAction.UniqueId != "" {
 		if oid, err := bson.ObjectIDFromHex(cpsAction.UniqueId); err == nil {
 			roleDelegation.ID = oid

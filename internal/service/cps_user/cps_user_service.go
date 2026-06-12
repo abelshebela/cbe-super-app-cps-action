@@ -32,16 +32,18 @@ type cpsUserService struct {
 	permissionService service.PermissionService
 	departmentRepo    storage.DepartmentRepository
 	roleDelegation    storage.RoleDelegationRepository
+	roleRepo          storage.RoleRepository
 	logger            shared_utils.Logger
 	cpsService        service.CPSActionService
 	bpsRepo           storage.BPSUserRepository
 }
 
-func NewCPSUserService(repo storage.CpsUserRepository, JobRoleRepo storage.JobRoleRepository, approverRepo storage.CPSActionApproveIndexRepository, bpsApproverRepo storage.BPSActionApproveIndexRepository, departmentRepo storage.DepartmentRepository, permission service.PermissionService, cps service.CPSActionService, bps storage.BPSUserRepository, roleDelegation storage.RoleDelegationRepository, logger shared_utils.Logger) service.CPSUserService {
+func NewCPSUserService(repo storage.CpsUserRepository, JobRoleRepo storage.JobRoleRepository, roleRepo storage.RoleRepository, approverRepo storage.CPSActionApproveIndexRepository, bpsApproverRepo storage.BPSActionApproveIndexRepository, departmentRepo storage.DepartmentRepository, permission service.PermissionService, cps service.CPSActionService, bps storage.BPSUserRepository, roleDelegation storage.RoleDelegationRepository, logger shared_utils.Logger) service.CPSUserService {
 	return &cpsUserService{
 		repo:              repo,
 		bpsRepo:           bps,
 		jobRoleRepo:       JobRoleRepo,
+		roleRepo:          roleRepo,
 		approverRepo:      approverRepo,
 		bpsApproverRepo:   bpsApproverRepo,
 		roleDelegation:    roleDelegation,
@@ -584,14 +586,21 @@ func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) 
 	var roles *imodel.JobRole
 	if populated.IsDelegationActive {
 		s.logger.Infof("[GetCpsUserDetail]fetching role by delegated role: %s", populated.DelegatedRole)
-		roles, err = s.jobRoleRepo.FindByRole(ctx, populated.DelegatedRole)
+		rolesD, err := s.roleRepo.FindByCode(ctx, populated.DelegatedRole)
 		if err != nil {
 			s.logger.Errorf("[GetCpsUserDetail][FindByRole] failed to find role by delegation err:%v", err)
 			span.AddEvent("failed to find role by delegation", trace.WithAttributes(attribute.String("error", err.Error())))
 			return nil, err
 		}
-		populated.Role.Code = roles.RoleCode
-		populated.Role.Name = roles.RoleName
+		populated.Role.Code = rolesD.Code
+		populated.Role.Name = rolesD.Name
+		roles, err = s.jobRoleRepo.FindByRole(ctx, rolesD.Code)
+		if err != nil {
+			s.logger.Errorf("[GetCpsUserDetail][FindByRole] failed to find role by delegation err:%v", err)
+			span.AddEvent("failed to find role by delegation", trace.WithAttributes(attribute.String("error", err.Error())))
+			return nil, localization.ErrorRoleNotFound
+		}
+
 	} else {
 		s.logger.Infof("[GetCpsUserDetail] fetching role by job title: %s", populated.JobTitle)
 		if populated.JobTitle != "" {
