@@ -246,7 +246,6 @@ func (r *roleDelegation) CreateWithNewUser(ctx context.Context, roleDelegation i
 		}
 		roleDelegation.DelegatedUserDepartmentOrBranch = existingDep.ID.Hex()
 	}
-
 	// handle new role validation
 	jobRole, err := r.jobTitleRepo.FindByCode(ctx, roleDelegation.NewRoleID)
 	if err != nil {
