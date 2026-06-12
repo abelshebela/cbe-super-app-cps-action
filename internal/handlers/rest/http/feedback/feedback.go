@@ -81,6 +81,7 @@ func (f *feedbackAdapter) CreateFeedback(w http.ResponseWriter, r *http.Request)
 	)
 	_, err := f.feedbackApplication.CreateFeedback(ctx, req, userID)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[CreateFeedback] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())

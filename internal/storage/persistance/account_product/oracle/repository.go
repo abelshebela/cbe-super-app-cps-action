@@ -8,11 +8,11 @@ import (
 	"strings"
 	"time"
 
+	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
-	"cbe-super-app-cps-action/internal/constants/lib"
 	ap_core "cbe-super-app-cps-action/internal/storage/persistance/account_product/oracle/core"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -54,6 +54,7 @@ func (r *repository) Create(ctx context.Context, ap *imodel.AccountProduct) erro
 		}
 		return nil
 	}
+
 	return r.createInner(ctx, ap)
 }
 
@@ -61,18 +62,17 @@ func (r *repository) createInner(ctx context.Context, ap *imodel.AccountProduct)
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
 	q := `INSERT INTO ACCOUNT_PRODUCTS
-		(CBS_PRODUCT_CODE, PRODUCT_NAME, PRODUCT_TAG_LINE, PRODUCT_LINE,
+		(CBS_PRODUCT_CODE, PRODUCT_NAME, PRODUCT_TAG_LINE,
 		 ACCOUNT_CATEGORY_ID, ACCOUNT_CURRENCY,
 		 MINIMUM_OPENING_BALANCE, MINIMUM_MAINTENANCE_FEE, INTEREST_FEE,
 		 FAQ_URL, PRODUCT_FEATURES, HAS_PHYSICAL_CARD, HAS_VIRTUAL_CARD,
 		 PRODUCT_ICON, PRODUCT_COVER_IMAGE, IS_ENABLED, IS_DELETED)
-		VALUES (:1, :2, :3, :4, HEXTORAW(:5), :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17)`
+		VALUES (:1, :2, :3, HEXTORAW(:4), :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16)`
 
 	if _, err := r.db.ExecContext(ctx, q,
 		ap.CBSProductCode,
 		ap.ProductName,
 		ap.ProductTagLine,
-		ap.ProductLine,
 		ap.AccountCategoryID,
 		ap.AccountCurrency,
 		ap.MinimumOpeningBalance,
@@ -99,18 +99,17 @@ func (r *repository) Update(ctx context.Context, id string, ap *imodel.AccountPr
 
 	q := `UPDATE ACCOUNT_PRODUCTS
 		SET CBS_PRODUCT_CODE = :1, PRODUCT_NAME = :2, PRODUCT_TAG_LINE = :3,
-		    PRODUCT_LINE = :4, ACCOUNT_CATEGORY_ID = HEXTORAW(:5), ACCOUNT_CURRENCY = :6,
-		    MINIMUM_OPENING_BALANCE = :7, MINIMUM_MAINTENANCE_FEE = :8, INTEREST_FEE = :9,
-		    FAQ_URL = :10, PRODUCT_FEATURES = :11, HAS_PHYSICAL_CARD = :12,
-		    HAS_VIRTUAL_CARD = :13, PRODUCT_ICON = :14, PRODUCT_COVER_IMAGE = :15,
-		    LAST_MODIFIED_AT = :16
-		WHERE ID = HEXTORAW(:17) AND IS_DELETED = 0`
+		    ACCOUNT_CATEGORY_ID = HEXTORAW(:4), ACCOUNT_CURRENCY = :5,
+		    MINIMUM_OPENING_BALANCE = :6, MINIMUM_MAINTENANCE_FEE = :7, INTEREST_FEE = :8,
+		    FAQ_URL = :9, PRODUCT_FEATURES = :10, HAS_PHYSICAL_CARD = :11,
+		    HAS_VIRTUAL_CARD = :12, PRODUCT_ICON = :13, PRODUCT_COVER_IMAGE = :14,
+		    LAST_MODIFIED_AT = :15
+		WHERE ID = HEXTORAW(:16) AND IS_DELETED = 0`
 
 	res, err := r.db.ExecContext(ctx, q,
 		ap.CBSProductCode,
 		ap.ProductName,
 		ap.ProductTagLine,
-		ap.ProductLine,
 		ap.AccountCategoryID,
 		ap.AccountCurrency,
 		ap.MinimumOpeningBalance,
@@ -139,11 +138,23 @@ func (r *repository) Delete(ctx context.Context, id string) error {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 	log.Infof("[APOracle][Delete] id=%s", id)
 
-	q := `UPDATE ACCOUNT_PRODUCTS
-		SET IS_DELETED = 1, IS_ENABLED = 0, DELETED_AT = :1, LAST_MODIFIED_AT = :1
-		WHERE ID = HEXTORAW(:2) AND IS_DELETED = 0`
+	var linkedCount int64
+	if err := r.db.QueryRowContext(ctx,
+		`SELECT COUNT(*) FROM ACCOUNT_OPENING_TERMS WHERE ACCOUNT_PRODUCT_ID = HEXTORAW(:1)`,
+		id,
+	).Scan(&linkedCount); err != nil {
+		log.Errorf("[APOracle][Delete] linked terms check: %v", err)
+		return local_util.HandleDBError(err)
+	}
+	if linkedCount > 0 {
+		log.Errorf("[APOracle][Delete] product id=%s has %d active term(s)", id, linkedCount)
+		return errors.New(localization.ErrorAPHasActiveTerms.Code)
+	}
 
-	res, err := r.db.ExecContext(ctx, q, time.Now(), id)
+	res, err := r.db.ExecContext(ctx,
+		`DELETE FROM ACCOUNT_PRODUCTS WHERE ID = HEXTORAW(:1)`,
+		id,
+	)
 	if err != nil {
 		log.Errorf("[APOracle][Delete] exec: %v", err)
 		return local_util.HandleDBError(err)
@@ -234,13 +245,13 @@ func (r *repository) FindAllWithPagination(ctx context.Context, filterParam type
 	}
 
 	if filterParam.Filters != nil {
-		if v, ok := filterParam.Filters["product_line"]; ok {
-			if s, _ := v.(string); strings.TrimSpace(s) != "" {
-				conds = append(conds, fmt.Sprintf("UPPER(ap.PRODUCT_LINE) = UPPER(:%d)", idx))
-				args = append(args, s)
-				idx++
-			}
-		}
+		// if v, ok := filterParam.Filters["product_line"]; ok {
+		// 	if s, _ := v.(string); strings.TrimSpace(s) != "" {
+		// 		conds = append(conds, fmt.Sprintf("UPPER(ap.PRODUCT_LINE) = UPPER(:%d)", idx))
+		// 		args = append(args, s)
+		// 		idx++
+		// 	}
+		// }
 		if v, ok := filterParam.Filters["account_category_id"]; ok {
 			if s, _ := v.(string); strings.TrimSpace(s) != "" {
 				conds = append(conds, fmt.Sprintf("ap.ACCOUNT_CATEGORY_ID = HEXTORAW(:%d)", idx))

@@ -35,7 +35,7 @@ func (r *repository) Create(ctx context.Context, t *imodel.AccountOpeningTerms) 
 
 	q := `INSERT INTO ACCOUNT_OPENING_TERMS
 		(ACCOUNT_PRODUCT_ID, ACTIVATION_TIME, VERSION_LABEL, TERMS_AND_CONDITIONS_PATH, IS_ENABLED, IS_DELETED)
-		VALUES (HEXTORAW(:1), :2, :3, :4, :5, :6)`
+		VALUES (HEXTORAW(:1), TO_DATE(:2, 'YYYY-MM-DD'), :3, :4, :5, :6)`
 
 	if _, err := r.db.ExecContext(ctx, q,
 		t.AccountProductID,
@@ -51,15 +51,40 @@ func (r *repository) Create(ctx context.Context, t *imodel.AccountOpeningTerms) 
 	return nil
 }
 
+func (r *repository) Update(ctx context.Context, id string, t *imodel.AccountOpeningTerms) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+	log.Infof("[TACOracle][Update] id=%s", id)
+
+	q := `UPDATE ACCOUNT_OPENING_TERMS
+		SET ACTIVATION_TIME = TO_DATE(:1, 'YYYY-MM-DD'), VERSION_LABEL = :2,
+		    TERMS_AND_CONDITIONS_PATH = :3, LAST_MODIFIED_AT = :4
+		WHERE ID = HEXTORAW(:5)`
+
+	res, err := r.db.ExecContext(ctx, q,
+		t.ActivationTime,
+		t.VersionLabel,
+		t.TermsAndConditionsPath,
+		time.Now(),
+		id,
+	)
+	if err != nil {
+		log.Errorf("[TACOracle][Update] exec: %v", err)
+		return local_util.HandleDBError(err)
+	}
+	if n, _ := res.RowsAffected(); n == 0 {
+		return errors.New(localization.ErrorResourceNotFound.Code)
+	}
+	return nil
+}
+
 func (r *repository) Delete(ctx context.Context, id string) error {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 	log.Infof("[TACOracle][Delete] id=%s", id)
 
-	q := `UPDATE ACCOUNT_OPENING_TERMS
-		SET IS_DELETED = 1, IS_ENABLED = 0, DELETED_AT = :1, LAST_MODIFIED_AT = :1
-		WHERE ID = HEXTORAW(:2) AND IS_DELETED = 0`
-
-	res, err := r.db.ExecContext(ctx, q, time.Now(), id)
+	res, err := r.db.ExecContext(ctx,
+		`DELETE FROM ACCOUNT_OPENING_TERMS WHERE ID = HEXTORAW(:1)`,
+		id,
+	)
 	if err != nil {
 		log.Errorf("[TACOracle][Delete] exec: %v", err)
 		return local_util.HandleDBError(err)

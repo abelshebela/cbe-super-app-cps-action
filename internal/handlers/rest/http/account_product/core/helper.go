@@ -149,12 +149,14 @@ func ParseUpdateRequest(r *http.Request, logger utils.Logger) (ap_dto.UpdateAPRe
 
 func MapToResponse(m *imodel.AccountProduct) ap_dto.APResponse {
 	return ap_dto.APResponse{
-		ID:                    m.ID,
-		CBSProductCode:        m.CBSProductCode,
-		ProductName:           m.ProductName,
-		ProductTagLine:        m.ProductTagLine,
-		ProductLine:           m.ProductLine,
-		AccountCategoryID:     m.AccountCategoryID,
+		ID:             m.ID,
+		CBSProductCode: m.CBSProductCode,
+		ProductName:    m.ProductName,
+		ProductTagLine: m.ProductTagLine,
+		AccountCategory: ap_dto.APAccountCategory{
+			ID:           m.AccountCategoryID,
+			CategoryName: m.CategoryName,
+		},
 		AccountCurrency:       m.AccountCurrency,
 		MinimumOpeningBalance: m.MinimumOpeningBalance,
 		MinimumMaintenanceFee: m.MinimumMaintenanceFee,

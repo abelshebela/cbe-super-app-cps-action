@@ -93,6 +93,7 @@ func (e *EventMerchantHandler) CreateEventMerchant(w http.ResponseWriter, r *htt
 	m := core.CreateEventMerchantRequestToModel(req)
 
 	if err := e.service.Create(ctx, m); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -138,6 +139,7 @@ func (e *EventMerchantHandler) DeleteEventMerchant(w http.ResponseWriter, r *htt
 		return
 	}
 	if err := e.service.Delete(ctx, id); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -178,6 +180,7 @@ func (e *EventMerchantHandler) DisableEventMerchant(w http.ResponseWriter, r *ht
 		return
 	}
 	if err := e.service.EnableOrDisable(ctx, req.MerchantIDs, false); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -224,6 +227,7 @@ func (e *EventMerchantHandler) EnableEventMerchant(w http.ResponseWriter, r *htt
 		return
 	}
 	if err := e.service.EnableOrDisable(ctx, req.MerchantIDs, true); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -346,6 +350,7 @@ func (e *EventMerchantHandler) UpdateEventMerchant(w http.ResponseWriter, r *htt
 	}
 	m := core.UpdateEventMerchantRequestToModel(req)
 	if err := e.service.Update(ctx, id, m); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}

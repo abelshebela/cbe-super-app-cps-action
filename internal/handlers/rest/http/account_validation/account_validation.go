@@ -130,6 +130,7 @@ func (h *accountValidationAdapter) Update(w http.ResponseWriter, r *http.Request
 		attribute.String("account_validation.identifier", req.Identifier),
 	)
 	if err := h.accountValidationService.Update(ctx, id, rule); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[Update] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())

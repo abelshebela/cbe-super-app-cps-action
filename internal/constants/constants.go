@@ -967,6 +967,7 @@ const (
 
 	// Term and Condition
 	RequestCreateTermAndCondition RequestAction = "CREATE_TERM_AND_CONDITION"
+	RequestUpdateTermAndCondition RequestAction = "UPDATE_TERM_AND_CONDITION"
 	RequestDeleteTermAndCondition RequestAction = "DELETE_TERM_AND_CONDITION"
 
 	// Vault Amount Tier
@@ -1280,9 +1281,9 @@ const (
 	EventFolderName            ImageFolderName = "events"
 	TopupFolderName            ImageFolderName = "topups"
 	VaultCategoryFolderName    ImageFolderName = "vault_categories"
-	CustomerKYCFolderName       ImageFolderName = "customer_kyc"
-	AccountProductFolderName    ImageFolderName = "account_products"
-	TermAndConditionFolderName  ImageFolderName = "term_and_conditions"
+	CustomerKYCFolderName      ImageFolderName = "customer_kyc"
+	AccountProductFolderName   ImageFolderName = "account_products"
+	TermAndConditionFolderName ImageFolderName = "term_and_conditions"
 )
 
 // ---------------------------------------------------------------------------

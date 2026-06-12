@@ -1518,6 +1518,7 @@ const (
 	MsgAPCAlreadyEnabled     = "Account product category is already enabled"
 	MsgAPCAlreadyDisabled    = "Account product category is already disabled"
 	MsgAPCAlreadyExists      = "Account product category CBS code already exists"
+	MsgAPCHasActiveProducts  = "Cannot delete category: there are active account products linked to it"
 
 	// Account Product messages
 	MsgAPCreateRequestSent  = "Account product create request sent successfully"
@@ -1536,10 +1537,13 @@ const (
 	MsgAPAlreadyEnabled     = "Account product is already enabled"
 	MsgAPAlreadyDisabled    = "Account product is already disabled"
 	MsgAPAlreadyExists      = "Account product CBS code already exists"
+	MsgAPHasActiveTerms     = "Cannot delete product: there are active terms and conditions linked to it"
 
 	// Term and Condition messages
 	MsgTACUploadRequestSent = "Term and condition upload request sent successfully"
 	MsgTACUploaded          = "Term and condition uploaded successfully"
+	MsgTACUpdateRequestSent = "Term and condition update request sent successfully"
+	MsgTACUpdated           = "Term and condition updated successfully"
 	MsgTACDeleteRequestSent = "Term and condition delete request sent successfully"
 	MsgTACDeleted           = "Term and condition deleted successfully"
 	MsgTACsRetrieved        = "Terms and conditions retrieved successfully"

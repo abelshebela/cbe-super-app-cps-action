@@ -3,7 +3,9 @@ package term_and_condition_service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
+	"time"
 
 	"cbe-super-app-cps-action/internal/constants"
 	tac_dto "cbe-super-app-cps-action/internal/constants/dto/term_and_condition"
@@ -73,6 +75,14 @@ func (s *accountOpeningTermsService) Authorize(ctx context.Context, cpsAction *m
 		}
 		log.Infof("[TACSvc][Authorize] created")
 
+	case constants.RequestUpdateTermAndCondition:
+		if err := s.repo.Update(ctx, cpsAction.UniqueId, &tac); err != nil {
+			span.AddEvent("update failed", trace.WithAttributes(attribute.String("error", err.Error())))
+			log.Errorf("[TACSvc][Authorize] update err: %v", err)
+			return nil, err
+		}
+		log.Infof("[TACSvc][Authorize] updated id=%s", cpsAction.UniqueId)
+
 	case constants.RequestDeleteTermAndCondition:
 		if err := s.repo.Delete(ctx, cpsAction.UniqueId); err != nil {
 			span.AddEvent("delete failed", trace.WithAttributes(attribute.String("error", err.Error())))
@@ -141,8 +151,21 @@ func (s *accountOpeningTermsService) Upload(ctx context.Context, req tac_dto.Cre
 		return errors.New(localization.ErrorTACAlreadyExists.Code)
 	}
 
-	pdfURL, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.TermAndCondition,
-		string(constants.TermAndConditionFolderName), *s.cfg, "", s.logger)
+	pdfFile, err := req.TermAndCondition.Open()
+	if err != nil {
+		log.Errorf("[TACSvc][Upload] open pdf: %v", err)
+		return errors.New(localization.ErrorUnhandledServer.Code)
+	}
+	defer pdfFile.Close()
+
+	objectKey := fmt.Sprintf("%s/%d-%s",
+		constants.TermAndConditionFolderName,
+		time.Now().UnixNano(),
+		req.TermAndCondition.Filename,
+	)
+
+	pdfURL, err := lib.UploadPDFToMinio(ctx, s.minio, s.bucketName,
+		pdfFile, req.TermAndCondition.Size, *s.cfg, objectKey, s.logger)
 	if err != nil {
 		span.AddEvent("pdf upload failed", trace.WithAttributes(attribute.String("error", err.Error())))
 		log.Errorf("[TACSvc][Upload] upload pdf err: %v", err)
@@ -166,6 +189,71 @@ func (s *accountOpeningTermsService) Upload(ctx context.Context, req tac_dto.Cre
 		return err
 	}
 	log.Infof("[TACSvc][Upload] request created product=%s version=%s", req.AccountProductID, req.VersionLabel)
+	return nil
+}
+
+func (s *accountOpeningTermsService) Update(ctx context.Context, id string, req tac_dto.UpdateTACRequest) error {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+	ctx, span := local_util.TraceLogger(ctx, "service", "Update", "AccountOpeningTerms", "Update")
+	defer span.End()
+
+	makerData := local_util.ExtractUserFromContext(ctx)
+	if local_util.IsIncomplete(makerData) {
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
+	}
+
+	existing, err := s.repo.FindByID(ctx, id)
+	if err != nil {
+		log.Errorf("[TACSvc][Update] find err: %v", err)
+		return err
+	}
+
+	updated := *existing
+
+	if req.ActivationTime != "" {
+		updated.ActivationTime = req.ActivationTime
+	}
+	if req.VersionLabel != "" {
+		if req.VersionLabel != existing.VersionLabel {
+			dup, _ := s.repo.FindByProductAndVersion(ctx, existing.AccountProductID, req.VersionLabel)
+			if dup != nil {
+				return errors.New(localization.ErrorTACAlreadyExists.Code)
+			}
+		}
+		updated.VersionLabel = req.VersionLabel
+	}
+	if req.TermAndCondition != nil {
+		pdfFile, err := req.TermAndCondition.Open()
+		if err != nil {
+			log.Errorf("[TACSvc][Update] open pdf: %v", err)
+			return errors.New(localization.ErrorUnhandledServer.Code)
+		}
+		defer pdfFile.Close()
+
+		objectKey := fmt.Sprintf("%s/%d-%s",
+			constants.TermAndConditionFolderName,
+			time.Now().UnixNano(),
+			req.TermAndCondition.Filename,
+		)
+		pdfURL, err := lib.UploadPDFToMinio(ctx, s.minio, s.bucketName,
+			pdfFile, req.TermAndCondition.Size, *s.cfg, objectKey, s.logger)
+		if err != nil {
+			span.AddEvent("pdf upload failed", trace.WithAttributes(attribute.String("error", err.Error())))
+			log.Errorf("[TACSvc][Update] upload pdf err: %v", err)
+			return errors.New(localization.ErrorUnhandledServer.Code)
+		}
+		updated.TermsAndConditionsPath = pdfURL
+	}
+
+	action := lib.CpsModelBuilder(id, makerData, existing, updated,
+		string(constants.RequestUpdateTermAndCondition), constants.UPDATE)
+
+	if err := s.cpsService.CreateCPSAction(ctx, &action); err != nil {
+		span.AddEvent("cps action failed", trace.WithAttributes(attribute.String("error", err.Error())))
+		log.Errorf("[TACSvc][Update] cps err: %v", err)
+		return err
+	}
+	log.Infof("[TACSvc][Update] request created id=%s", id)
 	return nil
 }
 

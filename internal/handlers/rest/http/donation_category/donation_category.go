@@ -159,6 +159,7 @@ func (d *donationCategoryAdapter) CreateDonationCategory(w http.ResponseWriter, 
 	span.SetAttributes(attribute.String("donation_category.name", req.CategoryName))
 
 	if err := d.donationCategoryApp.CreateDonationCategory(ctx, req); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[DonCatH][Create] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -272,6 +273,7 @@ func (d *donationCategoryAdapter) EnableDonationCategory(w http.ResponseWriter, 
 	}
 
 	if err := d.donationCategoryApp.EnableDonationCategory(ctx, id); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[DonCatH][Enable] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -317,6 +319,7 @@ func (d *donationCategoryAdapter) DisableDonationCategory(w http.ResponseWriter,
 	}
 
 	if err := d.donationCategoryApp.DisableDonationCategory(ctx, id); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[DonCatH][Disable] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -362,6 +365,7 @@ func (d *donationCategoryAdapter) DeleteDonationCategory(w http.ResponseWriter, 
 	}
 
 	if err := d.donationCategoryApp.DeleteDonationCategory(ctx, id); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[DonCatH][Delete] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())

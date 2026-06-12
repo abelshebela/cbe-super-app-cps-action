@@ -9,6 +9,7 @@ type AccountProduct struct {
 	ProductTagLine        string     `bson:"product_tag_line" json:"product_tag_line"`
 	ProductLine           string     `bson:"product_line" json:"product_line"`
 	AccountCategoryID     string     `bson:"account_category_id" json:"account_category_id"`
+	CategoryName          string     `bson:"category_name" json:"category_name"`
 	AccountCurrency       string     `bson:"account_currency" json:"account_currency"`
 	MinimumOpeningBalance float64    `bson:"minimum_opening_balance" json:"minimum_opening_balance"`
 	MinimumMaintenanceFee float64    `bson:"minimum_maintenance_fee" json:"minimum_maintenance_fee"`

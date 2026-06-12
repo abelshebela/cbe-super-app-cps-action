@@ -56,6 +56,7 @@ func (a *avatarAdapter) CreateAvatar(w http.ResponseWriter, r *http.Request) {
 
 	req, err := ReqFileParse(r)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[CreateAvatar] failed to parse file: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -70,6 +71,7 @@ func (a *avatarAdapter) CreateAvatar(w http.ResponseWriter, r *http.Request) {
 	}
 	span.SetAttributes(attribute.String("avatar.label", req.Label))
 	if err := a.avatarApplication.CreateAvatar(ctx, &model.Avatar{Label: req.Label}, req.Avatar); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[CreateAvatar] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -116,6 +118,7 @@ func (a *avatarAdapter) DeleteAvatar(w http.ResponseWriter, r *http.Request) {
 	span.SetAttributes(attribute.String("avatar.id", id))
 
 	if err := a.avatarApplication.DeleteAvatar(ctx, id); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[DeleteAvatar] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -162,6 +165,7 @@ func (a *avatarAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 	span.SetAttributes(attribute.String("avatar.id", id))
 
 	if err := a.avatarApplication.EnableDisable(ctx, id, true); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[Enable] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -208,6 +212,7 @@ func (a *avatarAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	span.SetAttributes(attribute.String("avatar.id", id))
 
 	if err := a.avatarApplication.EnableDisable(ctx, id, false); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[Disable] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -343,6 +348,7 @@ func (a *avatarAdapter) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 
 	req, err := ReqFileParse(r)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[UpdateAvatar] failed to parse file: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -358,6 +364,7 @@ func (a *avatarAdapter) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 		attribute.String("avatar.label", label),
 	)
 	if err := a.avatarApplication.UpdateAvatar(ctx, id, &model.Avatar{Label: label}, inputData, false); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[UpdateAvatar] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())

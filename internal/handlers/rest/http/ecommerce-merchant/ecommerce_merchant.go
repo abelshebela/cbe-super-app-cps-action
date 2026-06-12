@@ -86,6 +86,7 @@ func (h *ecommerceMerchantAdapter) Create(w http.ResponseWriter, r *http.Request
 
 	_, err := h.srv.Create(ctx, &reqDTO)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[EcomMerchH][Create] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -160,6 +161,7 @@ func (h *ecommerceMerchantAdapter) Update(w http.ResponseWriter, r *http.Request
 	span.SetAttributes(attribute.String("ecommerce_merchant_dto.id", id))
 	_, _, err := h.srv.Update(ctx, id, &reqDTO)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -223,6 +225,7 @@ func (h *ecommerceMerchantAdapter) Delete(w http.ResponseWriter, r *http.Request
 	span.SetAttributes(attribute.String("ecommerce_merchant_dto.id", id))
 	err := h.srv.Delete(ctx, id)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[EcomMerchH][Delete] svc err id: %s: %v", id, err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -281,6 +284,7 @@ func (h *ecommerceMerchantAdapter) Enable(w http.ResponseWriter, r *http.Request
 		return
 	}
 	if err := h.srv.EnableOrDisable(ctx, reqDTO.MerchantIDs, true); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -339,6 +343,7 @@ func (h *ecommerceMerchantAdapter) Disable(w http.ResponseWriter, r *http.Reques
 	}
 
 	if err := h.srv.EnableOrDisable(ctx, reqDTO.MerchantIDs, false); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -499,6 +504,7 @@ func (h *ecommerceMerchantAdapter) DeleteBranch(w http.ResponseWriter, r *http.R
 	}
 
 	if err := h.srv.DeleteBranch(ctx, id); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[EcomMerchH][DeleteBranch] svc err id: %s: %v", id, err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -535,6 +541,7 @@ func (h *ecommerceMerchantAdapter) EnableBranch(w http.ResponseWriter, r *http.R
 	}
 
 	if err := h.srv.EnableOrDisableBranch(ctx, id, true); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[EcomMerchH][EnableBranch] svc err id: %s: %v", id, err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -571,6 +578,7 @@ func (h *ecommerceMerchantAdapter) DisableBranch(w http.ResponseWriter, r *http.
 	}
 
 	if err := h.srv.EnableOrDisableBranch(ctx, id, false); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[EcomMerchH][DisableBranch] svc err id: %s: %v", id, err)
 		localization.SendErrorByCodeResponse(w, err.Error())

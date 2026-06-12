@@ -205,6 +205,7 @@ func (h *CPSActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 	err := h.service.Create(ctx, action_role)
 
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[CpsRoleH][Create] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -267,6 +268,7 @@ func (h *CPSActionRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 	span.SetAttributes(attribute.String("cps_action_role.code", code))
 	err := h.service.Update(ctx, code, req)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[CpsRoleH][Update] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -314,6 +316,7 @@ func (h *CPSActionRoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
 	}
 	span.SetAttributes(attribute.String("cps_action_role.code", code))
 	if err := h.service.Enable(ctx, code); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[CpsRoleH][Enable] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -360,6 +363,7 @@ func (h *CPSActionRoleHandler) Disable(w http.ResponseWriter, r *http.Request) {
 
 	span.SetAttributes(attribute.String("cps_action_role.code", code))
 	if err := h.service.Disable(ctx, code); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[CpsRoleH][Disable] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -407,6 +411,7 @@ func (h *CPSActionRoleHandler) Delete(w http.ResponseWriter, r *http.Request) {
 
 	span.SetAttributes(attribute.String("cps_action_role.code", code))
 	if err := h.service.Delete(ctx, code); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[CpsRoleH][Delete] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -533,6 +538,7 @@ func (h *CPSActionRoleHandler) UpdateVersionRoleCode(w http.ResponseWriter, r *h
 
 	count, err := h.service.UpdateIndexRoleCode(ctx, code, version, req.OldRoleCode, req.NewRoleCode)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[CpsRoleH][UpdateVersionRoleCode] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())

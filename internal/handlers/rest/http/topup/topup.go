@@ -85,6 +85,7 @@ func (a *topupAdapter) CreateTopup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := a.topupApp.CreateTopup(ctx, req); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error())))
 		log.Errorf("[TopupH][Create] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -159,6 +160,7 @@ func (a *topupAdapter) UpdateTopup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := a.topupApp.UpdateTopup(ctx, id, req); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("id", id)))
 		log.Errorf("[TopupH][Update] svc err id: %s: %v", id, err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -208,6 +210,7 @@ func (a *topupAdapter) DeleteTopup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := a.topupApp.DeleteTopup(ctx, id); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("id", id)))
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -256,6 +259,7 @@ func (a *topupAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := a.topupApp.EnableOrDisableTopup(ctx, id, true); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("id", id)))
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -302,6 +306,7 @@ func (a *topupAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := a.topupApp.EnableOrDisableTopup(ctx, id, false); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("id", id)))
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return

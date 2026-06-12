@@ -9919,6 +9919,13 @@ var (
 		Type:       "error",
 	}
 
+	ErrorAPCHasActiveProducts = ResponseCode{
+		Code:       "ERROR_APC_HAS_ACTIVE_PRODUCTS",
+		StatusCode: StatusConflict,
+		Message:    MsgAPCHasActiveProducts,
+		Type:       "error",
+	}
+
 	// Account Product success codes
 	SuccessAPCreateRequestSent = ResponseCode{
 		Code:       "SUCCESS_AP_CREATE_REQUEST_SENT",
@@ -10033,6 +10040,13 @@ var (
 		Type:       "error",
 	}
 
+	ErrorAPHasActiveTerms = ResponseCode{
+		Code:       "ERROR_AP_HAS_ACTIVE_TERMS",
+		StatusCode: StatusConflict,
+		Message:    MsgAPHasActiveTerms,
+		Type:       "error",
+	}
+
 	// Term and Condition success codes
 	SuccessTACUploadRequestSent = ResponseCode{
 		Code:       "SUCCESS_TAC_UPLOAD_REQUEST_SENT",
@@ -10045,6 +10059,20 @@ var (
 		Code:       "SUCCESS_TAC_UPLOADED",
 		StatusCode: StatusOK,
 		Message:    MsgTACUploaded,
+		Type:       "success",
+	}
+
+	SuccessTACUpdateRequestSent = ResponseCode{
+		Code:       "SUCCESS_TAC_UPDATE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgTACUpdateRequestSent,
+		Type:       "success",
+	}
+
+	SuccessTACUpdated = ResponseCode{
+		Code:       "SUCCESS_TAC_UPDATED",
+		StatusCode: StatusOK,
+		Message:    MsgTACUpdated,
 		Type:       "success",
 	}
 

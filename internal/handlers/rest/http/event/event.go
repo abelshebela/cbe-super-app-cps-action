@@ -1,7 +1,10 @@
 package eventhandler
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	eventInbound "cbe-super-app-cps-action/internal/constants/interfaces/event"
+	"cbe-super-app-cps-action/internal/constants/types"
+	"context"
 	"net/http"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
@@ -89,6 +92,7 @@ func (a *eventAdapter) CreateEvent(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if err := a.eventApp.CreateEvent(ctx, req); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[EventH][Create] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -150,6 +154,7 @@ func (a *eventAdapter) UpdateEvent(w http.ResponseWriter, r *http.Request) {
 
 	req, err := eventcore.ParseEventRequestFromMultipartForm(r, false)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[EventH][Update] parse form err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -168,6 +173,7 @@ func (a *eventAdapter) UpdateEvent(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if err := a.eventApp.UpdateEvent(ctx, id, req); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[EventH][Update] svc err id: %s: %v", id, err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -196,6 +202,9 @@ func (a *eventAdapter) UpdateEvent(w http.ResponseWriter, r *http.Request) {
 func (a *eventAdapter) DeleteEvent(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "deleteEvent", "handler", "event")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendErrorResponse(w, localization.ErrorEventIDRequired, nil, nil)
@@ -205,6 +214,7 @@ func (a *eventAdapter) DeleteEvent(w http.ResponseWriter, r *http.Request) {
 	span.SetAttributes(attribute.String("event.id", id))
 
 	if err := a.eventApp.DeleteEvent(ctx, id); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -239,6 +249,7 @@ func (a *eventAdapter) EnableEvent(w http.ResponseWriter, r *http.Request) {
 
 	span.SetAttributes(attribute.String("event.id", id))
 	if err := a.eventApp.EnableDisableEvent(ctx, id, true); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -273,6 +284,7 @@ func (a *eventAdapter) DisableEvent(w http.ResponseWriter, r *http.Request) {
 
 	span.SetAttributes(attribute.String("event.id", id))
 	if err := a.eventApp.EnableDisableEvent(ctx, id, false); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return

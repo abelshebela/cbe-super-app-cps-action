@@ -5,7 +5,7 @@ import (
 	permission_int "cbe-super-app-cps-action/internal/constants/interfaces/permission"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/service"
-	common_utils "cbe-super-app-cps-action/pkgs/utils"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"encoding/json"
 	"net/http"
 
@@ -40,9 +40,9 @@ func InitPermissionHandler(svc service.PermissionService, logger utils.Logger) p
 //	//@Failure		400,401,422,500	{object}	localization.StandardResponse{data=nil}
 //	//@Router			/permissions [post]
 func (h *PermissionHandler) CreatePermissionGroup(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "permission", "PermissionHandler", "CreatePermissionGroup")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "permission", "PermissionHandler", "CreatePermissionGroup")
 	defer span.End()
-	log := common_utils.LoggerFromCtx(ctx, h.logger)
+	log := local_util.LoggerFromCtx(ctx, h.logger)
 	var request permission.CreatePermissionGroupRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		span.AddEvent("Failed to decode request", trace.WithAttributes(attribute.String("error", err.Error())))
@@ -58,8 +58,8 @@ func (h *PermissionHandler) CreatePermissionGroup(w http.ResponseWriter, r *http
 		return
 	}
 
-	userContext := common_utils.ExtractUserContext(r)
-	if common_utils.IsIncomplete(userContext) {
+	userContext := local_util.ExtractUserContext(r)
+	if local_util.IsIncomplete(userContext) {
 		span.AddEvent("Incomplete user info", trace.WithAttributes(attribute.String("user_id", userContext.UserID)))
 		localization.SendErrorByCodeResponse(w, localization.ErrorIncompleteUserInfo.Code)
 		return
@@ -67,6 +67,7 @@ func (h *PermissionHandler) CreatePermissionGroup(w http.ResponseWriter, r *http
 
 	err := h.PermissionService.CreatePermissionGroup(ctx, request)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("user_id", userContext.UserID)))
 		log.Errorf("[CreatePermissionGroup] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -99,20 +100,20 @@ func (h *PermissionHandler) CreatePermissionGroup(w http.ResponseWriter, r *http
 //	//@Failure		400,500			{object}	localization.StandardResponse{data=nil}
 //	//@Router			/permissions [get]
 func (h *PermissionHandler) GetPermissionGroups(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "permission", "PermissionHandler", "GetPermissionGroups")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "permission", "PermissionHandler", "GetPermissionGroups")
 	defer span.End()
-	log := common_utils.LoggerFromCtx(ctx, h.logger)
-	filterparams := common_utils.ExtractFilterParams(r)
+	log := local_util.LoggerFromCtx(ctx, h.logger)
+	filterparams := local_util.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
 
-	if err := common_utils.NoSpecialChars(search); err != nil {
+	if err := local_util.NoSpecialChars(search); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	if err := common_utils.NoSpecialChars(filter); err != nil {
+	if err := local_util.NoSpecialChars(filter); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -141,9 +142,9 @@ func (h *PermissionHandler) GetPermissionGroups(w http.ResponseWriter, r *http.R
 //	//@Failure		400,404,500	{object}	localization.StandardResponse{data=nil}
 //	//@Router			/permissions/{group_name} [get]
 func (h *PermissionHandler) GetPermissionGroup(w http.ResponseWriter, r *http.Request) {
-	_, span := common_utils.TraceLogger(r.Context(), "handler", "permission", "PermissionHandler", "GetPermissionGroup")
+	_, span := local_util.TraceLogger(r.Context(), "handler", "permission", "PermissionHandler", "GetPermissionGroup")
 	defer span.End()
-	log := common_utils.LoggerFromCtx(r.Context(), h.logger)
+	log := local_util.LoggerFromCtx(r.Context(), h.logger)
 	groupName := chi.URLParam(r, "group_name")
 	permissionGroup, err := h.PermissionService.GetPermissionGroup(groupName)
 	if err != nil {
@@ -169,9 +170,9 @@ func (h *PermissionHandler) GetPermissionGroup(w http.ResponseWriter, r *http.Re
 //	//@Failure		400,404,500	{object}	localization.StandardResponse{data=nil}
 //	//@Router			/permissions/by_id/{id} [get]
 func (h *PermissionHandler) GetPermissionGroupById(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "permission", "PermissionHandler", "GetPermissionGroupById")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "permission", "PermissionHandler", "GetPermissionGroupById")
 	defer span.End()
-	log := common_utils.LoggerFromCtx(ctx, h.logger)
+	log := local_util.LoggerFromCtx(ctx, h.logger)
 	id := chi.URLParam(r, "id")
 	permissionGroup, err := h.PermissionService.GetPermissionGroupById(ctx, id)
 	if err != nil {
@@ -200,9 +201,9 @@ func (h *PermissionHandler) GetPermissionGroupById(w http.ResponseWriter, r *htt
 //	//@Router			/permissions/{group_name} [put]
 func (h *PermissionHandler) UpdatePermissionGroup(w http.ResponseWriter, r *http.Request) {
 	// Extract old group name from path first, then validate
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "permission", "PermissionHandler", "UpdatePermissionGroup")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "permission", "PermissionHandler", "UpdatePermissionGroup")
 	defer span.End()
-	log := common_utils.LoggerFromCtx(ctx, h.logger)
+	log := local_util.LoggerFromCtx(ctx, h.logger)
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		span.AddEvent("Missing group name", trace.WithAttributes(attribute.String("error", "group name required")))
@@ -227,8 +228,8 @@ func (h *PermissionHandler) UpdatePermissionGroup(w http.ResponseWriter, r *http
 		return
 	}
 
-	userContext := common_utils.ExtractUserContext(r)
-	if common_utils.IsIncomplete(userContext) {
+	userContext := local_util.ExtractUserContext(r)
+	if local_util.IsIncomplete(userContext) {
 		span.AddEvent("Incomplete user info", trace.WithAttributes(attribute.String("user_id", userContext.UserID)))
 		localization.SendErrorResponse(w, localization.ErrorIncompleteUserInfo, nil, nil)
 		return
@@ -236,6 +237,7 @@ func (h *PermissionHandler) UpdatePermissionGroup(w http.ResponseWriter, r *http
 
 	err := h.PermissionService.UpdatePermissionGroup(ctx, request)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("user_id", userContext.UserID), attribute.String("id", id)))
 		log.Errorf("[UpdatePermissionGroup] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -259,9 +261,9 @@ func (h *PermissionHandler) UpdatePermissionGroup(w http.ResponseWriter, r *http
 //	//@Failure		400,500	{object}	localization.StandardResponse{data=nil}
 //	//@Router			/permissions/categories [get]
 func (h *PermissionHandler) GetAllPermissionCategoriesWithPermissions(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "permission", "PermissionHandler", "GetAllPermissionCategoriesWithPermissions")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "permission", "PermissionHandler", "GetAllPermissionCategoriesWithPermissions")
 	defer span.End()
-	log := common_utils.LoggerFromCtx(ctx, h.logger)
+	log := local_util.LoggerFromCtx(ctx, h.logger)
 	categories, err := h.PermissionService.GetAllPermissionCategoriesWithPermissions(ctx)
 	if err != nil {
 		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error())))
@@ -294,9 +296,9 @@ func (h *PermissionHandler) GetAllPermissionCategoriesWithPermissions(w http.Res
 }
 
 func (h *PermissionHandler) GetPermissionCategoriesByDepartment(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "permission", "PermissionHandler", "GetPermissionCategoriesByDepartment")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "permission", "PermissionHandler", "GetPermissionCategoriesByDepartment")
 	defer span.End()
-	log := common_utils.LoggerFromCtx(ctx, h.logger)
+	log := local_util.LoggerFromCtx(ctx, h.logger)
 	departmentID := chi.URLParam(r, "department_id")
 	if departmentID == "" {
 		span.AddEvent("Missing department ID", trace.WithAttributes(attribute.String("error", "department ID required")))
@@ -317,16 +319,16 @@ func (h *PermissionHandler) GetPermissionCategoriesByDepartment(w http.ResponseW
 }
 
 func (h *PermissionHandler) GetPermissionGroupsByDepartment(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "permission", "PermissionHandler", "GetPermissionGroupsByDepartment")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "permission", "PermissionHandler", "GetPermissionGroupsByDepartment")
 	defer span.End()
-	log := common_utils.LoggerFromCtx(ctx, h.logger)
+	log := local_util.LoggerFromCtx(ctx, h.logger)
 	departmentID := chi.URLParam(r, "department_id")
 	if departmentID == "" {
 		span.AddEvent("Missing department ID", trace.WithAttributes(attribute.String("error", "department ID required")))
 		localization.SendErrorByCodeResponse(w, localization.ErrorDepartmentIDRequired.Code)
 		return
 	}
-	filterParam := common_utils.ExtractFilterParams(r)
+	filterParam := local_util.ExtractFilterParams(r)
 
 	permissionGroups, err := h.PermissionService.GetPermissionGroupsByDepartment(ctx, departmentID, filterParam)
 	if err != nil {

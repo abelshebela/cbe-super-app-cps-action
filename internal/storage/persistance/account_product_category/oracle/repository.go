@@ -109,11 +109,23 @@ func (r *repository) Delete(ctx context.Context, id string) error {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 	log.Infof("[APCOracle][Delete] id=%s", id)
 
-	q := `UPDATE ACCOUNT_CATEGORIES
-		SET IS_DELETED = 1, IS_ENABLED = 0, DELETED_AT = :1, LAST_MODIFIED_AT = :1
-		WHERE ID = HEXTORAW(:2) AND IS_DELETED = 0`
+	var linkedCount int64
+	if err := r.db.QueryRowContext(ctx,
+		`SELECT COUNT(*) FROM ACCOUNT_PRODUCTS WHERE ACCOUNT_CATEGORY_ID = HEXTORAW(:1) AND IS_DELETED = 0`,
+		id,
+	).Scan(&linkedCount); err != nil {
+		log.Errorf("[APCOracle][Delete] linked products check: %v", err)
+		return local_util.HandleDBError(err)
+	}
+	if linkedCount > 0 {
+		log.Errorf("[APCOracle][Delete] category id=%s has %d active product(s)", id, linkedCount)
+		return errors.New(localization.ErrorAPCHasActiveProducts.Code)
+	}
 
-	res, err := r.db.ExecContext(ctx, q, time.Now(), id)
+	res, err := r.db.ExecContext(ctx,
+		`DELETE FROM ACCOUNT_CATEGORIES WHERE ID = HEXTORAW(:1)`,
+		id,
+	)
 	if err != nil {
 		log.Errorf("[APCOracle][Delete] exec: %v", err)
 		return local_util.HandleDBError(err)
