@@ -4,6 +4,7 @@ import (
 	"mime"
 	"regexp"
 	"strings"
+	"time"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
@@ -14,6 +15,18 @@ var (
 
 var allowedDocumentMIMEs = map[string]bool{
 	"application/pdf": true,
+}
+
+func tacValidDate(value interface{}) error {
+	s, _ := value.(string)
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return nil
+	}
+	if _, err := time.Parse("2006-01-02", s); err != nil {
+		return validation.NewError("validation_date_format", "must be a valid date in YYYY-MM-DD format")
+	}
+	return nil
 }
 
 func tacNoSpecialChars(value interface{}) error {
@@ -57,8 +70,8 @@ func (r CreateTACRequest) Validate() error {
 		),
 		validation.Field(&r.ActivationTime,
 			validation.Required,
-			validation.Length(1, 128),
-			validation.By(tacNoSpecialChars),
+			validation.Length(1, 10),
+			validation.By(tacValidDate),
 		),
 		validation.Field(&r.VersionLabel,
 			validation.Required,
