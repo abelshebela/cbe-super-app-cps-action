@@ -110,7 +110,7 @@ func (r *repository) Delete(ctx context.Context, id string) error {
 	log.Infof("[APCOracle][Delete] id=%s", id)
 
 	q := `UPDATE ACCOUNT_CATEGORIES
-		SET IS_DELETED = 1, IS_ENABLED = 0, DELETED_AT = :1, LAST_MODIFIED_AT = :1
+		SET IS_DELETED = 1, IS_ENABLED = 0, LAST_MODIFIED_AT = :1
 		WHERE ID = HEXTORAW(:2) AND IS_DELETED = 0`
 
 	res, err := r.db.ExecContext(ctx, q, time.Now(), id)
