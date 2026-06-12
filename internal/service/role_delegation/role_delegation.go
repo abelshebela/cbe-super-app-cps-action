@@ -150,7 +150,7 @@ func (r *roleDelegation) CreateWithExistingUser(ctx context.Context, roleDelegat
 
 	jobRole, err := r.jobTitleRepo.FindByCode(ctx, roleDelegation.NewRoleID)
 	if err != nil && err.Error() != localization.ErrorUnexpectedError.Code {
-		r.logger.Errorf("[RoleDelegation/Create] Failed to find job role: %s err:%+v", err)
+		r.logger.Errorf("[RoleDelegation/Create] Failed to find job role: %s err:%+v", roleDelegation.NewRoleID, err)
 		return localization.ErrRoleDelegationForUserNotFound
 	}
 	if jobRole == nil || !jobRole.Enabled {
