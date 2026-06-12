@@ -24,21 +24,21 @@ type rowScanner interface {
 
 func scanAPRow(s rowScanner) (*imodel.AccountProduct, error) {
 	var (
-		id, cbsCode, productName, tagLine    string
-		accountCategoryID, categoryName      string
-		accountCurrency                      string
-		minOpeningBalance, minMaintenanceFee float64
-		interestFee                          float64
-		faqURL, productFeatures              sql.NullString
-		productIcon, productCoverImage       sql.NullString
-		hasPhysicalCard, hasVirtualCard      int
-		isEnabled, isDeleted                 int
-		createdAt, lastModifiedAt            time.Time
+		id, cbsCode, productName, tagLine            string
+		accountCategoryID, categoryName, accountType string
+		accountCurrency                              string
+		minOpeningBalance, minMaintenanceFee         float64
+		interestFee                                  float64
+		faqURL, productFeatures                      sql.NullString
+		productIcon, productCoverImage               sql.NullString
+		hasPhysicalCard, hasVirtualCard              int
+		isEnabled, isDeleted                         int
+		createdAt, lastModifiedAt                    time.Time
 	)
 
 	if err := s.Scan(
 		&id, &cbsCode, &productName, &tagLine,
-		&accountCategoryID, &categoryName, &accountCurrency,
+		&accountCategoryID, &categoryName, &accountType, &accountCurrency,
 		&minOpeningBalance, &minMaintenanceFee, &interestFee,
 		&faqURL, &productFeatures,
 		&hasPhysicalCard, &hasVirtualCard,
