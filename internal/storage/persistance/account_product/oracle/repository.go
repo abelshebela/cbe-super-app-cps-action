@@ -138,6 +138,19 @@ func (r *repository) Delete(ctx context.Context, id string) error {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 	log.Infof("[APOracle][Delete] id=%s", id)
 
+	var linkedCount int64
+	if err := r.db.QueryRowContext(ctx,
+		`SELECT COUNT(*) FROM ACCOUNT_OPENING_TERMS WHERE ACCOUNT_PRODUCT_ID = HEXTORAW(:1)`,
+		id,
+	).Scan(&linkedCount); err != nil {
+		log.Errorf("[APOracle][Delete] linked terms check: %v", err)
+		return local_util.HandleDBError(err)
+	}
+	if linkedCount > 0 {
+		log.Errorf("[APOracle][Delete] product id=%s has %d active term(s)", id, linkedCount)
+		return errors.New(localization.ErrorAPHasActiveTerms.Code)
+	}
+
 	res, err := r.db.ExecContext(ctx,
 		`DELETE FROM ACCOUNT_PRODUCTS WHERE ID = HEXTORAW(:1)`,
 		id,

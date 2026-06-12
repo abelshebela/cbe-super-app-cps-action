@@ -1537,6 +1537,7 @@ const (
 	MsgAPAlreadyEnabled     = "Account product is already enabled"
 	MsgAPAlreadyDisabled    = "Account product is already disabled"
 	MsgAPAlreadyExists      = "Account product CBS code already exists"
+	MsgAPHasActiveTerms     = "Cannot delete product: there are active terms and conditions linked to it"
 
 	// Term and Condition messages
 	MsgTACUploadRequestSent = "Term and condition upload request sent successfully"
