@@ -1280,9 +1280,9 @@ const (
 	EventFolderName            ImageFolderName = "events"
 	TopupFolderName            ImageFolderName = "topups"
 	VaultCategoryFolderName    ImageFolderName = "vault_categories"
-	CustomerKYCFolderName       ImageFolderName = "customer_kyc"
-	AccountProductFolderName    ImageFolderName = "account_products"
-	TermAndConditionFolderName  ImageFolderName = "term_and_conditions"
+	CustomerKYCFolderName      ImageFolderName = "customer_kyc"
+	AccountProductFolderName   ImageFolderName = "account_products"
+	TermAndConditionFolderName ImageFolderName = "term_and_conditions"
 )
 
 // ---------------------------------------------------------------------------
