@@ -27,18 +27,20 @@ import (
 )
 
 type accountOpeningTermsService struct {
-	repo       storage.AccountOpeningTermsRepository
-	cpsService service.CPSActionService
-	logger     utils.Logger
-	minio      *s3.Client
-	bucketName string
-	cfg        *config.VaultConfig
+	repo              storage.AccountOpeningTermsRepository
+	accountProductRepo storage.AccountProductRepository
+	cpsService        service.CPSActionService
+	logger            utils.Logger
+	minio             *s3.Client
+	bucketName        string
+	cfg               *config.VaultConfig
 }
 
 var _ service.AccountOpeningTermsService = (*accountOpeningTermsService)(nil)
 
 func NewAccountOpeningTermsService(
 	repo storage.AccountOpeningTermsRepository,
+	accountProductRepo storage.AccountProductRepository,
 	cpsService service.CPSActionService,
 	logger utils.Logger,
 	minio *s3.Client,
@@ -46,12 +48,13 @@ func NewAccountOpeningTermsService(
 	cfg *config.VaultConfig,
 ) service.AccountOpeningTermsService {
 	return &accountOpeningTermsService{
-		repo:       repo,
-		cpsService: cpsService,
-		logger:     logger,
-		minio:      minio,
-		bucketName: bucketName,
-		cfg:        cfg,
+		repo:               repo,
+		accountProductRepo: accountProductRepo,
+		cpsService:         cpsService,
+		logger:             logger,
+		minio:              minio,
+		bucketName:         bucketName,
+		cfg:                cfg,
 	}
 }
 
@@ -172,8 +175,11 @@ func (s *accountOpeningTermsService) Upload(ctx context.Context, req tac_dto.Cre
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
 
+	productName := s.resolveProductName(ctx, req.AccountProductID)
+
 	payload := imodel.AccountOpeningTerms{
 		AccountProductID:       req.AccountProductID,
+		ProductName:            productName,
 		ActivationTime:         req.ActivationTime,
 		VersionLabel:           req.VersionLabel,
 		TermsAndConditionsPath: pdfURL,
@@ -189,6 +195,55 @@ func (s *accountOpeningTermsService) Upload(ctx context.Context, req tac_dto.Cre
 		return err
 	}
 	log.Infof("[TACSvc][Upload] request created product=%s version=%s", req.AccountProductID, req.VersionLabel)
+	return nil
+}
+
+func (s *accountOpeningTermsService) resolveProductName(ctx context.Context, productID string) string {
+	if s.accountProductRepo == nil {
+		return ""
+	}
+	ap, err := s.accountProductRepo.FindByID(ctx, productID)
+	if err != nil || ap == nil {
+		return ""
+	}
+	return ap.ProductName
+}
+
+func (s *accountOpeningTermsService) applyVersionLabel(ctx context.Context, updated *imodel.AccountOpeningTerms, existing *imodel.AccountOpeningTerms, newLabel string) error {
+	if newLabel == existing.VersionLabel {
+		updated.VersionLabel = newLabel
+		return nil
+	}
+	dup, _ := s.repo.FindByProductAndVersion(ctx, existing.AccountProductID, newLabel)
+	if dup != nil {
+		return errors.New(localization.ErrorTACAlreadyExists.Code)
+	}
+	updated.VersionLabel = newLabel
+	return nil
+}
+
+func (s *accountOpeningTermsService) applyPDFUpload(ctx context.Context, span trace.Span, updated *imodel.AccountOpeningTerms, req tac_dto.UpdateTACRequest) error {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+	pdfFile, err := req.TermAndCondition.Open()
+	if err != nil {
+		log.Errorf("[TACSvc][Update] open pdf: %v", err)
+		return errors.New(localization.ErrorUnhandledServer.Code)
+	}
+	defer pdfFile.Close()
+
+	objectKey := fmt.Sprintf("%s/%d-%s",
+		constants.TermAndConditionFolderName,
+		time.Now().UnixNano(),
+		req.TermAndCondition.Filename,
+	)
+	pdfURL, err := lib.UploadPDFToMinio(ctx, s.minio, s.bucketName,
+		pdfFile, req.TermAndCondition.Size, *s.cfg, objectKey, s.logger)
+	if err != nil {
+		span.AddEvent("pdf upload failed", trace.WithAttributes(attribute.String("error", err.Error())))
+		log.Errorf("[TACSvc][Update] upload pdf err: %v", err)
+		return errors.New(localization.ErrorUnhandledServer.Code)
+	}
+	updated.TermsAndConditionsPath = pdfURL
 	return nil
 }
 
@@ -210,39 +265,22 @@ func (s *accountOpeningTermsService) Update(ctx context.Context, id string, req 
 
 	updated := *existing
 
+	if updated.ProductName == "" {
+		updated.ProductName = s.resolveProductName(ctx, existing.AccountProductID)
+	}
+
 	if req.ActivationTime != "" {
 		updated.ActivationTime = req.ActivationTime
 	}
 	if req.VersionLabel != "" {
-		if req.VersionLabel != existing.VersionLabel {
-			dup, _ := s.repo.FindByProductAndVersion(ctx, existing.AccountProductID, req.VersionLabel)
-			if dup != nil {
-				return errors.New(localization.ErrorTACAlreadyExists.Code)
-			}
+		if err := s.applyVersionLabel(ctx, &updated, existing, req.VersionLabel); err != nil {
+			return err
 		}
-		updated.VersionLabel = req.VersionLabel
 	}
 	if req.TermAndCondition != nil {
-		pdfFile, err := req.TermAndCondition.Open()
-		if err != nil {
-			log.Errorf("[TACSvc][Update] open pdf: %v", err)
-			return errors.New(localization.ErrorUnhandledServer.Code)
+		if err := s.applyPDFUpload(ctx, span, &updated, req); err != nil {
+			return err
 		}
-		defer pdfFile.Close()
-
-		objectKey := fmt.Sprintf("%s/%d-%s",
-			constants.TermAndConditionFolderName,
-			time.Now().UnixNano(),
-			req.TermAndCondition.Filename,
-		)
-		pdfURL, err := lib.UploadPDFToMinio(ctx, s.minio, s.bucketName,
-			pdfFile, req.TermAndCondition.Size, *s.cfg, objectKey, s.logger)
-		if err != nil {
-			span.AddEvent("pdf upload failed", trace.WithAttributes(attribute.String("error", err.Error())))
-			log.Errorf("[TACSvc][Update] upload pdf err: %v", err)
-			return errors.New(localization.ErrorUnhandledServer.Code)
-		}
-		updated.TermsAndConditionsPath = pdfURL
 	}
 
 	action := lib.CpsModelBuilder(id, makerData, existing, updated,
