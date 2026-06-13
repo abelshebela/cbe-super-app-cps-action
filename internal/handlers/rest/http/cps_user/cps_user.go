@@ -35,19 +35,19 @@ func (h *handler) ExportUsers(w http.ResponseWriter, r *http.Request) {
 	log := local_util.LoggerFromCtx(ctx, h.logger)
 
 	fileType := strings.ToLower(strings.TrimSpace(r.URL.Query().Get("file_type")))
-	startDateRaw := strings.TrimSpace(r.URL.Query().Get("start_date"))
-	endDateRaw := strings.TrimSpace(r.URL.Query().Get("end_date"))
+	startDateRaw := strings.TrimSpace(r.URL.Query().Get("created_at_from"))
+	endDateRaw := strings.TrimSpace(r.URL.Query().Get("created_at_to"))
 	userName := strings.TrimSpace(r.URL.Query().Get("user_name"))
 
 	if fileType == "" || startDateRaw == "" || endDateRaw == "" {
-		log.Warnf("[ExportUsers] missing required params: file_type=%q, start_date=%q, end_date=%q", fileType, startDateRaw, endDateRaw)
+		log.Warnf("[ExportUsers] missing required params: file_type=%q, created_at_from=%q, created_at_to=%q", fileType, startDateRaw, endDateRaw)
 		localization.SendBadRequestResponse(w, localization.ErrorRequiredFieldMissing.Message)
 		return
 	}
 
 	startDate, endDate, err := local_util.FormatDateRangeToUTCStrings(startDateRaw, endDateRaw)
 	if err != nil {
-		log.Warnf("[ExportUsers] invalid date format: start_date=%s, end_date=%s, err=%v", startDateRaw, endDateRaw, err)
+		log.Warnf("[ExportUsers] invalid date format: created_at_from=%s, created_at_to=%s, err=%v", startDateRaw, endDateRaw, err)
 		localization.SendErrorResponse(w, localization.ErrorInvalidDateFormat, nil, nil)
 		return
 	}
