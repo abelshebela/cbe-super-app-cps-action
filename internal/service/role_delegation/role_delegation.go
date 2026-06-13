@@ -104,6 +104,8 @@ func (r *roleDelegation) CreateWithExistingUser(ctx context.Context, roleDelegat
 
 	log.Infof("[RoleDelegation/Create] Creating role delegation for user %s with job title %s", roleDelegation.DelegatedUserID, roleDelegation.DelegatedUserJobTitle)
 
+	log.Debugf("[RoleDelegation/Create] incoming role delegation data: %+v", roleDelegation)
+
 	maker := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(maker) {
 		log.Errorf("[Role Service][Create] maker data is incomplete")
@@ -412,14 +414,6 @@ func (r *roleDelegation) FindById(ctx context.Context, id string) (*imodel.RoleD
 			return nil, localization.ErrorInvalidDelegationDepartment
 		}
 		roleDelegation.NewDepartmentOrBranchName = department.Department
-
-		existingDep, err := r.department.FindByID(ctx, roleDelegation.DelegatedUserDepartmentOrBranch)
-		r.logger.Infof("[RoleDelegation/FindById] found department for id %s: %v", roleDelegation.NewDepartmentOrBranch, department)
-		if err == nil && existingDep != nil {
-			roleDelegation.NewDepartmentOrBranch = existingDep.Department
-		} else {
-			r.logger.Errorf("[RoleDelegation/FindById] failed to find delegator department by id: %v", err)
-		}
 	}
 
 	if role, err := r.roleRepo.FindByCode(ctx, roleDelegation.DelegatedUserExistingRole); err == nil && role != nil {
