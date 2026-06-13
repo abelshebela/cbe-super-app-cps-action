@@ -958,6 +958,9 @@ func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID 
 	}
 
 	if isExport {
+
+		filterParams.Filters["created_at_from"] = createdAtFrom
+		filterParams.Filters["created_at_to"] = createdAtTo
 		url, err := lib.FileExporterForCPSAction(ctx, ca.cfg, ca.minioClient, ca.buckerName, filterParams, result.Data, CpsActionCSVHeader, ca.logger)
 		if err != nil {
 			span.AddEvent("failed to export CPS actions", trace.WithAttributes(attribute.String("error", err.Error())))
