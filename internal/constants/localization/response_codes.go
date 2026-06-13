@@ -40,6 +40,9 @@ var ResponseCodesList = []ResponseCode{
 	DonationDataExportedSuccess,
 	DonationDataExportedError,
 	DonationDataNotFoundInDateRange,
+	RoleDelegationDataExportedSuccess,
+	RoleDelegationDataExportedError,
+	RoleDelegationDataNotFoundInDateRange,
 	CpsActionDataExportedError,
 	CpsActionDataNotFoundInDateRange,
 
@@ -1933,6 +1936,27 @@ var (
 		Code:       "CPS_ACTION_DATA_NOT_FOUND_IN_DATE_RANGE",
 		StatusCode: StatusBadRequest,
 		Message:    MsgCpsActionDataNotFoundInDateRange,
+		Type:       "error",
+	}
+
+	RoleDelegationDataExportedSuccess = ResponseCode{
+		Code:       "ROLE_DELEGATION_DATA_EXPORT_SUCCESS",
+		StatusCode: StatusOK,
+		Message:    MsgRoleDelegationDataExportedSuccess,
+		Type:       "success",
+	}
+
+	RoleDelegationDataExportedError = ResponseCode{
+		Code:       "ROLE_DELEGATION_DATA_EXPORT_ERROR",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgRoleDelegationDataExportFailed,
+		Type:       "error",
+	}
+
+	RoleDelegationDataNotFoundInDateRange = ResponseCode{
+		Code:       "ROLE_DELEGATION_DATA_NOT_FOUND_IN_DATE_RANGE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgRoleDelegationDataNotFoundInRange,
 		Type:       "error",
 	}
 
