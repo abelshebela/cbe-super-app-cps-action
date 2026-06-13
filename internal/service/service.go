@@ -71,8 +71,8 @@ import (
 	bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 	"go.mongodb.org/mongo-driver/v2/bson"
 
-	apc_dto "cbe-super-app-cps-action/internal/constants/dto/account_product_category"
 	ap_dto "cbe-super-app-cps-action/internal/constants/dto/account_product"
+	apc_dto "cbe-super-app-cps-action/internal/constants/dto/account_product_category"
 	tac_dto "cbe-super-app-cps-action/internal/constants/dto/term_and_condition"
 )
 
@@ -566,6 +566,7 @@ type RoleDelegationService interface {
 	Update(ctx context.Context, id string, update imodel.RoleDelegation) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	Delete(ctx context.Context, id string) error
+	Export(ctx context.Context, startDate, endDate time.Time, fileType string) (string, error)
 	FindById(ctx context.Context, id string) (*imodel.RoleDelegation, error)
 	FindByUsername(ctx context.Context, id string, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.RoleDelegation], error)
 	FindAll(ctx context.Context) (*[]imodel.RoleDelegation, error)
