@@ -14,6 +14,14 @@ func Init(router chi.Router, handler bps_user.BPSUserHandler, authMiddleware mid
 	routes := []glue.Route{
 		{
 			Method:  http.MethodGet,
+			Path:    "/bps_users/export",
+			Handler: handler.ExportUsers,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodGet,
 			Path:    "/bps_users/{user_code}",
 			Handler: handler.FetchUserByUserCode,
 			Middlewares: []func(next http.Handler) http.Handler{

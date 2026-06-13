@@ -259,6 +259,7 @@ type AvatarRepository interface {
 
 // BPSUser persistence
 type BPSUserRepository interface {
+	FindForExport(ctx context.Context, startDate, endDate time.Time, userName string) ([]bps_model.BPSUser, error)
 	GetByUserCode(ctx context.Context, userCode string) (*bpsUserDto.BPSUserResposenDTO, error)
 	GetByUserID(ctx context.Context, userID string) (*bps_model.BPSUser, error)
 	GetByUsername(ctx context.Context, userName string) (*bps_model.BPSUser, error)
@@ -426,6 +427,7 @@ type PortalCardRepository interface {
 }
 
 type CpsUserRepository interface {
+	FindForExport(ctx context.Context, startDate, endDate time.Time, userName string) ([]imodel.CPSUser, error)
 	Create(ctx context.Context, cpsUser *imodel.CPSUser) error
 	Update(ctx context.Context, id string, cpsUser *imodel.CPSUser) error
 	Delete(ctx context.Context, id string) error
