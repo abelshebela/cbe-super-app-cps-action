@@ -652,7 +652,8 @@ func (s *cpsUserService) GetCpsUserDetailByUserName(ctx context.Context, userNam
 		roles, err = s.jobRoleRepo.FindByName(ctx, populated.JobTitle)
 		if err != nil {
 			span.AddEvent("failed to find role by name", trace.WithAttributes(attribute.String("error", err.Error())))
-			return nil, err
+			s.logger.Errorf("[GetCpsUserDetailByUserName][FindByName] failed to find role by job title err:%v", err)
+			// return nil, err
 		}
 	}
 
