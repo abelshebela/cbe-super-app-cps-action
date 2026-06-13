@@ -220,7 +220,7 @@ func (ba *bpsActionService) AuditorMark(ctx context.Context, actionCode string, 
 			}
 		}
 	}
-	err = MarkActionAsAudited(ctx, ba.repo, actionCode, auditorApproval, auditor.AuditorReason, ba.logger)
+	err = MarkActionAsAudited(ctx, ba.repo, actionCode, auditorApproval, auditor.AuditorReason, ba.logger, isCustomerBarred)
 	if err != nil {
 		log.Errorf("[BPSAction][AuditorMark] failed to update mark")
 		return err
