@@ -62,6 +62,8 @@ func BuildRoleDelegationRequestWithExistingUser(body role_delegation_dto.RoleDel
 	delegatedUserID := strings.TrimSpace(body.DelegatedUserID)
 	delegatedUserUserType := strings.TrimSpace(body.DelegatedUserUserType)
 	delegationType := strings.TrimSpace(body.DelegationType)
+	delegatedUserDepartmentOrBranch := strings.TrimSpace(body.DelegatedUserDepartmentOrBranch)
+	delegatedUserExistingRole := strings.TrimSpace(body.DelegatedUserExistingRole)
 
 	delegatorUserID := strings.TrimSpace(body.DelegatorUserID)
 	delegatorUserFullName := strings.TrimSpace(body.DelegatorUserFullName)
@@ -80,6 +82,14 @@ func BuildRoleDelegationRequestWithExistingUser(body role_delegation_dto.RoleDel
 	if delegatedUserUserType == "" {
 		return imodel.RoleDelegation{}, errors.New("Delegated user type is required")
 	}
+	delegatedUserDepartmentOrBranch = strings.Clone(delegatedUserDepartmentOrBranch)
+	if delegatedUserDepartmentOrBranch == "" {
+		return imodel.RoleDelegation{}, errors.New("Delegated user department or branch is required")
+	}
+	// delegatedUserExistingRole = strings.Clone(delegatedUserExistingRole)
+	// if delegatedUserExistingRole == "" {
+	// 	return imodel.RoleDelegation{}, errors.New("Delegated user existing role is required")
+	// }
 	if delegationType == "" {
 		return imodel.RoleDelegation{}, errors.New("Delegation type is required")
 	}
@@ -131,19 +141,21 @@ func BuildRoleDelegationRequestWithExistingUser(body role_delegation_dto.RoleDel
 	}
 
 	return imodel.RoleDelegation{
-		DelegatedUserID:          delegatedUserID,
-		DelegatedUserUserType:    delegatedUserUserType,
-		DelegationType:           delegationType,
-		DelegatorUserID:          delegatorUserID,
-		DelegatorUserFullName:    delegatorUserFullName,
-		DelegatorUserJobTitle:    delegatorUserJobTitle,
-		DelegatorUserRole:        delegatorUserRole,
-		NewRoleID:                newRoleID,
-		NewDepartmentOrBranch:    newDepartmentOrBranch,
-		StartAt:                  parsedStart,
-		EndAt:                    parsedEnd,
-		Reason:                   reason,
-		RevokeExistingDelegation: revoke,
+		DelegatedUserID:                 delegatedUserID,
+		DelegatedUserUserType:           delegatedUserUserType,
+		DelegatedUserDepartmentOrBranch: delegatedUserDepartmentOrBranch,
+		DelegatedUserExistingRole:       delegatedUserExistingRole,
+		DelegationType:                  delegationType,
+		DelegatorUserID:                 delegatorUserID,
+		DelegatorUserFullName:           delegatorUserFullName,
+		DelegatorUserJobTitle:           delegatorUserJobTitle,
+		DelegatorUserRole:               delegatorUserRole,
+		NewRoleID:                       newRoleID,
+		NewDepartmentOrBranch:           newDepartmentOrBranch,
+		StartAt:                         parsedStart,
+		EndAt:                           parsedEnd,
+		Reason:                          reason,
+		RevokeExistingDelegation:        revoke,
 	}, nil
 }
 func BuildRoleDelegationRequestWithNewUser(body role_delegation_dto.RoleDelegationRequest) (imodel.RoleDelegation, error) {

@@ -439,7 +439,7 @@ func (c *customerOracleRepository) UNBlockCustomerByUserCode(ctx context.Context
 	query := `UPDATE users SET is_blocked = 0 WHERE user_code = :1`
 	result, err := c.db.ExecContext(ctx, query, userCode)
 	if err != nil {
-		log.Errorf("[CustomerRepository][BlockCustomerByUserCode] failed to block customer with user_code %s: %v", userCode, err)
+		log.Errorf("[CustomerRepository][BlockCustomerByUserCode] failed to unblock customer with user_code %s: %v", userCode, err)
 		return localization.ErrorUnexpectedError
 	}
 	rowsAffected, err := result.RowsAffected()
@@ -451,7 +451,7 @@ func (c *customerOracleRepository) UNBlockCustomerByUserCode(ctx context.Context
 		log.Errorf("[CustomerRepository][BlockCustomerByUserCode] no user found with user_code: %s", userCode)
 		return localization.ErrorCustomerNotFound
 	}
-	log.Infof("[CustomerRepository][BlockCustomerByUserCode] successfully blocked customer with user_code: %s", userCode)
+	log.Infof("[CustomerRepository][BlockCustomerByUserCode] successfully unblocked customer with user_code: %s", userCode)
 	return nil
 }
 

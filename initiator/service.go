@@ -131,11 +131,11 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	kycService := kycsvc.NewKYCVerifierService(mongoClient, persistence.KYCVerifierPersistence, persistence.UserPersistence, accountLookupAdapter, nil, persistence.LinkedAccountPersistence, *cfg, logger)
 	permissionService := permission.InitPermissionService(persistence.PermissionPersistence, persistence.DepartmentPersistence, nil, logger)
 	budgetCategoryService := budgetCategorySvc.NewBudgetCategoryService(oracle.BudgetCategoryOracle, nil, logger, minioClient, cfg.S3BucketName, cfg, minioPubUrl)
-	cpsUserService := cpsusersvc.NewCPSUserService(persistence.CpsUserPersistence, persistence.JobRolePersistence, persistence.CPSActionApproveIndexPersistence, persistence.BPSActionApproveIndexPersistence, persistence.DepartmentPersistence, permissionService, nil, nil, persistence.RoleDelegationPersistence, logger)
+	cpsUserService := cpsusersvc.NewCPSUserService(persistence.CpsUserPersistence, persistence.JobRolePersistence, persistence.RolePersistence, persistence.CPSActionApproveIndexPersistence, persistence.BPSActionApproveIndexPersistence, persistence.DepartmentPersistence, permissionService, nil, nil, persistence.RoleDelegationPersistence, minioClient, cfg.S3BucketName, *cfg, logger)
 	notificationsvc := notification.InitNotificationService(persistence.NotificationPersistence, logger, nil, smsService)
 	amountBased := amount_based_auth.NewAmountBasedAuthService(oracle.AmountBasedAuthOracle, nil, cfg, logger)
 	unlinkService := unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, persistence.AccountBlockPersistence, nil, logger)
-	bpsUserService := bpsuser.NewBPSUserService(persistence.BPSUserPersistence, persistence.JobRolePersistence, persistence.RolePersistence, nil, persistence.CpsUserPersistence, persistence.AccountBlockPersistence, logger)
+	bpsUserService := bpsuser.NewBPSUserService(persistence.BPSUserPersistence, persistence.JobRolePersistence, persistence.RolePersistence, nil, persistence.CpsUserPersistence, persistence.AccountBlockPersistence, minioClient, cfg.S3BucketName, *cfg, logger)
 	articleService := media.NewMediaService(persistence.ArticlePersistence, redis, logger)
 	articleCategoryService := media.NewMediaCategoryService(persistence.ArticleCategoryPersistence, logger)
 	ShortVideoService := media.NewShortVideoService(persistence.ShortVideoPersistence, redis, mediaProducer, logger)
@@ -163,7 +163,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	customerKYCService := kyc_service.NewCustomerKYCService(oracle.CustomerKYC, nil, persistence.CpsUserPersistence, accountLookupAdapter, logger, minioClient, cfg.S3BucketName, cfg, minioPubUrl)
 	customerGroupService := customer_group.NewCustomerGroupService(oracle.CustomerGroup, nil, logger)
 	superAppRoleService := superapp_role.NewSuperAppRoleService(oracle.SuperAppRole, nil, coreInterface, logger)
-	roleDelegationService := role_delegation_service.NewRoleDelegationService(persistence.RoleDelegationPersistence, persistence.JobRolePersistence, persistence.CpsUserPersistence, persistence.BPSUserPersistence, persistence.DepartmentPersistence, persistence.RolePersistence, oracle.AccountBlock, nil, logger)
+	roleDelegationService := role_delegation_service.NewRoleDelegationService(persistence.RoleDelegationPersistence, persistence.JobRolePersistence, persistence.CpsUserPersistence, persistence.BPSUserPersistence, persistence.DepartmentPersistence, persistence.RolePersistence, oracle.AccountBlock, nil, minioClient, cfg.S3BucketName, *cfg, logger)
 
 	// Attach Service to Container
 	serviceContainer := service.ServiceContainer{
@@ -268,20 +268,20 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	serviceContainer.PermissionContainer = permissionService
 	accountValidationService := accountvalidation.NewAccountValidationService(persistence.ValidationRulePersistence, cpsActionService, logger)
 	serviceContainer.AccountContainer = accountValidationService
-	cpsUserService = cpsusersvc.NewCPSUserService(persistence.CpsUserPersistence, persistence.JobRolePersistence, persistence.CPSActionApproveIndexPersistence, persistence.BPSActionApproveIndexPersistence, persistence.DepartmentPersistence, permissionService, cpsActionService, persistence.BPSUserPersistence, persistence.RoleDelegationPersistence, logger)
+	cpsUserService = cpsusersvc.NewCPSUserService(persistence.CpsUserPersistence, persistence.JobRolePersistence, persistence.RolePersistence, persistence.CPSActionApproveIndexPersistence, persistence.BPSActionApproveIndexPersistence, persistence.DepartmentPersistence, permissionService, cpsActionService, persistence.BPSUserPersistence, persistence.RoleDelegationPersistence, minioClient, cfg.S3BucketName, *cfg, logger)
 	serviceContainer.CPSUserContainer = cpsUserService
 	notificationsvc = notification.InitNotificationService(persistence.NotificationPersistence, logger, cpsActionService, smsService)
 	deviceVersionService = deviceversion.NewDeviceVersionService(persistence.DeviceVersionControlPersistence, cpsActionService, clientOrchestrationProducer, logger)
 	serviceContainer.DeviceVersionContainer = deviceVersionService
 	budgetCategoryService = budgetCategorySvc.NewBudgetCategoryService(oracle.BudgetCategoryOracle, cpsActionService, logger, minioClient, cfg.S3BucketName, cfg, minioPubUrl)
 	serviceContainer.UnlinkContainer = unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, persistence.AccountBlockPersistence, cpsActionService, logger)
-	bpsUserService = bpsuser.NewBPSUserService(persistence.BPSUserPersistence, persistence.JobRolePersistence, persistence.RolePersistence, cpsActionService, persistence.CpsUserPersistence, persistence.AccountBlockPersistence, logger)
+	bpsUserService = bpsuser.NewBPSUserService(persistence.BPSUserPersistence, persistence.JobRolePersistence, persistence.RolePersistence, cpsActionService, persistence.CpsUserPersistence, persistence.AccountBlockPersistence, minioClient, cfg.S3BucketName, *cfg, logger)
 	serviceContainer.BPSUserContainer = bpsUserService
 	serviceContainer.AdContainer = advert.NewAdvertService(persistence.AdvertRepositoryPersistence, cpsActionService, minioClient, cfg.S3BucketName, cfg, logger)
 	serviceContainer.AvatarDomian = avatar.NewAvatarService(persistence.AvatarPersistence, cpsActionService, logger, minioClient, cfg.S3BucketName, minioPubUrl, *cfg)
 	avatarService = avatar.NewAvatarService(persistence.AvatarPersistence, cpsActionService, logger, minioClient, cfg.S3BucketName, minioPubUrl, *cfg)
 	permissionService = permission.InitPermissionService(persistence.PermissionPersistence, persistence.DepartmentPersistence, cpsActionService, logger)
-	cpsUserService = cpsusersvc.NewCPSUserService(persistence.CpsUserPersistence, persistence.JobRolePersistence, persistence.CPSActionApproveIndexPersistence, persistence.BPSActionApproveIndexPersistence, persistence.DepartmentPersistence, permissionService, cpsActionService, persistence.BPSUserPersistence, persistence.RoleDelegationPersistence, logger)
+	cpsUserService = cpsusersvc.NewCPSUserService(persistence.CpsUserPersistence, persistence.JobRolePersistence, persistence.RolePersistence, persistence.CPSActionApproveIndexPersistence, persistence.BPSActionApproveIndexPersistence, persistence.DepartmentPersistence, permissionService, cpsActionService, persistence.BPSUserPersistence, persistence.RoleDelegationPersistence, minioClient, cfg.S3BucketName, *cfg, logger)
 	amountBased = amount_based_auth.NewAmountBasedAuthService(oracle.AmountBasedAuthOracle, cpsActionService, cfg, logger)
 	serviceContainer.AmountBasedAuthContainer = amountBased
 	bpsActionRoleService = bps_action_role_service.NewBPSActionRoleService(persistence.BPSActionRolePersistence, persistence.BPSActionApproveIndexPersistence, persistence.JobRolePersistence, cpsActionService, logger)
@@ -348,7 +348,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	serviceContainer.CustomerGroupContainer = customerGroupService
 	superAppRoleService = superapp_role.NewSuperAppRoleService(oracle.SuperAppRole, cpsActionService, coreInterface, logger)
 	serviceContainer.SuperAppRoleContainer = superAppRoleService
-	roleDelegationService = role_delegation_service.NewRoleDelegationService(persistence.RoleDelegationPersistence, persistence.JobRolePersistence, persistence.CpsUserPersistence, persistence.BPSUserPersistence, persistence.DepartmentPersistence, persistence.RolePersistence, oracle.AccountBlock, cpsActionService, logger)
+	roleDelegationService = role_delegation_service.NewRoleDelegationService(persistence.RoleDelegationPersistence, persistence.JobRolePersistence, persistence.CpsUserPersistence, persistence.BPSUserPersistence, persistence.DepartmentPersistence, persistence.RolePersistence, oracle.AccountBlock, cpsActionService, minioClient, cfg.S3BucketName, *cfg, logger)
 	serviceContainer.RoleDelegationContainer = roleDelegationService
 
 	return service.ServiceLayer{

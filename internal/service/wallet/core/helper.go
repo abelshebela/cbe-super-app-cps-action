@@ -48,8 +48,7 @@ func GeneratePrefixedName(prefix, value string, logger shared_utils.Logger) (str
 
 }
 
-func ToCreateWalletDoc(req walletDto.WalletRequest, logo string, services []local_model.Service) *local_model.WalletOracle {
-	// Extract service IDs from the services slice
+func ToCreateWalletDoc(req walletDto.WalletRequest, logo string, services []local_model.Service, prevWallet *local_model.WalletOracle) *local_model.WalletOracle {
 	var selfServiceID, otherServiceID, agentServiceID string
 	var selfServiceName, otherServiceName, agentServiceName string
 	for _, service := range services {
@@ -66,13 +65,24 @@ func ToCreateWalletDoc(req walletDto.WalletRequest, logo string, services []loca
 		}
 	}
 
+	var self, other, agent bool
+	if req.Self == nil && prevWallet != nil {
+		self = prevWallet.Self
+	}
+	if req.Other == nil {
+		other = prevWallet.Other
+	}
+	if req.Agent == nil {
+		agent = prevWallet.Agent
+	}
+
 	return &local_model.WalletOracle{
 		Name:             req.Name,
 		UniqueCode:       strings.ToUpper(strings.TrimSpace(req.UniqueCode)),
 		Avatar:           logo,
-		Self:             *req.Self,
-		Other:            *req.Other,
-		Agent:            *req.Agent,
+		Self:             self,
+		Other:            other,
+		Agent:            agent,
 		SelfServiceID:    selfServiceID,
 		OtherServiceID:   otherServiceID,
 		AgentServiceID:   agentServiceID,

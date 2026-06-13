@@ -13,6 +13,14 @@ import (
 func Init(router chi.Router, handler cps_user.CPSUserHandler, authMiddleware middleware.AuthMiddleware) {
 	routes := []glue.Route{
 		{
+			Method:  http.MethodGet,
+			Path:    "/cps_users/export",
+			Handler: handler.ExportUsers,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
+		{
 			Method:  http.MethodPost,
 			Path:    "/cps_users/create",
 			Handler: handler.CreateUserRequest,

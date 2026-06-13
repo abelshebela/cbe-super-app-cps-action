@@ -33,6 +33,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorCustomerBlockedPermanently,
 	ErrorCustomerConvertIDFailed,
 	ErrorBranchDistrictCodeNotFound,
+	ErrorAPCHasActiveProducts,
 
 	ErrorExistUserName,
 	ErrorExistUserNameBPS,
@@ -40,6 +41,15 @@ var ResponseCodesList = []ResponseCode{
 	DonationDataExportedSuccess,
 	DonationDataExportedError,
 	DonationDataNotFoundInDateRange,
+	CpsUserDataExportedSuccess,
+	CpsUserDataExportedError,
+	CpsUserDataNotFoundInDateRange,
+	BpsUserDataExportedSuccess,
+	BpsUserDataExportedError,
+	BpsUserDataNotFoundInDateRange,
+	RoleDelegationDataExportedSuccess,
+	RoleDelegationDataExportedError,
+	RoleDelegationDataNotFoundInDateRange,
 	CpsActionDataExportedError,
 	CpsActionDataNotFoundInDateRange,
 
@@ -1933,6 +1943,69 @@ var (
 		Code:       "CPS_ACTION_DATA_NOT_FOUND_IN_DATE_RANGE",
 		StatusCode: StatusBadRequest,
 		Message:    MsgCpsActionDataNotFoundInDateRange,
+		Type:       "error",
+	}
+
+	RoleDelegationDataExportedSuccess = ResponseCode{
+		Code:       "ROLE_DELEGATION_DATA_EXPORT_SUCCESS",
+		StatusCode: StatusOK,
+		Message:    MsgRoleDelegationDataExportedSuccess,
+		Type:       "success",
+	}
+
+	RoleDelegationDataExportedError = ResponseCode{
+		Code:       "ROLE_DELEGATION_DATA_EXPORT_ERROR",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgRoleDelegationDataExportFailed,
+		Type:       "error",
+	}
+
+	RoleDelegationDataNotFoundInDateRange = ResponseCode{
+		Code:       "ROLE_DELEGATION_DATA_NOT_FOUND_IN_DATE_RANGE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgRoleDelegationDataNotFoundInRange,
+		Type:       "error",
+	}
+
+	CpsUserDataExportedSuccess = ResponseCode{
+		Code:       "CPS_USER_DATA_EXPORT_SUCCESS",
+		StatusCode: StatusOK,
+		Message:    MsgCpsUserDataExportedSuccessfully,
+		Type:       "success",
+	}
+
+	CpsUserDataExportedError = ResponseCode{
+		Code:       "CPS_USER_DATA_EXPORT_ERROR",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgCpsUserDataExportFailed,
+		Type:       "error",
+	}
+
+	CpsUserDataNotFoundInDateRange = ResponseCode{
+		Code:       "CPS_USER_DATA_NOT_FOUND_IN_DATE_RANGE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCpsUserDataNotFoundInDateRange,
+		Type:       "error",
+	}
+
+	BpsUserDataExportedSuccess = ResponseCode{
+		Code:       "BPS_USER_DATA_EXPORT_SUCCESS",
+		StatusCode: StatusOK,
+		Message:    MsgBpsUserDataExportedSuccessfully,
+		Type:       "success",
+	}
+
+	BpsUserDataExportedError = ResponseCode{
+		Code:       "BPS_USER_DATA_EXPORT_ERROR",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgBpsUserDataExportFailed,
+		Type:       "error",
+	}
+
+	BpsUserDataNotFoundInDateRange = ResponseCode{
+		Code:       "BPS_USER_DATA_NOT_FOUND_IN_DATE_RANGE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgBpsUserDataNotFoundInDateRange,
 		Type:       "error",
 	}
 

@@ -678,6 +678,11 @@ func (ca *cpsActionService) CancelCPSAction(ctx context.Context, action_code str
 func (ca *cpsActionService) GetCPSActionsByDepartment(ctx context.Context, department string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetCPSActionsByDepartment", "CPSAction", "GetCPSActionsByDepartment")
 	defer span.End()
+	if filterParams.Search != "" {
+		if codes, err := ca.actionLogRepo.GetActionCodesBySearch(ctx, filterParams.Search); err == nil && len(codes) > 0 {
+			filterParams.Filters["search_action_codes"] = codes
+		}
+	}
 	result, err := ca.repo.SanitizedFindAllWithPagination(ctx, *filterParams, department)
 	if err != nil {
 		span.AddEvent("failed to find all with pagination", trace.WithAttributes(attribute.String("error", err.Error())))
@@ -755,6 +760,11 @@ func (ca *cpsActionService) GetCPSActionsForApprover(ctx context.Context, userID
 		}, "", nil
 	}
 	filterParams.Filters["action_code"] = actionCodes
+	if filterParams.Search != "" {
+		if searchCodes, err := ca.actionLogRepo.GetActionCodesBySearch(ctx, filterParams.Search); err == nil && len(searchCodes) > 0 {
+			filterParams.Filters["search_action_codes"] = searchCodes
+		}
+	}
 
 	if len(statuses) > 0 {
 		filterParams.Filters["action_status"] = statuses
@@ -922,6 +932,11 @@ func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID 
 		}, "", nil
 	}
 	filterParams.Filters["action_code"] = actionCodes
+	if filterParams.Search != "" {
+		if searchCodes, err := ca.actionLogRepo.GetActionCodesBySearch(ctx, filterParams.Search); err == nil && len(searchCodes) > 0 {
+			filterParams.Filters["search_action_codes"] = searchCodes
+		}
+	}
 
 	if statuses := extractStringSlice(filterParams.Filters, "action_status"); len(statuses) > 0 {
 		filterParams.Filters["action_status"] = statuses
@@ -955,7 +970,11 @@ func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID 
 func (ca *cpsActionService) GetCPSActions(ctx context.Context, userID, role string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetCPSActions", "CPSAction", "GetCPSActions")
 	defer span.End()
-
+	if filterParams.Search != "" {
+		if codes, err := ca.actionLogRepo.GetActionCodesBySearch(ctx, filterParams.Search); err == nil && len(codes) > 0 {
+			filterParams.Filters["search_action_codes"] = codes
+		}
+	}
 	result, err := ca.repo.SanitizedFindAllWithPaginationCPSActions(ctx, userID, role, *filterParams, RAList)
 	if err != nil {
 		span.AddEvent("failed to find all with pagination", trace.WithAttributes(attribute.String("error", err.Error())))
