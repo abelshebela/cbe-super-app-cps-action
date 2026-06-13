@@ -19,8 +19,6 @@ import (
 	merchantDto "cbe-super-app-cps-action/internal/constants/dto/ecommerce-merchant"
 
 	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
-
-	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 func NonEmptyString(s, fallback string) string {
@@ -156,29 +154,11 @@ func CheckMerchantExists(
 	data *types.CheckMerchant,
 	opts *types.MiniAppMerchantExistOptions,
 ) (bool, error) {
-	if data == nil {
+	if data == nil || (strings.TrimSpace(data.MerchantCode) == "" && strings.TrimSpace(data.BankAccountNumber) == "") {
 		return false, nil
 	}
 
-	var conditions []bson.M
-	if data.MerchantCode != "" {
-		conditions = append(conditions, bson.M{"merchant_code": data.MerchantCode})
-	}
-
-	if len(conditions) == 0 {
-		return false, nil
-	}
-
-	filter := bson.M{
-		"is_deleted": false,
-		"$or":        conditions,
-	}
-
-	if opts != nil && opts.ExcludeID != "" {
-		filter["_id"] = bson.M{"$ne": opts.ExcludeID}
-	}
-
-	res, err := merchantRepo.FindOne(ctx, filter)
+	res, err := merchantRepo.FindOneO(ctx, data, opts)
 	if err != nil {
 		if err.Error() == localization.ErrorEcommerceMerchantNotFound.Code || err.Error() == localization.ErrorResourceNotFound.Code {
 			return false, nil
@@ -190,16 +170,10 @@ func CheckMerchantExists(
 		return false, nil
 	}
 
-	if strings.EqualFold(res.BankAccountNumber, data.BankAccountNumber) {
+	if data.BankAccountNumber != "" && strings.EqualFold(res.BankAccountNumber, data.BankAccountNumber) {
 		return false, errors.New(localization.ErrorAccountNumberAlreadyExists.Code)
 	}
-	// if res.Email == data.Email {
-	// 	return false, errors.New(localization.ErrorEmailAlreadyExist.Code)
-	// }
-	// if res.PhoneNumber == data.PhoneNumber {
-	// 	return false, errors.New(localization.ErrorPhonenumberAlreadyExist.Code)
-	// }
-	if strings.EqualFold(res.Code, data.MerchantCode) {
+	if data.MerchantCode != "" && strings.EqualFold(res.Code, data.MerchantCode) {
 		return false, errors.New(localization.ErrorCodeAlreadyExist.Code)
 	}
 

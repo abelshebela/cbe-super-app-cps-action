@@ -88,7 +88,6 @@ func (r CreateTACRequest) Validate() error {
 		),
 		validation.Field(&r.ActivationTime,
 			validation.Required,
-			validation.Length(1, 10),
 			validation.By(tacValidDate),
 		),
 		validation.Field(&r.VersionLabel,
