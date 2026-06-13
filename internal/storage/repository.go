@@ -85,6 +85,7 @@ type RoleDelegationRepository interface {
 	CreateWithNewUser(ctx context.Context, role *imodel.RoleDelegation) error
 	Update(ctx context.Context, id string, role *imodel.RoleDelegation) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	FindForExport(ctx context.Context, startDate, endDate time.Time) ([]imodel.RoleDelegation, error)
 	FindByID(ctx context.Context, id string) (*imodel.RoleDelegation, error)
 	FindByUsername(ctx context.Context, id string, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.RoleDelegation], error)
 	FindByUserCode(ctx context.Context, userCode string) (*cpsuser.CpsUserPopulatedResponse, error)
