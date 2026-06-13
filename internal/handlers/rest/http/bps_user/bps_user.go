@@ -48,6 +48,45 @@ func InitBPSUserMakerHandler(service service.BPSUserService, logger utils.Logger
 	}
 }
 
+func (h BPSUserHandler) ExportUsers(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "exportBpsUsers", "handler", "bpsUser")
+	defer span.End()
+	log := common_utils.LoggerFromCtx(ctx, h.logger)
+
+	fileType := strings.ToLower(strings.TrimSpace(r.URL.Query().Get("file_type")))
+	startDateRaw := strings.TrimSpace(r.URL.Query().Get("start_date"))
+	endDateRaw := strings.TrimSpace(r.URL.Query().Get("end_date"))
+	userName := strings.TrimSpace(r.URL.Query().Get("user_name"))
+
+	if fileType == "" || startDateRaw == "" || endDateRaw == "" {
+		log.Warnf("[ExportUsers] missing required params: file_type=%q, start_date=%q, end_date=%q", fileType, startDateRaw, endDateRaw)
+		localization.SendBadRequestResponse(w, localization.ErrorRequiredFieldMissing.Message)
+		return
+	}
+
+	startDate, endDate, err := common_utils.FormatDateRangeToUTCStrings(startDateRaw, endDateRaw)
+	if err != nil {
+		log.Warnf("[ExportUsers] invalid date format: start_date=%s, end_date=%s, err=%v", startDateRaw, endDateRaw, err)
+		localization.SendErrorResponse(w, localization.ErrorInvalidDateFormat, nil, nil)
+		return
+	}
+
+	if endDate.Before(startDate) {
+		log.Warnf("[ExportUsers] invalid date range: start=%v, end=%v", startDate, endDate)
+		localization.SendErrorResponse(w, localization.ErrorInvalidDateFormat, nil, nil)
+		return
+	}
+
+	fileLink, err := h.Service.ExportUsers(ctx, startDate, endDate, fileType, userName)
+	if err != nil {
+		log.Errorf("[ExportUsers] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.BpsUserDataExportedSuccess, fileLink)
+}
+
 // FetchUserByUserCode retrieves a BPS user by user code
 //
 //	@Summary		Get BPS user by user code

@@ -2,7 +2,9 @@ package cpsuser
 
 import (
 	"context"
+	"encoding/csv"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -17,6 +19,9 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/jung-kurt/gofpdf"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -36,9 +41,12 @@ type cpsUserService struct {
 	logger            shared_utils.Logger
 	cpsService        service.CPSActionService
 	bpsRepo           storage.BPSUserRepository
+	minioClient       *s3.Client
+	bucketName        string
+	cfg               config.VaultConfig
 }
 
-func NewCPSUserService(repo storage.CpsUserRepository, JobRoleRepo storage.JobRoleRepository, roleRepo storage.RoleRepository, approverRepo storage.CPSActionApproveIndexRepository, bpsApproverRepo storage.BPSActionApproveIndexRepository, departmentRepo storage.DepartmentRepository, permission service.PermissionService, cps service.CPSActionService, bps storage.BPSUserRepository, roleDelegation storage.RoleDelegationRepository, logger shared_utils.Logger) service.CPSUserService {
+func NewCPSUserService(repo storage.CpsUserRepository, JobRoleRepo storage.JobRoleRepository, roleRepo storage.RoleRepository, approverRepo storage.CPSActionApproveIndexRepository, bpsApproverRepo storage.BPSActionApproveIndexRepository, departmentRepo storage.DepartmentRepository, permission service.PermissionService, cps service.CPSActionService, bps storage.BPSUserRepository, roleDelegation storage.RoleDelegationRepository, minioClient *s3.Client, bucketName string, cfg config.VaultConfig, logger shared_utils.Logger) service.CPSUserService {
 	return &cpsUserService{
 		repo:              repo,
 		bpsRepo:           bps,
@@ -51,7 +59,101 @@ func NewCPSUserService(repo storage.CpsUserRepository, JobRoleRepo storage.JobRo
 		cpsService:        cps,
 		logger:            logger,
 		departmentRepo:    departmentRepo,
+		minioClient:       minioClient,
+		bucketName:        bucketName,
+		cfg:               cfg,
 	}
+}
+
+func cpsUserExportRow(user imodel.CPSUser) []string {
+	department := ""
+	if user.Department != bson.NilObjectID {
+		department = user.Department.Hex()
+	}
+
+	return []string{
+		user.UserCode,
+		user.FullName,
+		user.UserName,
+		user.Email,
+		user.PhoneNumber,
+		user.JobTitle,
+		user.Role,
+		department,
+		fmt.Sprintf("%t", user.Enabled),
+		user.CreatedAt.Format(time.RFC3339),
+	}
+}
+
+func (s *cpsUserService) ExportUsers(ctx context.Context, startDate, endDate time.Time, fileType, userName string) (string, error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
+	if s.minioClient == nil {
+		log.Errorf("[CPSUser/ExportUsers] minio client is not configured")
+		return "", errors.New(localization.CpsUserDataExportedError.Code)
+	}
+
+	fileType = strings.ToLower(strings.TrimSpace(fileType))
+	if fileType != string(lib.FileTypeCSV) && fileType != string(lib.FileTypePDF) {
+		return "", errors.New(localization.ErrorInvalidRequest.Code)
+	}
+
+	data, err := s.repo.FindForExport(ctx, startDate, endDate, userName)
+	if err != nil {
+		log.Errorf("[CPSUser/ExportUsers] failed to fetch users: %v", err)
+		return "", err
+	}
+
+	if len(data) == 0 {
+		return "", errors.New(localization.CpsUserDataNotFoundInDateRange.Code)
+	}
+
+	headers := []string{"User Code", "Full Name", "Username", "Email", "Phone Number", "Job Title", "Role", "Department", "Enabled", "Created At"}
+
+	ext := "csv"
+	if fileType == string(lib.FileTypePDF) {
+		ext = "pdf"
+	}
+
+	objectName := fmt.Sprintf("cps_users_%s_to_%s_%d.%s", startDate.Format("20060102"), endDate.Format("20060102"), time.Now().Unix(), ext)
+
+	if fileType == string(lib.FileTypePDF) {
+		url, exportErr := lib.ExportPDFAndUpload(ctx, s.minioClient, s.bucketName, s.cfg, objectName, headers, "A4", func(pdf *gofpdf.Fpdf) error {
+			const usableWidthMM = 190.0
+			colWidth := usableWidthMM / float64(len(headers))
+			layout := lib.CalcPDFLayout(len(headers))
+
+			pdf.SetFont("Arial", "", layout.BodyFontPt)
+			for _, item := range data {
+				for _, cell := range cpsUserExportRow(item) {
+					pdf.CellFormat(colWidth, layout.BodyRowMM, cell, "1", 0, "L", false, 0, "")
+				}
+				pdf.Ln(-1)
+			}
+			return nil
+		}, s.logger)
+		if exportErr != nil {
+			log.Errorf("[CPSUser/ExportUsers] pdf export failed: %v", exportErr)
+			return "", errors.New(localization.CpsUserDataExportedError.Code)
+		}
+
+		return url, nil
+	}
+
+	url, exportErr := lib.ExportCSVAndUpload(ctx, s.minioClient, s.bucketName, s.cfg, objectName, headers, func(writer *csv.Writer) error {
+		for _, item := range data {
+			if err := writer.Write(cpsUserExportRow(item)); err != nil {
+				return err
+			}
+		}
+		return nil
+	}, s.logger)
+	if exportErr != nil {
+		log.Errorf("[CPSUser/ExportUsers] csv export failed: %v", exportErr)
+		return "", errors.New(localization.CpsUserDataExportedError.Code)
+	}
+
+	return url, nil
 }
 
 func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.CreateUserRequest) error {

@@ -161,6 +161,7 @@ type CPSUserService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	CreateUserRequest(ctx context.Context, req cpsuser.CreateUserRequest) error
 	UpdateUserRequest(ctx context.Context, usercode string, req cpsuser.UpdateUserRequest) error
+	ExportUsers(ctx context.Context, startDate, endDate time.Time, fileType, userName string) (string, error)
 	FetchUserByUserCode(ctx context.Context, userCode string) (*cpsuser.CPSUserResponse, error)
 	GetAllCPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*cpsuser.CPSUserWithDepartment], error)
 	DeleteUserRequest(ctx context.Context, userCode string) error
@@ -497,6 +498,7 @@ type BankService interface {
 
 type BPSUserService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	ExportUsers(ctx context.Context, startDate, endDate time.Time, fileType, userName string) (string, error)
 	FetchUserByUserCode(ctx context.Context, userCode string) (*bpsUserDto.BPSUserResposenDTO, error)
 	FetchUserByUserName(ctx context.Context, userCode string) (*imodel.BPSUser, error)
 	GetAllBPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]bpsUserDto.BPSUserResposenDTO], error)

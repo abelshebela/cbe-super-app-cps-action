@@ -86,10 +86,10 @@ func BuildRoleDelegationRequestWithExistingUser(body role_delegation_dto.RoleDel
 	if delegatedUserDepartmentOrBranch == "" {
 		return imodel.RoleDelegation{}, errors.New("Delegated user department or branch is required")
 	}
-	delegatedUserExistingRole = strings.Clone(delegatedUserExistingRole)
-	if delegatedUserExistingRole == "" {
-		return imodel.RoleDelegation{}, errors.New("Delegated user existing role is required")
-	}
+	// delegatedUserExistingRole = strings.Clone(delegatedUserExistingRole)
+	// if delegatedUserExistingRole == "" {
+	// 	return imodel.RoleDelegation{}, errors.New("Delegated user existing role is required")
+	// }
 	if delegationType == "" {
 		return imodel.RoleDelegation{}, errors.New("Delegation type is required")
 	}

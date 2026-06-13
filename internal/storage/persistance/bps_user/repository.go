@@ -50,6 +50,27 @@ func NewBPSUserRepository(client *mongo.Client, cfg *config.VaultConfig, dbName 
 	}
 }
 
+func (b *BPSUserStorage) FindForExport(ctx context.Context, startDate, endDate time.Time, userName string) ([]bps_model.BPSUser, error) {
+	filter := bpsUserActiveFilter()
+	filter["created_at"] = bson.M{"$gte": startDate, "$lte": endDate}
+	if userName != "" {
+		filter["username"] = bson.M{"$regex": "^" + regexp.QuoteMeta(userName) + "$", "$options": "i"}
+	}
+
+	cursor, err := b.collection.Find(ctx, filter)
+	if err != nil {
+		return nil, local_util.HandleDBError(err)
+	}
+	defer cursor.Close(ctx)
+
+	var users []bps_model.BPSUser
+	if err := cursor.All(ctx, &users); err != nil {
+		return nil, local_util.HandleDBError(err)
+	}
+
+	return users, nil
+}
+
 func (b *BPSUserStorage) FindByOr(ctx context.Context, phone, email, username string) (*bps_model.BPSUser, error) {
 	log := local_util.LoggerFromCtx(ctx, b.logger)
 
