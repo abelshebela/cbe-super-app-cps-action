@@ -11,6 +11,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
+	"encoding/csv"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -24,6 +25,9 @@ import (
 
 	bpsUserDto "cbe-super-app-cps-action/internal/constants/dto/bps_user"
 
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/jung-kurt/gofpdf"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.opentelemetry.io/otel/attribute"
@@ -38,10 +42,13 @@ type bpsUserService struct {
 	Branch_blocks  storage.AccountBlockRepository
 	RoleRepository storage.RoleRepository
 	logger         utils.Logger
+	minioClient    *s3.Client
+	bucketName     string
+	cfg            config.VaultConfig
 }
 
 func NewBPSUserService(repo storage.BPSUserRepository, JobRolesRepo storage.JobRoleRepository,
-	roleRepository storage.RoleRepository, cpsService service.CPSActionService, cpsUserRepo storage.CpsUserRepository, branch_blocks storage.AccountBlockRepository, logger utils.Logger) service.BPSUserService {
+	roleRepository storage.RoleRepository, cpsService service.CPSActionService, cpsUserRepo storage.CpsUserRepository, branch_blocks storage.AccountBlockRepository, minioClient *s3.Client, bucketName string, cfg config.VaultConfig, logger utils.Logger) service.BPSUserService {
 	return &bpsUserService{
 		cpsService:     cpsService,
 		repo:           repo,
@@ -50,7 +57,96 @@ func NewBPSUserService(repo storage.BPSUserRepository, JobRolesRepo storage.JobR
 		RoleRepository: roleRepository,
 		Branch_blocks:  branch_blocks,
 		logger:         logger,
+		minioClient:    minioClient,
+		bucketName:     bucketName,
+		cfg:            cfg,
 	}
+}
+
+func bpsUserExportRow(user bps_model.BPSUser) []string {
+	return []string{
+		user.UserCode,
+		user.FullName,
+		user.Username,
+		user.Email,
+		user.PhoneNumber,
+		strings.Join(user.BranchCode, ","),
+		user.JobTitle,
+		user.Role,
+		fmt.Sprintf("%t", user.Enabled),
+		user.CreatedAt.Format(time.RFC3339),
+	}
+}
+
+func (b *bpsUserService) ExportUsers(ctx context.Context, startDate, endDate time.Time, fileType, userName string) (string, error) {
+	log := local_util.LoggerFromCtx(ctx, b.logger)
+
+	if b.minioClient == nil {
+		log.Errorf("[BPSUser/ExportUsers] minio client is not configured")
+		return "", errors.New(localization.BpsUserDataExportedError.Code)
+	}
+
+	fileType = strings.ToLower(strings.TrimSpace(fileType))
+	if fileType != string(lib.FileTypeCSV) && fileType != string(lib.FileTypePDF) {
+		return "", errors.New(localization.ErrorInvalidRequest.Code)
+	}
+
+	data, err := b.repo.FindForExport(ctx, startDate, endDate, userName)
+	if err != nil {
+		log.Errorf("[BPSUser/ExportUsers] failed to fetch users: %v", err)
+		return "", err
+	}
+
+	if len(data) == 0 {
+		return "", errors.New(localization.BpsUserDataNotFoundInDateRange.Code)
+	}
+
+	headers := []string{"User Code", "Full Name", "Username", "Email", "Phone Number", "Branch Codes", "Job Title", "Role", "Enabled", "Created At"}
+
+	ext := "csv"
+	if fileType == string(lib.FileTypePDF) {
+		ext = "pdf"
+	}
+
+	objectName := fmt.Sprintf("bps_users_%s_to_%s_%d.%s", startDate.Format("20060102"), endDate.Format("20060102"), time.Now().Unix(), ext)
+
+	if fileType == string(lib.FileTypePDF) {
+		url, exportErr := lib.ExportPDFAndUpload(ctx, b.minioClient, b.bucketName, b.cfg, objectName, headers, "A4", func(pdf *gofpdf.Fpdf) error {
+			const usableWidthMM = 190.0
+			colWidth := usableWidthMM / float64(len(headers))
+			layout := lib.CalcPDFLayout(len(headers))
+
+			pdf.SetFont("Arial", "", layout.BodyFontPt)
+			for _, item := range data {
+				for _, cell := range bpsUserExportRow(item) {
+					pdf.CellFormat(colWidth, layout.BodyRowMM, cell, "1", 0, "L", false, 0, "")
+				}
+				pdf.Ln(-1)
+			}
+			return nil
+		}, b.logger)
+		if exportErr != nil {
+			log.Errorf("[BPSUser/ExportUsers] pdf export failed: %v", exportErr)
+			return "", errors.New(localization.BpsUserDataExportedError.Code)
+		}
+
+		return url, nil
+	}
+
+	url, exportErr := lib.ExportCSVAndUpload(ctx, b.minioClient, b.bucketName, b.cfg, objectName, headers, func(writer *csv.Writer) error {
+		for _, item := range data {
+			if err := writer.Write(bpsUserExportRow(item)); err != nil {
+				return err
+			}
+		}
+		return nil
+	}, b.logger)
+	if exportErr != nil {
+		log.Errorf("[BPSUser/ExportUsers] csv export failed: %v", exportErr)
+		return "", errors.New(localization.BpsUserDataExportedError.Code)
+	}
+
+	return url, nil
 }
 
 // Authorize implements service.BPSUserService.
