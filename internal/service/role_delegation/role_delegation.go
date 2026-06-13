@@ -104,6 +104,8 @@ func (r *roleDelegation) CreateWithExistingUser(ctx context.Context, roleDelegat
 
 	log.Infof("[RoleDelegation/Create] Creating role delegation for user %s with job title %s", roleDelegation.DelegatedUserID, roleDelegation.DelegatedUserJobTitle)
 
+	log.Debugf("[RoleDelegation/Create] incoming role delegation data: %+v", roleDelegation)
+
 	maker := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(maker) {
 		log.Errorf("[Role Service][Create] maker data is incomplete")
