@@ -100,7 +100,7 @@ func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRe
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
 
-	wallet := core.ToCreateWalletDoc(req, URL, services)
+	wallet := core.ToCreateWalletDoc(req, URL, services, nil)
 	wallet.Enabled = false
 
 	//here since the unique id is nil 000.. use other unique id like the code
@@ -120,6 +120,7 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 	log.Infof("[WalletSvc][Update] id: %s", id)
+
 	prevWallet, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		span.AddEvent("FindByID error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("id", id)))
@@ -175,7 +176,7 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 		return err
 	}
 
-	wallet := core.ToCreateWalletDoc(req, avatarURL, services)
+	wallet := core.ToCreateWalletDoc(req, avatarURL, services, prevWallet)
 
 	UpdateWallet, change_count := core.ToUpdateWalletDoc(*prevWallet, *wallet)
 	if avatarURL != prevWallet.Avatar {

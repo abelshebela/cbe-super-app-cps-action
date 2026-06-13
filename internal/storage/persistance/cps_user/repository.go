@@ -46,6 +46,29 @@ func NewCPSUserRepository(client *mongo.Client, redisRepository storage.RedisRep
 	}
 }
 
+func (r *CPSUserStorage) FindForExport(ctx context.Context, startDate, endDate time.Time, userName string) ([]imodel.CPSUser, error) {
+	filter := bson.M{
+		"created_at": bson.M{"$gte": startDate, "$lte": endDate},
+		"is_deleted": bson.M{"$ne": true},
+	}
+	if userName != "" {
+		filter["username"] = bson.M{"$regex": "^" + regexp.QuoteMeta(userName) + "$", "$options": "i"}
+	}
+
+	cursor, err := r.collection.Find(ctx, filter)
+	if err != nil {
+		return nil, local_util.HandleDBError(err)
+	}
+	defer cursor.Close(ctx)
+
+	var users []imodel.CPSUser
+	if err := cursor.All(ctx, &users); err != nil {
+		return nil, local_util.HandleDBError(err)
+	}
+
+	return users, nil
+}
+
 // Implement actual repository methods for CPS action authorization
 func (r *CPSUserStorage) Create(ctx context.Context, cpsUser *imodel.CPSUser) error {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
@@ -221,7 +244,7 @@ func (r *CPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 
 	searchKeys := bson.M{}
 
-	allowedKeys := []string{"enabled", "department", "role"}
+	allowedKeys := []string{"enabled", "department", "role", "created_at"}
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		searchKeys["$or"] = []bson.M{

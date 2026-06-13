@@ -85,6 +85,7 @@ type RoleDelegationRepository interface {
 	CreateWithNewUser(ctx context.Context, role *imodel.RoleDelegation) error
 	Update(ctx context.Context, id string, role *imodel.RoleDelegation) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	FindForExport(ctx context.Context, startDate, endDate time.Time) ([]imodel.RoleDelegation, error)
 	FindByID(ctx context.Context, id string) (*imodel.RoleDelegation, error)
 	FindByUsername(ctx context.Context, id string, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.RoleDelegation], error)
 	FindByUserCode(ctx context.Context, userCode string) (*cpsuser.CpsUserPopulatedResponse, error)
@@ -258,6 +259,7 @@ type AvatarRepository interface {
 
 // BPSUser persistence
 type BPSUserRepository interface {
+	FindForExport(ctx context.Context, startDate, endDate time.Time, userName string) ([]bps_model.BPSUser, error)
 	GetByUserCode(ctx context.Context, userCode string) (*bpsUserDto.BPSUserResposenDTO, error)
 	GetByUserID(ctx context.Context, userID string) (*bps_model.BPSUser, error)
 	GetByUsername(ctx context.Context, userName string) (*bps_model.BPSUser, error)
@@ -425,6 +427,7 @@ type PortalCardRepository interface {
 }
 
 type CpsUserRepository interface {
+	FindForExport(ctx context.Context, startDate, endDate time.Time, userName string) ([]imodel.CPSUser, error)
 	Create(ctx context.Context, cpsUser *imodel.CPSUser) error
 	Update(ctx context.Context, id string, cpsUser *imodel.CPSUser) error
 	Delete(ctx context.Context, id string) error
@@ -569,7 +572,7 @@ type EcommerceMerchantRepository interface {
 	FindByID(ctx context.Context, id string) (*model.EcommerceMerchant, error)
 	FindBranchByID(ctx context.Context, id string) (*model.BranchInformation, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.EcommerceMerchant], error)
-	FindOne(ctx context.Context, filter bson.M) (*model.EcommerceMerchant, error)
+	FindOneO(ctx context.Context, data *types.CheckMerchant, opts *types.MiniAppMerchantExistOptions) (*model.EcommerceMerchant, error)
 }
 
 type NotificationRepository interface {
