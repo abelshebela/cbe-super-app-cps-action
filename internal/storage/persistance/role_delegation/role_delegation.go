@@ -419,6 +419,11 @@ func (r *roleDelegationRepository) FindAllWithPagination(ctx context.Context, fi
 	}
 
 	if val, ok := filterParam.Filters["status"]; ok {
+		if val == "Pending" {
+			filter["enable"] = true
+			filter["start_at"] = bson.M{"$gt": time.Now()}
+			filter["end_at"] = bson.M{"$lte": time.Now()}
+		}
 		if val == "Expired" {
 			filter["enable"] = true
 			filter["end_at"] = bson.M{"$lte": time.Now()}

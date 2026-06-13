@@ -127,7 +127,7 @@ func PipelineBuilder(userCode string) mongo.Pipeline {
 				// unwind job_role
 				bson.D{{Key: "$unwind", Value: bson.M{
 					"path":                       "$job_role",
-					"preserveNullAndEmptyArrays": false,
+					"preserveNullAndEmptyArrays": true,
 				}}},
 
 				// project role_id from job_roles._id
@@ -282,11 +282,11 @@ func PipelineBuilderWithRole(userCode, departmentColl, rolesColl, jobRolesColl s
 			"user_code": 1,
 
 			"role": bson.M{
-				"code": "$role_doc.code",
-				"name": "$role_doc.name",
+				"code": bson.M{"$ifNull": bson.A{"$role_doc.code", ""}},
+				"name": bson.M{"$ifNull": bson.A{"$role_doc.name", ""}},
 			},
-			"role_code": "$role_doc.code",
-			"role_id":   "$role_doc.role_id",
+			"role_code": bson.M{"$ifNull": bson.A{"$role_doc.code", ""}},
+			"role_id":   bson.M{"$ifNull": bson.A{"$role_doc.role_id", nil}},
 
 			// ✅ Department structured
 			"department": bson.M{
@@ -361,7 +361,7 @@ func PipelineBuilderWithRoleByUserName(userName, departmentColl, rolesColl, jobR
 
 				bson.D{{Key: "$unwind", Value: bson.M{
 					"path":                       "$job_role",
-					"preserveNullAndEmptyArrays": false,
+					"preserveNullAndEmptyArrays": true,
 				}}},
 
 				bson.D{{Key: "$project", Value: bson.M{
@@ -406,11 +406,11 @@ func PipelineBuilderWithRoleByUserName(userName, departmentColl, rolesColl, jobR
 			"user_code": 1,
 
 			"role": bson.M{
-				"code": "$role_doc.code",
-				"name": "$role_doc.name",
+				"code": bson.M{"$ifNull": bson.A{"$role_doc.code", ""}},
+				"name": bson.M{"$ifNull": bson.A{"$role_doc.name", ""}},
 			},
-			"role_code": "$role_doc.code",
-			"role_id":   "$role_doc.role_id",
+			"role_code": bson.M{"$ifNull": bson.A{"$role_doc.code", ""}},
+			"role_id":   bson.M{"$ifNull": bson.A{"$role_doc.role_id", nil}},
 
 			// ✅ Department structured
 			"department": bson.M{
@@ -432,6 +432,129 @@ func PipelineBuilderWithRoleByUserName(userName, departmentColl, rolesColl, jobR
 		}}},
 	}
 }
+
+// func PipelineBuilderWithRoleByUserName(userName, departmentColl, rolesColl, jobRolesColl string) mongo.Pipeline {
+// 	return mongo.Pipeline{
+
+// 		// 1️⃣ Match CPS user by user_code
+// 		bson.D{{Key: "$match", Value: bson.M{
+// 			"username": userName,
+// 		}}},
+
+// 		// 🔥 Convert department string → ObjectId
+// 		bson.D{{Key: "$addFields", Value: bson.M{
+// 			"department_obj_id": bson.M{
+// 				"$convert": bson.M{
+// 					"input":   "$department",
+// 					"to":      "objectId",
+// 					"onError": nil,
+// 					"onNull":  nil,
+// 				},
+// 			},
+// 		}}},
+
+// 		// 2️⃣ Lookup role by job_title
+// 		bson.D{{Key: "$lookup", Value: bson.M{
+// 			"from": rolesColl,
+// 			"let": bson.M{
+// 				"jobTitle": "$job_title",
+// 			},
+// 			"pipeline": mongo.Pipeline{
+
+// 				bson.D{{Key: "$match", Value: bson.M{
+// 					"$expr": bson.M{
+// 						"$eq": []interface{}{"$job_title", "$$jobTitle"},
+// 					},
+// 				}}},
+
+// 				bson.D{{Key: "$lookup", Value: bson.M{
+// 					"from": jobRolesColl,
+// 					"let": bson.M{
+// 						"roleCode": "$role",
+// 					},
+// 					"pipeline": mongo.Pipeline{
+// 						bson.D{{Key: "$match", Value: bson.M{
+// 							"$expr": bson.M{
+// 								"$eq": []interface{}{"$code", "$$roleCode"},
+// 							},
+// 						}}},
+// 					},
+// 					"as": "job_role",
+// 				}}},
+
+// 				bson.D{{Key: "$unwind", Value: bson.M{
+// 					"path":                       "$job_role",
+// 					"preserveNullAndEmptyArrays": false,
+// 				}}},
+
+// 				bson.D{{Key: "$project", Value: bson.M{
+// 					"_id":     0,
+// 					"role_id": "$job_role._id",
+// 					"code":    "$job_role.code",
+// 					"name":    "$job_role.name",
+// 				}}},
+// 			},
+// 			"as": "role_doc",
+// 		}}},
+
+// 		// 3️⃣ Lookup Department (NEW ✅)
+// 		bson.D{{Key: "$lookup", Value: bson.M{
+// 			"from":         "department",
+// 			"localField":   "department",
+// 			"foreignField": "_id",
+// 			"as":           "department_info",
+// 			"pipeline": mongo.Pipeline{
+// 				bson.D{{Key: "$project", Value: bson.M{
+// 					"_id":        1,
+// 					"department": 1,
+// 				}}},
+// 			},
+// 		}}},
+
+// 		// 4️⃣ Unwind role_doc
+// 		bson.D{{Key: "$unwind", Value: bson.M{
+// 			"path":                       "$role_doc",
+// 			"preserveNullAndEmptyArrays": true,
+// 		}}},
+
+// 		// 5️⃣ Unwind department
+// 		bson.D{{Key: "$unwind", Value: bson.M{
+// 			"path":                       "$department_info",
+// 			"preserveNullAndEmptyArrays": true,
+// 		}}},
+
+// 		// 6️⃣ Final projection
+// 		bson.D{{Key: "$project", Value: bson.M{
+// 			"_id":       1,
+// 			"user_code": 1,
+
+// 			"role": bson.M{
+// 				"code": "$role_doc.code",
+// 				"name": "$role_doc.name",
+// 			},
+// 			"role_code": "$role_doc.code",
+// 			"role_id":   "$role_doc.role_id",
+
+// 			// ✅ Department structured
+// 			"department": bson.M{
+// 				"id":   "$department_info._id",
+// 				"name": "$department_info.department",
+// 			},
+
+// 			"full_name":            1,
+// 			"username":             1,
+// 			"email":                1,
+// 			"phone_number":         1,
+// 			"last_login":           1,
+// 			"gender":               1,
+// 			"realm":                1,
+// 			"enabled":              1,
+// 			"job_title":            1,
+// 			"is_delegation_active": 1,
+// 			"is_first_time_login":  1,
+// 		}}},
+// 	}
+// }
 
 func CPSUserPopulated(u imodel.CPSUser) *model.CPSUser {
 	return &model.CPSUser{
