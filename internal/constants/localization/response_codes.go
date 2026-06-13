@@ -33,6 +33,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorCustomerBlockedPermanently,
 	ErrorCustomerConvertIDFailed,
 	ErrorBranchDistrictCodeNotFound,
+	ErrorAPCHasActiveProducts,
 
 	ErrorExistUserName,
 	ErrorExistUserNameBPS,

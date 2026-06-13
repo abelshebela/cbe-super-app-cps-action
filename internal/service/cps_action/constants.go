@@ -455,6 +455,7 @@ const (
 	RequestDisableAccountProduct constants.RequestAction = "DISABLE_ACCOUNT_PRODUCT"
 
 	RequestCreateTermAndCondition constants.RequestAction = "CREATE_TERM_AND_CONDITION"
+	RequestUpdateTermAndCondition constants.RequestAction = "UPDATE_TERM_AND_CONDITION"
 	RequestDeleteTermAndCondition constants.RequestAction = "DELETE_TERM_AND_CONDITION"
 )
 
@@ -820,6 +821,7 @@ var validRequestActions = map[constants.RequestAction]struct{}{
 	RequestDisableAccountProduct: {},
 
 	RequestCreateTermAndCondition: {},
+	RequestUpdateTermAndCondition: {},
 	RequestDeleteTermAndCondition: {},
 }
 
@@ -1070,6 +1072,7 @@ var RequestActionGroups = map[string][]constants.RequestAction{
 	},
 	"TERMANDCONDITION": {
 		RequestCreateTermAndCondition,
+		RequestUpdateTermAndCondition,
 		RequestDeleteTermAndCondition,
 	},
 	"WALLET": {
