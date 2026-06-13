@@ -414,7 +414,7 @@ func (r *roleDelegation) Export(ctx context.Context, startDate, endDate time.Tim
 	)
 
 	if fileType == string(lib.FileTypePDF) {
-		url, exportErr := lib.ExportPDFAndUpload(ctx, r.minioClient, r.bucketName, r.cfg, objectName, headers, func(pdf *gofpdf.Fpdf) error {
+		url, exportErr := lib.ExportPDFAndUpload(ctx, r.minioClient, r.bucketName, r.cfg, objectName, headers, "A5", func(pdf *gofpdf.Fpdf) error {
 			const usableWidthMM = 277.0
 			colWidth := usableWidthMM / float64(len(headers))
 			layout := lib.CalcPDFLayout(len(headers))
