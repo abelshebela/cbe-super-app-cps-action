@@ -215,7 +215,7 @@ func FileExporterForCPSAction(ctx context.Context, cfg config.VaultConfig, minio
 		colWidth := usableWidthMM / float64(len(header))
 		layout := CalcPDFLayout(len(header))
 
-		url, err = ExportPDFAndUpload(ctx, minioClient, buckerName, cfg, objectName, header, func(pdf *gofpdf.Fpdf) error {
+		url, err = ExportPDFAndUpload(ctx, minioClient, buckerName, cfg, objectName, header, "A4", func(pdf *gofpdf.Fpdf) error {
 			pdf.SetFont("Arial", "", layout.BodyFontPt)
 			for _, action := range data {
 				row, rerr := BuildCPSActionRowFromFields(action, resolvedFields)
@@ -1266,6 +1266,7 @@ func ExportPDFAndUpload(
 	env config.VaultConfig,
 	objectKey string,
 	headers []string,
+	pdfSize string,
 	writeRows func(pdf *gofpdf.Fpdf) error,
 	logger interface {
 		Errorf(format string, args ...any)
@@ -1283,7 +1284,7 @@ func ExportPDFAndUpload(
 
 	// 2. Portrait A4 (210x297mm) with auto page break so long datasets paginate cleanly.
 	// Top margin reserved for the Commercial Bank of Ethiopia branded banner.
-	pdf := gofpdf.New("P", "mm", "A4", "")
+	pdf := gofpdf.New("P", "mm", pdfSize, "")
 	const (
 		bannerHeightMM = 22.0 // height of the purple CBE banner
 		sideMarginMM   = 10.0

@@ -14,6 +14,14 @@ func Init(router chi.Router, handler handlers.RoleDelegation, auth middleware.Au
 	routes := []glue.Route{
 		{
 			Method:  http.MethodGet,
+			Path:    "/role_delegation/export",
+			Handler: handler.Export,
+			Middlewares: []func(next http.Handler) http.Handler{
+				auth.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodGet,
 			Path:    "/role_delegation",
 			Handler: handler.FindAllWithPagination,
 			Middlewares: []func(next http.Handler) http.Handler{

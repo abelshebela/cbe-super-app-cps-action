@@ -10,10 +10,16 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
+	"encoding/csv"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/jung-kurt/gofpdf"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -28,6 +34,9 @@ type roleDelegation struct {
 	department   storage.DepartmentRepository
 	cpsService   service.CPSActionService
 	branchRepo   storage.AccountBlockRepository
+	minioClient  *s3.Client
+	bucketName   string
+	cfg          config.VaultConfig
 	logger       utils.Logger
 }
 
@@ -347,6 +356,101 @@ func (r *roleDelegation) EnableOrDisable(ctx context.Context, id string, enable 
 	return nil
 }
 
+// Export implements [service.RoleDelegationService].
+func (r *roleDelegation) Export(ctx context.Context, startDate, endDate time.Time, fileType string) (string, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	if r.minioClient == nil {
+		log.Errorf("[RoleDelegation/Export] minio client is not configured")
+		return "", errors.New(localization.RoleDelegationDataExportedError.Code)
+	}
+
+	fileType = strings.ToLower(strings.TrimSpace(fileType))
+	if fileType != string(lib.FileTypeCSV) && fileType != string(lib.FileTypePDF) {
+		log.Warnf("[RoleDelegation/Export] unsupported file type: %s", fileType)
+		return "", errors.New(localization.ErrorInvalidRequest.Code)
+	}
+
+	data, err := r.repo.FindForExport(ctx, startDate, endDate)
+	if err != nil {
+		log.Errorf("[RoleDelegation/Export] fetch export data failed: %v", err)
+		return "", err
+	}
+
+	if len(data) == 0 {
+		return "", errors.New(localization.RoleDelegationDataNotFoundInDateRange.Code)
+	}
+
+	headers := []string{
+		"Delegated User ID",
+		"Delegated User Code",
+		"Delegated User Name",
+		"Delegated User Type",
+		"Delegated User Job Title",
+		"Delegated User Existing Role",
+		"Delegation Type",
+		"Delegator User ID",
+		"Delegator User Name",
+		"Delegator User Role",
+		"New Role",
+		"New Department Or Branch",
+		"Enabled",
+		"Start At",
+		"End At",
+		"Reason",
+	}
+
+	ext := "csv"
+	if fileType == string(lib.FileTypePDF) {
+		ext = "pdf"
+	}
+
+	objectName := fmt.Sprintf(
+		"role_delegations_%s_to_%s_%d.%s",
+		startDate.Format("20060102"),
+		endDate.Format("20060102"),
+		time.Now().Unix(),
+		ext,
+	)
+
+	if fileType == string(lib.FileTypePDF) {
+		url, exportErr := lib.ExportPDFAndUpload(ctx, r.minioClient, r.bucketName, r.cfg, objectName, headers, "A5", func(pdf *gofpdf.Fpdf) error {
+			const usableWidthMM = 277.0
+			colWidth := usableWidthMM / float64(len(headers))
+			layout := lib.CalcPDFLayout(len(headers))
+
+			pdf.SetFont("Arial", "", layout.BodyFontPt)
+			for _, item := range data {
+				for _, cell := range roleDelegationExportRow(item) {
+					pdf.CellFormat(colWidth, layout.BodyRowMM, truncateRoleDelegationCell(cell, colWidth, layout.BodyFontPt), "1", 0, "L", false, 0, "")
+				}
+				pdf.Ln(-1)
+			}
+			return nil
+		}, r.logger)
+		if exportErr != nil {
+			log.Errorf("[RoleDelegation/Export] PDF export failed: %v", exportErr)
+			return "", errors.New(localization.RoleDelegationDataExportedError.Code)
+		}
+		return url, nil
+	}
+
+	url, exportErr := lib.ExportCSVAndUpload(ctx, r.minioClient, r.bucketName, r.cfg, objectName, headers, func(writer *csv.Writer) error {
+		for _, item := range data {
+			if err := writer.Write(roleDelegationExportRow(item)); err != nil {
+				return err
+			}
+		}
+		return nil
+	}, r.logger)
+	if exportErr != nil {
+		log.Errorf("[RoleDelegation/Export] CSV export failed: %v", exportErr)
+		return "", errors.New(localization.RoleDelegationDataExportedError.Code)
+	}
+
+	return url, nil
+}
+
 // FindAll implements [service.RoleDelegationService].
 func (r *roleDelegation) FindAll(ctx context.Context) (*[]imodel.RoleDelegation, error) {
 	return r.repo.FindAll(ctx)
@@ -470,7 +574,56 @@ func (r *roleDelegation) Update(ctx context.Context, id string, update imodel.Ro
 	return r.cpsService.CreateCPSAction(ctx, &cpsModel)
 }
 
-func NewRoleDelegationService(repo storage.RoleDelegationRepository, jobTitleRepo storage.JobRoleRepository, cpsUserRepo storage.CpsUserRepository, bpsUserRepo storage.BPSUserRepository, department storage.DepartmentRepository, roleRepo storage.RoleRepository, branchRepo storage.AccountBlockRepository, cpsService service.CPSActionService, logger utils.Logger) service.RoleDelegationService {
+func roleDelegationExportRow(item imodel.RoleDelegation) []string {
+	return []string{
+		item.DelegatedUserID,
+		item.DelegatedUserUserCode,
+		item.DelegatedUserFullName,
+		item.DelegatedUserUserType,
+		item.DelegatedUserJobTitle,
+		roleDelegationPreferredValue(item.DelegatedUserExistingRoleName, item.DelegatedUserExistingRole),
+		item.DelegationType,
+		item.DelegatorUserID,
+		item.DelegatorUserFullName,
+		roleDelegationPreferredValue(item.DelegatorUserRoleName, item.DelegatorUserRole),
+		roleDelegationPreferredValue(item.NewRoleIDName, item.NewRoleID),
+		roleDelegationPreferredValue(item.NewDepartmentOrBranchName, item.NewDepartmentOrBranch),
+		fmt.Sprintf("%t", item.Enable),
+		local_util.FormatTime(item.StartAt),
+		local_util.FormatTime(item.EndAt),
+		item.Reason,
+	}
+}
+
+func roleDelegationPreferredValue(preferred, fallback string) string {
+	if strings.TrimSpace(preferred) != "" {
+		return preferred
+	}
+	return fallback
+}
+
+func truncateRoleDelegationCell(s string, colWidthMM, fontPt float64) string {
+	if s == "" {
+		return s
+	}
+	charMM := fontPt * (2.0 / 9.0)
+	if charMM <= 0 {
+		charMM = 2.0
+	}
+	budget := int((colWidthMM - 2.0) / charMM)
+	if budget < 4 {
+		budget = 4
+	}
+	if len(s) <= budget {
+		return s
+	}
+	if budget <= 3 {
+		return s[:budget]
+	}
+	return s[:budget-3] + "..."
+}
+
+func NewRoleDelegationService(repo storage.RoleDelegationRepository, jobTitleRepo storage.JobRoleRepository, cpsUserRepo storage.CpsUserRepository, bpsUserRepo storage.BPSUserRepository, department storage.DepartmentRepository, roleRepo storage.RoleRepository, branchRepo storage.AccountBlockRepository, cpsService service.CPSActionService, minioClient *s3.Client, bucketName string, cfg config.VaultConfig, logger utils.Logger) service.RoleDelegationService {
 	return &roleDelegation{
 		cpsService:   cpsService,
 		repo:         repo,
@@ -480,6 +633,9 @@ func NewRoleDelegationService(repo storage.RoleDelegationRepository, jobTitleRep
 		bpsUserRepo:  bpsUserRepo,
 		branchRepo:   branchRepo,
 		department:   department,
+		minioClient:  minioClient,
+		bucketName:   bucketName,
+		cfg:          cfg,
 		logger:       logger,
 	}
 }

@@ -277,6 +277,7 @@ func (r *JobRoleRepository) FindAll(ctx context.Context) (*[]imodel.JobRole, err
 	}
 	return &data, nil
 }
+
 func (r *JobRoleRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.JobRole], error) {
 	searchKeys := bson.M{}
 	if filterParam.Search != "" {
@@ -354,9 +355,8 @@ func roleWithJobRolePipeline(match bson.M, jobRolesCollName string, skip, limit 
 				{"$project": bson.M{"code": 1, "name": 1, "type": 1, "_id": 0}},
 			},
 		}},
-		{"$unwind": bson.M{
-			"path":                       "$role_info",
-			"preserveNullAndEmptyArrays": true,
+		{"$addFields": bson.M{
+			"role_info": bson.M{"$arrayElemAt": []interface{}{"$role_info", 0}},
 		}},
 		{"$project": bson.M{
 			"_id":        1,

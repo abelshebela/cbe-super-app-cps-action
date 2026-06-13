@@ -25,6 +25,45 @@ type RoleDelegationHandler struct {
 	logger  utils.Logger
 }
 
+// Export implements [role_delegation_outbound.RoleDelegation].
+func (j *RoleDelegationHandler) Export(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "ExportRoleDelegation", "handler", "role_delegation")
+	defer span.End()
+	log := common_utils.LoggerFromCtx(ctx, j.logger)
+
+	fileType := strings.ToLower(strings.TrimSpace(r.URL.Query().Get("file_type")))
+	startDateRaw := strings.TrimSpace(r.URL.Query().Get("start_date"))
+	endDateRaw := strings.TrimSpace(r.URL.Query().Get("end_date"))
+
+	if fileType == "" || startDateRaw == "" || endDateRaw == "" {
+		log.Warnf("[RoleDelegationHandler][Export] missing required params: file_type=%q, start_date=%q, end_date=%q", fileType, startDateRaw, endDateRaw)
+		localization.SendBadRequestResponse(w, localization.ErrorRequiredFieldMissing.Message)
+		return
+	}
+
+	startDate, endDate, err := local_util.FormatDateRangeToUTCStrings(startDateRaw, endDateRaw)
+	if err != nil {
+		log.Warnf("[RoleDelegationHandler][Export] invalid date format: start_date=%s, end_date=%s, err=%v", startDateRaw, endDateRaw, err)
+		localization.SendErrorResponse(w, localization.ErrorInvalidDateFormat, nil, nil)
+		return
+	}
+
+	if endDate.Before(startDate) {
+		log.Warnf("[RoleDelegationHandler][Export] invalid date range: start=%v, end=%v", startDate, endDate)
+		localization.SendErrorResponse(w, localization.ErrorInvalidDateFormat, nil, nil)
+		return
+	}
+
+	fileLink, err := j.service.Export(ctx, startDate, endDate, fileType)
+	if err != nil {
+		log.Errorf("[RoleDelegationHandler][Export] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.RoleDelegationDataExportedSuccess, fileLink)
+}
+
 // Create implements [role_delegation_outbound.RoleDelegation].
 func (j *RoleDelegationHandler) CreateWithExistingUser(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "CreateRoleDelegation", "handler", "role_delegation")

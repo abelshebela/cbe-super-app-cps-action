@@ -29,6 +29,45 @@ func InitCPSUserHandler(svc service.CPSUserService, logger utils.Logger) *handle
 	return &handler{svc: svc, logger: logger}
 }
 
+func (h *handler) ExportUsers(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "exportCpsUsers", "handler", "cpsUser")
+	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, h.logger)
+
+	fileType := strings.ToLower(strings.TrimSpace(r.URL.Query().Get("file_type")))
+	startDateRaw := strings.TrimSpace(r.URL.Query().Get("created_at_from"))
+	endDateRaw := strings.TrimSpace(r.URL.Query().Get("created_at_to"))
+	userName := strings.TrimSpace(r.URL.Query().Get("user_name"))
+
+	if fileType == "" || startDateRaw == "" || endDateRaw == "" {
+		log.Warnf("[ExportUsers] missing required params: file_type=%q, created_at_from=%q, created_at_to=%q", fileType, startDateRaw, endDateRaw)
+		localization.SendBadRequestResponse(w, localization.ErrorRequiredFieldMissing.Message)
+		return
+	}
+
+	startDate, endDate, err := local_util.FormatDateRangeToUTCStrings(startDateRaw, endDateRaw)
+	if err != nil {
+		log.Warnf("[ExportUsers] invalid date format: created_at_from=%s, created_at_to=%s, err=%v", startDateRaw, endDateRaw, err)
+		localization.SendErrorResponse(w, localization.ErrorInvalidDateFormat, nil, nil)
+		return
+	}
+
+	if endDate.Before(startDate) {
+		log.Warnf("[ExportUsers] invalid date range: start=%v, end=%v", startDate, endDate)
+		localization.SendErrorResponse(w, localization.ErrorInvalidDateFormat, nil, nil)
+		return
+	}
+
+	fileLink, err := h.svc.ExportUsers(ctx, startDate, endDate, fileType, userName)
+	if err != nil {
+		log.Errorf("[ExportUsers] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.CpsUserDataExportedSuccess, fileLink)
+}
+
 // CreateUserRequest creates a new CPS user request
 //
 //	@Summary		Create CPS user request
