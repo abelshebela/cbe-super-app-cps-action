@@ -96,6 +96,18 @@ var ResponseCodesList = []ResponseCode{
 	SuccessAccountInfoFetched,
 	SuccessUnlinkCif,
 
+	ErrorTACNotFound,
+	ErrorTACAlreadyExists,
+	SuccessTACRetrieved,
+	SuccessTACsRetrieved,
+	SuccessTACDeleted,
+	SuccessTACDeleteRequestSent,
+	SuccessTACUpdated,
+	SuccessTACUpdateRequestSent,
+	SuccessTACUploaded,
+	SuccessTACUploadRequestSent,
+	
+
 	SuccessDonationImageUploaded,
 	SuccessDonationImagesUpdated,
 	SuccessNotificationConstructed,
@@ -1093,6 +1105,43 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAccountSubTypeInvalidAccountType,
 	ErrorAccountSubTypeGenderRequired,
 	ErrorAccountSubTypeInvalidGender,
+
+	//*****************************************
+
+	SuccessAPCCreateRequestSent,
+	SuccessAPCCreated,
+	SuccessAPCUpdateRequestSent,
+	SuccessAPCUpdated,
+	SuccessAPCDeleteRequestSent,
+	SuccessAPCDeleted,
+	SuccessAPCEnableRequestSent,
+	SuccessAPCEnabled,
+	SuccessAPCDisableRequestSent,
+	SuccessAPCDisabled,
+	SuccessAPCsRetrieved,
+	SuccessAPCRetrieved,
+	ErrorAPCNotFound,
+	ErrorAPCAlreadyEnabled,
+	ErrorAPCAlreadyDisabled,
+	ErrorAPCAlreadyExists,
+	ErrorAPCHasActiveProducts,
+	SuccessAPCreateRequestSent,
+	SuccessAPCreated,
+	SuccessAPUpdateRequestSent,
+	SuccessAPUpdated,
+	SuccessAPDeleteRequestSent,
+	SuccessAPDeleted,
+	SuccessAPEnableRequestSent,
+	SuccessAPEnabled,
+	SuccessAPDisableRequestSent,
+	SuccessAPDisabled,
+	SuccessAPsRetrieved,
+	SuccessAPRetrieved,
+	ErrorAPNotFound,
+	ErrorAPAlreadyEnabled,
+	ErrorAPAlreadyDisabled,
+	ErrorAPAlreadyExists,
+	ErrorAPHasActiveTerms,
 }
 
 // Success Response Codes
@@ -10063,6 +10112,7 @@ var (
 		Type:       "success",
 	}
 
+	
 	SuccessTACUpdateRequestSent = ResponseCode{
 		Code:       "SUCCESS_TAC_UPDATE_REQUEST_SENT",
 		StatusCode: StatusOK,
@@ -10070,6 +10120,7 @@ var (
 		Type:       "success",
 	}
 
+	
 	SuccessTACUpdated = ResponseCode{
 		Code:       "SUCCESS_TAC_UPDATED",
 		StatusCode: StatusOK,
@@ -10077,6 +10128,7 @@ var (
 		Type:       "success",
 	}
 
+	
 	SuccessTACDeleteRequestSent = ResponseCode{
 		Code:       "SUCCESS_TAC_DELETE_REQUEST_SENT",
 		StatusCode: StatusOK,
@@ -10084,6 +10136,7 @@ var (
 		Type:       "success",
 	}
 
+	
 	SuccessTACDeleted = ResponseCode{
 		Code:       "SUCCESS_TAC_DELETED",
 		StatusCode: StatusOK,
@@ -10091,6 +10144,7 @@ var (
 		Type:       "success",
 	}
 
+	
 	SuccessTACsRetrieved = ResponseCode{
 		Code:       "SUCCESS_TACS_RETRIEVED",
 		StatusCode: StatusOK,
@@ -10105,6 +10159,7 @@ var (
 		Type:       "success",
 	}
 
+	
 	// Term and Condition error codes
 	ErrorTACNotFound = ResponseCode{
 		Code:       "ERROR_TAC_NOT_FOUND",
