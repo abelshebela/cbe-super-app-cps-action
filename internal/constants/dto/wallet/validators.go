@@ -55,6 +55,14 @@ func (w WalletRequest) Validate(isCreate bool) error {
 			errs["avatar"] = err
 		}
 	} else if w.Avatar != nil {
+		if w.Self == nil && w.Other == nil && w.Agent == nil {
+			errs["type"] = localization.ErrorWalletTypeRequired
+		}
+		if w.SelfServiceID == "" && w.OtherServiceID == "" && w.AgentServiceID == "" {
+			errs["type"] = localization.ErrorWalletAgentServiceIDRequired
+			errs["type"] = localization.ErrorWalletSelfServiceIDRequired
+			errs["type"] = localization.ErrorWalletOtherServiceIDRequired
+		}
 		if err := validateAvatar(w.Avatar); err != nil {
 			errs["avatar"] = err
 		}
