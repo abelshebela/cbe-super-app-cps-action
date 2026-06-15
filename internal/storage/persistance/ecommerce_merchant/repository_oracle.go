@@ -20,7 +20,7 @@ import (
 const (
 	merchantsTable        = "MERCHANTS"
 	merchantBranchesTable = "MERCHANT_BRANCHES"
-	defaultPageSize       = 50
+	defaultPageSize       = 10
 )
 
 type EcommerceMerchantStorage struct {
