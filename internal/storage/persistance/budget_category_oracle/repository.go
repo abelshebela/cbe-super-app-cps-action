@@ -203,95 +203,78 @@ func formatNullTime(t sql.NullTime) string {
 func (r *Repository) FindAllWithPagination(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]imodel.BudgetCategoryOracle], error) {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
-	if filterParams == nil {
-		fp := types.Filter{Page: 1, PerPage: 10}
-		filterParams = &fp
-	}
-	var filters []string
-	var args []interface{}
-	idx := 1
+	limit := int64(constants.DefaultPerPage)
+	page := int64(constants.DefaultPage)
 
-	if filterParams.Search != "" {
-		search := "%" + strings.ToUpper(filterParams.Search) + "%"
-		// Each :n is a distinct bind for godror; repeating the same idx still expects one value per placeholder.
-		filters = append(filters, fmt.Sprintf(`(UPPER(NAME) LIKE :%d OR UPPER(ACCOUNT_TYPE) LIKE :%d)`, idx, idx+1))
-		args = append(args, search, search)
-		idx += 2
+	if filterParams.Page > 0 {
+		page = int64(filterParams.Page)
+	}
+	if filterParams.PerPage > 0 {
+		limit = int64(filterParams.PerPage)
+	}
+	offset := (page - 1) * limit
+
+	clauses := []string{"IS_DELETED = 0"}
+	args := make([]interface{}, 0)
+
+	search := strings.TrimSpace(filterParams.Search)
+	if search != "" {
+		clauses = append(clauses, `(LOWER(NAME) LIKE '%' || LOWER(:search) || '%' OR LOWER(ACCOUNT_TYPE) LIKE '%' || LOWER(:search) || '%')`)
+		args = append(args, sql.Named("search", search))
 	}
 
 	if filterParams.Filters != nil {
 		if v, ok := filterParams.Filters["enabled"]; ok {
-			on := false
-			switch b := v.(type) {
-			case bool:
-				on = b
-			case string:
-				on = strings.EqualFold(b, "true") || b == "1"
-			}
-			if on {
-				filters = append(filters, "IS_ENABLED = 1")
-			} else {
-				filters = append(filters, "IS_ENABLED = 0")
+			if b, ok2 := local_util.ParseOracleBool(v); ok2 {
+				clauses = append(clauses, "IS_ENABLED = :enabled")
+				args = append(args, sql.Named("enabled", local_util.BoolToOracleNumber(b)))
 			}
 		}
 		if v, ok := filterParams.Filters["name"]; ok {
-			if s, ok := v.(string); ok && s != "" {
-				filters = append(filters, fmt.Sprintf("UPPER(NAME) = UPPER(:%d)", idx))
-				args = append(args, s)
-				idx++
+			if val, ok2 := v.(string); ok2 && strings.TrimSpace(val) != "" {
+				clauses = append(clauses, "LOWER(NAME) = LOWER(:name)")
+				args = append(args, sql.Named("name", val))
 			}
 		}
 		if v, ok := filterParams.Filters["type"]; ok {
-			if s, ok := v.(string); ok && s != "" {
-				filters = append(filters, fmt.Sprintf("UPPER(ACCOUNT_TYPE) = UPPER(:%d)", idx))
-				args = append(args, s)
-				idx++
+			if val, ok2 := v.(string); ok2 && strings.TrimSpace(val) != "" {
+				clauses = append(clauses, "LOWER(ACCOUNT_TYPE) = LOWER(:type)")
+				args = append(args, sql.Named("type", val))
 			}
 		}
 	}
 
-	whereClause := "1=1"
-	if len(filters) > 0 {
-		whereClause = strings.Join(filters, " AND ")
-	}
-	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM BUDGET_CATEGORIES WHERE IS_DELETED = 0 AND %s", whereClause)
+	where := strings.Join(clauses, " AND ")
+	count := fmt.Sprintf("SELECT COUNT(*) FROM BUDGET_CATEGORIES WHERE %s", where)
+
 	var total int64
-	if err := r.db.QueryRowContext(ctx, countQuery, args...).Scan(&total); err != nil {
+	if err := r.db.QueryRowContext(ctx, count, args...).Scan(&total); err != nil {
 		log.Errorf("[BudgetCategoryOracle][FindAllWithPagination] count failed: %v", err)
 		return nil, err
 	}
 
-	page := filterParams.Page
-	if page < 1 {
-		page = 1
-	}
-	perPage := filterParams.PerPage
-	if perPage < 1 {
-		perPage = 10
-	}
-	offset := (page - 1) * perPage
-	limit := perPage
-
-	if total == 0 {
-		meta := local_util.BuildPaginationMeta(0, page, perPage)
-		return &types.PaginatedResponse[[]imodel.BudgetCategoryOracle]{Data: []imodel.BudgetCategoryOracle{}, Meta: meta}, nil
-	}
-
-	if int64(offset) >= total && total > 0 {
-		offset = 0
-		limit = int(total)
-	} else if int64(offset)+int64(limit) > total && total > 0 {
-		limit = int(total) - offset
-	}
-
 	selectQuery := fmt.Sprintf(
-		`SELECT RAWTOHEX(ID) AS id, NAME, ACCOUNT_TYPE, COLOR, ICON, IS_ENABLED, IS_DELETED, CREATED_AT, LAST_MODIFIED_AT, DELETED_AT
-		 FROM BUDGET_CATEGORIES WHERE IS_DELETED = 0 AND %s ORDER BY CREATED_AT DESC OFFSET :%d ROWS FETCH NEXT :%d ROWS ONLY`,
-		whereClause, idx, idx+1,
+		`SELECT
+			RAWTOHEX(ID) AS id,
+			NAME,
+			ACCOUNT_TYPE,
+			COLOR,
+			ICON,
+			IS_ENABLED,
+			IS_DELETED,
+			CREATED_AT,
+			LAST_MODIFIED_AT,
+			DELETED_AT
+		 FROM BUDGET_CATEGORIES
+		 WHERE %s
+		 ORDER BY CREATED_AT DESC
+		 OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`,
+		where,
 	)
-	args = append(args, offset, limit)
 
-	rows, err := r.db.QueryContext(ctx, selectQuery, args...)
+	listArgs := append(args, sql.Named("offset", offset), sql.Named("limit", limit))
+
+	rows, err := r.db.QueryContext(ctx, selectQuery, listArgs...)
 	if err != nil {
 		log.Errorf("[BudgetCategoryOracle][FindAllWithPagination] query failed: %v", err)
 		return nil, err
@@ -325,7 +308,7 @@ func (r *Repository) FindAllWithPagination(ctx context.Context, filterParams *ty
 		return nil, err
 	}
 
-	meta := local_util.BuildPaginationMeta(total, page, perPage)
+	meta := local_util.BuildPaginationMeta(total, int(page), int(limit))
 	return &types.PaginatedResponse[[]imodel.BudgetCategoryOracle]{Data: list, Meta: meta}, nil
 }
 

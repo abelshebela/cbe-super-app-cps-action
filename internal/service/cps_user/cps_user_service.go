@@ -20,7 +20,6 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/jung-kurt/gofpdf"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -118,20 +117,11 @@ func (s *cpsUserService) ExportUsers(ctx context.Context, startDate, endDate tim
 	objectName := fmt.Sprintf("cps_users_%s_to_%s_%d.%s", startDate.Format("20060102"), endDate.Format("20060102"), time.Now().Unix(), ext)
 
 	if fileType == string(lib.FileTypePDF) {
-		url, exportErr := lib.ExportPDFAndUpload(ctx, s.minioClient, s.bucketName, s.cfg, objectName, headers, "A4", func(pdf *gofpdf.Fpdf) error {
-			const usableWidthMM = 190.0
-			colWidth := usableWidthMM / float64(len(headers))
-			layout := lib.CalcPDFLayout(len(headers))
-
-			pdf.SetFont("Arial", "", layout.BodyFontPt)
-			for _, item := range data {
-				for _, cell := range cpsUserExportRow(item) {
-					pdf.CellFormat(colWidth, layout.BodyRowMM, cell, "1", 0, "L", false, 0, "")
-				}
-				pdf.Ln(-1)
-			}
-			return nil
-		}, s.logger)
+		rows := make([][]string, 0, len(data))
+		for _, item := range data {
+			rows = append(rows, cpsUserExportRow(item))
+		}
+		url, exportErr := lib.ExportPDFAndUpload(ctx, s.minioClient, s.bucketName, s.cfg, objectName, headers, rows, lib.PDFExportOptions{PageSize: "A4"}, nil, s.logger)
 		if exportErr != nil {
 			log.Errorf("[CPSUser/ExportUsers] pdf export failed: %v", exportErr)
 			return "", errors.New(localization.CpsUserDataExportedError.Code)

@@ -22,6 +22,36 @@ import (
 var counter uint64
 var reHex24 = regexp.MustCompile(`(?i)[0-9a-f]{24}`)
 
+func ParseOracleBool(v interface{}) (bool, bool) {
+	switch b := v.(type) {
+	case bool:
+		return b, true
+	case int:
+		return b != 0, true
+	case int32:
+		return b != 0, true
+	case int64:
+		return b != 0, true
+	case float64:
+		return b != 0, true
+	case string:
+		switch strings.ToLower(strings.TrimSpace(b)) {
+		case "true", "1", "yes", "y":
+			return true, true
+		case "false", "0", "no", "n":
+			return false, true
+		}
+	}
+	return false, false
+}
+
+func BoolToOracleNumber(v bool) int {
+	if v {
+		return 1
+	}
+	return 0
+}
+
 func Contains(list []string, v string) bool {
 	for _, s := range list {
 		if s == v {
@@ -288,6 +318,22 @@ func ExtractFilterParams(r *http.Request) *types.Filter {
 				arr = append(arr, parseValue(val))
 			}
 			filters[key] = arr
+		}
+	}
+
+	// ?fields= is reserved from the generic loop so comma-separated keys are not
+	// mis-parsed as unrelated filters; normalize to []string for export projection.
+	if raw := query["fields"]; len(raw) > 0 {
+		fields := make([]string, 0, len(raw))
+		for _, v := range raw {
+			for _, p := range strings.Split(v, ",") {
+				if s := strings.TrimSpace(p); s != "" {
+					fields = append(fields, s)
+				}
+			}
+		}
+		if len(fields) > 0 {
+			filters["fields"] = fields
 		}
 	}
 

@@ -101,7 +101,7 @@ func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r 
 	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
-	localization.UpdateWriterContext(w, ctx)
+	// localization.UpdateWriterContext(w, ctx)
 
 	method, ok := local_util.GetParam(r, "method")
 	if !ok {
@@ -149,6 +149,8 @@ func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r 
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	if md.IsMakerOnly {
 		localization.SendSuccessResponse(w, localization.SuccessAmountBasedAuthRequestSentSP, nil)
 	} else {
@@ -177,7 +179,7 @@ func (a *AmountBasedAuthHandler) DeleteAmountBasedAuth(w http.ResponseWriter, r 
 	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
-	localization.UpdateWriterContext(w, ctx)
+	// localization.UpdateWriterContext(w, ctx)
 
 	currency, ok := local_util.GetParam(r, "currency")
 	if !ok || currency == "" {
@@ -192,14 +194,14 @@ func (a *AmountBasedAuthHandler) DeleteAmountBasedAuth(w http.ResponseWriter, r 
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	if md.IsMakerOnly{
+
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+	if md.IsMakerOnly {
 		log.Infof("amount based deleted successfully")
-			w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessDeleteCreated, nil)
 		return
 	}
 	log.Infof("amount based delete request created successful")
-	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessDeleteRequestCreated, nil)
 }
 
@@ -264,7 +266,7 @@ func (a *AmountBasedAuthHandler) AddCurrency(w http.ResponseWriter, r *http.Requ
 	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
-	localization.UpdateWriterContext(w, ctx)
+	// localization.UpdateWriterContext(w, ctx)
 
 	var request amount_based_auth_dto.AddCurrencyRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -289,6 +291,7 @@ func (a *AmountBasedAuthHandler) AddCurrency(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	if md.IsMakerOnly {
 		localization.SendSuccessResponse(w, localization.SuccessAmountBasedAuthCurrencyAddedSP, nil)
 	} else {
@@ -318,7 +321,7 @@ func (a *AmountBasedAuthHandler) ResetConfig(w http.ResponseWriter, r *http.Requ
 	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
-	localization.UpdateWriterContext(w, ctx)
+	// localization.UpdateWriterContext(w, ctx)
 
 	currencyParam, ok := local_util.GetParam(r, "currency")
 	if !ok {
@@ -351,6 +354,7 @@ func (a *AmountBasedAuthHandler) ResetConfig(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	if md.IsMakerOnly {
 		localization.SendSuccessResponse(w, localization.SuccessAmountBasedAuthResetSentSP, nil)
 	} else {
