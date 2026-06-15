@@ -8,6 +8,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"strings"
 	"time"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -99,10 +100,13 @@ func (l *LogisticsMerchantOracle) EnableOrDisable(ctx context.Context, ids []str
 func (l *LogisticsMerchantOracle) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.LogisticsMerchant], error) {
 	where := "WHERE IS_DELETED = 0 AND MERCHANT_TYPE = 'LOGISTICS'"
 	args := []any{}
-	if filterParam.Search != "" {
-		where += " AND (LOWER(MERCHANT_NAME) LIKE :1 OR LOWER(MERCHANT_CODE) LIKE :2)"
-		args = append(args, "%"+filterParam.Search+"%", "%"+filterParam.Search+"%")
+
+	search := strings.TrimSpace(filterParam.Search)
+	if search != "" {
+		where += " AND (LOWER(MERCHANT_NAME) LIKE '%' || LOWER(:search) || '%' OR LOWER(MERCHANT_CODE) LIKE '%' || LOWER(:search) || '%' OR LOWER(MERCHANT_ACCOUNT_NUMBER) LIKE '%' || LOWER(:search) || '%')"
+		args = append(args, sql.Named("search", search))
 	}
+
 	countQuery := "SELECT COUNT(*) FROM MERCHANTS " + where
 	var total int64
 	err := l.db.QueryRowContext(ctx, countQuery, args...).Scan(&total)
@@ -115,13 +119,14 @@ func (l *LogisticsMerchantOracle) FindAllWithPagination(ctx context.Context, fil
 	offset := (page - 1) * perPage
 	query := `SELECT RAWTOHEX(ID), MERCHANT_ACCOUNT_NUMBER, MERCHANT_CODE, MERCHANT_NAME, SETTLEMENT_METHOD, MERCHANT_TYPE, IS_ENABLED, IS_DELETED, CREATED_AT, LAST_MODIFIED_AT, DELETED_AT
 		FROM MERCHANTS ` + where + ` ORDER BY CREATED_AT DESC OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`
-	args = append(args, offset, perPage)
-	rows, err := l.db.QueryContext(ctx, query, args...)
+	listArgs := append(args, sql.Named("offset", offset), sql.Named("limit", perPage))
+	rows, err := l.db.QueryContext(ctx, query, listArgs...)
 	if err != nil {
 		l.logger.Errorf("Failed to fetch paginated logistics merchants: %v", err)
 		return nil, err
 	}
 	defer rows.Close()
+
 	var data []model.LogisticsMerchant
 	for rows.Next() {
 		var m model.LogisticsMerchant

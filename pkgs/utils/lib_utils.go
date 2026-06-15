@@ -22,6 +22,36 @@ import (
 var counter uint64
 var reHex24 = regexp.MustCompile(`(?i)[0-9a-f]{24}`)
 
+func ParseOracleBool(v interface{}) (bool, bool) {
+	switch b := v.(type) {
+	case bool:
+		return b, true
+	case int:
+		return b != 0, true
+	case int32:
+		return b != 0, true
+	case int64:
+		return b != 0, true
+	case float64:
+		return b != 0, true
+	case string:
+		switch strings.ToLower(strings.TrimSpace(b)) {
+		case "true", "1", "yes", "y":
+			return true, true
+		case "false", "0", "no", "n":
+			return false, true
+		}
+	}
+	return false, false
+}
+
+func BoolToOracleNumber(v bool) int {
+	if v {
+		return 1
+	}
+	return 0
+}
+
 func Contains(list []string, v string) bool {
 	for _, s := range list {
 		if s == v {

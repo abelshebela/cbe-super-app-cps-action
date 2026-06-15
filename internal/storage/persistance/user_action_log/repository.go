@@ -396,10 +396,12 @@ func (r *userActionLogRepository) buildActionCodeFilterPipeline(filter imodel.Us
 		groupStage = append(groupStage, bson.E{
 			Key: "general_search_match_count",
 			Value: sumWhen(bson.D{{Key: "$or", Value: bson.A{
+				bson.D{{Key: "$regexMatch", Value: bson.M{"input": "$action_code", "regex": searchPattern, "options": "i"}}},
 				bson.D{{Key: "$regexMatch", Value: bson.M{"input": "$checker_level", "regex": searchPattern, "options": "i"}}},
 				bson.D{{Key: "$regexMatch", Value: bson.M{"input": "$auditor_level", "regex": searchPattern, "options": "i"}}},
 				bson.D{{Key: "$regexMatch", Value: bson.M{"input": "$action_taken_service_name", "regex": searchPattern, "options": "i"}}},
 				bson.D{{Key: "$regexMatch", Value: bson.M{"input": "$username", "regex": searchPattern, "options": "i"}}},
+				bson.D{{Key: "$regexMatch", Value: bson.M{"input": "$user_phone", "regex": searchPattern, "options": "i"}}},
 			}}}),
 		})
 		matchStage = append(matchStage, bson.E{Key: "general_search_match_count", Value: bson.M{"$gt": 0}})
