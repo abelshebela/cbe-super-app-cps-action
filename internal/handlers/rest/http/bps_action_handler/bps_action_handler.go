@@ -873,9 +873,9 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 				auditedCount = int(res.Meta.TotalDocs)
 			}
 
-			// CustomerBarred — CHECKED actions where customer_barred=true
+			// CustomerBarred — auditor_customer_bared=true in user_action_log
 			customerBarredFilter := buildFilter(queryActionStatus, string(model.AUDITORCHECKED))
-			customerBarredFilter.Filters["customer_barred"] = true
+			customerBarredFilter.Filters["customer_bared"] = true
 			if res, err := a.bpsActionApplication.GetBPSActionsForAuditor(ctx, userID, reqs, customerBarredFilter); err != nil {
 				span.RecordError(err)
 				localization.SendErrorByCodeResponse(w, err.Error())
