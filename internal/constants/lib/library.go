@@ -162,10 +162,11 @@ type PDFExportOptions struct {
 const (
 	pdfSideMarginMM      = 10.0
 	pdfBannerHeightMM    = 22.0
-	pdfFooterMarginMM    = 15.0
+	pdfFooterMarginMM    = 18.0
 	pdfMinColWidthMM     = 14.0
 	pdfMaxColsPerSection = 10
-	pdfCellPadMM         = 2.0
+	pdfCellPadHMM        = 1.5 // horizontal inset inside each cell
+	pdfCellPadVMM        = 1.5 // vertical inset (top and bottom)
 )
 
 // pdfPageSizeMM returns full page width and height in millimeters.
@@ -242,10 +243,32 @@ func pdfLineHeightMM(fontPt float64) float64 {
 	if fontPt <= 0 {
 		fontPt = 8
 	}
-	return fontPt * 0.42
+	// Convert pt → mm and add ~15% leading so wrapped lines don't collide.
+	return fontPt * 25.4 / 72.0 * 1.15
+}
+
+// pdfWrapFriendlyText inserts break hints in long unbroken tokens (emails, IDs, codes)
+// so SplitText wraps on punctuation instead of mid-word.
+func pdfWrapFriendlyText(s string) string {
+	if s == "" || strings.Contains(s, " ") || len(s) <= 14 {
+		return s
+	}
+	var b strings.Builder
+	b.Grow(len(s) + 8)
+	for i, r := range s {
+		b.WriteRune(r)
+		if i < len(s)-1 {
+			switch r {
+			case '@', '.', '_', '-', ':', '/', ',':
+				b.WriteByte(' ')
+			}
+		}
+	}
+	return b.String()
 }
 
 func pdfSplitCellLines(pdf *gofpdf.Fpdf, text string, innerWidthMM float64) []string {
+	text = pdfWrapFriendlyText(text)
 	if text == "" {
 		return []string{""}
 	}
@@ -257,7 +280,7 @@ func pdfSplitCellLines(pdf *gofpdf.Fpdf, text string, innerWidthMM float64) []st
 }
 
 func pdfRowLineCount(pdf *gofpdf.Fpdf, cells []string, colWidthMM float64) int {
-	inner := colWidthMM - pdfCellPadMM
+	inner := colWidthMM - 2*pdfCellPadHMM
 	if inner < 1 {
 		inner = 1
 	}
@@ -270,14 +293,23 @@ func pdfRowLineCount(pdf *gofpdf.Fpdf, cells []string, colWidthMM float64) int {
 	return maxLines
 }
 
-// pdfDrawTableRow renders a bordered row with wrapped text; every cell in the row shares
-// the same height so columns stay aligned.
-func pdfDrawTableRow(pdf *gofpdf.Fpdf, x, y float64, cells []string, colWidthMM, lineHt, minRowHt float64, header bool) {
+func pdfCalcRowHeight(pdf *gofpdf.Fpdf, cells []string, colWidthMM, lineHt, minRowHt float64) float64 {
 	lineCount := pdfRowLineCount(pdf, cells, colWidthMM)
-	rowHt := float64(lineCount) * lineHt
+	rowHt := 2*pdfCellPadVMM + float64(lineCount)*lineHt
 	if rowHt < minRowHt {
 		rowHt = minRowHt
 	}
+	return rowHt
+}
+
+// pdfDrawTableRow renders a bordered row with wrapped text; every cell in the row shares
+// the same height so columns stay aligned.
+func pdfDrawTableRow(pdf *gofpdf.Fpdf, x, y float64, cells []string, colWidthMM, lineHt, minRowHt float64, header bool) float64 {
+	innerW := colWidthMM - 2*pdfCellPadHMM
+	if innerW < 1 {
+		innerW = 1
+	}
+	rowHt := pdfCalcRowHeight(pdf, cells, colWidthMM, lineHt, minRowHt)
 
 	for i, cell := range cells {
 		xi := x + float64(i)*colWidthMM
@@ -287,13 +319,14 @@ func pdfDrawTableRow(pdf *gofpdf.Fpdf, x, y float64, cells []string, colWidthMM,
 		} else {
 			pdf.Rect(xi, y, colWidthMM, rowHt, "D")
 		}
-		lines := pdfSplitCellLines(pdf, cell, colWidthMM-pdfCellPadMM)
+		lines := pdfSplitCellLines(pdf, cell, innerW)
 		for li, line := range lines {
-			pdf.SetXY(xi+1, y+1+float64(li)*lineHt)
-			pdf.Cell(colWidthMM-pdfCellPadMM, lineHt, line)
+			pdf.SetXY(xi+pdfCellPadHMM, y+pdfCellPadVMM+float64(li)*lineHt)
+			pdf.Cell(innerW, lineHt, line)
 		}
 	}
 	pdf.SetXY(x, y+rowHt)
+	return rowHt
 }
 
 // FileExporterForCPSAction streams CPS actions into CSV or PDF, honoring ?fields=... projection.
@@ -1416,8 +1449,11 @@ func ExportPDFAndUpload(
 
 	pdf := gofpdf.New(orientation, "mm", pageSize, "")
 	pdf.SetMargins(pdfSideMarginMM, pdfBannerHeightMM+4, pdfSideMarginMM)
-	pdf.SetAutoPageBreak(true, pdfFooterMarginMM)
+	// Row placement is manual so a wrapped row is never split across pages.
+	pdf.SetAutoPageBreak(false, 0)
 	pdf.AliasNbPages("")
+
+	contentBottomY := pageHeight - pdfFooterMarginMM
 
 	type sectionState struct {
 		headers []string
@@ -1512,22 +1548,18 @@ func ExportPDFAndUpload(
 				pdf.SetFont("Arial", "", rowFont)
 			}
 			lineHt := pdfLineHeightMM(rowFont)
-			x := pdf.GetX()
-			if x < pdfSideMarginMM {
-				x = pdfSideMarginMM
+			rowHt := pdfCalcRowHeight(pdf, row, active.colW, lineHt, active.layout.BodyRowMM)
+
+			// Keep the entire row on one page; header callback redraws column titles.
+			if pdf.GetY()+rowHt > contentBottomY {
+				pdf.AddPage()
 			}
+
+			x := pdfSideMarginMM
 			y := pdf.GetY()
-			if y < pdfBannerHeightMM+4 {
-				y = pdfBannerHeightMM + 4
-			}
 			pdfDrawTableRow(pdf, x, y, row, active.colW, lineHt, active.layout.BodyRowMM, false)
 			if rowFont != active.layout.BodyFontPt {
 				pdf.SetFont("Arial", "", active.layout.BodyFontPt)
-			}
-
-			// Manual page break when the next row would collide with the footer.
-			if pdf.GetY() > pageHeight-pdfFooterMarginMM-active.layout.BodyRowMM*2 {
-				pdf.AddPage()
 			}
 		}
 	}
