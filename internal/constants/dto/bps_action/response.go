@@ -18,10 +18,11 @@ type BPSActionCountResponse struct {
 }
 
 type BPSAuditorActionCountResponse struct {
-	AllAction  int `json:"all_action"`
-	UnAudited  int `json:"un_audited"`
-	Inprogress int `json:"inprogress"`
-	Audited    int `json:"audited"`
+	AllAction      int `json:"all_action"`
+	UnAudited      int `json:"un_audited"`
+	Inprogress     int `json:"inprogress"`
+	Audited        int `json:"audited"`
+	CustomerBarred int `json:"customer_barred"`
 }
 
 type BPSCheckerActionCountResponse struct {
