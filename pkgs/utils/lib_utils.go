@@ -291,6 +291,22 @@ func ExtractFilterParams(r *http.Request) *types.Filter {
 		}
 	}
 
+	// ?fields= is reserved from the generic loop so comma-separated keys are not
+	// mis-parsed as unrelated filters; normalize to []string for export projection.
+	if raw := query["fields"]; len(raw) > 0 {
+		fields := make([]string, 0, len(raw))
+		for _, v := range raw {
+			for _, p := range strings.Split(v, ",") {
+				if s := strings.TrimSpace(p); s != "" {
+					fields = append(fields, s)
+				}
+			}
+		}
+		if len(fields) > 0 {
+			filters["fields"] = fields
+		}
+	}
+
 	return &types.Filter{
 		Page:    page,
 		PerPage: perPage,
