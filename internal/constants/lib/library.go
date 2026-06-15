@@ -153,6 +153,149 @@ func truncatePDFCell(s string, colWidthMM, fontPt float64) string {
 	return s[:budget-3] + "..."
 }
 
+// PDFExportOptions configures page size for tabular PDF exports. Orientation and column
+// paging are chosen automatically from the column count.
+type PDFExportOptions struct {
+	PageSize string // A4 (default) or A5
+}
+
+const (
+	pdfSideMarginMM      = 10.0
+	pdfBannerHeightMM    = 22.0
+	pdfFooterMarginMM    = 15.0
+	pdfMinColWidthMM     = 14.0
+	pdfMaxColsPerSection = 10
+	pdfCellPadMM         = 2.0
+)
+
+// pdfPageSizeMM returns full page width and height in millimeters.
+func pdfPageSizeMM(size, orientation string) (widthMM, heightMM float64) {
+	size = strings.ToUpper(strings.TrimSpace(size))
+	if size == "" {
+		size = "A4"
+	}
+	switch size {
+	case "A5":
+		if orientation == "L" {
+			return 210, 148
+		}
+		return 148, 210
+	default:
+		if orientation == "L" {
+			return 297, 210
+		}
+		return 210, 297
+	}
+}
+
+// pdfEffectiveLayout picks orientation and page size so every column gets at least
+// pdfMinColWidthMM of width; wide tables use landscape A4 and may split across sections.
+func pdfEffectiveLayout(requestedSize string, colCount int) (pageSize, orientation string, sections [][2]int) {
+	requestedSize = strings.ToUpper(strings.TrimSpace(requestedSize))
+	if requestedSize == "" {
+		requestedSize = "A4"
+	}
+	pageSize = requestedSize
+	orientation = "P"
+
+	if colCount <= 0 {
+		return pageSize, orientation, [][2]int{{0, 0}}
+	}
+
+	tryOrient := func(size, orient string) float64 {
+		w, _ := pdfPageSizeMM(size, orient)
+		return (w - 2*pdfSideMarginMM) / float64(colCount)
+	}
+
+	if tryOrient(pageSize, "P") < pdfMinColWidthMM || colCount > 7 {
+		orientation = "L"
+	}
+	if pageSize == "A5" && (orientation == "L" || colCount > 6) {
+		pageSize = "A4"
+	}
+	if tryOrient(pageSize, orientation) < pdfMinColWidthMM && pageSize != "A4" {
+		pageSize = "A4"
+		orientation = "L"
+	}
+
+	perSection := colCount
+	if orientation == "P" && colCount > pdfMaxColsPerSection {
+		perSection = pdfMaxColsPerSection
+	} else if orientation == "L" && colCount > pdfMaxColsPerSection+2 {
+		perSection = pdfMaxColsPerSection + 2
+	}
+	if perSection < 1 {
+		perSection = 1
+	}
+
+	for start := 0; start < colCount; start += perSection {
+		end := start + perSection
+		if end > colCount {
+			end = colCount
+		}
+		sections = append(sections, [2]int{start, end})
+	}
+	return pageSize, orientation, sections
+}
+
+func pdfLineHeightMM(fontPt float64) float64 {
+	if fontPt <= 0 {
+		fontPt = 8
+	}
+	return fontPt * 0.42
+}
+
+func pdfSplitCellLines(pdf *gofpdf.Fpdf, text string, innerWidthMM float64) []string {
+	if text == "" {
+		return []string{""}
+	}
+	lines := pdf.SplitText(text, innerWidthMM)
+	if len(lines) == 0 {
+		return []string{""}
+	}
+	return lines
+}
+
+func pdfRowLineCount(pdf *gofpdf.Fpdf, cells []string, colWidthMM float64) int {
+	inner := colWidthMM - pdfCellPadMM
+	if inner < 1 {
+		inner = 1
+	}
+	maxLines := 1
+	for _, cell := range cells {
+		if n := len(pdfSplitCellLines(pdf, cell, inner)); n > maxLines {
+			maxLines = n
+		}
+	}
+	return maxLines
+}
+
+// pdfDrawTableRow renders a bordered row with wrapped text; every cell in the row shares
+// the same height so columns stay aligned.
+func pdfDrawTableRow(pdf *gofpdf.Fpdf, x, y float64, cells []string, colWidthMM, lineHt, minRowHt float64, header bool) {
+	lineCount := pdfRowLineCount(pdf, cells, colWidthMM)
+	rowHt := float64(lineCount) * lineHt
+	if rowHt < minRowHt {
+		rowHt = minRowHt
+	}
+
+	for i, cell := range cells {
+		xi := x + float64(i)*colWidthMM
+		if header {
+			pdf.SetFillColor(220, 220, 220)
+			pdf.Rect(xi, y, colWidthMM, rowHt, "FD")
+		} else {
+			pdf.Rect(xi, y, colWidthMM, rowHt, "D")
+		}
+		lines := pdfSplitCellLines(pdf, cell, colWidthMM-pdfCellPadMM)
+		for li, line := range lines {
+			pdf.SetXY(xi+1, y+1+float64(li)*lineHt)
+			pdf.Cell(colWidthMM-pdfCellPadMM, lineHt, line)
+		}
+	}
+	pdf.SetXY(x, y+rowHt)
+}
+
 // FileExporterForCPSAction streams CPS actions into CSV or PDF, honoring ?fields=... projection.
 //
 // The CpsActionCSVHeader callback is kept only for backwards compatibility and is NOT used
@@ -210,39 +353,23 @@ func FileExporterForCPSAction(ctx context.Context, cfg config.VaultConfig, minio
 
 	var url string
 	if fileType == "pdf" {
-		// Landscape A4 usable width ~277mm.
-		const usableWidthMM = 277.0
-		colWidth := usableWidthMM / float64(len(header))
-		layout := CalcPDFLayout(len(header))
-
-		url, err = ExportPDFAndUpload(ctx, minioClient, buckerName, cfg, objectName, header, "A4", func(pdf *gofpdf.Fpdf) error {
-			pdf.SetFont("Arial", "", layout.BodyFontPt)
-			for _, action := range data {
-				row, rerr := BuildCPSActionRowFromFields(action, resolvedFields)
-				if rerr != nil {
-					return rerr
-				}
-				for i, cell := range row {
-					// Per-column font override (e.g. action_code uses a smaller font so
-					// long fixed-format identifiers don't get truncated to "...").
-					fontPt := layout.BodyFontPt
-					if i < len(resolvedFields) {
-						if override, ok := CPSActionFieldFontOverride[resolvedFields[i]]; ok && override > 0 && override < fontPt {
-							fontPt = override
-						}
-					}
-					if fontPt != layout.BodyFontPt {
-						pdf.SetFont("Arial", "", fontPt)
-					}
-					pdf.CellFormat(colWidth, layout.BodyRowMM, truncatePDFCell(cell, colWidth, fontPt), "1", 0, "L", false, 0, "")
-					if fontPt != layout.BodyFontPt {
-						pdf.SetFont("Arial", "", layout.BodyFontPt)
-					}
-				}
-				pdf.Ln(-1)
+		rows := make([][]string, 0, len(data))
+		for _, action := range data {
+			row, rerr := BuildCPSActionRowFromFields(action, resolvedFields)
+			if rerr != nil {
+				return "", rerr
 			}
-			return nil
-		}, logger)
+			rows = append(rows, row)
+		}
+
+		colFontPt := make([]float64, len(resolvedFields))
+		for i, key := range resolvedFields {
+			if override, ok := CPSActionFieldFontOverride[key]; ok && override > 0 {
+				colFontPt[i] = override
+			}
+		}
+
+		url, err = ExportPDFAndUpload(ctx, minioClient, buckerName, cfg, objectName, header, rows, PDFExportOptions{PageSize: "A4"}, colFontPt, logger)
 		if err != nil {
 			logger.Errorf("[CPSExport] PDF export failed: %v", err)
 			return "", errors.New(localization.CpsActionDataExportedError.Code)
@@ -1256,9 +1383,10 @@ func drawCBEBanner(pdf *gofpdf.Fpdf, pageWidthMM, heightMM float64) {
 	pdf.SetFillColor(255, 255, 255)
 }
 
-// ExportPDFAndUpload builds a tabular PDF (portrait A4) from a header + row-writer callback
-// and uploads it to MinIO with the correct application/pdf content type. The header row
-// automatically repeats on every page; a "Page N/M" footer is added.
+// ExportPDFAndUpload builds a tabular PDF from headers + rows and uploads it to MinIO.
+// Orientation, page-size upgrades (A5→A4), and column paging are chosen automatically
+// from the column count so headers and body cells always share the same widths.
+// colFontPt may be nil or len(headers); non-zero entries override the body font for that column.
 func ExportPDFAndUpload(
 	ctx context.Context,
 	s3Client *s3.Client,
@@ -1266,14 +1394,14 @@ func ExportPDFAndUpload(
 	env config.VaultConfig,
 	objectKey string,
 	headers []string,
-	pdfSize string,
-	writeRows func(pdf *gofpdf.Fpdf) error,
+	rows [][]string,
+	opts PDFExportOptions,
+	colFontPt []float64,
 	logger interface {
 		Errorf(format string, args ...any)
 	},
 ) (string, error) {
 
-	// 1. Create temp PDF file.
 	tmpFile, err := os.CreateTemp("", "export_*.pdf")
 	if err != nil {
 		logger.Errorf("[ExportPDFAndUpload] create temp file: %v", err)
@@ -1282,65 +1410,132 @@ func ExportPDFAndUpload(
 	defer os.Remove(tmpFile.Name())
 	defer tmpFile.Close()
 
-	// 2. Portrait A4 (210x297mm) with auto page break so long datasets paginate cleanly.
-	// Top margin reserved for the Commercial Bank of Ethiopia branded banner.
-	pdf := gofpdf.New("P", "mm", pdfSize, "")
-	const (
-		bannerHeightMM = 22.0 // height of the purple CBE banner
-		sideMarginMM   = 10.0
-	)
-	pdf.SetMargins(sideMarginMM, bannerHeightMM+4, sideMarginMM)
-	pdf.SetAutoPageBreak(true, 15)
+	colCount := len(headers)
+	pageSize, orientation, sections := pdfEffectiveLayout(opts.PageSize, colCount)
+	pageWidth, pageHeight := pdfPageSizeMM(pageSize, orientation)
+
+	pdf := gofpdf.New(orientation, "mm", pageSize, "")
+	pdf.SetMargins(pdfSideMarginMM, pdfBannerHeightMM+4, pdfSideMarginMM)
+	pdf.SetAutoPageBreak(true, pdfFooterMarginMM)
 	pdf.AliasNbPages("")
 
-	// Portrait A4 usable width = 210 - 2*sideMarginMM = 190mm.
-	usable := 210.0 - 2*sideMarginMM
-	colWidth := usable
-	if len(headers) > 0 {
-		colWidth = usable / float64(len(headers))
+	type sectionState struct {
+		headers []string
+		rows    [][]string
+		colFont []float64
+		label   string
+		colW    float64
+		layout  PDFLayout
+		lineHt  float64
 	}
 
-	// Responsive layout: header/body font + row height scale with column count so
-	// narrow portrait pages don't truncate content into "..." on every cell.
-	layout := CalcPDFLayout(len(headers))
-
-	// 3. Header runs on every page: CBE brand banner + table column header row.
-	pdf.SetHeaderFunc(func() {
-		drawCBEBanner(pdf, 210.0, bannerHeightMM)
-		// Column header row positioned right below the banner.
-		pdf.SetY(bannerHeightMM + 2)
-		pdf.SetX(sideMarginMM)
-		pdf.SetFont("Arial", "B", layout.HeaderFontPt)
-		pdf.SetTextColor(0, 0, 0)
-		pdf.SetFillColor(220, 220, 220)
-		for _, h := range headers {
-			pdf.CellFormat(colWidth, layout.HeaderRowMM, truncatePDFCell(h, colWidth, layout.HeaderFontPt), "1", 0, "C", true, 0, "")
+	buildSection := func(start, end int, label string) sectionState {
+		secHeaders := headers[start:end]
+		secRows := make([][]string, len(rows))
+		for i, row := range rows {
+			if end <= len(row) {
+				secRows[i] = row[start:end]
+			} else if start < len(row) {
+				secRows[i] = row[start:]
+			}
 		}
-		pdf.Ln(-1)
-		pdf.SetFont("Arial", "", layout.BodyFontPt)
+		var secFont []float64
+		if len(colFontPt) > start {
+			secFont = colFontPt[start:end]
+		}
+		usable := pageWidth - 2*pdfSideMarginMM
+		colW := usable
+		if len(secHeaders) > 0 {
+			colW = usable / float64(len(secHeaders))
+		}
+		layout := CalcPDFLayout(len(secHeaders))
+		return sectionState{
+			headers: secHeaders,
+			rows:    secRows,
+			colFont: secFont,
+			label:   label,
+			colW:    colW,
+			layout:  layout,
+			lineHt:  pdfLineHeightMM(layout.BodyFontPt),
+		}
+	}
+
+	var active sectionState
+	pdf.SetHeaderFunc(func() {
+		drawCBEBanner(pdf, pageWidth, pdfBannerHeightMM)
+		y := pdfBannerHeightMM + 2
+		if active.label != "" {
+			pdf.SetXY(pdfSideMarginMM, y)
+			pdf.SetFont("Arial", "I", 8)
+			pdf.CellFormat(pageWidth-2*pdfSideMarginMM, 4, active.label, "", 1, "L", false, 0, "")
+			y += 5
+		}
+		pdf.SetXY(pdfSideMarginMM, y)
+		pdf.SetFont("Arial", "B", active.layout.HeaderFontPt)
+		pdf.SetTextColor(0, 0, 0)
+		active.lineHt = pdfLineHeightMM(active.layout.HeaderFontPt)
+		pdfDrawTableRow(pdf, pdfSideMarginMM, y, active.headers, active.colW, active.lineHt, active.layout.HeaderRowMM, true)
+		pdf.SetFont("Arial", "", active.layout.BodyFontPt)
 	})
 
-	// 4. Footer with page numbers.
 	pdf.SetFooterFunc(func() {
 		pdf.SetY(-12)
 		pdf.SetFont("Arial", "I", 8)
 		pdf.CellFormat(0, 8, fmt.Sprintf("Page %d/{nb}", pdf.PageNo()), "", 0, "C", false, 0, "")
 	})
 
-	pdf.AddPage()
-	pdf.SetFont("Arial", "", layout.BodyFontPt)
+	for _, bounds := range sections {
+		label := ""
+		if len(sections) > 1 {
+			label = fmt.Sprintf("Columns %d-%d of %d", bounds[0]+1, bounds[1], colCount)
+		}
+		active = buildSection(bounds[0], bounds[1], label)
+		pdf.AddPage()
 
-	// 5. Body rows via caller callback.
-	if err := writeRows(pdf); err != nil {
-		logger.Errorf("[ExportPDFAndUpload] write rows: %v", err)
-		return "", fmt.Errorf("write rows: %w", err)
+		pdf.SetFont("Arial", "", active.layout.BodyFontPt)
+		active.lineHt = pdfLineHeightMM(active.layout.BodyFontPt)
+
+		for _, row := range active.rows {
+			if len(row) < len(active.headers) {
+				padded := make([]string, len(active.headers))
+				copy(padded, row)
+				row = padded
+			}
+			// Per-column font overrides use the smallest font in the row so wrapped lines align.
+			rowFont := active.layout.BodyFontPt
+			for i := range row {
+				if i < len(active.colFont) && active.colFont[i] > 0 && active.colFont[i] < rowFont {
+					rowFont = active.colFont[i]
+				}
+			}
+			if rowFont != active.layout.BodyFontPt {
+				pdf.SetFont("Arial", "", rowFont)
+			}
+			lineHt := pdfLineHeightMM(rowFont)
+			x := pdf.GetX()
+			if x < pdfSideMarginMM {
+				x = pdfSideMarginMM
+			}
+			y := pdf.GetY()
+			if y < pdfBannerHeightMM+4 {
+				y = pdfBannerHeightMM + 4
+			}
+			pdfDrawTableRow(pdf, x, y, row, active.colW, lineHt, active.layout.BodyRowMM, false)
+			if rowFont != active.layout.BodyFontPt {
+				pdf.SetFont("Arial", "", active.layout.BodyFontPt)
+			}
+
+			// Manual page break when the next row would collide with the footer.
+			if pdf.GetY() > pageHeight-pdfFooterMarginMM-active.layout.BodyRowMM*2 {
+				pdf.AddPage()
+			}
+		}
 	}
+
 	if err := pdf.Error(); err != nil {
 		logger.Errorf("[ExportPDFAndUpload] pdf error: %v", err)
 		return "", fmt.Errorf("pdf error: %w", err)
 	}
-
-	// 6. Save PDF to temp file and flush OS buffers before re-reading.
 	if err := pdf.Output(tmpFile); err != nil {
 		logger.Errorf("[ExportPDFAndUpload] output pdf: %v", err)
 		return "", fmt.Errorf("output pdf: %w", err)
@@ -1356,8 +1551,6 @@ func ExportPDFAndUpload(
 		return "", fmt.Errorf("stat temp file: %w", err)
 	}
 
-	// 7. Upload as application/pdf (previously called UploadCSVToMinio which caused
-	// downloads to be served as text/csv even though the bytes were valid PDF).
 	url, err := UploadPDFToMinio(ctx, s3Client, bucketName, tmpFile, stat.Size(), env, objectKey, logger)
 	if err != nil {
 		return "", fmt.Errorf("upload to minio: %w", err)
