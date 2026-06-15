@@ -299,7 +299,6 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 				localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
 				return
 			}
-			// If redis is down or cannot be read, log and continue
 			log.Warnf("[AuthMW][AuthToken] redis err: %v", err)
 		}
 
