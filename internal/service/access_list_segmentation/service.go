@@ -13,6 +13,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -109,8 +110,7 @@ func (a *AccessListSegmentationService) CreateAccessListSegmentation(ctx context
 		return err
 	}
 
-	if req.SegmentType == "block" {
-		//  first check if the passed segmented id and access list key combination already exists, if yes throw error, if no then check if the segmented id exists in the respective collection based but at higher level on the type (B,R,D,C,U)
+	if strings.EqualFold(req.SegmentType, "block") {
 		if als, err := a.repo.FindBySegmentIDAndAccessListKeys(ctx, req.SegmentationID, req.AccessListKeys); err != nil && err.Error() != localization.ErrorAccessListSegmentationNotFound.Code {
 			log.Errorf("[AccessListSegSvc][Create] find seg err: %v", err)
 			return errors.New(localization.ErrorUnexpectedError.Code)
@@ -124,26 +124,23 @@ func (a *AccessListSegmentationService) CreateAccessListSegmentation(ctx context
 			return err
 		}
 		requestAction = string(constants.RequestDisableAccessListSegmentation)
-
-		log.Infof("*************************inside block")
 	} else {
-		log.Infof("*************************inside account")
-
-		// add checks for
-		// 1. if the passed segment code is valid
-		// 2. if service id and segment code combination already exists
 		seg, err := a.customerSeg.FindByCustomerSegmentationByID(ctx, req.SegmentationID)
 		if err != nil || seg == nil {
 			log.Errorf("[AccessListSegSvc][Create] seg code not found: %v", err)
 			return errors.New(localization.ErrorCustomerSegmentationCodeNotFound.Code)
 		}
 
-		if seg, err := a.repo.FindByAccountSegmentationAndAccessListKeys(ctx, req.SegmentationID, req.AccessListKeys); err != nil || seg != nil {
-			log.Errorf("[AccessListSegSvc][Create] seg+key exists: %v", err)
+		existing, err := a.repo.FindByAccountSegmentationAndAccessListKeys(ctx, req.SegmentationID, req.AccessListKeys)
+		if err != nil {
+			log.Errorf("[AccessListSegSvc][Create] dup check err: %v", err)
+			return errors.New(localization.ErrorUnexpectedError.Code)
+		}
+		if existing != nil {
+			log.Errorf("[AccessListSegSvc][Create] seg+key exists id: %s", req.SegmentationID)
 			return errors.New(localization.ErrorAccessListSegmentationNameAlreadyExists.Code)
 		}
 		requestAction = string(constants.RequestAccessListDisableCustomerSegmentation)
-
 	}
 	cpsAction := lib.CpsModelBuilder("", makerData, nil, req, requestAction, constants.CREATE)
 
