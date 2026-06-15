@@ -24,7 +24,9 @@ func HandleDBError(err error) error {
 }
 
 func HandlePendingResponseError(ctx context.Context, w http.ResponseWriter, err error) http.ResponseWriter {
-	if err.Error() == localization.ErrorPendingActionExists.Code {
+	if err.Error() == localization.ErrorPendingActionExists.Code ||
+		err.Error() == localization.ErrorPendingCpsActionExists.Code ||
+		err.Error() == localization.ErrorDuplicatePendingCreateAction.Code {
 		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	}
 	return w
