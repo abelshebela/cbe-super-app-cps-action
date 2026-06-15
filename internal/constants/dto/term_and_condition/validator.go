@@ -23,10 +23,18 @@ func tacValidDate(value interface{}) error {
 	if s == "" {
 		return nil
 	}
-	if _, err := time.Parse("2006-01-02", s); err != nil {
-		return validation.NewError("validation_date_format", "must be a valid date in YYYY-MM-DD format")
+
+	// Try original format first (YYYY-MM-DD)
+	if _, err := time.Parse("2006-01-02", s); err == nil {
+		return nil
 	}
-	return nil
+
+	// Try RFC-style format: "Tue Jun 16 2026 00:00:00 GMT+0300 (East Africa Time)"
+	if _, err := time.Parse("Mon Jan 02 2006 15:04:05 MST-0700 (MST)", s); err == nil {
+		return nil
+	}
+
+	return validation.NewError("validation_date_format", "must be a valid date in YYYY-MM-DD format or RFC format (e.g., 'Tue Jun 16 2026 00:00:00 GMT+0300 (East Africa Time)')")
 }
 
 func tacNoSpecialChars(value interface{}) error {

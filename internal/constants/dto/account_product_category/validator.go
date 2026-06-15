@@ -1,6 +1,7 @@
 package account_product_category_dto
 
 import (
+	"errors"
 	"regexp"
 	"strings"
 
@@ -49,26 +50,41 @@ func codeFormat(value interface{}) error {
 }
 
 func (r CreateAPCRequest) Validate() error {
-	return validation.ValidateStruct(&r,
-		validation.Field(&r.ProductLine,
-			validation.Required,
-			validation.By(validProductLine),
-		),
-		validation.Field(&r.CBSCategoryCode,
-			validation.Required,
-			validation.Length(1, 64),
-			validation.By(codeFormat),
-		),
-		validation.Field(&r.CategoryName,
-			validation.Required,
-			validation.Length(1, 128),
-			validation.By(noSpecialChars),
-		),
-		validation.Field(&r.Description,
-			validation.Length(0, 512),
-			validation.By(noSpecialChars),
-		),
-	)
+	if strings.TrimSpace(r.ProductLine) == "" {
+		return errors.New("product line is required")
+	}
+	if err := validProductLine(r.ProductLine); err != nil {
+		return errors.New(err.Error())
+	}
+
+	if strings.TrimSpace(r.CBSCategoryCode) == "" {
+		return errors.New("cbs category code is required")
+	}
+	if len(r.CBSCategoryCode) > 64 {
+		return errors.New("cbs category code must be at most 64 characters")
+	}
+	if err := codeFormat(r.CBSCategoryCode); err != nil {
+		return errors.New(err.Error())
+	}
+
+	if strings.TrimSpace(r.CategoryName) == "" {
+		return errors.New("category name is required")
+	}
+	if len(r.CategoryName) > 128 {
+		return errors.New("category name must be at most 128 characters")
+	}
+	if err := noSpecialChars(r.CategoryName); err != nil {
+		return errors.New(err.Error())
+	}
+
+	if len(r.Description) > 512 {
+		return errors.New("description must be at most 512 characters")
+	}
+	if err := noSpecialChars(r.Description); err != nil {
+		return errors.New(err.Error())
+	}
+
+	return nil
 }
 
 func (r UpdateAPCRequest) Validate() error {

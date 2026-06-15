@@ -18,7 +18,6 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/jung-kurt/gofpdf"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -414,20 +413,11 @@ func (r *roleDelegation) Export(ctx context.Context, startDate, endDate time.Tim
 	)
 
 	if fileType == string(lib.FileTypePDF) {
-		url, exportErr := lib.ExportPDFAndUpload(ctx, r.minioClient, r.bucketName, r.cfg, objectName, headers, "A5", func(pdf *gofpdf.Fpdf) error {
-			const usableWidthMM = 277.0
-			colWidth := usableWidthMM / float64(len(headers))
-			layout := lib.CalcPDFLayout(len(headers))
-
-			pdf.SetFont("Arial", "", layout.BodyFontPt)
-			for _, item := range data {
-				for _, cell := range roleDelegationExportRow(item) {
-					pdf.CellFormat(colWidth, layout.BodyRowMM, truncateRoleDelegationCell(cell, colWidth, layout.BodyFontPt), "1", 0, "L", false, 0, "")
-				}
-				pdf.Ln(-1)
-			}
-			return nil
-		}, r.logger)
+		rows := make([][]string, 0, len(data))
+		for _, item := range data {
+			rows = append(rows, roleDelegationExportRow(item))
+		}
+		url, exportErr := lib.ExportPDFAndUpload(ctx, r.minioClient, r.bucketName, r.cfg, objectName, headers, rows, lib.PDFExportOptions{PageSize: "A4"}, nil, r.logger)
 		if exportErr != nil {
 			log.Errorf("[RoleDelegation/Export] PDF export failed: %v", exportErr)
 			return "", errors.New(localization.RoleDelegationDataExportedError.Code)
@@ -602,26 +592,6 @@ func roleDelegationPreferredValue(preferred, fallback string) string {
 	return fallback
 }
 
-func truncateRoleDelegationCell(s string, colWidthMM, fontPt float64) string {
-	if s == "" {
-		return s
-	}
-	charMM := fontPt * (2.0 / 9.0)
-	if charMM <= 0 {
-		charMM = 2.0
-	}
-	budget := int((colWidthMM - 2.0) / charMM)
-	if budget < 4 {
-		budget = 4
-	}
-	if len(s) <= budget {
-		return s
-	}
-	if budget <= 3 {
-		return s[:budget]
-	}
-	return s[:budget-3] + "..."
-}
 
 func NewRoleDelegationService(repo storage.RoleDelegationRepository, jobTitleRepo storage.JobRoleRepository, cpsUserRepo storage.CpsUserRepository, bpsUserRepo storage.BPSUserRepository, department storage.DepartmentRepository, roleRepo storage.RoleRepository, branchRepo storage.AccountBlockRepository, cpsService service.CPSActionService, minioClient *s3.Client, bucketName string, cfg config.VaultConfig, logger utils.Logger) service.RoleDelegationService {
 	return &roleDelegation{
