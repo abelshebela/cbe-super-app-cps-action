@@ -226,6 +226,10 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 			return err
 		}
 		if dup != nil {
+			if md := types.GetMetadata(ctx); md != nil {
+				md.CPSActionCode = dup.ActionCode
+			}
+
 			ctx = context.WithValue(ctx, constants.ContextKey("existing_action_code"), dup.ActionCode)
 			ctx = context.WithValue(ctx, constants.ContextKey("existing_action_status"), dup.ActionStatus)
 			return errors.New(localization.ErrorDuplicatePendingCreateAction.Code)
@@ -244,6 +248,10 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 				return err
 			}
 			if fieldDup != nil {
+				if md := types.GetMetadata(ctx); md != nil {
+					md.CPSActionCode = fieldDup.ActionCode
+				}
+
 				ctx = context.WithValue(ctx, constants.ContextKey("existing_action_code"), fieldDup.ActionCode)
 				ctx = context.WithValue(ctx, constants.ContextKey("existing_action_status"), fieldDup.ActionStatus)
 				return errors.New(localization.ErrorDuplicatePendingCreateAction.Code)
