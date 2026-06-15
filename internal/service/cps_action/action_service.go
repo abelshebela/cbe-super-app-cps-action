@@ -288,6 +288,10 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 		}
 
 		if existing != nil {
+			if md := types.GetMetadata(ctx); md != nil {
+				md.CPSActionCode = existing.ActionCode
+			}
+
 			span.AddEvent("pending update cps action exists", trace.WithAttributes(attribute.String("error", "pending update cps action exists")))
 			ctx = context.WithValue(ctx, constants.ContextKey("existing_action_code"), existing.ActionCode)
 			ctx = context.WithValue(ctx, constants.ContextKey("existing_action_status"), existing.ActionStatus)
@@ -306,6 +310,10 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 		}
 
 		if existing != nil {
+			if md := types.GetMetadata(ctx); md != nil {
+				md.CPSActionCode = existing.ActionCode
+			}
+
 			span.AddEvent("pending delete cps action exists", trace.WithAttributes(attribute.String("error", "pending delete cps action exists")))
 			ctx = context.WithValue(ctx, constants.ContextKey("existing_action_code"), existing.ActionCode)
 			ctx = context.WithValue(ctx, constants.ContextKey("existing_action_status"), existing.ActionStatus)
@@ -346,6 +354,10 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 		}
 
 		if existing != nil {
+			if md := types.GetMetadata(ctx); md != nil {
+				md.CPSActionCode = existing.ActionCode
+			}
+
 			span.AddEvent("pending disable cps action exists", trace.WithAttributes(attribute.String("error", "pending disable cps action exists")))
 			ctx = context.WithValue(ctx, constants.ContextKey("existing_action_code"), existing.ActionCode)
 			ctx = context.WithValue(ctx, constants.ContextKey("existing_action_status"), existing.ActionStatus)
