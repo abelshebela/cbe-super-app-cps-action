@@ -41,6 +41,14 @@ func (w WalletRequest) Validate(isCreate bool) error {
 		w.UniqueCode = strings.ToUpper(trimmed)
 	}
 	if isCreate {
+		if w.Self == nil && w.Other == nil && w.Agent == nil {
+			errs["type"] = localization.ErrorWalletTypeRequired
+		}
+		if w.SelfServiceID == "" && w.OtherServiceID == "" && w.AgentServiceID == "" {
+			errs["type"] = localization.ErrorWalletAgentServiceIDRequired
+			errs["type"] = localization.ErrorWalletSelfServiceIDRequired
+			errs["type"] = localization.ErrorWalletOtherServiceIDRequired
+		}
 		if w.Avatar == nil {
 			errs["avatar"] = localization.ErrorWalletAvatarRequired
 		} else if err := validateAvatar(w.Avatar); err != nil {
