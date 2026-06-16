@@ -41,7 +41,6 @@ require (
 
 require (
 	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.20.18
-	github.com/go-chi/httprate v0.15.0
 	github.com/jung-kurt/gofpdf v1.16.2
 )
 
@@ -49,7 +48,6 @@ require (
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/pgx/v5 v5.7.6 // indirect
-	github.com/zeebo/xxh3 v1.0.2 // indirect
 )
 
 require (
