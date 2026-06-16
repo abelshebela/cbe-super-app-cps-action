@@ -858,6 +858,7 @@ func (ca *cpsActionService) exportCPSActions(ctx context.Context, filterParams *
 	}
 	return url, nil
 }
+
 func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], string, error) {
 	log := local_util.LoggerFromCtx(ctx, ca.logger)
 
