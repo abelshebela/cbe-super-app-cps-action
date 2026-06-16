@@ -59,39 +59,12 @@ type FileProducerConfig struct {
 	ObjectName string
 }
 
-// extractFieldsFilter normalizes filterMap.Filters["fields"] into []string. Accepts:
-//   - []string (canonical, set by ExtractFilterParams)
-//   - []interface{} (repeated query keys)
-//   - string ("a,b,c")
+// extractFieldsFilter normalizes filterMap.Filters["fields"] into []string.
 func extractFieldsFilter(filters map[string]interface{}) []string {
-	raw, ok := filters["fields"]
-	if !ok || raw == nil {
+	if filters == nil {
 		return nil
 	}
-	switch v := raw.(type) {
-	case []string:
-		return v
-	case []interface{}:
-		out := make([]string, 0, len(v))
-		for _, x := range v {
-			if s, ok := x.(string); ok {
-				s = strings.TrimSpace(s)
-				if s != "" {
-					out = append(out, s)
-				}
-			}
-		}
-		return out
-	case string:
-		out := make([]string, 0)
-		for _, p := range strings.Split(v, ",") {
-			if s := strings.TrimSpace(p); s != "" {
-				out = append(out, s)
-			}
-		}
-		return out
-	}
-	return nil
+	return local_util.StringSliceFromFilterValue(filters["fields"])
 }
 
 // PDFLayout bundles font + row sizing for a tabular PDF export. It is derived from the
@@ -369,6 +342,9 @@ func FileExporterForCPSAction(ctx context.Context, cfg config.VaultConfig, minio
 
 	requestedFields := extractFieldsFilter(filterMap.Filters)
 	resolvedFields := ResolveCPSActionFields(requestedFields)
+	if len(requestedFields) > 0 && len(resolvedFields) == 0 {
+		return "", errors.New(localization.ErrorInvalidRequest.Code)
+	}
 	header := CPSActionHeadersFromFields(resolvedFields)
 
 	// 3. Build object key.
@@ -474,8 +450,15 @@ var CPSActionFieldRegistry = map[string]CPSActionFieldSpec{
 	"maker_name":          {"Maker Name", func(a *model.CPSAction) string { return a.MakerName }},
 	"maker_phone_number":  {"Maker Phone Number", func(a *model.CPSAction) string { return a.MakerPhoneNumber }},
 	"auditor_names":       {"Auditor Names", cpsAuditorNames},
+	"auditor_id":          {"Auditor ID", cpsAuditorIDs},
+	"auditor_ids":         {"Auditor ID", cpsAuditorIDs},
+	"auditor_mark":        {"Auditor Mark", cpsAuditorMarks},
+	"auditor_marks":       {"Auditor Mark", cpsAuditorMarks},
 	"auditor_status":      {"Auditor Status", func(a *model.CPSAction) string { return string(a.AuditorStatus) }},
 	"checker_name":        {"Checker Name", cpsCheckerNames},
+	"checker_id":          {"Checker ID", cpsCheckerIDs},
+	"checker_ids":         {"Checker ID", cpsCheckerIDs},
+	"unique_id":           {"Unique ID", func(a *model.CPSAction) string { return a.UniqueId }},
 	"action_status":       {"Action Status", func(a *model.CPSAction) string { return a.ActionStatus }},
 	"action_type":         {"Action Type", func(a *model.CPSAction) string { return a.ActionType }},
 	"request_action":      {"Request Action", func(a *model.CPSAction) string { return a.RequestAction }},
@@ -521,6 +504,26 @@ func cpsAuditorNames(a *model.CPSAction) string {
 	return strings.Join(names, ", ")
 }
 
+func cpsAuditorIDs(a *model.CPSAction) string {
+	ids := make([]string, 0, len(a.AuditorUsers))
+	for _, au := range a.AuditorUsers {
+		if au.AuditorID != "" {
+			ids = append(ids, au.AuditorID)
+		}
+	}
+	return strings.Join(ids, ", ")
+}
+
+func cpsAuditorMarks(a *model.CPSAction) string {
+	marks := make([]string, 0, len(a.AuditorUsers))
+	for _, au := range a.AuditorUsers {
+		if au.AuditorMark != "" {
+			marks = append(marks, string(au.AuditorMark))
+		}
+	}
+	return strings.Join(marks, ", ")
+}
+
 func cpsCheckerNames(a *model.CPSAction) string {
 	names := make([]string, 0, len(a.CheckerUsers))
 	for _, c := range a.CheckerUsers {
@@ -531,21 +534,34 @@ func cpsCheckerNames(a *model.CPSAction) string {
 	return strings.Join(names, ", ")
 }
 
-// ResolveCPSActionFields returns the effective field-key list (default when input is empty)
-// and drops any keys that are not registered.
+func cpsCheckerIDs(a *model.CPSAction) string {
+	ids := make([]string, 0, len(a.CheckerUsers))
+	for _, c := range a.CheckerUsers {
+		if c.CheckerID != "" {
+			ids = append(ids, c.CheckerID)
+		}
+	}
+	return strings.Join(ids, ", ")
+}
+
+// ResolveCPSActionFields returns the effective export column keys. When ?fields= is omitted
+// the default column set is used; when provided, only registered keys from that list are
+// included, in the same order as the request (unknown keys are skipped).
 func ResolveCPSActionFields(fields []string) []string {
 	if len(fields) == 0 {
 		return append([]string(nil), CPSActionDefaultFieldOrder...)
 	}
 	out := make([]string, 0, len(fields))
+	seen := make(map[string]bool, len(fields))
 	for _, f := range fields {
 		key := strings.TrimSpace(strings.ToLower(f))
+		if key == "" || seen[key] {
+			continue
+		}
 		if _, ok := CPSActionFieldRegistry[key]; ok {
 			out = append(out, key)
+			seen[key] = true
 		}
-	}
-	if len(out) == 0 {
-		return append([]string(nil), CPSActionDefaultFieldOrder...)
 	}
 	return out
 }
