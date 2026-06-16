@@ -80,8 +80,9 @@ func MapToResponse(m *imodel.AccountOpeningTerms) tac_dto.TACResponse {
 	return tac_dto.TACResponse{
 		ID: m.ID,
 		AccountProduct: tac_dto.TACAccountProduct{
-			ID:          m.AccountProductID,
-			ProductName: m.ProductName,
+			ID:              m.AccountProductID,
+			ProductName:     m.ProductName,
+			CBSCategoryCode: m.CBSCategoryCode,
 		},
 		ActivationTime:         m.ActivationTime,
 		VersionLabel:           m.VersionLabel,

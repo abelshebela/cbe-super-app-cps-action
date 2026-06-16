@@ -6,6 +6,7 @@ type AccountOpeningTerms struct {
 	ID                     string     `bson:"id" json:"id"`
 	AccountProductID       string     `bson:"account_product_id" json:"account_product_id"`
 	ProductName            string     `bson:"product_name" json:"product_name"`
+	CBSCategoryCode        string     `bson:"cbs_category_code" json:"cbs_category_code"`
 	ActivationTime         string     `bson:"activation_time" json:"activation_time"`
 	VersionLabel           string     `bson:"version_label" json:"version_label"`
 	TermsAndConditionsPath string     `bson:"terms_and_conditions_path" json:"terms_and_conditions_path"`

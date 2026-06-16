@@ -10,6 +10,7 @@ import (
 	"image/png"
 	"net/http"
 	"os"
+	"reflect"
 
 	// "cbe-super-app-cps-action/internal/constants/localization"
 	erp_merchant_update_dto "cbe-super-app-cps-action/internal/constants/dto/erp_merchant_update"
@@ -59,39 +60,12 @@ type FileProducerConfig struct {
 	ObjectName string
 }
 
-// extractFieldsFilter normalizes filterMap.Filters["fields"] into []string. Accepts:
-//   - []string (canonical, set by ExtractFilterParams)
-//   - []interface{} (repeated query keys)
-//   - string ("a,b,c")
+// extractFieldsFilter normalizes filterMap.Filters["fields"] into []string.
 func extractFieldsFilter(filters map[string]interface{}) []string {
-	raw, ok := filters["fields"]
-	if !ok || raw == nil {
+	if filters == nil {
 		return nil
 	}
-	switch v := raw.(type) {
-	case []string:
-		return v
-	case []interface{}:
-		out := make([]string, 0, len(v))
-		for _, x := range v {
-			if s, ok := x.(string); ok {
-				s = strings.TrimSpace(s)
-				if s != "" {
-					out = append(out, s)
-				}
-			}
-		}
-		return out
-	case string:
-		out := make([]string, 0)
-		for _, p := range strings.Split(v, ",") {
-			if s := strings.TrimSpace(p); s != "" {
-				out = append(out, s)
-			}
-		}
-		return out
-	}
-	return nil
+	return local_util.StringSliceFromFilterValue(filters["fields"])
 }
 
 // PDFLayout bundles font + row sizing for a tabular PDF export. It is derived from the
@@ -343,11 +317,11 @@ func FileExporterForCPSAction(ctx context.Context, cfg config.VaultConfig, minio
 	}
 
 	// 1. Date range validation.
-	createdAtFrom, _ := filterMap.Filters["created_at_from"].(string)
-	createdAtTo, _ := filterMap.Filters["created_at_to"].(string)
-	// if !fromOk || !toOk || createdAtFrom == "" || createdAtTo == "" {
-	// 	return "", errors.New(localization.ErrorRequiredFieldMissing.Code)
-	// }
+	createdAtFrom, fromOk := filterMap.Filters["created_at_from"].(string)
+	createdAtTo, toOk := filterMap.Filters["created_at_to"].(string)
+	if !fromOk || !toOk || createdAtFrom == "" || createdAtTo == "" {
+		return "", errors.New(localization.ErrorRequiredFieldMissing.Code)
+	}
 
 	startDate, endDate, err := local_util.FormatDateRangeToUTCStrings(createdAtFrom, createdAtTo)
 	if err != nil {
@@ -369,6 +343,9 @@ func FileExporterForCPSAction(ctx context.Context, cfg config.VaultConfig, minio
 
 	requestedFields := extractFieldsFilter(filterMap.Filters)
 	resolvedFields := ResolveCPSActionFields(requestedFields)
+	if len(requestedFields) > 0 && len(resolvedFields) == 0 {
+		return "", errors.New(localization.ErrorInvalidRequest.Code)
+	}
 	header := CPSActionHeadersFromFields(resolvedFields)
 
 	// 3. Build object key.
@@ -465,24 +442,91 @@ type CPSActionFieldSpec struct {
 	Extract func(a *model.CPSAction) string
 }
 
+// CPSActionExportSchema only exists to define the exported column order and the
+// json/bson tags used by the ?fields= filter.
+type CPSActionExportSchema struct {
+	ID                string `json:"id" bson:"_id"`
+	ActionCode        string `json:"action_code" bson:"action_code"`
+	MakerID           string `json:"maker_id" bson:"maker_id"`
+	MakerName         string `json:"maker_name" bson:"maker_name"`
+	MakerPhoneNumber  string `json:"maker_phone_number" bson:"maker_phone_number"`
+	CheckerUsers      string `json:"checker_users" bson:"checker_users"`
+	AuditorUsers      string `json:"auditor_users" bson:"auditor_users"`
+	AuditorNames      string `json:"auditor_names" bson:"auditor_names"`
+	AuditorID         string `json:"auditor_id" bson:"auditor_id"`
+	AuditorIDs        string `json:"auditor_ids" bson:"auditor_ids"`
+	AuditorMark       string `json:"auditor_mark" bson:"auditor_mark"`
+	AuditorMarks      string `json:"auditor_marks" bson:"auditor_marks"`
+	AuditorStatus     string `json:"auditor_status" bson:"auditor_status"`
+	CheckerName       string `json:"checker_name" bson:"checker_name"`
+	CheckerID         string `json:"checker_id" bson:"checker_id"`
+	CheckerIDs        string `json:"checker_ids" bson:"checker_ids"`
+	ActionStatus      string `json:"action_status" bson:"action_status"`
+	ActionType        string `json:"action_type" bson:"action_type"`
+	RequestAction     string `json:"request_action" bson:"request_action"`
+	CreatedAt         string `json:"created_at" bson:"created_at"`
+	LastModifiedAt    string `json:"last_modified_at" bson:"last_modified_at"`
+	MakerActionTime   string `json:"maker_action_time" bson:"maker_action_time"`
+	CheckerActionTime string `json:"checker_action_time" bson:"checker_action_time"`
+	AuditorActionTime string `json:"auditor_action_time" bson:"auditor_action_time"`
+	RejectionReason   string `json:"rejection_reason" bson:"rejection_reason"`
+	CanceledReason    string `json:"canceled_reason" bson:"canceled_reason"`
+}
+
+var cpsActionFieldTagAliases = func() map[string]string {
+	aliases := map[string]string{}
+	specType := reflect.TypeOf(CPSActionExportSchema{})
+	for i := 0; i < specType.NumField(); i++ {
+		field := specType.Field(i)
+		canonical := exportFieldKeyFromTag(field)
+		if canonical == "" {
+			continue
+		}
+		aliases[canonical] = canonical
+
+		for _, tagName := range []string{"json", "bson"} {
+			tag := strings.TrimSpace(field.Tag.Get(tagName))
+			if tag == "" || tag == "-" {
+				continue
+			}
+			key := strings.ToLower(strings.TrimSpace(strings.Split(tag, ",")[0]))
+			if key != "" {
+				aliases[key] = canonical
+			}
+		}
+	}
+	return aliases
+}()
+
 // CPSActionFieldRegistry maps field keys (as used in the ?fields=a,b,c query param) to
 // their header label and row extractor. Add new exportable fields here.
 var CPSActionFieldRegistry = map[string]CPSActionFieldSpec{
-	"id":                  {"ID", func(a *model.CPSAction) string { return a.ID.Hex() }},
+	"id":                  {"ID", cpsActionID},
 	"action_code":         {"Action Code", func(a *model.CPSAction) string { return a.ActionCode }},
 	"maker_id":            {"Maker ID", func(a *model.CPSAction) string { return a.MakerID }},
 	"maker_name":          {"Maker Name", func(a *model.CPSAction) string { return a.MakerName }},
 	"maker_phone_number":  {"Maker Phone Number", func(a *model.CPSAction) string { return a.MakerPhoneNumber }},
+	"checker_users":       {"Checker Users", cpsCheckerUsers},
+	"auditor_users":       {"Auditor Users", cpsAuditorUsers},
 	"auditor_names":       {"Auditor Names", cpsAuditorNames},
+	"auditor_id":          {"Auditor ID", cpsAuditorIDs},
+	"auditor_ids":         {"Auditor ID", cpsAuditorIDs},
+	"auditor_mark":        {"Auditor Mark", cpsAuditorMarks},
+	"auditor_marks":       {"Auditor Mark", cpsAuditorMarks},
 	"auditor_status":      {"Auditor Status", func(a *model.CPSAction) string { return string(a.AuditorStatus) }},
 	"checker_name":        {"Checker Name", cpsCheckerNames},
+	"checker_id":          {"Checker ID", cpsCheckerIDs},
+	"checker_ids":         {"Checker ID", cpsCheckerIDs},
 	"action_status":       {"Action Status", func(a *model.CPSAction) string { return a.ActionStatus }},
 	"action_type":         {"Action Type", func(a *model.CPSAction) string { return a.ActionType }},
 	"request_action":      {"Request Action", func(a *model.CPSAction) string { return a.RequestAction }},
 	"created_at":          {"Created At", func(a *model.CPSAction) string { return local_util.FormatTime(a.CreatedAt) }},
 	"last_modified_at":    {"Last Modified At", func(a *model.CPSAction) string { return local_util.FormatTime(a.LastModifiedAt) }},
 	"maker_action_time":   {"Maker Action Time", func(a *model.CPSAction) string { return local_util.FormatTime(a.MakerActionTime) }},
-	"checker_action_time": {"Checker Action Time", func(a *model.CPSAction) string { return local_util.FormatTime(a.LastModifiedAt) }},
+	"checker_action_time": {"Checker Action Time", cpsCheckerActionTimes},
+	"auditor_action_time": {"Auditor Action Time", cpsAuditorActionTimes},
+	"rejection_reason":    {"Rejection Reason", func(a *model.CPSAction) string { return a.RejectionReason }},
+	"canceled_reason":     {"Canceled Reason", func(a *model.CPSAction) string { return a.CanceledReason }},
 }
 
 // CPSActionFieldFontOverride lets specific columns render in a smaller font than the
@@ -521,6 +565,50 @@ func cpsAuditorNames(a *model.CPSAction) string {
 	return strings.Join(names, ", ")
 }
 
+func cpsCheckerUsers(a *model.CPSAction) string {
+	parts := make([]string, 0, len(a.CheckerUsers))
+	for _, checker := range a.CheckerUsers {
+		entry, ok := formatIDTimestamp(checker.CheckerID, checker.ApprovedAt)
+		if !ok {
+			continue
+		}
+		parts = append(parts, entry)
+	}
+	return strings.Join(parts, ", ")
+}
+
+func cpsAuditorUsers(a *model.CPSAction) string {
+	parts := make([]string, 0, len(a.AuditorUsers))
+	for _, auditor := range a.AuditorUsers {
+		entry, ok := formatIDTimestamp(auditor.AuditorID, auditor.ApprovedAt)
+		if !ok {
+			continue
+		}
+		parts = append(parts, entry)
+	}
+	return strings.Join(parts, ", ")
+}
+
+func cpsAuditorIDs(a *model.CPSAction) string {
+	ids := make([]string, 0, len(a.AuditorUsers))
+	for _, au := range a.AuditorUsers {
+		if au.AuditorID != "" {
+			ids = append(ids, au.AuditorID)
+		}
+	}
+	return strings.Join(ids, ", ")
+}
+
+func cpsAuditorMarks(a *model.CPSAction) string {
+	marks := make([]string, 0, len(a.AuditorUsers))
+	for _, au := range a.AuditorUsers {
+		if au.AuditorMark != "" {
+			marks = append(marks, string(au.AuditorMark))
+		}
+	}
+	return strings.Join(marks, ", ")
+}
+
 func cpsCheckerNames(a *model.CPSAction) string {
 	names := make([]string, 0, len(a.CheckerUsers))
 	for _, c := range a.CheckerUsers {
@@ -531,21 +619,74 @@ func cpsCheckerNames(a *model.CPSAction) string {
 	return strings.Join(names, ", ")
 }
 
-// ResolveCPSActionFields returns the effective field-key list (default when input is empty)
-// and drops any keys that are not registered.
+func cpsCheckerIDs(a *model.CPSAction) string {
+	ids := make([]string, 0, len(a.CheckerUsers))
+	for _, c := range a.CheckerUsers {
+		if c.CheckerID != "" {
+			ids = append(ids, c.CheckerID)
+		}
+	}
+	return strings.Join(ids, ", ")
+}
+
+func cpsCheckerActionTimes(a *model.CPSAction) string {
+	parts := make([]string, 0, len(a.CheckerUsers))
+	for _, checker := range a.CheckerUsers {
+		entry, ok := formatIDTimestamp(checker.CheckerID, checker.ApprovedAt)
+		if !ok {
+			continue
+		}
+		parts = append(parts, entry)
+	}
+	return strings.Join(parts, ", ")
+}
+
+func cpsAuditorActionTimes(a *model.CPSAction) string {
+	parts := make([]string, 0, len(a.AuditorUsers))
+	for _, auditor := range a.AuditorUsers {
+		entry, ok := formatIDTimestamp(auditor.AuditorID, auditor.ApprovedAt)
+		if !ok {
+			continue
+		}
+		parts = append(parts, entry)
+	}
+	return strings.Join(parts, ", ")
+}
+
+func formatIDTimestamp(id string, approvedAt time.Time) (string, bool) {
+	id = strings.TrimSpace(id)
+	if id == "" || approvedAt.IsZero() {
+		return "", false
+	}
+	return fmt.Sprintf("%s:%s", id, local_util.FormatTime(approvedAt)), true
+}
+
+// ResolveCPSActionFields returns the effective export column keys. When ?fields= is omitted
+// the default column set is used; when provided, only registered keys from that list are
+// included, in the same order as the request (unknown keys are skipped).
 func ResolveCPSActionFields(fields []string) []string {
 	if len(fields) == 0 {
 		return append([]string(nil), CPSActionDefaultFieldOrder...)
 	}
 	out := make([]string, 0, len(fields))
+	seen := make(map[string]bool, len(fields))
 	for _, f := range fields {
 		key := strings.TrimSpace(strings.ToLower(f))
-		if _, ok := CPSActionFieldRegistry[key]; ok {
-			out = append(out, key)
+		if key == "" || seen[key] {
+			continue
 		}
-	}
-	if len(out) == 0 {
-		return append([]string(nil), CPSActionDefaultFieldOrder...)
+		canonical, ok := cpsActionFieldTagAliases[key]
+		if !ok {
+			continue
+		}
+		if seen[canonical] {
+			continue
+		}
+		if _, ok := CPSActionFieldRegistry[canonical]; ok {
+			out = append(out, canonical)
+			seen[key] = true
+			seen[canonical] = true
+		}
 	}
 	return out
 }
@@ -568,6 +709,27 @@ func BuildCPSActionRowFromFields(a *model.CPSAction, fields []string) ([]string,
 		row[i] = CPSActionFieldRegistry[key].Extract(a)
 	}
 	return row, nil
+}
+
+func exportFieldKeyFromTag(field reflect.StructField) string {
+	for _, tagName := range []string{"json", "bson"} {
+		tag := strings.TrimSpace(field.Tag.Get(tagName))
+		if tag == "" || tag == "-" {
+			continue
+		}
+		key := strings.ToLower(strings.TrimSpace(strings.Split(tag, ",")[0]))
+		if key != "" {
+			return key
+		}
+	}
+	return strings.ToLower(field.Name)
+}
+
+func cpsActionID(a *model.CPSAction) string {
+	if a == nil {
+		return ""
+	}
+	return a.ID.Hex()
 }
 
 // BuildCPSActionRow keeps the legacy signature (full default row). New callers should use

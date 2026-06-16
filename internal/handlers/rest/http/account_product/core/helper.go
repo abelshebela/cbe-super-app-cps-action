@@ -43,7 +43,6 @@ func ParseCreateRequest(r *http.Request, logger utils.Logger) (ap_dto.CreateAPRe
 	req.CBSProductCode = strings.TrimSpace(r.FormValue("cps_product_code"))
 	req.ProductName = strings.TrimSpace(r.FormValue("product_name"))
 	req.ProductTagLine = strings.TrimSpace(r.FormValue("product_tagline"))
-	req.ProductLine = strings.ToUpper(strings.TrimSpace(r.FormValue("product_line")))
 	req.AccountCategoryID = strings.TrimSpace(r.FormValue("account_category"))
 	req.AccountCurrency = strings.ToUpper(strings.TrimSpace(r.FormValue("account_currency")))
 	req.FaqURL = strings.TrimSpace(r.FormValue("faq_url"))
@@ -56,7 +55,13 @@ func ParseCreateRequest(r *http.Request, logger utils.Logger) (ap_dto.CreateAPRe
 		}
 		req.MinimumOpeningBalance = f
 	}
-	if v := r.FormValue("minimum_balance_to_maintain_account"); v != "" {
+	if maintenanceFeeStr := r.FormValue("minimum_maintenance_fee"); maintenanceFeeStr != "" {
+		f, err := strconv.ParseFloat(maintenanceFeeStr, 64)
+		if err != nil {
+			return req, fmt.Errorf("minimum_maintenance_fee must be a number")
+		}
+		req.MinimumMaintenanceFee = f
+	} else if v := r.FormValue("minimum_balance_to_maintain_account"); v != "" {
 		f, err := strconv.ParseFloat(v, 64)
 		if err != nil {
 			return req, fmt.Errorf("minimum_balance_to_maintain_account must be a number")
@@ -101,7 +106,6 @@ func ParseUpdateRequest(r *http.Request, logger utils.Logger) (ap_dto.UpdateAPRe
 	req.CBSProductCode = strings.TrimSpace(r.FormValue("cps_product_code"))
 	req.ProductName = strings.TrimSpace(r.FormValue("product_name"))
 	req.ProductTagLine = strings.TrimSpace(r.FormValue("product_tagline"))
-	req.ProductLine = strings.ToUpper(strings.TrimSpace(r.FormValue("product_line")))
 	req.AccountCategoryID = strings.TrimSpace(r.FormValue("account_category"))
 	req.AccountCurrency = strings.ToUpper(strings.TrimSpace(r.FormValue("account_currency")))
 	req.FaqURL = strings.TrimSpace(r.FormValue("faq_url"))
@@ -114,7 +118,13 @@ func ParseUpdateRequest(r *http.Request, logger utils.Logger) (ap_dto.UpdateAPRe
 		}
 		req.MinimumOpeningBalance = f
 	}
-	if v := r.FormValue("minimum_balance_to_maintain_account"); v != "" {
+	if maintenanceFeeStr := r.FormValue("minimum_maintenance_fee"); maintenanceFeeStr != "" {
+		f, err := strconv.ParseFloat(maintenanceFeeStr, 64)
+		if err != nil {
+			return req, fmt.Errorf("minimum_maintenance_fee must be a number")
+		}
+		req.MinimumMaintenanceFee = f
+	} else if v := r.FormValue("minimum_balance_to_maintain_account"); v != "" {
 		f, err := strconv.ParseFloat(v, 64)
 		if err != nil {
 			return req, fmt.Errorf("minimum_balance_to_maintain_account must be a number")
@@ -154,9 +164,10 @@ func MapToResponse(m *imodel.AccountProduct) ap_dto.APResponse {
 		ProductName:    m.ProductName,
 		ProductTagLine: m.ProductTagLine,
 		AccountCategory: ap_dto.APAccountCategory{
-			ID:           m.AccountCategoryID,
-			CategoryName: m.CategoryName,
-			AccountType:  m.AccountType,
+			ID:              m.AccountCategoryID,
+			CategoryName:    m.CategoryName,
+			CBSCategoryCode: m.CBSCategoryCode,
+			AccountType:     m.AccountType,
 		},
 		AccountCurrency:       m.AccountCurrency,
 		MinimumOpeningBalance: m.MinimumOpeningBalance,

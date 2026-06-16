@@ -33,13 +33,19 @@ func (r *repository) Create(ctx context.Context, t *imodel.AccountOpeningTerms) 
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 	log.Infof("[TACOracle][Create] product=%s version=%s", t.AccountProductID, t.VersionLabel)
 
+	activationTime, err := tac_core.ParseActivationTime(t.ActivationTime)
+	if err != nil {
+		log.Errorf("[TACOracle][Create] parse activation_time: %v", err)
+		return err
+	}
+
 	q := `INSERT INTO ACCOUNT_OPENING_TERMS
 		(ACCOUNT_PRODUCT_ID, ACTIVATION_TIME, VERSION_LABEL, TERMS_AND_CONDITIONS_PATH, IS_ENABLED, IS_DELETED)
-		VALUES (HEXTORAW(:1), TO_DATE(:2, 'YYYY-MM-DD'), :3, :4, :5, :6)`
+		VALUES (HEXTORAW(:1), :2, :3, :4, :5, :6)`
 
 	if _, err := r.db.ExecContext(ctx, q,
 		t.AccountProductID,
-		t.ActivationTime,
+		activationTime,
 		t.VersionLabel,
 		t.TermsAndConditionsPath,
 		tac_core.BoolToInt(t.IsEnabled),
@@ -55,13 +61,19 @@ func (r *repository) Update(ctx context.Context, id string, t *imodel.AccountOpe
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 	log.Infof("[TACOracle][Update] id=%s", id)
 
+	activationTime, err := tac_core.ParseActivationTime(t.ActivationTime)
+	if err != nil {
+		log.Errorf("[TACOracle][Update] parse activation_time: %v", err)
+		return err
+	}
+
 	q := `UPDATE ACCOUNT_OPENING_TERMS
-		SET ACTIVATION_TIME = TO_DATE(:1, 'YYYY-MM-DD'), VERSION_LABEL = :2,
+		SET ACTIVATION_TIME = :1, VERSION_LABEL = :2,
 		    TERMS_AND_CONDITIONS_PATH = :3, LAST_MODIFIED_AT = :4
 		WHERE ID = HEXTORAW(:5)`
 
 	res, err := r.db.ExecContext(ctx, q,
-		t.ActivationTime,
+		activationTime,
 		t.VersionLabel,
 		t.TermsAndConditionsPath,
 		time.Now(),
@@ -149,7 +161,7 @@ func (r *repository) FindAllWithPagination(ctx context.Context, filterParam type
 
 	if s := strings.TrimSpace(filterParam.Search); s != "" {
 		conds = append(conds, fmt.Sprintf(
-			"(UPPER(t.VERSION_LABEL) LIKE UPPER(:%d) OR UPPER(t.ACTIVATION_TIME) LIKE UPPER(:%d))",
+			"(UPPER(t.VERSION_LABEL) LIKE UPPER(:%d) OR TO_CHAR(t.ACTIVATION_TIME, 'YYYY-MM-DD HH24:MI:SS') LIKE :%d)",
 			idx, idx+1,
 		))
 		args = append(args, "%"+s+"%", "%"+s+"%")
