@@ -299,7 +299,6 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 				localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
 				return
 			}
-			// If redis is down or cannot be read, log and continue
 			log.Warnf("[AuthMW][AuthToken] redis err: %v", err)
 		}
 
@@ -336,7 +335,7 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 
 		r = r.WithContext(ctx)
 		// Whitelist CPS Action endpoints that don't need action-based validation
-		whitelist := []string{"access_list_segmentation", "account_block", "cps-action-list", "bps-action-list", "cps_action", "cps_actions", "actions", "bps_actions", "account_lookup", "cps_users"}
+		whitelist := []string{"departments", "access_list_segmentation", "account_block", "cps-action-list", "bps-action-list", "cps_action", "cps_actions", "actions", "bps_actions", "account_lookup", "cps_users", "roles"}
 		if err := CPSActionRouteGuard(r, whitelist); err != nil {
 			log.Warnf("[AuthMW][AuthToken] route guard blocked access to path: %s error: %v", r.URL.Path, err)
 			localization.SendUnauthorizedResponse(w, localization.ErrorOperationNotAllowed.Message)

@@ -95,20 +95,23 @@ func (q *accessListSegmentationOracle) CreateAccountSegment(ctx context.Context,
 		return nil
 	}
 
-	valueStrings := make([]string, 0, n)
+	now := time.Now()
+	intoRows := make([]string, 0, n)
 	valueArgs := make([]interface{}, 0, n*6)
-
 	docs := make([]local_model.AccessListSegmentation, 0, n)
 
 	paramIdx := 1
 	for _, key := range accessListSegmentation.AccessListKeys {
-		valueStrings = append(valueStrings, fmt.Sprintf("(SYS_GUID(), HEXTORAW(:%d), :%d, :%d, :%d, :%d, :%d, :%d)", paramIdx, paramIdx+1, paramIdx+2, paramIdx+3, paramIdx+4, paramIdx+5, paramIdx+6))
+		intoRows = append(intoRows, fmt.Sprintf(
+			"INTO ACCESS_LIST_BY_SUPERAPP_ROLE (id, ACCESS_LIST_ID, SUPERAPP_ROLE_ID, is_enabled, created_at, LAST_MODIFIED_AT, deleted_at) VALUES (SYS_GUID(), HEXTORAW(:%d), :%d, :%d, :%d, :%d, :%d)",
+			paramIdx, paramIdx+1, paramIdx+2, paramIdx+3, paramIdx+4, paramIdx+5,
+		))
 		valueArgs = append(valueArgs,
 			key,                                   // ACCESS_LIST_ID
 			accessListSegmentation.SegmentationID, // SUPERAPP_ROLE_ID
 			1,                                     // is_enabled
-			time.Now(),                            // created_at
-			time.Now(),                            // LAST_MODIFIED_AT
+			now,                                   // created_at
+			now,                                   // LAST_MODIFIED_AT
 			nil,                                   // deleted_at
 		)
 		docs = append(docs, local_model.AccessListSegmentation{
@@ -116,18 +119,15 @@ func (q *accessListSegmentationOracle) CreateAccountSegment(ctx context.Context,
 			SegmentedID:   accessListSegmentation.SegmentationID,
 			Enabled:       true,
 		})
-		paramIdx += 7
+		paramIdx += 6
 	}
 
-	stmt := `
-	       INSERT INTO ACCESS_LIST_BY_SUPERAPP_ROLE (
-		   id, ACCESS_LIST_ID, SUPERAPP_ROLE_ID, is_enabled, created_at, LAST_MODIFIED_AT, deleted_at
-	       ) VALUES ` + strings.Join(valueStrings, ",")
+	stmt := "INSERT ALL\n" + strings.Join(intoRows, "\n") + "\nSELECT 1 FROM DUAL"
 
 	_, err := q.db.ExecContext(ctx, stmt, valueArgs...)
 	if err != nil {
 		log.Errorf("[AccessListSegmentation][CreateAccountSegment] failed to insert rows: %v", err)
-		return err
+		return localization.ErrorUnexpectedError
 	}
 
 	res := map[string]any{
@@ -211,15 +211,16 @@ func (q *accessListSegmentationOracle) CreateBlockSegment(ctx context.Context, a
 	}
 
 	now := time.Now()
-	valueStrings := make([]string, 0, n)
-	valueArgs := make([]interface{}, 0, n*8)
-
+	intoRows := make([]string, 0, n)
+	valueArgs := make([]interface{}, 0, n*7)
 	docs := make([]local_model.AccessListSegmentation, 0, n)
 
-	// Use positional parameters for each value
 	paramIdx := 1
 	for _, key := range accessListSegmentation.AccessListKeys {
-		valueStrings = append(valueStrings, fmt.Sprintf("(SYS_GUID(), HEXTORAW(:%d), :%d, :%d, :%d, :%d, :%d, :%d)", paramIdx, paramIdx+1, paramIdx+2, paramIdx+3, paramIdx+4, paramIdx+5, paramIdx+6))
+		intoRows = append(intoRows, fmt.Sprintf(
+			"INTO ACCESS_LIST_BY_GEOGRAPHICAL_LOCATIONS (id, ACCESS_LIST_ID, LOCATION_ID, ACCOUNT_TYPE, is_enabled, created_at, LAST_MODIFIED_AT, deleted_at) VALUES (SYS_GUID(), HEXTORAW(:%d), :%d, :%d, :%d, :%d, :%d, :%d)",
+			paramIdx, paramIdx+1, paramIdx+2, paramIdx+3, paramIdx+4, paramIdx+5, paramIdx+6,
+		))
 		valueArgs = append(valueArgs,
 			key,                                   // ACCESS_LIST_ID
 			accessListSegmentation.SegmentationID, // LOCATION_ID
@@ -237,10 +238,7 @@ func (q *accessListSegmentationOracle) CreateBlockSegment(ctx context.Context, a
 		paramIdx += 7
 	}
 
-	stmt := `
-		   INSERT INTO ACCESS_LIST_BY_GEOGRAPHICAL_LOCATIONS (
-		   id, ACCESS_LIST_ID, LOCATION_ID, ACCOUNT_TYPE, is_enabled, created_at, LAST_MODIFIED_AT, deleted_at
-		   ) VALUES ` + strings.Join(valueStrings, ",")
+	stmt := "INSERT ALL\n" + strings.Join(intoRows, "\n") + "\nSELECT 1 FROM DUAL"
 
 	_, err := q.db.ExecContext(ctx, stmt, valueArgs...)
 	if err != nil {

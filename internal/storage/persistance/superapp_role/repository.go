@@ -99,7 +99,7 @@ func (r *superAppRoleStorage) countDistinctRoles(ctx context.Context, where stri
     SELECT 1
     FROM SEGMENTS
     WHERE %s
-    GROUP BY SUPERAPP_ROLE, SUPERAPP_ROLE_LABEL
+    GROUP BY SUPERAPP_ROLE
 ) grouped_roles`, where)
 	var total int
 	if err := r.db.QueryRowContext(ctx, q, args...).Scan(&total); err != nil {
@@ -110,14 +110,15 @@ func (r *superAppRoleStorage) countDistinctRoles(ctx context.Context, where stri
 
 func (r *superAppRoleStorage) fetchRoleGroups(ctx context.Context, where string, args []interface{}, limit, offset int) ([]imodel.SuperAppRoleGroup, error) {
 	q := fmt.Sprintf(`
-SELECT SUPERAPP_ROLE, SUPERAPP_ROLE_LABEL,
+SELECT SUPERAPP_ROLE,
+       MAX(SUPERAPP_ROLE_LABEL) KEEP (DENSE_RANK LAST ORDER BY LAST_MODIFIED_AT, CREATED_AT) AS SUPERAPP_ROLE_LABEL,
        MIN(IS_ENABLED) AS GROUP_ENABLED,
        MIN(CREATED_AT) AS FIRST_CREATED,
        MAX(LAST_MODIFIED_AT) AS LAST_TOUCHED
 FROM SEGMENTS
 WHERE %s
-GROUP BY SUPERAPP_ROLE, SUPERAPP_ROLE_LABEL
-ORDER BY SUPERAPP_ROLE, SUPERAPP_ROLE_LABEL
+GROUP BY SUPERAPP_ROLE
+ORDER BY SUPERAPP_ROLE
 OFFSET :pg_offset ROWS FETCH NEXT :pg_limit ROWS ONLY`, where)
 
 	listArgs := append(args,

@@ -840,7 +840,7 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 	}
 
 	if requestedRole == "auditor" {
-		var unAuditedCount, inprogressAuditCount, auditedCount int
+		var unAuditedCount, inprogressAuditCount, auditedCount, customerBarredCount int
 
 		if auditorActions != nil {
 			// UnAudited — NOTCHECKED: queries BPS repo directly (no user_action_log)
@@ -872,13 +872,26 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 			} else if res != nil && res.Meta.TotalDocs > 0 {
 				auditedCount = int(res.Meta.TotalDocs)
 			}
+
+			// CustomerBarred — auditor_customer_bared=true in user_action_log
+			customerBarredFilter := buildFilter(queryActionStatus, string(model.AUDITORCHECKED))
+			customerBarredFilter.Filters["customer_bared"] = true
+			if res, err := a.bpsActionApplication.GetBPSActionsForAuditor(ctx, userID, reqs, customerBarredFilter); err != nil {
+				span.RecordError(err)
+				localization.SendErrorByCodeResponse(w, err.Error())
+				a.logger.Errorf("[BpsActionH][Auditor] failed to get customer-barred count: %v", err)
+				return
+			} else if res != nil && res.Meta.TotalDocs > 0 {
+				customerBarredCount = int(res.Meta.TotalDocs)
+			}
 		}
 
 		auditorResp := &bpsactionDto.BPSAuditorActionCountResponse{
-			AllAction:  unAuditedCount + inprogressAuditCount + auditedCount,
-			UnAudited:  unAuditedCount,
-			Inprogress: inprogressAuditCount,
-			Audited:    auditedCount,
+			AllAction:      unAuditedCount + inprogressAuditCount + auditedCount,
+			UnAudited:      unAuditedCount,
+			Inprogress:     inprogressAuditCount,
+			Audited:        auditedCount,
+			CustomerBarred: customerBarredCount,
 		}
 		localization.SendSuccessResponse(w, localization.SuccessBPSActionCount, auditorResp)
 		return

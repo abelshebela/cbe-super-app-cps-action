@@ -22,6 +22,36 @@ import (
 var counter uint64
 var reHex24 = regexp.MustCompile(`(?i)[0-9a-f]{24}`)
 
+func ParseOracleBool(v interface{}) (bool, bool) {
+	switch b := v.(type) {
+	case bool:
+		return b, true
+	case int:
+		return b != 0, true
+	case int32:
+		return b != 0, true
+	case int64:
+		return b != 0, true
+	case float64:
+		return b != 0, true
+	case string:
+		switch strings.ToLower(strings.TrimSpace(b)) {
+		case "true", "1", "yes", "y":
+			return true, true
+		case "false", "0", "no", "n":
+			return false, true
+		}
+	}
+	return false, false
+}
+
+func BoolToOracleNumber(v bool) int {
+	if v {
+		return 1
+	}
+	return 0
+}
+
 func Contains(list []string, v string) bool {
 	for _, s := range list {
 		if s == v {
@@ -291,6 +321,27 @@ func ExtractFilterParams(r *http.Request) *types.Filter {
 		}
 	}
 
+	// ?fields= is reserved from the generic loop so comma-separated keys are not
+	// mis-parsed as unrelated filters; normalize to []string for export projection.
+	if raw := query["fields"]; len(raw) > 0 {
+		fields := make([]string, 0, len(raw))
+		for _, v := range raw {
+			for _, p := range strings.Split(v, ",") {
+				if s := strings.TrimSpace(p); s != "" {
+					fields = append(fields, s)
+				}
+			}
+		}
+		if len(fields) > 0 {
+			filters["fields"] = fields
+		}
+	} else if raw, ok := filters["fields"]; ok {
+		// ?filter[fields]=... or other non-reserved paths
+		if fields := StringSliceFromFilterValue(raw); len(fields) > 0 {
+			filters["fields"] = fields
+		}
+	}
+
 	return &types.Filter{
 		Page:    page,
 		PerPage: perPage,
@@ -317,6 +368,47 @@ func StringFromFilterValue(v interface{}) (string, bool) {
 		}
 	}
 	return "", false
+}
+
+// StringSliceFromFilterValue normalizes a filter value into []string. Accepts comma-separated
+// strings, []string, or []interface{} (from repeated query keys or parseValue comma splits).
+func StringSliceFromFilterValue(v interface{}) []string {
+	switch val := v.(type) {
+	case []string:
+		return val
+	case string:
+		val = strings.TrimSpace(val)
+		if val == "" {
+			return nil
+		}
+		val = strings.TrimPrefix(val, "[")
+		val = strings.TrimSuffix(val, "]")
+		parts := strings.Split(val, ",")
+		result := make([]string, 0, len(parts))
+		for _, p := range parts {
+			if p = strings.TrimSpace(p); p != "" {
+				result = append(result, p)
+			}
+		}
+		return result
+	case []interface{}:
+		result := make([]string, 0, len(val))
+		for _, item := range val {
+			if s, ok := item.(string); ok {
+				if s = strings.TrimSpace(s); s != "" {
+					result = append(result, s)
+				}
+			}
+		}
+		return result
+	}
+	return nil
+}
+
+// IsPendingOnlyActionStatus reports whether a filter value selects only PENDING actions.
+func IsPendingOnlyActionStatus(v interface{}) bool {
+	statuses := StringSliceFromFilterValue(v)
+	return len(statuses) == 1 && strings.EqualFold(statuses[0], "PENDING")
 }
 
 func isReserved(key string) bool {

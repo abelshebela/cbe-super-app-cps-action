@@ -23,10 +23,21 @@ func tacValidDate(value interface{}) error {
 	if s == "" {
 		return nil
 	}
-	if _, err := time.Parse("2006-01-02", s); err != nil {
-		return validation.NewError("validation_date_format", "must be a valid date in YYYY-MM-DD format")
+
+	formats := []string{
+		time.RFC3339,
+		time.RFC3339Nano,
+		"2006-01-02T15:04:05Z",
+		"2006-01-02",
+		"Mon Jan 02 2006 15:04:05 MST-0700 (MST)",
 	}
-	return nil
+	for _, f := range formats {
+		if _, err := time.Parse(f, s); err == nil {
+			return nil
+		}
+	}
+
+	return validation.NewError("validation_date_format", "must be a valid RFC3339 timestamp (e.g., '2026-06-15T00:00:00Z') or date (e.g., '2026-06-15')")
 }
 
 func tacNoSpecialChars(value interface{}) error {
@@ -68,7 +79,6 @@ func (r UpdateTACRequest) Validate() error {
 	}
 	return validation.ValidateStruct(&r,
 		validation.Field(&r.ActivationTime,
-			validation.Length(0, 10),
 			validation.By(tacValidDate),
 		),
 		validation.Field(&r.VersionLabel,
@@ -88,7 +98,6 @@ func (r CreateTACRequest) Validate() error {
 		),
 		validation.Field(&r.ActivationTime,
 			validation.Required,
-			validation.Length(1, 10),
 			validation.By(tacValidDate),
 		),
 		validation.Field(&r.VersionLabel,

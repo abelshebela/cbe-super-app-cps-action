@@ -1,17 +1,19 @@
 package account_product_dto
 
 import (
+	"errors"
 	"regexp"
 	"strings"
 
-	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"cbe-super-app-cps-action/pkgs/utils"
+
+	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
 var (
-	apSafeStringRe  = regexp.MustCompile(`^[a-zA-Z0-9 _\-\.]+$`)
-	apCodeRe        = regexp.MustCompile(`^[a-zA-Z0-9_\-]+$`)
-	currencyRe      = regexp.MustCompile(`^[A-Z]{3}$`)
+	apSafeStringRe   = regexp.MustCompile(`^[a-zA-Z0-9 _\-\.]+$`)
+	apCodeRe         = regexp.MustCompile(`^[a-zA-Z0-9_\-]+$`)
+	currencyRe       = regexp.MustCompile(`^[A-Z]{3}$`)
 	validAPLineTypes = map[string]bool{"IFB": true, "CB": true, "BOTH": true}
 )
 
@@ -34,7 +36,7 @@ func apCodeFormat(value interface{}) error {
 		return nil
 	}
 	if !apCodeRe.MatchString(s) {
-		return validation.NewError("validation_code_format", "must contain only alphanumeric characters, hyphens, or underscores")
+		return errors.New("must contain only alphanumeric characters, hyphens, or underscores")
 	}
 	return nil
 }

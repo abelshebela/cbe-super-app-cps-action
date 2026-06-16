@@ -42,7 +42,7 @@ func ParseUploadRequest(r *http.Request, logger utils.Logger) (tac_dto.CreateTAC
 	req.AccountProductID = strings.TrimSpace(r.FormValue("product"))
 	req.ActivationTime = strings.TrimSpace(r.FormValue("activation_time"))
 	req.VersionLabel = strings.TrimSpace(r.FormValue("version_label"))
-
+	logger.Infof("[TACHandler][ParseUpload] parsed request: product=%s, activation_time=%s, version_label=%s", req.AccountProductID, req.ActivationTime, req.VersionLabel)
 	return req, nil
 }
 
@@ -80,8 +80,9 @@ func MapToResponse(m *imodel.AccountOpeningTerms) tac_dto.TACResponse {
 	return tac_dto.TACResponse{
 		ID: m.ID,
 		AccountProduct: tac_dto.TACAccountProduct{
-			ID:          m.AccountProductID,
-			ProductName: m.ProductName,
+			ID:              m.AccountProductID,
+			ProductName:     m.ProductName,
+			CBSCategoryCode: m.CBSCategoryCode,
 		},
 		ActivationTime:         m.ActivationTime,
 		VersionLabel:           m.VersionLabel,
