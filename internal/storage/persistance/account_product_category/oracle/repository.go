@@ -189,6 +189,23 @@ func (r *repository) FindByCBSCode(ctx context.Context, code string) (*imodel.Ac
 	return out, nil
 }
 
+func (r *repository) FindByCategoryName(ctx context.Context, name string) (*imodel.AccountProductCategory, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+	log.Infof("[APCOracle][FindByCategoryName] name=%s", name)
+
+	q := `SELECT ` + apcSelectCols + apcFromTable + `WHERE UPPER(CATEGORY_NAME) = UPPER(:1) AND IS_DELETED = 0`
+	row := r.db.QueryRowContext(ctx, q, name)
+	out, err := scanAPCRow(row)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errors.New(localization.ErrorResourceNotFound.Code)
+		}
+		log.Errorf("[APCOracle][FindByCategoryName] scan: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+	return out, nil
+}
+
 func (r *repository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.AccountProductCategory], error) {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 

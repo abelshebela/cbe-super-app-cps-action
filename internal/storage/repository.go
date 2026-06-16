@@ -1057,6 +1057,7 @@ type AccountProductCategoryRepository interface {
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*imodel.AccountProductCategory, error)
 	FindByCBSCode(ctx context.Context, code string) (*imodel.AccountProductCategory, error)
+	FindByCategoryName(ctx context.Context, name string) (*imodel.AccountProductCategory, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.AccountProductCategory], error)
 }
 

@@ -1536,6 +1536,9 @@ var uniqueFieldsRegistry = map[string][]string{
 	string(constants.RequestCreateNewsCategory): {"category_name"},
 	// shared NewsArticle : Title→"title"
 	string(constants.RequestCreateArticle): {"title"},
+
+	// AccountProductCategory : CategoryName→"category_name"
+	string(constants.RequestCreateAccountProductCategory): {"category_name"},
 }
 
 func extractUniqueTokens(requestAction string, currentAction interface{}) []string {
