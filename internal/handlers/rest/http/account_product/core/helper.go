@@ -55,7 +55,13 @@ func ParseCreateRequest(r *http.Request, logger utils.Logger) (ap_dto.CreateAPRe
 		}
 		req.MinimumOpeningBalance = f
 	}
-	if v := r.FormValue("minimum_balance_to_maintain_account"); v != "" {
+	if maintenanceFeeStr := r.FormValue("minimum_maintenance_fee"); maintenanceFeeStr != "" {
+		f, err := strconv.ParseFloat(maintenanceFeeStr, 64)
+		if err != nil {
+			return req, fmt.Errorf("minimum_maintenance_fee must be a number")
+		}
+		req.MinimumMaintenanceFee = f
+	} else if v := r.FormValue("minimum_balance_to_maintain_account"); v != "" {
 		f, err := strconv.ParseFloat(v, 64)
 		if err != nil {
 			return req, fmt.Errorf("minimum_balance_to_maintain_account must be a number")
@@ -112,7 +118,13 @@ func ParseUpdateRequest(r *http.Request, logger utils.Logger) (ap_dto.UpdateAPRe
 		}
 		req.MinimumOpeningBalance = f
 	}
-	if v := r.FormValue("minimum_balance_to_maintain_account"); v != "" {
+	if maintenanceFeeStr := r.FormValue("minimum_maintenance_fee"); maintenanceFeeStr != "" {
+		f, err := strconv.ParseFloat(maintenanceFeeStr, 64)
+		if err != nil {
+			return req, fmt.Errorf("minimum_maintenance_fee must be a number")
+		}
+		req.MinimumMaintenanceFee = f
+	} else if v := r.FormValue("minimum_balance_to_maintain_account"); v != "" {
 		f, err := strconv.ParseFloat(v, 64)
 		if err != nil {
 			return req, fmt.Errorf("minimum_balance_to_maintain_account must be a number")
