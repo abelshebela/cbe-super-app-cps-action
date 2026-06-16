@@ -17,7 +17,7 @@ require (
 	github.com/godror/godror v0.49.6
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/google/uuid v1.6.0
-	github.com/hugokessem/coreio v1.1.6
+	github.com/hugokessem/coreio v1.1.10
 	github.com/prometheus/client_golang v1.23.2
 	github.com/redis/go-redis/v9 v9.17.2
 	github.com/shopspring/decimal v1.4.0
@@ -41,7 +41,6 @@ require (
 
 require (
 	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.20.18
-	github.com/go-chi/httprate v0.15.0
 	github.com/jung-kurt/gofpdf v1.16.2
 )
 
@@ -49,7 +48,6 @@ require (
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/pgx/v5 v5.7.6 // indirect
-	github.com/zeebo/xxh3 v1.0.2 // indirect
 )
 
 require (
