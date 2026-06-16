@@ -161,7 +161,7 @@ func (r *repository) FindAllWithPagination(ctx context.Context, filterParam type
 
 	if s := strings.TrimSpace(filterParam.Search); s != "" {
 		conds = append(conds, fmt.Sprintf(
-			"(UPPER(t.VERSION_LABEL) LIKE UPPER(:%d) OR UPPER(t.ACTIVATION_TIME) LIKE UPPER(:%d))",
+			"(UPPER(t.VERSION_LABEL) LIKE UPPER(:%d) OR TO_CHAR(t.ACTIVATION_TIME, 'YYYY-MM-DD HH24:MI:SS') LIKE :%d)",
 			idx, idx+1,
 		))
 		args = append(args, "%"+s+"%", "%"+s+"%")

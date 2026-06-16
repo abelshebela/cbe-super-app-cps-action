@@ -14,6 +14,9 @@ func BoolToInt(b bool) int {
 
 // ParseActivationTime parses an activation_time string (RFC3339 or YYYY-MM-DD) into time.Time.
 func ParseActivationTime(s string) (time.Time, error) {
+	if s == "" {
+		return time.Time{}, fmt.Errorf("activation_time is required")
+	}
 	formats := []string{
 		time.RFC3339,
 		time.RFC3339Nano,
