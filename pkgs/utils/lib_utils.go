@@ -335,6 +335,11 @@ func ExtractFilterParams(r *http.Request) *types.Filter {
 		if len(fields) > 0 {
 			filters["fields"] = fields
 		}
+	} else if raw, ok := filters["fields"]; ok {
+		// ?filter[fields]=... or other non-reserved paths
+		if fields := StringSliceFromFilterValue(raw); len(fields) > 0 {
+			filters["fields"] = fields
+		}
 	}
 
 	return &types.Filter{
@@ -363,6 +368,47 @@ func StringFromFilterValue(v interface{}) (string, bool) {
 		}
 	}
 	return "", false
+}
+
+// StringSliceFromFilterValue normalizes a filter value into []string. Accepts comma-separated
+// strings, []string, or []interface{} (from repeated query keys or parseValue comma splits).
+func StringSliceFromFilterValue(v interface{}) []string {
+	switch val := v.(type) {
+	case []string:
+		return val
+	case string:
+		val = strings.TrimSpace(val)
+		if val == "" {
+			return nil
+		}
+		val = strings.TrimPrefix(val, "[")
+		val = strings.TrimSuffix(val, "]")
+		parts := strings.Split(val, ",")
+		result := make([]string, 0, len(parts))
+		for _, p := range parts {
+			if p = strings.TrimSpace(p); p != "" {
+				result = append(result, p)
+			}
+		}
+		return result
+	case []interface{}:
+		result := make([]string, 0, len(val))
+		for _, item := range val {
+			if s, ok := item.(string); ok {
+				if s = strings.TrimSpace(s); s != "" {
+					result = append(result, s)
+				}
+			}
+		}
+		return result
+	}
+	return nil
+}
+
+// IsPendingOnlyActionStatus reports whether a filter value selects only PENDING actions.
+func IsPendingOnlyActionStatus(v interface{}) bool {
+	statuses := StringSliceFromFilterValue(v)
+	return len(statuses) == 1 && strings.EqualFold(statuses[0], "PENDING")
 }
 
 func isReserved(key string) bool {

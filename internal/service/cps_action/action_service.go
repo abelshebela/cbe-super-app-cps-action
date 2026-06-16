@@ -8,7 +8,6 @@ import (
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"crypto/sha256"
-	"encoding/csv"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -1366,41 +1365,22 @@ func (ca *cpsActionService) ExportCpsActionData(
 ) (string, error) {
 	log := local_util.LoggerFromCtx(ctx, ca.logger)
 
-	var filterFields []string
-	var rowCount int
-
-	// 1 Create temp file
-	tmpFile, err := os.CreateTemp("", "cps_actions_*.csv")
-	if err != nil {
-		return "", fmt.Errorf("create temp file: %w", err)
+	if filterMap == nil {
+		filterMap = &types.Filter{Filters: map[string]interface{}{}}
 	}
-	defer os.Remove(tmpFile.Name())
-	defer tmpFile.Close()
-
-	writer := csv.NewWriter(tmpFile)
-
-	startDate, endDate, err := local_util.FormatDateRangeToUTCStrings(filterMap.Filters["created_at_from"].(string), filterMap.Filters["created_at_to"].(string))
-	if err != nil {
-		log.Errorf("[CpsActionSvc][Export] format date range to UTC strings err: %v", err)
-		return "", errors.New(localization.ErrorInvalidDateFormat.Code)
-	}
-	filterMap.Filters["created_at_from"] = startDate
-	filterMap.Filters["created_at_to"] = endDate
-	// 2️ Write Header
 	if filterMap.Filters == nil {
 		filterMap.Filters = map[string]interface{}{}
 	}
 
-	fields, ok := filterMap.Filters["fields"].([]string)
-	if ok {
-		filterFields = fields
+	exportType = strings.TrimSpace(strings.ToLower(exportType))
+	if exportType == "" {
+		exportType = string(lib.FileTypeCSV)
 	}
-	// delete(filterMap.Filters, "fields")s
+	filterMap.Filters["file_type"] = exportType
 
-	if err := writer.Write(CpsActionCSVHeader(filterFields)); err != nil {
-		return "", fmt.Errorf("write header: %w", err)
+	if statuses := extractStringSlice(filterMap.Filters, "action_status"); len(statuses) > 0 {
+		filterMap.Filters["action_status"] = statuses
 	}
-	//==================================
 
 	actions, err := ca.repo.ActionByDateRange(ctx, *filterMap, req)
 	if err != nil {
@@ -1408,163 +1388,17 @@ func (ca *cpsActionService) ExportCpsActionData(
 		return "", errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	for _, action := range actions {
-		rowCount++
-		if err := ca.processCPSAction(writer, action); err != nil {
-			log.Errorf("[CpsActionSvc][Export] process CPS action err: %v", err)
-			return "", errors.New(localization.ErrorUnexpectedError.Code)
-		}
-	}
-
-	if rowCount == 0 {
-		log.Infof("[CpsActionSvc][Export] no data found in date range %v - %v",
-			filterMap.Filters["created_at_from"], filterMap.Filters["created_at_to"])
-		return "", errors.New(localization.CpsActionDataNotFoundInDateRange.Code)
-	}
-
-	// 4️Upload to MinIO
-	objectName := fmt.Sprintf(
-		"cps_actions_%s_to_%s_%d.csv",
-		startDate.Format("20060102"),
-		endDate.Format("20060102"),
-		time.Now().Unix(),
-	)
-
-	if _, err := tmpFile.Seek(0, 0); err != nil {
-		log.Errorf("[CpsActionSvc][Export] seek temp file err: %v", err)
-		return "", errors.New(localization.ErrorUnexpectedError.Code)
-	}
-
-	stat, err := tmpFile.Stat()
-	if err != nil {
-		log.Errorf("[CpsActionSvc][Export] stat temp file err: %v", err)
-		return "", errors.New(localization.ErrorUnexpectedError.Code)
-	}
-
-	// exportType comes from the handler (e.g. query file_type=csv); default to csv for this endpoint.
-	ft := strings.TrimSpace(strings.ToLower(exportType))
-	if ft == "" {
-		ft = "csv"
-	}
-
-	var url string
-	if ft == "csv" {
-		url, err = lib.UploadCSVToMinio(ctx, ca.minioClient, ca.buckerName, tmpFile, stat.Size(), ca.cfg, objectName, ca.logger)
-		if err != nil {
-			log.Errorf("[CpsActionSvc][Export] upload to MinIO err: %v", err)
-			return "", errors.New(localization.CpsActionDataExportedError.Code)
-		}
-	} else {
-		url, err = lib.UploadPDFToMinio(ctx, ca.minioClient, ca.buckerName, tmpFile, stat.Size(), ca.cfg, objectName, ca.logger)
-		if err != nil {
-			log.Errorf("[CpsActionSvc][Export] upload to MinIO err: %v", err)
-			return "", errors.New(localization.CpsActionDataExportedError.Code)
-		}
-	}
-
-	baseURL := strings.TrimSuffix(ca.minioBaseURL, "/")
-	if baseURL != "" {
-		url = fmt.Sprintf("%s/%s", baseURL, strings.TrimPrefix(objectName, "/"))
-	}
-
-	return url, nil
-}
-
-func (ca *cpsActionService) processCPSAction(
-	writer *csv.Writer,
-	action *model.CPSAction,
-) error {
-
-	row, err := BuildCPSActionRow(action)
-	if err != nil {
-		return err
-	}
-
-	return writer.Write(row)
-}
-
-func BuildCPSActionRow(a *model.CPSAction) ([]string, error) {
-	// Extract auditor names
-	var auditorNames []string
-	for _, auditor := range a.AuditorUsers {
-		auditorNames = append(auditorNames, auditor.AuditorName)
-	}
-	auditorNamesStr := strings.Join(auditorNames, ", ")
-
-	return []string{
-		a.ID.Hex(),
-		a.ActionCode,
-		// a.UniqueId,
-		a.MakerID,
-		a.MakerName,
-		a.MakerPhoneNumber,
-		// string(checkerJSON),
-		// string(auditorJSON),
-		auditorNamesStr,
-		// strconv.Itoa(int(a.AuditorCount)),
-		string(a.AuditorStatus),
-		// fmt.Sprintf("%f", a.CurrentAuditorIndex),
-		// strconv.Itoa(int(a.CheckerCount)),
-		// fmt.Sprintf("%f", a.CurrentCheckerIndex),
-		// a.RoleCode,
-		// a.RejectionReason,
-		// a.CanceledReason,
-		// string(prevJSON),
-		// string(currJSON),
-		a.ActionStatus,
-		a.ActionType,
-		// strconv.FormatBool(a.IsDeleted),
-		a.RequestAction,
-		// strconv.FormatInt(a.Version, 10),
-		// a.ReversedByRoleID,
-		// a.ReversedByID,
-		// a.ReversedByName,
-		// formatTime(a.ReversedAt),
-		formatTime(a.CreatedAt),
-		formatTime(a.LastModifiedAt),
-		formatTime(a.MakerActionTime),
-		formatTime(a.LastModifiedAt), // Using LastModifiedAt as CheckerActionTime
-	}, nil
+	return lib.FileExporterForCPSAction(ctx, ca.cfg, ca.minioClient, ca.buckerName, filterMap, actions, CpsActionCSVHeader, ca.logger)
 }
 
 // CpsActionCSVHeader resolves the user-visible column labels for the given ?fields= keys.
 // Unknown/missing keys fall back to the registry default. Delegates to lib so headers and
 // row extractors stay in sync.
 func extractStringSlice(filters map[string]interface{}, key string) []string {
-	v, ok := filters[key]
-	if !ok {
+	if filters == nil {
 		return nil
 	}
-	switch val := v.(type) {
-	case []string:
-		return val
-	case string:
-		val = strings.TrimSpace(val)
-		if val == "" {
-			return nil
-		}
-		val = strings.TrimPrefix(val, "[")
-		val = strings.TrimSuffix(val, "]")
-		parts := strings.Split(val, ",")
-		result := make([]string, 0, len(parts))
-		for _, p := range parts {
-			if p = strings.TrimSpace(p); p != "" {
-				result = append(result, p)
-			}
-		}
-		return result
-	case []interface{}:
-		result := make([]string, 0, len(val))
-		for _, item := range val {
-			if s, ok := item.(string); ok {
-				if s = strings.TrimSpace(s); s != "" {
-					result = append(result, s)
-				}
-			}
-		}
-		return result
-	}
-	return nil
+	return local_util.StringSliceFromFilterValue(filters[key])
 }
 
 var volatileChecksumKeys = map[string]bool{
