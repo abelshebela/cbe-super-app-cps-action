@@ -485,15 +485,7 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForApprover(ctx context
 		},
 	}
 
-	isPendingOnly := func() bool {
-		switch v := filterParam.Filters["action_status"].(type) {
-		case string:
-			return v == "PENDING"
-		case []string:
-			return len(v) == 1 && v[0] == "PENDING"
-		}
-		return false
-	}()
+	isPendingOnly := local_util.IsPendingOnlyActionStatus(filterParam.Filters["action_status"])
 
 	var finalMatch bson.M
 	if isPendingOnly {
@@ -688,9 +680,11 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForAuditor(ctx context.
 		filter = bson.M{"$and": and}
 	}
 
-	as := filter["action_status"]
-	if as == nil || as == "" || as == constants.Pending {
-		filter["action_status"] = bson.M{"$in": []string{string(constants.Approved), string(constants.Rejected)}}
+	// Default auditor inbox to approved/rejected only when the caller did not specify action_status.
+	if _, requested := filterParam.Filters["action_status"]; !requested {
+		if as := filter["action_status"]; as == nil || as == "" {
+			filter["action_status"] = bson.M{"$in": []string{string(constants.Approved), string(constants.Rejected)}}
+		}
 	}
 
 	applyActionStatusFilter(filterParam.Filters, filter)
@@ -1153,7 +1147,7 @@ func (r *CPSActionStorage) ActionByDateRange(ctx context.Context, filterParam ty
 	}
 
 	var finalMatch bson.M
-	if filterParam.Filters["action_status"] == "PENDING" {
+	if local_util.IsPendingOnlyActionStatus(filterParam.Filters["action_status"]) {
 		finalMatch = filter
 	} else {
 		finalMatch = bson.M{
@@ -1163,6 +1157,9 @@ func (r *CPSActionStorage) ActionByDateRange(ctx context.Context, filterParam ty
 			},
 		}
 	}
+
+	applyActionStatusFilter(filterParam.Filters, finalMatch)
+	applyActionCodeFilter(filterParam.Filters, finalMatch)
 
 	pipeline := mongo.Pipeline{
 		{{Key: "$match", Value: finalMatch}},
