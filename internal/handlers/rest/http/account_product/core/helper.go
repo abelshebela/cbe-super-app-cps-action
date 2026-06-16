@@ -154,9 +154,10 @@ func MapToResponse(m *imodel.AccountProduct) ap_dto.APResponse {
 		ProductName:    m.ProductName,
 		ProductTagLine: m.ProductTagLine,
 		AccountCategory: ap_dto.APAccountCategory{
-			ID:           m.AccountCategoryID,
-			CategoryName: m.CategoryName,
-			AccountType:  m.AccountType,
+			ID:              m.AccountCategoryID,
+			CategoryName:    m.CategoryName,
+			CBSCategoryCode: m.CBSCategoryCode,
+			AccountType:     m.AccountType,
 		},
 		AccountCurrency:       m.AccountCurrency,
 		MinimumOpeningBalance: m.MinimumOpeningBalance,

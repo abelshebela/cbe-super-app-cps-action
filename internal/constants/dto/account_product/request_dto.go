@@ -60,9 +60,10 @@ type CPSAPRequest struct {
 }
 
 type APAccountCategory struct {
-	ID           string `json:"id"`
-	CategoryName string `json:"category_name"`
-	AccountType  string `json:"account_type"`
+	ID              string `json:"id"`
+	CategoryName    string `json:"category_name"`
+	CBSCategoryCode string `json:"cbs_category_code"`
+	AccountType     string `json:"account_type"`
 }
 
 type APResponse struct {
