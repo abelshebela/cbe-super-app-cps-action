@@ -9,7 +9,7 @@ import (
 const tacSelectCols = `
 	RAWTOHEX(t.ID), RAWTOHEX(t.ACCOUNT_PRODUCT_ID), NVL(ap.PRODUCT_NAME, ''),
 	NVL(ac.CBS_CATEGORY_CODE, ''),
-	TO_CHAR(t.ACTIVATION_TIME, 'YYYY-MM-DD'), t.VERSION_LABEL,
+	t.ACTIVATION_TIME, t.VERSION_LABEL,
 	t.TERMS_AND_CONDITIONS_PATH, t.IS_ENABLED, t.IS_DELETED, t.CREATED_AT, t.LAST_MODIFIED_AT
 `
 
@@ -23,7 +23,8 @@ func scanTACRow(s rowScanner) (*imodel.AccountOpeningTerms, error) {
 	var (
 		id, accountProductID         string
 		productName, cbsCategoryCode string
-		activationTime, versionLabel string
+		activationTime               time.Time
+		versionLabel                 string
 		termsPath                    string
 		isEnabled, isDeleted         int
 		createdAt, lastModifiedAt    time.Time
@@ -42,7 +43,7 @@ func scanTACRow(s rowScanner) (*imodel.AccountOpeningTerms, error) {
 		AccountProductID:       accountProductID,
 		ProductName:            productName,
 		CBSCategoryCode:        cbsCategoryCode,
-		ActivationTime:         activationTime,
+		ActivationTime:         activationTime.UTC().Format(time.RFC3339),
 		VersionLabel:           versionLabel,
 		TermsAndConditionsPath: termsPath,
 		IsEnabled:              isEnabled == 1,
