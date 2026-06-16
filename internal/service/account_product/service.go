@@ -174,7 +174,6 @@ func (s *accountProductService) Create(ctx context.Context, req ap_dto.CreateAPR
 		CBSProductCode:        req.CBSProductCode,
 		ProductName:           req.ProductName,
 		ProductTagLine:        req.ProductTagLine,
-		ProductLine:           strings.ToUpper(req.ProductLine),
 		AccountCategoryID:     req.AccountCategoryID,
 		AccountCurrency:       strings.ToUpper(req.AccountCurrency),
 		MinimumOpeningBalance: req.MinimumOpeningBalance,
@@ -230,9 +229,6 @@ func (s *accountProductService) Update(ctx context.Context, id string, req ap_dt
 	}
 	if req.ProductTagLine != "" {
 		updated.ProductTagLine = req.ProductTagLine
-	}
-	if req.ProductLine != "" {
-		updated.ProductLine = strings.ToUpper(req.ProductLine)
 	}
 	if req.AccountCategoryID != "" {
 		updated.AccountCategoryID = req.AccountCategoryID

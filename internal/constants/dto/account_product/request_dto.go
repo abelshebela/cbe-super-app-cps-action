@@ -6,7 +6,6 @@ type CreateAPRequest struct {
 	CBSProductCode        string                `json:"cps_product_code"`
 	ProductName           string                `json:"product_name"`
 	ProductTagLine        string                `json:"product_tagline"`
-	ProductLine           string                `json:"product_line"`
 	AccountCategoryID     string                `json:"account_category"`
 	AccountCurrency       string                `json:"account_currency"`
 	MinimumOpeningBalance float64               `json:"minimum_opening_balance"`
@@ -23,7 +22,6 @@ type UpdateAPRequest struct {
 	CBSProductCode        string                `json:"cps_product_code"`
 	ProductName           string                `json:"product_name"`
 	ProductTagLine        string                `json:"product_tagline"`
-	ProductLine           string                `json:"product_line"`
 	AccountCategoryID     string                `json:"account_category"`
 	AccountCurrency       string                `json:"account_currency"`
 	MinimumOpeningBalance float64               `json:"minimum_opening_balance"`

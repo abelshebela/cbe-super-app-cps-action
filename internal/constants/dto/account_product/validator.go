@@ -11,10 +11,9 @@ import (
 )
 
 var (
-	apSafeStringRe   = regexp.MustCompile(`^[a-zA-Z0-9 _\-\.]+$`)
-	apCodeRe         = regexp.MustCompile(`^[a-zA-Z0-9_\-]+$`)
-	currencyRe       = regexp.MustCompile(`^[A-Z]{3}$`)
-	validAPLineTypes = map[string]bool{"IFB": true, "CB": true, "BOTH": true}
+	apSafeStringRe = regexp.MustCompile(`^[a-zA-Z0-9 _\-\.]+$`)
+	apCodeRe       = regexp.MustCompile(`^[a-zA-Z0-9_\-]+$`)
+	currencyRe     = regexp.MustCompile(`^[A-Z]{3}$`)
 )
 
 func apNoSpecialChars(value interface{}) error {
@@ -37,17 +36,6 @@ func apCodeFormat(value interface{}) error {
 	}
 	if !apCodeRe.MatchString(s) {
 		return errors.New("must contain only alphanumeric characters, hyphens, or underscores")
-	}
-	return nil
-}
-
-func apValidProductLine(value interface{}) error {
-	s, _ := value.(string)
-	if s == "" {
-		return nil
-	}
-	if !validAPLineTypes[strings.ToUpper(s)] {
-		return validation.NewError("validation_product_line", "must be one of IFB, CB, BOTH")
 	}
 	return nil
 }
@@ -101,10 +89,6 @@ func (r CreateAPRequest) Validate() error {
 			validation.Length(1, 128),
 			validation.By(apNoSpecialChars),
 		),
-		validation.Field(&r.ProductLine,
-			validation.Required,
-			validation.By(apValidProductLine),
-		),
 		validation.Field(&r.AccountCategoryID,
 			validation.Required,
 		),
@@ -144,9 +128,6 @@ func (r UpdateAPRequest) Validate() error {
 		validation.Field(&r.ProductTagLine,
 			validation.Length(0, 128),
 			validation.When(r.ProductTagLine != "", validation.By(apNoSpecialChars)),
-		),
-		validation.Field(&r.ProductLine,
-			validation.When(r.ProductLine != "", validation.By(apValidProductLine)),
 		),
 		validation.Field(&r.AccountCurrency,
 			validation.When(r.AccountCurrency != "", validation.By(apValidCurrency)),

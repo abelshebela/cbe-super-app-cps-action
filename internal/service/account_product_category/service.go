@@ -149,6 +149,16 @@ func (s *accountProductCategoryService) Create(ctx context.Context, req apc_dto.
 		return errors.New(localization.ErrorAPCAlreadyExists.Code)
 	}
 
+	existingByName, err := s.repo.FindByCategoryName(ctx, req.CategoryName)
+	if err != nil && !strings.Contains(err.Error(), localization.ErrorResourceNotFound.Code) {
+		log.Errorf("[APCSvc][Create] name dup check err: %v", err)
+		return err
+	}
+	if existingByName != nil {
+		log.Errorf("[APCSvc][Create] duplicate category_name=%s", req.CategoryName)
+		return errors.New(localization.ErrorAPCAlreadyExists.Code)
+	}
+
 	payload := imodel.AccountProductCategory{
 		AccountType:     strings.ToUpper(req.ProductLine),
 		CategoryName:    req.CategoryName,
@@ -192,6 +202,12 @@ func (s *accountProductCategoryService) Update(ctx context.Context, id string, r
 		updated.AccountType = strings.ToUpper(req.ProductLine)
 	}
 	if req.CategoryName != "" {
+		if !strings.EqualFold(req.CategoryName, existing.CategoryName) {
+			dupByName, _ := s.repo.FindByCategoryName(ctx, req.CategoryName)
+			if dupByName != nil {
+				return errors.New(localization.ErrorAPCAlreadyExists.Code)
+			}
+		}
 		updated.CategoryName = req.CategoryName
 	}
 	if req.CBSCategoryCode != "" {
