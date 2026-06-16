@@ -616,8 +616,8 @@ type AccountProductCategoryService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	GetAll(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]imodel.AccountProductCategory], error)
 	GetByID(ctx context.Context, id string) (*imodel.AccountProductCategory, error)
-	Create(ctx context.Context, req apc_dto.CreateAPCRequest) error
-	Update(ctx context.Context, id string, req apc_dto.UpdateAPCRequest) error
+	Create(ctx context.Context, req apc_dto.CreateAPCRequest) (*imodel.AccountProductCategory, error)
+	Update(ctx context.Context, id string, req apc_dto.UpdateAPCRequest) (*imodel.AccountProductCategory, error)
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 }
@@ -626,8 +626,8 @@ type AccountProductService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	GetAll(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]imodel.AccountProduct], error)
 	GetByID(ctx context.Context, id string) (*imodel.AccountProduct, error)
-	Create(ctx context.Context, req ap_dto.CreateAPRequest) error
-	Update(ctx context.Context, id string, req ap_dto.UpdateAPRequest) error
+	Create(ctx context.Context, req ap_dto.CreateAPRequest) (*imodel.AccountProduct, error)
+	Update(ctx context.Context, id string, req ap_dto.UpdateAPRequest) (*imodel.AccountProduct, error)
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 }
@@ -636,8 +636,8 @@ type AccountOpeningTermsService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	GetAll(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]imodel.AccountOpeningTerms], error)
 	GetByID(ctx context.Context, id string) (*imodel.AccountOpeningTerms, error)
-	Upload(ctx context.Context, req tac_dto.CreateTACRequest) error
-	Update(ctx context.Context, id string, req tac_dto.UpdateTACRequest) error
+	Upload(ctx context.Context, req tac_dto.CreateTACRequest) (*imodel.AccountOpeningTerms, error)
+	Update(ctx context.Context, id string, req tac_dto.UpdateTACRequest) (*imodel.AccountOpeningTerms, error)
 	Delete(ctx context.Context, id string) error
 }
 
