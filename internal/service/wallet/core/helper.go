@@ -65,7 +65,7 @@ func ToCreateWalletDoc(req walletDto.WalletRequest, logo string, services []loca
 		}
 	}
 
-	var self, other, agent bool
+	var self, other, agent = *req.Self, *req.Other, *req.Agent
 	if req.Self == nil && prevWallet != nil {
 		self = prevWallet.Self
 	}
@@ -77,18 +77,21 @@ func ToCreateWalletDoc(req walletDto.WalletRequest, logo string, services []loca
 	}
 
 	return &local_model.WalletOracle{
-		Name:             req.Name,
-		UniqueCode:       strings.ToUpper(strings.TrimSpace(req.UniqueCode)),
-		Avatar:           logo,
-		Self:             self,
-		Other:            other,
-		Agent:            agent,
-		SelfServiceID:    selfServiceID,
-		OtherServiceID:   otherServiceID,
-		AgentServiceID:   agentServiceID,
-		SelfServiceName:  selfServiceName,
-		OtherServiceName: otherServiceName,
-		AgentServiceName: agentServiceName,
+		Name:                req.Name,
+		UniqueCode:          strings.ToUpper(strings.TrimSpace(req.UniqueCode)),
+		Avatar:              logo,
+		Self:                self,
+		Other:               other,
+		Agent:               agent,
+		SelfServiceID:       selfServiceID,
+		OtherServiceID:      otherServiceID,
+		AgentServiceID:      agentServiceID,
+		SelfServiceName:     selfServiceName,
+		OtherServiceName:    otherServiceName,
+		AgentServiceName:    agentServiceName,
+		SelfServiceEnabled:  local_util.BoolToOracleNumber(self),
+		OtherServiceEnabled: local_util.BoolToOracleNumber(other),
+		AgentServiceEnabled: local_util.BoolToOracleNumber(agent),
 	}
 }
 
