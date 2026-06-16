@@ -109,7 +109,8 @@ func (h *termAndConditionAdapter) Upload(w http.ResponseWriter, r *http.Request)
 		attribute.String("tac.version", req.VersionLabel),
 	)
 
-	if err := h.svc.Upload(ctx, req); err != nil {
+	result, err := h.svc.Upload(ctx, req)
+	if err != nil {
 		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[TACHandler][Upload] service err: %v", err)
@@ -120,12 +121,12 @@ func (h *termAndConditionAdapter) Upload(w http.ResponseWriter, r *http.Request)
 	if md.IsMakerOnly {
 		log.Infof("[TACHandler][Upload] uploaded product=%s version=%s", req.AccountProductID, req.VersionLabel)
 		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
-		localization.SendSuccessResponse(w, localization.SuccessTACUploaded, nil)
+		localization.SendSuccessResponse(w, localization.SuccessTACUploaded, tac_core.MapToResponse(result))
 		return
 	}
 	log.Infof("[TACHandler][Upload] request sent product=%s version=%s", req.AccountProductID, req.VersionLabel)
 	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
-	localization.SendSuccessResponse(w, localization.SuccessTACUploadRequestSent, nil)
+	localization.SendSuccessResponse(w, localization.SuccessTACUploadRequestSent, tac_core.MapToResponse(result))
 }
 
 func (h *termAndConditionAdapter) Update(w http.ResponseWriter, r *http.Request) {
@@ -158,7 +159,8 @@ func (h *termAndConditionAdapter) Update(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if err := h.svc.Update(ctx, id, req); err != nil {
+	result, err := h.svc.Update(ctx, id, req)
+	if err != nil {
 		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[TACHandler][Update] service err: %v", err)
@@ -169,12 +171,12 @@ func (h *termAndConditionAdapter) Update(w http.ResponseWriter, r *http.Request)
 	if md.IsMakerOnly {
 		log.Infof("[TACHandler][Update] request sent id=%s", id)
 		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
-		localization.SendSuccessResponse(w, localization.SuccessTACUpdateRequestSent, nil)
+		localization.SendSuccessResponse(w, localization.SuccessTACUpdateRequestSent, tac_core.MapToResponse(result))
 		return
 	}
 	log.Infof("[TACHandler][Update] updated id=%s", id)
 	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
-	localization.SendSuccessResponse(w, localization.SuccessTACUpdated, nil)
+	localization.SendSuccessResponse(w, localization.SuccessTACUpdated, tac_core.MapToResponse(result))
 }
 
 func (h *termAndConditionAdapter) Delete(w http.ResponseWriter, r *http.Request) {

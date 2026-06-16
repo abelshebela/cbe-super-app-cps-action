@@ -100,13 +100,14 @@ func (h *accountProductAdapter) Create(w http.ResponseWriter, r *http.Request) {
 	if rc := ap_core.ValidateCreate(&req); rc.Code != "" {
 		span.SetAttributes(attribute.String("invalid input", rc.Code))
 		log.Errorf("[APHandler][Create] validation: %s", rc.Code)
-		localization.SendErrorResponse(w, rc, nil, nil)
+		localization.SendErrorResponse(w, localization.ErrorInvalidRequestBody, nil, nil)
 		return
 	}
 
 	span.SetAttributes(attribute.String("ap.code", req.CBSProductCode))
 
-	if err := h.svc.Create(ctx, req); err != nil {
+	result, err := h.svc.Create(ctx, req)
+	if err != nil {
 		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[APHandler][Create] service err: %v", err)
@@ -117,12 +118,12 @@ func (h *accountProductAdapter) Create(w http.ResponseWriter, r *http.Request) {
 	if md.IsMakerOnly {
 		log.Infof("[APHandler][Create] created code=%s", req.CBSProductCode)
 		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
-		localization.SendSuccessResponse(w, localization.SuccessAPCreated, nil)
+		localization.SendSuccessResponse(w, localization.SuccessAPCreated, ap_core.MapToResponse(result))
 		return
 	}
 	log.Infof("[APHandler][Create] request sent code=%s", req.CBSProductCode)
 	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
-	localization.SendSuccessResponse(w, localization.SuccessAPCreateRequestSent, nil)
+	localization.SendSuccessResponse(w, localization.SuccessAPCreateRequestSent, ap_core.MapToResponse(result))
 }
 
 func (h *accountProductAdapter) Update(w http.ResponseWriter, r *http.Request) {
@@ -155,7 +156,8 @@ func (h *accountProductAdapter) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.svc.Update(ctx, id, req); err != nil {
+	result, err := h.svc.Update(ctx, id, req)
+	if err != nil {
 		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[APHandler][Update] service err: %v", err)
@@ -166,12 +168,12 @@ func (h *accountProductAdapter) Update(w http.ResponseWriter, r *http.Request) {
 	if md.IsMakerOnly {
 		log.Infof("[APHandler][Update] updated id=%s", id)
 		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
-		localization.SendSuccessResponse(w, localization.SuccessAPUpdated, nil)
+		localization.SendSuccessResponse(w, localization.SuccessAPUpdated, ap_core.MapToResponse(result))
 		return
 	}
 	log.Infof("[APHandler][Update] request sent id=%s", id)
 	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
-	localization.SendSuccessResponse(w, localization.SuccessAPUpdateRequestSent, nil)
+	localization.SendSuccessResponse(w, localization.SuccessAPUpdateRequestSent, ap_core.MapToResponse(result))
 }
 
 func (h *accountProductAdapter) Delete(w http.ResponseWriter, r *http.Request) {

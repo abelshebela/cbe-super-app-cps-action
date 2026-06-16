@@ -141,7 +141,7 @@ func (s *accountProductService) GetByID(ctx context.Context, id string) (*imodel
 	return result, nil
 }
 
-func (s *accountProductService) Create(ctx context.Context, req ap_dto.CreateAPRequest) error {
+func (s *accountProductService) Create(ctx context.Context, req ap_dto.CreateAPRequest) (*imodel.AccountProduct, error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 	ctx, span := local_util.TraceLogger(ctx, "service", "Create", "AccountProduct", "Create")
 	defer span.End()
@@ -149,17 +149,17 @@ func (s *accountProductService) Create(ctx context.Context, req ap_dto.CreateAPR
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
 		log.Errorf("[APSvc][Create] incomplete user")
-		return errors.New(localization.ErrorIncompleteUserInfo.Code)
+		return nil, errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
 	existing, err := s.repo.FindByCBSCode(ctx, req.CBSProductCode)
 	if err != nil && !strings.Contains(err.Error(), localization.ErrorResourceNotFound.Code) {
 		log.Errorf("[APSvc][Create] dup check err: %v", err)
-		return err
+		return nil, err
 	}
 	if existing != nil {
 		log.Errorf("[APSvc][Create] duplicate cbs_product_code=%s", req.CBSProductCode)
-		return errors.New(localization.ErrorAPAlreadyExists.Code)
+		return nil, errors.New(localization.ErrorAPAlreadyExists.Code)
 	}
 
 	iconURL, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Icon,
@@ -167,7 +167,7 @@ func (s *accountProductService) Create(ctx context.Context, req ap_dto.CreateAPR
 	if err != nil {
 		span.AddEvent("icon upload failed", trace.WithAttributes(attribute.String("error", err.Error())))
 		log.Errorf("[APSvc][Create] upload icon err: %v", err)
-		return errors.New(localization.ErrorUnhandledServer.Code)
+		return nil, errors.New(localization.ErrorUnhandledServer.Code)
 	}
 
 	payload := imodel.AccountProduct{
@@ -193,26 +193,26 @@ func (s *accountProductService) Create(ctx context.Context, req ap_dto.CreateAPR
 	if err := s.cpsService.CreateCPSAction(ctx, &action); err != nil {
 		span.AddEvent("cps action failed", trace.WithAttributes(attribute.String("error", err.Error())))
 		log.Errorf("[APSvc][Create] cps err: %v", err)
-		return err
+		return nil, err
 	}
 	log.Infof("[APSvc][Create] request created code=%s", req.CBSProductCode)
-	return nil
+	return &payload, nil
 }
 
-func (s *accountProductService) Update(ctx context.Context, id string, req ap_dto.UpdateAPRequest) error {
+func (s *accountProductService) Update(ctx context.Context, id string, req ap_dto.UpdateAPRequest) (*imodel.AccountProduct, error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 	ctx, span := local_util.TraceLogger(ctx, "service", "Update", "AccountProduct", "Update")
 	defer span.End()
 
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
-		return errors.New(localization.ErrorIncompleteUserInfo.Code)
+		return nil, errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
 	existing, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		log.Errorf("[APSvc][Update] find err: %v", err)
-		return err
+		return nil, err
 	}
 
 	updated := *existing
@@ -220,7 +220,7 @@ func (s *accountProductService) Update(ctx context.Context, id string, req ap_dt
 	if req.CBSProductCode != "" && req.CBSProductCode != existing.CBSProductCode {
 		dup, _ := s.repo.FindByCBSCode(ctx, req.CBSProductCode)
 		if dup != nil {
-			return errors.New(localization.ErrorAPAlreadyExists.Code)
+			return nil, errors.New(localization.ErrorAPAlreadyExists.Code)
 		}
 		updated.CBSProductCode = req.CBSProductCode
 	}
@@ -268,7 +268,7 @@ func (s *accountProductService) Update(ctx context.Context, id string, req ap_dt
 		if err != nil {
 			span.AddEvent("icon upload failed", trace.WithAttributes(attribute.String("error", err.Error())))
 			log.Errorf("[APSvc][Update] upload icon err: %v", err)
-			return errors.New(localization.ErrorUnhandledServer.Code)
+			return nil, errors.New(localization.ErrorUnhandledServer.Code)
 		}
 		updated.ProductIcon = iconURL
 	}
@@ -279,10 +279,10 @@ func (s *accountProductService) Update(ctx context.Context, id string, req ap_dt
 	if err := s.cpsService.CreateCPSAction(ctx, &action); err != nil {
 		span.AddEvent("cps action failed", trace.WithAttributes(attribute.String("error", err.Error())))
 		log.Errorf("[APSvc][Update] cps err: %v", err)
-		return err
+		return nil, err
 	}
 	log.Infof("[APSvc][Update] request created id=%s", id)
-	return nil
+	return &updated, nil
 }
 
 func (s *accountProductService) Delete(ctx context.Context, id string) error {
