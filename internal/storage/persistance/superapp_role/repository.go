@@ -427,6 +427,32 @@ func scanAccessLists(rows *sql.Rows) ([]imodel.APPAccessList, error) {
 	return result, nil
 }
 
+func (r *superAppRoleStorage) FindAccessListRelations(ctx context.Context) ([]imodel.AccessItemRelation, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	const q = `SELECT RAWTOHEX(PARENT_ID), RAWTOHEX(CHILD_ID) FROM ACCESS_LIST_RELATIONS ORDER BY PARENT_ID, CHILD_ID`
+	rows, err := r.db.QueryContext(ctx, q)
+	if err != nil {
+		log.Errorf("[SuperAppRoleRepo][FindAccessListRelations] query err: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+	defer rows.Close()
+
+	var out []imodel.AccessItemRelation
+	for rows.Next() {
+		var rel imodel.AccessItemRelation
+		if err := rows.Scan(&rel.ParentKey, &rel.ChildKey); err != nil {
+			log.Errorf("[SuperAppRoleRepo][FindAccessListRelations] scan err: %v", err)
+			return nil, local_util.HandleDBError(err)
+		}
+		out = append(out, rel)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, local_util.HandleDBError(err)
+	}
+	return out, nil
+}
+
 func (r *superAppRoleStorage) BulkDisableAccessLists(ctx context.Context, superappRole string, accessListIDs []string) error {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 

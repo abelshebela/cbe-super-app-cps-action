@@ -280,29 +280,71 @@ func (s *superAppRoleService) GetAccessListsByRole(ctx context.Context, superapp
 		return nil, nil, err
 	}
 
-	// disabled = distinct union of role-blocked + globally disabled
-	disabledMap := make(map[string]imodel.APPAccessList, len(roleBlocked)+len(globallyDisabled))
-	for _, al := range roleBlocked {
-		disabledMap[al.ID] = al
+	relations, err := s.repo.FindAccessListRelations(ctx)
+	if err != nil {
+		log.Errorf("[SuperAppRole][GetAccessListsByRole] relations fetch err: %v", err)
+		return nil, nil, err
+	}
+
+	// Build full ID → APPAccessList map for child lookup
+	allMap := make(map[string]imodel.APPAccessList, len(globallyEnabled)+len(globallyDisabled))
+	for _, al := range globallyEnabled {
+		allMap[strings.ToUpper(al.ID)] = al
 	}
 	for _, al := range globallyDisabled {
-		disabledMap[al.ID] = al
+		allMap[strings.ToUpper(al.ID)] = al
+	}
+
+	// Build parent→children map and child ID set from access-list-relations
+	childSet := make(map[string]struct{})
+	parentToChildren := make(map[string][]types.SubAccessList)
+	for _, rel := range relations {
+		parentID := strings.ToUpper(rel.ParentKey)
+		childID := strings.ToUpper(rel.ChildKey)
+		childSet[childID] = struct{}{}
+		if child, ok := allMap[childID]; ok {
+			parentToChildren[parentID] = append(parentToChildren[parentID], types.SubAccessList{
+				ID:             child.ID,
+				Key:            child.Key,
+				Enabled:        child.Enabled,
+				AccessListName: child.AccessListName,
+			})
+		}
+	}
+
+	// disabled = distinct union of role-blocked + globally disabled, top-level parents only
+	disabledMap := make(map[string]imodel.APPAccessList, len(roleBlocked)+len(globallyDisabled))
+	for _, al := range roleBlocked {
+		disabledMap[strings.ToUpper(al.ID)] = al
+	}
+	for _, al := range globallyDisabled {
+		disabledMap[strings.ToUpper(al.ID)] = al
 	}
 	disabled := make([]imodel.APPAccessList, 0, len(disabledMap))
-	for _, al := range disabledMap {
+	for id, al := range disabledMap {
+		if _, isChild := childSet[id]; isChild {
+			continue
+		}
+		al.SubAccessList = parentToChildren[id]
 		disabled = append(disabled, al)
 	}
 
-	// enabled = globally enabled - role-blocked
+	// enabled = globally enabled - role-blocked, top-level parents only
 	blockedSet := make(map[string]struct{}, len(roleBlocked))
 	for _, al := range roleBlocked {
-		blockedSet[al.ID] = struct{}{}
+		blockedSet[strings.ToUpper(al.ID)] = struct{}{}
 	}
 	enabled := make([]imodel.APPAccessList, 0, len(globallyEnabled))
 	for _, al := range globallyEnabled {
-		if _, blocked := blockedSet[al.ID]; !blocked {
-			enabled = append(enabled, al)
+		id := strings.ToUpper(al.ID)
+		if _, blocked := blockedSet[id]; blocked {
+			continue
 		}
+		if _, isChild := childSet[id]; isChild {
+			continue
+		}
+		al.SubAccessList = parentToChildren[id]
+		enabled = append(enabled, al)
 	}
 
 	return enabled, disabled, nil

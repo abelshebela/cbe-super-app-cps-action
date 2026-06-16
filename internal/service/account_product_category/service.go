@@ -128,7 +128,7 @@ func (s *accountProductCategoryService) GetByID(ctx context.Context, id string) 
 	return result, nil
 }
 
-func (s *accountProductCategoryService) Create(ctx context.Context, req apc_dto.CreateAPCRequest) error {
+func (s *accountProductCategoryService) Create(ctx context.Context, req apc_dto.CreateAPCRequest) (*imodel.AccountProductCategory, error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 	ctx, span := local_util.TraceLogger(ctx, "service", "Create", "AccountProductCategory", "Create")
 	defer span.End()
@@ -136,27 +136,27 @@ func (s *accountProductCategoryService) Create(ctx context.Context, req apc_dto.
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
 		log.Errorf("[APCSvc][Create] incomplete user")
-		return errors.New(localization.ErrorIncompleteUserInfo.Code)
+		return nil, errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
 	existing, err := s.repo.FindByCBSCode(ctx, req.CBSCategoryCode)
 	if err != nil && !strings.Contains(err.Error(), localization.ErrorResourceNotFound.Code) {
 		log.Errorf("[APCSvc][Create] dup check err: %v", err)
-		return err
+		return nil, err
 	}
 	if existing != nil {
 		log.Errorf("[APCSvc][Create] duplicate cbs_category_code=%s", req.CBSCategoryCode)
-		return errors.New(localization.ErrorAPCAlreadyExists.Code)
+		return nil, errors.New(localization.ErrorAPCAlreadyExists.Code)
 	}
 
 	existingByName, err := s.repo.FindByCategoryName(ctx, req.CategoryName)
 	if err != nil && !strings.Contains(err.Error(), localization.ErrorResourceNotFound.Code) {
 		log.Errorf("[APCSvc][Create] name dup check err: %v", err)
-		return err
+		return nil, err
 	}
 	if existingByName != nil {
 		log.Errorf("[APCSvc][Create] duplicate category_name=%s", req.CategoryName)
-		return errors.New(localization.ErrorAPCAlreadyExists.Code)
+		return nil, errors.New(localization.ErrorAPCAlreadyExists.Code)
 	}
 
 	payload := imodel.AccountProductCategory{
@@ -173,13 +173,13 @@ func (s *accountProductCategoryService) Create(ctx context.Context, req apc_dto.
 	if err := s.cpsService.CreateCPSAction(ctx, &action); err != nil {
 		span.AddEvent("cps action failed", trace.WithAttributes(attribute.String("error", err.Error())))
 		log.Errorf("[APCSvc][Create] cps err: %v", err)
-		return err
+		return nil, err
 	}
 	log.Infof("[APCSvc][Create] request created code=%s", req.CBSCategoryCode)
-	return nil
+	return &payload, nil
 }
 
-func (s *accountProductCategoryService) Update(ctx context.Context, id string, req apc_dto.UpdateAPCRequest) error {
+func (s *accountProductCategoryService) Update(ctx context.Context, id string, req apc_dto.UpdateAPCRequest) (*imodel.AccountProductCategory, error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 	ctx, span := local_util.TraceLogger(ctx, "service", "Update", "AccountProductCategory", "Update")
 	defer span.End()
@@ -187,14 +187,14 @@ func (s *accountProductCategoryService) Update(ctx context.Context, id string, r
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
 		log.Errorf("[APCSvc][Update] incomplete user")
-		return errors.New(localization.ErrorIncompleteUserInfo.Code)
+		return nil, errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
 	existing, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		span.AddEvent("fetch failed", trace.WithAttributes(attribute.String("error", err.Error())))
 		log.Errorf("[APCSvc][Update] find err: %v", err)
-		return err
+		return nil, err
 	}
 
 	updated := *existing
@@ -205,7 +205,7 @@ func (s *accountProductCategoryService) Update(ctx context.Context, id string, r
 		if !strings.EqualFold(req.CategoryName, existing.CategoryName) {
 			dupByName, _ := s.repo.FindByCategoryName(ctx, req.CategoryName)
 			if dupByName != nil {
-				return errors.New(localization.ErrorAPCAlreadyExists.Code)
+				return nil, errors.New(localization.ErrorAPCAlreadyExists.Code)
 			}
 		}
 		updated.CategoryName = req.CategoryName
@@ -214,7 +214,7 @@ func (s *accountProductCategoryService) Update(ctx context.Context, id string, r
 		if req.CBSCategoryCode != existing.CBSCategoryCode {
 			dup, _ := s.repo.FindByCBSCode(ctx, req.CBSCategoryCode)
 			if dup != nil {
-				return errors.New(localization.ErrorAPCAlreadyExists.Code)
+				return nil, errors.New(localization.ErrorAPCAlreadyExists.Code)
 			}
 		}
 		updated.CBSCategoryCode = req.CBSCategoryCode
@@ -229,10 +229,10 @@ func (s *accountProductCategoryService) Update(ctx context.Context, id string, r
 	if err := s.cpsService.CreateCPSAction(ctx, &action); err != nil {
 		span.AddEvent("cps action failed", trace.WithAttributes(attribute.String("error", err.Error())))
 		log.Errorf("[APCSvc][Update] cps err: %v", err)
-		return err
+		return nil, err
 	}
 	log.Infof("[APCSvc][Update] request created id=%s", id)
-	return nil
+	return &updated, nil
 }
 
 func (s *accountProductCategoryService) Delete(ctx context.Context, id string) error {
