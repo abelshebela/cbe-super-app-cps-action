@@ -9,7 +9,7 @@ type BankResponse struct {
 	IsCBE          bool      `json:"is_cbe" bson:"is_cbe"`
 	Code           string    `json:"code" bson:"code"`
 	BIC            string    `json:"bic"  bson:"bic"`
-	Enabled        bool      `json:"enabled" bson:"enabled"`
+	IsEnabled      bool      `json:"is_enabled" bson:"enabled"`
 	CreatedAt      time.Time `json:"created_at" bson:"created_at"`
 	LastModifiedAt time.Time `json:"last_modified_at" bson:"last_modified_at"`
 }
@@ -18,7 +18,7 @@ type BankOracleResponse struct {
 	BankName        string `sqlx:"bank_name" json:"bank_name"`
 	Logo            string `sqlx:"logo" json:"logo"`
 	BICCode         string `sqlx:"bic_code" json:"bic_code"`
-	IsEnabled       bool   `sqlx:"enabled" json:"enabled"`
+	IsEnabled       bool   `sqlx:"enabled" json:"is_enabled"`
 	IsCBE           bool   `sqlx:"is_cbe" json:"is_cbe"`
 	AccountLength   int    `sqlx:"account_length" json:"account_length"`
 	HasAlphaNumeric bool   `sqlx:"has_alpha_numeric" json:"has_alpha_numeric"`

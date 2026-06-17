@@ -200,6 +200,11 @@ func (h *accountProductCategoryAdapter) Delete(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+		localization.SendSuccessResponse(w, localization.SuccessBankCreatedSuccessfully, nil)
+		return
+	}
 	log.Infof("[APCHandler][Delete] request sent id=%s", id)
 	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessAPCDeleteRequestSent, nil)
