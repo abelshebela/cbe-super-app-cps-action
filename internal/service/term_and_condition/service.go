@@ -133,7 +133,7 @@ func (s *accountOpeningTermsService) GetByID(ctx context.Context, id string) (*i
 	return result, nil
 }
 
-func (s *accountOpeningTermsService) Upload(ctx context.Context, req tac_dto.CreateTACRequest) error {
+func (s *accountOpeningTermsService) Upload(ctx context.Context, req tac_dto.CreateTACRequest) (*imodel.AccountOpeningTerms, error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 	ctx, span := local_util.TraceLogger(ctx, "service", "Upload", "AccountOpeningTerms", "Upload")
 	defer span.End()
@@ -141,23 +141,23 @@ func (s *accountOpeningTermsService) Upload(ctx context.Context, req tac_dto.Cre
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
 		log.Errorf("[TACSvc][Upload] incomplete user")
-		return errors.New(localization.ErrorIncompleteUserInfo.Code)
+		return nil, errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
 	existing, err := s.repo.FindByProductAndVersion(ctx, req.AccountProductID, req.VersionLabel)
 	if err != nil && !strings.Contains(err.Error(), localization.ErrorResourceNotFound.Code) {
 		log.Errorf("[TACSvc][Upload] dup check err: %v", err)
-		return err
+		return nil, err
 	}
 	if existing != nil {
 		log.Errorf("[TACSvc][Upload] duplicate product_id=%s version=%s", req.AccountProductID, req.VersionLabel)
-		return errors.New(localization.ErrorTACAlreadyExists.Code)
+		return nil, errors.New(localization.ErrorTACAlreadyExists.Code)
 	}
 
 	pdfFile, err := req.TermAndCondition.Open()
 	if err != nil {
 		log.Errorf("[TACSvc][Upload] open pdf: %v", err)
-		return errors.New(localization.ErrorUnhandledServer.Code)
+		return nil, errors.New(localization.ErrorUnhandledServer.Code)
 	}
 	defer pdfFile.Close()
 
@@ -172,7 +172,7 @@ func (s *accountOpeningTermsService) Upload(ctx context.Context, req tac_dto.Cre
 	if err != nil {
 		span.AddEvent("pdf upload failed", trace.WithAttributes(attribute.String("error", err.Error())))
 		log.Errorf("[TACSvc][Upload] upload pdf err: %v", err)
-		return errors.New(localization.ErrorUnhandledServer.Code)
+		return nil, errors.New(localization.ErrorUnhandledServer.Code)
 	}
 
 	productName := s.resolveProductName(ctx, req.AccountProductID)
@@ -192,10 +192,10 @@ func (s *accountOpeningTermsService) Upload(ctx context.Context, req tac_dto.Cre
 	if err := s.cpsService.CreateCPSAction(ctx, &action); err != nil {
 		span.AddEvent("cps action failed", trace.WithAttributes(attribute.String("error", err.Error())))
 		log.Errorf("[TACSvc][Upload] cps err: %v", err)
-		return err
+		return nil, err
 	}
 	log.Infof("[TACSvc][Upload] request created product=%s version=%s", req.AccountProductID, req.VersionLabel)
-	return nil
+	return &payload, nil
 }
 
 func (s *accountOpeningTermsService) resolveProductName(ctx context.Context, productID string) string {
@@ -247,20 +247,20 @@ func (s *accountOpeningTermsService) applyPDFUpload(ctx context.Context, span tr
 	return nil
 }
 
-func (s *accountOpeningTermsService) Update(ctx context.Context, id string, req tac_dto.UpdateTACRequest) error {
+func (s *accountOpeningTermsService) Update(ctx context.Context, id string, req tac_dto.UpdateTACRequest) (*imodel.AccountOpeningTerms, error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 	ctx, span := local_util.TraceLogger(ctx, "service", "Update", "AccountOpeningTerms", "Update")
 	defer span.End()
 
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
-		return errors.New(localization.ErrorIncompleteUserInfo.Code)
+		return nil, errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
 	existing, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		log.Errorf("[TACSvc][Update] find err: %v", err)
-		return err
+		return nil, err
 	}
 
 	updated := *existing
@@ -274,12 +274,12 @@ func (s *accountOpeningTermsService) Update(ctx context.Context, id string, req 
 	}
 	if req.VersionLabel != "" {
 		if err := s.applyVersionLabel(ctx, &updated, existing, req.VersionLabel); err != nil {
-			return err
+			return nil, err
 		}
 	}
 	if req.TermAndCondition != nil {
 		if err := s.applyPDFUpload(ctx, span, &updated, req); err != nil {
-			return err
+			return nil, err
 		}
 	}
 
@@ -289,10 +289,10 @@ func (s *accountOpeningTermsService) Update(ctx context.Context, id string, req 
 	if err := s.cpsService.CreateCPSAction(ctx, &action); err != nil {
 		span.AddEvent("cps action failed", trace.WithAttributes(attribute.String("error", err.Error())))
 		log.Errorf("[TACSvc][Update] cps err: %v", err)
-		return err
+		return nil, err
 	}
 	log.Infof("[TACSvc][Update] request created id=%s", id)
-	return nil
+	return &updated, nil
 }
 
 func (s *accountOpeningTermsService) Delete(ctx context.Context, id string) error {

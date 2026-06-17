@@ -106,7 +106,8 @@ func (h *accountProductCategoryAdapter) Create(w http.ResponseWriter, r *http.Re
 
 	span.SetAttributes(attribute.String("apc.code", req.CBSCategoryCode))
 
-	if err := h.svc.Create(ctx, req); err != nil {
+	result, err := h.svc.Create(ctx, req)
+	if err != nil {
 		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[APCHandler][Create] service err: %v", err)
@@ -117,12 +118,12 @@ func (h *accountProductCategoryAdapter) Create(w http.ResponseWriter, r *http.Re
 	if md.IsMakerOnly {
 		log.Infof("[APCHandler][Create] created code=%s", req.CBSCategoryCode)
 		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
-		localization.SendSuccessResponse(w, localization.SuccessAPCCreated, nil)
+		localization.SendSuccessResponse(w, localization.SuccessAPCCreated, apc_core.MapToResponse(result))
 		return
 	}
 	log.Infof("[APCHandler][Create] request sent code=%s", req.CBSCategoryCode)
 	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
-	localization.SendSuccessResponse(w, localization.SuccessAPCCreateRequestSent, nil)
+	localization.SendSuccessResponse(w, localization.SuccessAPCCreateRequestSent, apc_core.MapToResponse(result))
 }
 
 func (h *accountProductCategoryAdapter) Update(w http.ResponseWriter, r *http.Request) {
@@ -155,7 +156,8 @@ func (h *accountProductCategoryAdapter) Update(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	if err := h.svc.Update(ctx, id, req); err != nil {
+	result, err := h.svc.Update(ctx, id, req)
+	if err != nil {
 		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[APCHandler][Update] service err: %v", err)
@@ -166,12 +168,12 @@ func (h *accountProductCategoryAdapter) Update(w http.ResponseWriter, r *http.Re
 	if md.IsMakerOnly {
 		log.Infof("[APCHandler][Update] updated id=%s", id)
 		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
-		localization.SendSuccessResponse(w, localization.SuccessAPCUpdated, nil)
+		localization.SendSuccessResponse(w, localization.SuccessAPCUpdated, apc_core.MapToResponse(result))
 		return
 	}
 	log.Infof("[APCHandler][Update] request sent id=%s", id)
 	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
-	localization.SendSuccessResponse(w, localization.SuccessAPCUpdateRequestSent, nil)
+	localization.SendSuccessResponse(w, localization.SuccessAPCUpdateRequestSent, apc_core.MapToResponse(result))
 }
 
 func (h *accountProductCategoryAdapter) Delete(w http.ResponseWriter, r *http.Request) {

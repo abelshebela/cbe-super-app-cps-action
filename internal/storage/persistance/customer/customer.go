@@ -536,7 +536,15 @@ func (p *CustomerRepository) FindCustomerDetailByID(ctx context.Context, id stri
 			{Key: "preserveNullAndEmptyArrays", Value: true},
 		}}},
 
-		// 6. Group back to customer document, collect linked accounts with branch name
+		// 6.5. Lookup user's own branch info from account_block using root branch_code
+		{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "account_block"},
+			{Key: "localField", Value: "branch_code"},
+			{Key: "foreignField", Value: "code"},
+			{Key: "as", Value: "user_branch_info"},
+		}}},
+
+		// 7. Group back to customer document, collect linked accounts with branch name
 		{{Key: "$group", Value: bson.D{
 			{Key: "_id", Value: "$_id"},
 			{Key: "linked_account", Value: bson.D{{Key: "$push", Value: bson.D{
@@ -555,6 +563,9 @@ func (p *CustomerRepository) FindCustomerDetailByID(ctx context.Context, id stri
 				{Key: "email", Value: "$member_info.email"},
 				{Key: "customer_number", Value: "$member_info.customer_number"},
 				{Key: "is_activated", Value: "$member_info.is_activated"},
+				{Key: "branch_code", Value: "$branch_code"},
+				{Key: "is_blocked", Value: "$is_blocked"},
+				{Key: "supper_app_activated_branch", Value: bson.D{{Key: "$arrayElemAt", Value: bson.A{"$user_branch_info.name", 0}}}},
 			}}}},
 		}}},
 
@@ -584,13 +595,16 @@ func (p *CustomerRepository) FindCustomerDetailByID(ctx context.Context, id stri
 			AccountBranchName string `bson:"account_branch_name"`
 		} `bson:"linked_account"`
 		PersonalInfo struct {
-			FullName       string `bson:"full_name"`
-			Gender         string `bson:"gender"`
-			PhoneNumber    string `bson:"phone_number"`
-			Email          string `bson:"email"`
-			CustomerNumber string `bson:"customer_number"`
-			IsActivated    bool   `bson:"is_activated"`
-			DateOfBirth    string `bson:"date_of_birth"`
+			FullName                 string `bson:"full_name"`
+			Gender                   string `bson:"gender"`
+			PhoneNumber              string `bson:"phone_number"`
+			Email                    string `bson:"email"`
+			CustomerNumber           string `bson:"customer_number"`
+			IsActivated              bool   `bson:"is_activated"`
+			DateOfBirth              string `bson:"date_of_birth"`
+			BranchCode               string `bson:"branch_code"`
+			IsBlocked                bool   `bson:"is_blocked"`
+			SupperAppActivatedBranch string `bson:"supper_app_activated_branch"`
 		} `bson:"personal_info"`
 	}
 
@@ -623,13 +637,16 @@ func (p *CustomerRepository) FindCustomerDetailByID(ctx context.Context, id stri
 		ID:            res.ID.Hex(),
 		LinkedAccount: linkedAccounts,
 		PersonalInfo: customer_dto.PersonalInfo{
-			FullName:       res.PersonalInfo.FullName,
-			Gender:         res.PersonalInfo.Gender,
-			PhoneNumber:    res.PersonalInfo.PhoneNumber,
-			Email:          res.PersonalInfo.Email,
-			CustomerNumber: res.PersonalInfo.CustomerNumber,
-			IsActivated:    res.PersonalInfo.IsActivated,
-			DateOfBirth:    res.PersonalInfo.DateOfBirth,
+			FullName:                 res.PersonalInfo.FullName,
+			Gender:                   res.PersonalInfo.Gender,
+			PhoneNumber:              res.PersonalInfo.PhoneNumber,
+			Email:                    res.PersonalInfo.Email,
+			CustomerNumber:           res.PersonalInfo.CustomerNumber,
+			IsActivated:              res.PersonalInfo.IsActivated,
+			DateOfBirth:              res.PersonalInfo.DateOfBirth,
+			Branch:                   res.PersonalInfo.BranchCode,
+			IsBlocked:                res.PersonalInfo.IsBlocked,
+			SupperAppActivatedBranch: res.PersonalInfo.SupperAppActivatedBranch,
 		},
 	}
 

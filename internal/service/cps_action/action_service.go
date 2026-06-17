@@ -858,6 +858,7 @@ func (ca *cpsActionService) exportCPSActions(ctx context.Context, filterParams *
 	}
 	return url, nil
 }
+
 func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], string, error) {
 	log := local_util.LoggerFromCtx(ctx, ca.logger)
 
@@ -1536,6 +1537,9 @@ var uniqueFieldsRegistry = map[string][]string{
 	string(constants.RequestCreateNewsCategory): {"category_name"},
 	// shared NewsArticle : Title→"title"
 	string(constants.RequestCreateArticle): {"title"},
+
+	// AccountProductCategory : CategoryName→"category_name"
+	string(constants.RequestCreateAccountProductCategory): {"category_name"},
 }
 
 func extractUniqueTokens(requestAction string, currentAction interface{}) []string {
@@ -1646,12 +1650,12 @@ func formatTime(v any) string {
 		if t.IsZero() {
 			return ""
 		}
-		return t.Format(time.RFC3339)
+		return t.Format("2006-01-02 15:04:05")
 	case *time.Time:
 		if t == nil || t.IsZero() {
 			return ""
 		}
-		return t.Format(time.RFC3339)
+		return t.Format("2006-01-02 15:04:05")
 	default:
 		return fmt.Sprintf("%v", v)
 	}

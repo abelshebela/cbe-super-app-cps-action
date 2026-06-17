@@ -16,6 +16,20 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
+func ParseCoverImageFile(r *http.Request, isRequired bool, logger utils.Logger) (*multipart.FileHeader, error) {
+	_, fileHeader, err := local_util.ParseMultipartFormFile(r, "cover_image", int64(constants.MaxMemoryForUpload))
+	if err != nil {
+		if err == http.ErrMissingFile {
+			if isRequired {
+				return nil, fmt.Errorf("cover image is required")
+			}
+			return nil, nil
+		}
+		logger.Errorf("[APHandler][ParseCoverImage] parse err: %v", err)
+		return nil, fmt.Errorf("failed to parse cover image file: %w", err)
+	}
+	return fileHeader, nil
+}
 func ParseIconFile(r *http.Request, isRequired bool, logger utils.Logger) (*multipart.FileHeader, error) {
 	_, fileHeader, err := local_util.ParseMultipartFormFile(r, "icon", int64(constants.MaxMemoryForUpload))
 	if err != nil {
@@ -40,10 +54,15 @@ func ParseCreateRequest(r *http.Request, logger utils.Logger) (ap_dto.CreateAPRe
 	}
 	req.Icon = icon
 
+	coverImage, err := ParseCoverImageFile(r, true, logger)
+	if err != nil {
+		return req, err
+	}
+	req.CoverImage = coverImage
+
 	req.CBSProductCode = strings.TrimSpace(r.FormValue("cps_product_code"))
 	req.ProductName = strings.TrimSpace(r.FormValue("product_name"))
 	req.ProductTagLine = strings.TrimSpace(r.FormValue("product_tagline"))
-	req.ProductLine = strings.ToUpper(strings.TrimSpace(r.FormValue("product_line")))
 	req.AccountCategoryID = strings.TrimSpace(r.FormValue("account_category"))
 	req.AccountCurrency = strings.ToUpper(strings.TrimSpace(r.FormValue("account_currency")))
 	req.FaqURL = strings.TrimSpace(r.FormValue("faq_url"))
@@ -56,7 +75,13 @@ func ParseCreateRequest(r *http.Request, logger utils.Logger) (ap_dto.CreateAPRe
 		}
 		req.MinimumOpeningBalance = f
 	}
-	if v := r.FormValue("minimum_balance_to_maintain_account"); v != "" {
+	if maintenanceFeeStr := r.FormValue("minimum_maintenance_fee"); maintenanceFeeStr != "" {
+		f, err := strconv.ParseFloat(maintenanceFeeStr, 64)
+		if err != nil {
+			return req, fmt.Errorf("minimum_maintenance_fee must be a number")
+		}
+		req.MinimumMaintenanceFee = f
+	} else if v := r.FormValue("minimum_balance_to_maintain_account"); v != "" {
 		f, err := strconv.ParseFloat(v, 64)
 		if err != nil {
 			return req, fmt.Errorf("minimum_balance_to_maintain_account must be a number")
@@ -98,10 +123,15 @@ func ParseUpdateRequest(r *http.Request, logger utils.Logger) (ap_dto.UpdateAPRe
 	}
 	req.Icon = icon
 
+	coverImage, err := ParseCoverImageFile(r, false, logger)
+	if err != nil {
+		return req, err
+	}
+	req.CoverImage = coverImage
+
 	req.CBSProductCode = strings.TrimSpace(r.FormValue("cps_product_code"))
 	req.ProductName = strings.TrimSpace(r.FormValue("product_name"))
 	req.ProductTagLine = strings.TrimSpace(r.FormValue("product_tagline"))
-	req.ProductLine = strings.ToUpper(strings.TrimSpace(r.FormValue("product_line")))
 	req.AccountCategoryID = strings.TrimSpace(r.FormValue("account_category"))
 	req.AccountCurrency = strings.ToUpper(strings.TrimSpace(r.FormValue("account_currency")))
 	req.FaqURL = strings.TrimSpace(r.FormValue("faq_url"))
@@ -114,7 +144,13 @@ func ParseUpdateRequest(r *http.Request, logger utils.Logger) (ap_dto.UpdateAPRe
 		}
 		req.MinimumOpeningBalance = f
 	}
-	if v := r.FormValue("minimum_balance_to_maintain_account"); v != "" {
+	if maintenanceFeeStr := r.FormValue("minimum_maintenance_fee"); maintenanceFeeStr != "" {
+		f, err := strconv.ParseFloat(maintenanceFeeStr, 64)
+		if err != nil {
+			return req, fmt.Errorf("minimum_maintenance_fee must be a number")
+		}
+		req.MinimumMaintenanceFee = f
+	} else if v := r.FormValue("minimum_balance_to_maintain_account"); v != "" {
 		f, err := strconv.ParseFloat(v, 64)
 		if err != nil {
 			return req, fmt.Errorf("minimum_balance_to_maintain_account must be a number")

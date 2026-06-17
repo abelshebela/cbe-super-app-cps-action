@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	coreio "github.com/hugokessem/coreio/core"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -95,8 +96,7 @@ func (r *customerKYCRepository) FindByID(ctx context.Context, id string) (*imode
 
 	return result, nil
 }
-
-func (r *customerKYCRepository) CreateUser(ctx context.Context, userAccount types.Account, userData imodel.KYCRequest) error {
+func (r *customerKYCRepository) CreateUser(ctx context.Context, userAccount *coreio.CreateCustomerResult, userData imodel.CustomerKYC) error {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
 	const q = `
@@ -139,56 +139,81 @@ INSERT INTO USERS (
 	SYSTIMESTAMP, SYSTIMESTAMP, SYSTIMESTAMP
 )`
 
+	detail := userAccount.Detail
+
 	var firstName, middleName, lastName string
 
-	nameParts := strings.Fields(userAccount.CustomerName)
-	if len(nameParts) > 0 {
+	nameParts := strings.Fields(detail.FullName)
+
+	switch len(nameParts) {
+	case 1:
 		firstName = nameParts[0]
-	}
-	if len(nameParts) >= 3 {
+
+	case 2:
+		firstName = nameParts[0]
+		lastName = nameParts[1]
+
+	default:
+		firstName = nameParts[0]
 		middleName = strings.Join(nameParts[1:len(nameParts)-1], " ")
 		lastName = nameParts[len(nameParts)-1]
-	} else if len(nameParts) == 2 {
-		lastName = nameParts[1]
 	}
 
-	userCode := "SA" + userAccount.CustomerNumber
-	username := core.GenerateUsername(firstName, lastName, middleName)
+	userCode := "SA" + detail.Customer
+
+	username := core.GenerateUsername(
+		firstName,
+		lastName,
+		middleName,
+	)
 
 	_, err := r.oracleDB.ExecContext(
 		ctx,
 		q,
-		userCode,                      // :1  USER_CODE
-		username,                      // :2  USERNAME
-		"",                            // :3  CONTACT_EMAIL
-		userData.PhoneNumber,          // :4  CONTACT_PHONE
-		userAccount.CustomerNumber,    // :5  CUSTOMER_NUMBER
-		"",                            // :6  SECTOR
-		"",                            // :7  OWNERSHIP
-		"",                            // :8  INDUSTRY
-		firstName,                     // :9  FIRST_NAME
-		lastName,                      // :10 LAST_NAME
-		middleName,                    // :11 MIDDLE_NAME
-		userAccount.CustomerName,      // :12 FULL_NAME
-		userAccount.Gender,            // :13 GENDER
-		userData.BirthDate,            // :14 BIRTH_OF_DATE
-		"",                            // :15 PIN
-		"",                            // :16 PIN_HISTORY
-		0,                             // :17 FAILED_LOGIN_ATTEMPT
-		0,                             // :18 IS_LOCKED
-		0,                             // :19 IS_SUPERAPP_ENABLED
-		0,                             // :20 IS_USSD_ENABLED
-		0,                             // :21 IS_USSD_ACTIVE
-		0,                             // :22 IS_BLOCKED
-		0,                             // :23 IS_SUPERAPP_ACTIVE
-		"EN",                          // :24 LANGUAGE
-		"",                            // :25 PUSH_TOKEN
-		userAccount.AccountBranchCode, // :26 BRANCH_CODE
-		0,                             // :27 IS_BUDGET_ENABLED
-		0,                             // :28 EXPIRY_AT
+
+		userCode,           // USER_CODE
+		username,           // USERNAME
+		detail.Email,       // CONTACT_EMAIL
+		detail.PhoneNumber, // CONTACT_PHONE
+		"",                 // CUSTOMER_NUMBER
+
+		detail.Industry,  // SECTOR
+		detail.Ownership, // OWNERSHIP
+		detail.Industry,  // INDUSTRY
+
+		firstName,       // FIRST_NAME
+		lastName,        // LAST_NAME
+		middleName,      // MIDDLE_NAME
+		detail.FullName, // FULL_NAME
+
+		detail.Gender,      // GENDER
+		detail.DateOfBirth, // BIRTH_OF_DATE
+
+		"", // PIN
+		"", // PIN_HISTORY
+		0,  // FAILED_LOGIN_ATTEMPT
+		0,  // IS_LOCKED
+
+		0, // IS_SUPERAPP_ENABLED
+		0, // IS_USSD_ENABLED
+		0, // IS_USSD_ACTIVE
+		0, // IS_BLOCKED
+		0, // IS_SUPERAPP_ACTIVE
+
+		"EN", // LANGUAGE
+		"",   // PUSH_TOKEN
+
+		detail.AccountOfficer, // BRANCH_CODE
+
+		0, // IS_BUDGET_ENABLED
+		0, // EXPIRY_AT
 	)
 	if err != nil {
-		log.Errorf("[customerKYCRepository][CreateUser] insert failed: %v", err)
+		log.Errorf(
+			"[customerKYCRepository][CreateUser] insert failed: %v",
+			err,
+		)
+
 		return local_util.HandleDBError(err)
 	}
 

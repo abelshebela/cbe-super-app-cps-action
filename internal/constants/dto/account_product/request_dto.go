@@ -6,7 +6,6 @@ type CreateAPRequest struct {
 	CBSProductCode        string                `json:"cps_product_code"`
 	ProductName           string                `json:"product_name"`
 	ProductTagLine        string                `json:"product_tagline"`
-	ProductLine           string                `json:"product_line"`
 	AccountCategoryID     string                `json:"account_category"`
 	AccountCurrency       string                `json:"account_currency"`
 	MinimumOpeningBalance float64               `json:"minimum_opening_balance"`
@@ -17,13 +16,13 @@ type CreateAPRequest struct {
 	HasPhysicalCard       bool                  `json:"has_atm_and_debit_card"`
 	HasVirtualCard        bool                  `json:"has_virtual_debit_card"`
 	Icon                  *multipart.FileHeader `json:"icon"`
+	CoverImage            *multipart.FileHeader `json:"cover_image"`
 }
 
 type UpdateAPRequest struct {
 	CBSProductCode        string                `json:"cps_product_code"`
 	ProductName           string                `json:"product_name"`
 	ProductTagLine        string                `json:"product_tagline"`
-	ProductLine           string                `json:"product_line"`
 	AccountCategoryID     string                `json:"account_category"`
 	AccountCurrency       string                `json:"account_currency"`
 	MinimumOpeningBalance float64               `json:"minimum_opening_balance"`
@@ -34,6 +33,7 @@ type UpdateAPRequest struct {
 	HasPhysicalCard       *bool                 `json:"has_atm_and_debit_card"`
 	HasVirtualCard        *bool                 `json:"has_virtual_debit_card"`
 	Icon                  *multipart.FileHeader `json:"icon"`
+	CoverImage            *multipart.FileHeader `json:"cover_image"`
 }
 
 type CPSAPRequest struct {
