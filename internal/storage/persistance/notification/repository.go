@@ -18,6 +18,7 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
+	shared_notification "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/notification"
 	notification_dto "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/notification/dto"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -51,11 +52,12 @@ func (n *NotificationStorage) Create(ctx context.Context, notification *model.No
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	inAppMessage := notification_dto.InAppKafkaMessage{
-		Type:    "other",
-		Title:   "notification created",
-		Message: "new notification created",
-		Data:    NotificationMapper(newNotification),
+	inAppMessage := shared_notification.InAppNotification{
+		Type:     "IN_APP_BRODCAST",
+		Category: "OTHER",
+		Title:    newNotification.Title,
+		Message:  newNotification.NotificationBody,
+		Data:     NotificationMapper(newNotification),
 	}
 
 	// err = n.kafkaProducer.PublishMessage(ctx, inAppMessage)
@@ -85,11 +87,12 @@ func (n *NotificationStorage) Update(ctx context.Context, id string, notificatio
 		return local_util.HandleDBError(err)
 	}
 
-	inAppMessage := notification_dto.InAppKafkaMessage{
-		Type:    "OTHER",
-		Title:   "notification updated",
-		Message: "notification has been updated",
-		Data:    NotificationMapper(updatedNotification),
+	inAppMessage := shared_notification.InAppNotification{
+		Type:     "IN_APP_BRODCAST",
+		Category: "OTHER",
+		Title:    updatedNotification.Title,
+		Message:  updatedNotification.NotificationBody,
+		Data:     NotificationMapper(updatedNotification),
 	}
 
 	// err = n.kafkaProducer.PublishMessage(ctx, inAppMessage)
