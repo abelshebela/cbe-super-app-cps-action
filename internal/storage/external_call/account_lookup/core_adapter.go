@@ -39,6 +39,10 @@ type CoreAccountLookupAdapter struct {
 }
 
 func NewCoreAccountLookupAdapter(coreAPI core.CBECoreAPIInterface, baseUrl string, timeout time.Duration, logger utils.Logger) Account {
+	if timeout <= 0 {
+		timeout = 30 * time.Second
+	}
+
 	return &CoreAccountLookupAdapter{
 		coreAPI:        coreAPI,
 		BaseUrl:        baseUrl,
@@ -122,7 +126,11 @@ func (a *CoreAccountLookupAdapter) LookupAccountByAccountNumberFromBps(ctx conte
 }
 
 func (a *CoreAccountLookupAdapter) CreateAccountWithFayda(ctx context.Context, account accountLookup.AccountCreateParams) (types.Account, error) {
-	res, _, err := BPSBankingClient(ctx, a.Client, constants.WithFayda, account, a.BaseUrl+a.FaydaUrlPath)
+	url := a.BaseUrl + a.FaydaUrlPath
+
+	a.Logger.Infof("[AccountLookup][CreateAccountWithFayda] creating account through core URL: %s", url)
+
+	res, _, err := BPSBankingClient(ctx, a.Client, constants.WithFayda, account, url)
 	if err != nil {
 		a.Logger.Errorf("Failed to create account with Fayda: %v", err)
 		return types.Account{}, err
