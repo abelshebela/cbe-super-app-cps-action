@@ -178,6 +178,8 @@ func (s *accountProductService) Create(ctx context.Context, req ap_dto.CreateAPR
 		return nil, errors.New(localization.ErrorUnhandledServer.Code)
 	}
 
+	log.Infof("[AccountProduct][Create] Cover Image: %v", coverImageURL)
+
 	payload := imodel.AccountProduct{
 		CBSProductCode:        req.CBSProductCode,
 		ProductName:           req.ProductName,
@@ -267,19 +269,19 @@ func (s *accountProductService) Update(ctx context.Context, id string, req ap_dt
 		updated.HasVirtualCard = *req.HasVirtualCard
 	}
 
-	if req.Icon != nil {
+	if req.CoverImage != nil {
 		var objectKey string
-		if existing.ProductIcon != "" {
-			objectKey = path.Base(existing.ProductIcon)
+		if existing.ProductCoverImage != "" {
+			objectKey = path.Base(existing.ProductCoverImage)
 		}
-		iconURL, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Icon,
+		coverImageURL, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.CoverImage,
 			string(constants.AccountProductFolderName), *s.cfg, objectKey, s.logger)
 		if err != nil {
-			span.AddEvent("icon upload failed", trace.WithAttributes(attribute.String("error", err.Error())))
-			log.Errorf("[APSvc][Update] upload icon err: %v", err)
+			span.AddEvent("cover image upload failed", trace.WithAttributes(attribute.String("error", err.Error())))
+			log.Errorf("[APSvc][Update] upload cover image err: %v", err)
 			return nil, errors.New(localization.ErrorUnhandledServer.Code)
 		}
-		updated.ProductIcon = iconURL
+		updated.ProductCoverImage = coverImageURL
 	}
 
 	action := lib.CpsModelBuilder(id, makerData, existing, updated,
