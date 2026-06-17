@@ -69,7 +69,7 @@ func (h *accountProductAdapter) GetByID(w http.ResponseWriter, r *http.Request) 
 	}
 	span.SetAttributes(attribute.String("ap.id", id))
 
-	result, err := h.svc.GetByID(ctx, id)
+	_, err := h.svc.GetByID(ctx, id)
 	if err != nil {
 		span.RecordError(err)
 		log.Errorf("[APHandler][GetByID] service err: %v", err)
@@ -77,8 +77,10 @@ func (h *accountProductAdapter) GetByID(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+
 	log.Infof("[APHandler][GetByID] found id=%s", id)
-	localization.SendSuccessResponse(w, localization.SuccessAPRetrieved, ap_core.MapToResponse(result))
+	localization.SendSuccessResponse(w, localization.SuccessAPRetrieved, nil)
 }
 
 func (h *accountProductAdapter) Create(w http.ResponseWriter, r *http.Request) {
@@ -200,6 +202,11 @@ func (h *accountProductAdapter) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+		localization.SendSuccessResponse(w, localization.SuccessBankCreatedSuccessfully, nil)
+		return
+	}
 	log.Infof("[APHandler][Delete] request sent id=%s", id)
 	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessAPDeleteRequestSent, nil)

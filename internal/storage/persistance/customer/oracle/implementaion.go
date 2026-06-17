@@ -292,11 +292,12 @@ func (c *customerOracleRepository) FindCustomerDetailByID(ctx context.Context, i
 			PhoneNumber:         phone,
 			Email:               email,
 			CustomerNumber:      customerNumber,
-			IsActivated:         isBlocked == 1,
+			IsActivated:         isSuperAppActive == 1,
 			IsSupperAppActivate: isSuperAppActive == 1,
 			IsUSSDActivate:      isUSSDActive == 1,
 			IsSupperAppEnabled:  isSuperAppEnabled == 1,
 			IsUSSDEnabled:       isUSSDEnalbed == 1,
+			IsBlocked:           isBlocked == 1,
 			DateOfBirth:         birthOfDate.Time.Format("2006-01-02"),
 		},
 	}
