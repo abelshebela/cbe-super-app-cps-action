@@ -170,6 +170,14 @@ func (s *accountProductService) Create(ctx context.Context, req ap_dto.CreateAPR
 		return nil, errors.New(localization.ErrorUnhandledServer.Code)
 	}
 
+	coverImageURL, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.CoverImage,
+		string(constants.AccountProductFolderName), *s.cfg, "", s.logger)
+	if err != nil {
+		span.AddEvent("cover image upload failed", trace.WithAttributes(attribute.String("error", err.Error())))
+		log.Errorf("[APSvc][Create] upload cover image err: %v", err)
+		return nil, errors.New(localization.ErrorUnhandledServer.Code)
+	}
+
 	payload := imodel.AccountProduct{
 		CBSProductCode:        req.CBSProductCode,
 		ProductName:           req.ProductName,
@@ -184,6 +192,7 @@ func (s *accountProductService) Create(ctx context.Context, req ap_dto.CreateAPR
 		HasPhysicalCard:       req.HasPhysicalCard,
 		HasVirtualCard:        req.HasVirtualCard,
 		ProductIcon:           iconURL,
+		ProductCoverImage:     coverImageURL,
 		IsEnabled:             true,
 	}
 

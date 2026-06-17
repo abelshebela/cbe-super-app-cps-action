@@ -16,6 +16,7 @@ type CreateAPRequest struct {
 	HasPhysicalCard       bool                  `json:"has_atm_and_debit_card"`
 	HasVirtualCard        bool                  `json:"has_virtual_debit_card"`
 	Icon                  *multipart.FileHeader `json:"icon"`
+	CoverImage            *multipart.FileHeader `json:"cover_image"`
 }
 
 type UpdateAPRequest struct {
@@ -32,6 +33,7 @@ type UpdateAPRequest struct {
 	HasPhysicalCard       *bool                 `json:"has_atm_and_debit_card"`
 	HasVirtualCard        *bool                 `json:"has_virtual_debit_card"`
 	Icon                  *multipart.FileHeader `json:"icon"`
+	CoverImage            *multipart.FileHeader `json:"cover_image"`
 }
 
 type CPSAPRequest struct {
