@@ -184,13 +184,12 @@ func (b *BudgetCategoryService) CreateBudgetCategory(ctx context.Context, req bu
 		return errors.New(localization.ErrorBudgetCategoryNameAlreadyExists.Code)
 	}
 
-	budgetCategory := &imodel.BudgetCategoryOracle{
+	budgetCategory := &imodel.BudgetCategory{
 		Name:        req.Name,
 		AccountType: req.Type,
 		Color:       req.Color,
 		Icon:        iconURL,
-		IsEnabled:   1,
-		IsDeleted:   0,
+		IsEnabled:   true,
 	}
 
 	cpsActionData := lib.CpsModelBuilder("", makerUser, nil, budgetCategory, string(constants.RequestCreateBudgetCategory), constants.CREATE)
@@ -231,7 +230,7 @@ func (b *BudgetCategoryService) FetchBudgetCategory(ctx context.Context, filterP
 			Color:     bc.Color,
 			Icon:      bc.Icon,
 			Type:      bc.AccountType,
-			Enabled:   bc.IsEnabled == 1,
+			IsEnabled: bc.IsEnabled == 1,
 			CreatedAt: bc.CreatedAt,
 			UpdatedAt: bc.LastModifiedAt,
 		})
@@ -267,7 +266,7 @@ func (b *BudgetCategoryService) FetchBudgetCategoryByID(ctx context.Context, id 
 		Color:     budgetCategory.Color,
 		Icon:      budgetCategory.Icon,
 		Type:      budgetCategory.AccountType,
-		Enabled:   budgetCategory.IsEnabled == 1,
+		IsEnabled: budgetCategory.IsEnabled == 1,
 		CreatedAt: budgetCategory.CreatedAt,
 		UpdatedAt: budgetCategory.LastModifiedAt,
 	}, nil
