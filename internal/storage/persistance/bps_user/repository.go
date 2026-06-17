@@ -342,6 +342,38 @@ func (b *BPSUserStorage) Update(ctx context.Context, BpsUser *bps_model.BPSUser)
 
 }
 
+func (b *BPSUserStorage) EnableDisableBPSUser(ctx context.Context, id string, enable bool) error {
+	log := local_util.LoggerFromCtx(ctx, b.logger)
+	log.Infof("[BPSUserStorage][Update] updating BPS user")
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		log.Errorf("[BPSUserStorage][Update] invalid ObjectID: %v", err)
+		return errors.New(localization.ErrorInvalidID.Code)
+	}
+
+	filter := bson.M{"_id": objID, "is_deleted": bson.M{"$ne": true}}
+	var update bson.M
+	if enable {
+		update = bson.M{
+			"enabled":             true,
+			"last_modified_at":    time.Now(),
+			"login_attempt_count": 0,
+			"otp_verify_count":    0,
+			"max_pass_attempt":    false,
+		}
+	} else {
+		update = bson.M{"enabled": false, "last_modified_at": time.Now()}
+	}
+	_, err = b.dal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		log.Errorf("[BPSUserStorage][Update] failed to update BPS user: %v", err)
+		return local_util.HandleDBError(err)
+	}
+	log.Infof("[BPSUserStorage][Update] BPS user updated successfully")
+	return nil
+
+}
+
 func (b *BPSUserStorage) Create(ctx context.Context, req bps_model.BPSUser) error {
 	log := local_util.LoggerFromCtx(ctx, b.logger)
 
