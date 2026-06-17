@@ -218,27 +218,35 @@ func (b *bpsUserService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 		b.logger.Infof("[BpsUserSvc][Authorize] soft-deleted id: %s", cpsAction.UniqueId)
 		return nil, nil
 	case string(constants.RequestEnableBPSUser):
-		actionData.Enabled = true
 		b.logger.Infof("[BpsUserSvc][Authorize] enabling id: %s", cpsAction.UniqueId)
+		err := b.repo.EnableDisableBPSUser(ctx, actionData.ID.Hex(), true)
+		if err != nil {
+			span.AddEvent("[Authorize] failed to enable BPS user", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
+			b.logger.Errorf("[BpsUserSvc][Authorize] enable err: %v", err)
+			return nil, err
+		}
+		return nil, nil
 	case string(constants.RequestDisableBPSUser):
-		actionData.Enabled = false
 		b.logger.Infof("[BpsUserSvc][Authorize] disabling id: %s", cpsAction.UniqueId)
+		err := b.repo.EnableDisableBPSUser(ctx, actionData.ID.Hex(), false)
+		if err != nil {
+			span.AddEvent("[Authorize] failed to disable BPS user", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
+			b.logger.Errorf("[BpsUserSvc][Authorize] disable err: %v", err)
+			return nil, err
+		}
+		return nil, nil
 
 	default:
 		span.AddEvent("[Authorize] unsupported action", trace.WithAttributes(attribute.String("action", cpsAction.RequestAction)))
 		b.logger.Errorf("[BpsUserSvc][Authorize] unsupported action: %s", cpsAction.RequestAction)
 		return nil, errors.New(localization.ErrorActionNotFound.Code)
 	}
-	if err := b.repo.Update(ctx, &actionData); err != nil {
-		span.AddEvent("[Authorize] failed to update BPS user", trace.WithAttributes(
-			attribute.String("error", err.Error()),
-			attribute.String("unique_id", cpsAction.UniqueId),
-		))
-		b.logger.Errorf("[BpsUserSvc][Authorize] update err: %v", err)
-		return nil, err
-	}
-	b.logger.Infof("[BpsUserSvc][Authorize] authorized id: %s", cpsAction.UniqueId)
-	return nil, nil
 }
 
 // FetchUserByUserCode implements service.BPSUserService.
