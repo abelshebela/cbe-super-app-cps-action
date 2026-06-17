@@ -18,8 +18,10 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
-	shared_notification "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/notification"
+	shared_constants "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/notification/constants"
 	notification_dto "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/notification/dto"
+	shared_notification "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/notification/dto"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -52,12 +54,12 @@ func (n *NotificationStorage) Create(ctx context.Context, notification *model.No
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	inAppMessage := shared_notification.InAppNotification{
-		Type:     "IN_APP_BRODCAST",
-		Category: "OTHER",
-		Title:    newNotification.Title,
-		Message:  newNotification.NotificationBody,
-		Data:     NotificationMapper(newNotification),
+	inAppMessage := shared_notification.BroadcastInAppNotification{
+		BroadcastType:     shared_constants.BOTH,
+		BroadcastCategory: shared_constants.BroadcastCategoryOther,
+		Title:             newNotification.Title,
+		Message:           newNotification.NotificationBody,
+		Data:              NotificationMapper(newNotification),
 	}
 
 	// err = n.kafkaProducer.PublishMessage(ctx, inAppMessage)
@@ -87,12 +89,12 @@ func (n *NotificationStorage) Update(ctx context.Context, id string, notificatio
 		return local_util.HandleDBError(err)
 	}
 
-	inAppMessage := shared_notification.InAppNotification{
-		Type:     "IN_APP_BRODCAST",
-		Category: "OTHER",
-		Title:    updatedNotification.Title,
-		Message:  updatedNotification.NotificationBody,
-		Data:     NotificationMapper(updatedNotification),
+	inAppMessage := shared_notification.BroadcastInAppNotification{
+		BroadcastType:     shared_constants.BOTH,
+		BroadcastCategory: shared_constants.BroadcastCategoryOther,
+		Title:             updatedNotification.Title,
+		Message:           updatedNotification.NotificationBody,
+		Data:              NotificationMapper(updatedNotification),
 	}
 
 	// err = n.kafkaProducer.PublishMessage(ctx, inAppMessage)
