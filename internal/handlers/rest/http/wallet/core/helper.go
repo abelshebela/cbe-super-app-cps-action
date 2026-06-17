@@ -43,7 +43,7 @@ func ParseWalletRequestFromMultipartForm(r *http.Request, isCreate bool) (wallet
 		if isCreate {
 			if err.Error() != localization.ErrorMissingFile.Code {
 				log.Println("errror here", err)
-				return req, errors.New(localization.ErrorWalletImageMissingOrInvalid.Code)
+				return req, localization.ErrorWalletImageMissingOrInvalid
 			}
 			return req, errors.New(localization.ErrorInvalidFileUpload.Code)
 		}

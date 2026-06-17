@@ -37,10 +37,10 @@ func BPSBankingClient(ctx context.Context, client *http.Client, inputType string
 			return nil, accountLookup.AccountResponse{}, err
 		}
 	} else if inputType == "with_fayda" {
-		if _, ok := inputData.(accountLookup.CreateAccountRequest); !ok {
+		if _, ok := inputData.(accountLookup.AccountCreateParams); !ok {
 			return nil, accountLookup.AccountResponse{}, errors.New("input data is not CreateAccountRequest")
 		}
-		input := inputData.(accountLookup.CreateAccountRequest)
+		input := inputData.(accountLookup.AccountCreateParams)
 		data, err = json.Marshal(input)
 		if err != nil {
 			return nil, accountLookup.AccountResponse{}, err
@@ -51,6 +51,8 @@ func BPSBankingClient(ctx context.Context, client *http.Client, inputType string
 	if err != nil {
 		return nil, accountLookup.AccountResponse{}, err
 	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json")
 
 	res, err := client.Do(req)
 	if err != nil {

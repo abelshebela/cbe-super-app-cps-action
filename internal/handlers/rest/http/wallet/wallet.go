@@ -91,9 +91,10 @@ func (a *walletAdapter) CreateWallet(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	if md.IsMakerOnly {
 		a.logger.Infof("[WalletH][Create]  create wallet successfully")
-		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessWalletCreated, nil)
 	} else {
 		a.logger.Infof("[WalletH][Create] request sent successfully for create wallet")
@@ -170,13 +171,12 @@ func (a *walletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	if md.IsMakerOnly {
 		a.logger.Infof("[WalletH][Update]  update wallet successfully")
-		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessWalletUpdated, nil)
 	} else {
 		a.logger.Infof("[WalletH][Update] request sent successfully for update wallet")
-		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessWalletUpdateRequestSent, nil)
 	}
 }
@@ -257,13 +257,13 @@ func (a *walletAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	if md.IsMakerOnly {
 		a.logger.Infof("[WalletH][Enable]  enable wallet successfully")
-		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessWalletEnabled, nil)
 	} else {
 		a.logger.Infof("[WalletH][Enable] request sent successfully for enable wallet")
-		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessWalletEnableRequestSubmitted, nil)
 	}
 }
@@ -303,13 +303,13 @@ func (a *walletAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	if md.IsMakerOnly {
 		a.logger.Infof("[WalletH][Disable]  disable wallet successfully")
-		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessWalletDisabled, nil)
 	} else {
 		a.logger.Infof("[WalletH][Disable] request sent successfully for disable wallet")
-		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessWalletDisableRequestSubmitted, nil)
 	}
 }
@@ -349,13 +349,13 @@ func (a *walletAdapter) EnableWalletService(w http.ResponseWriter, r *http.Reque
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	if md.IsMakerOnly {
 		a.logger.Infof("[WalletH][Enable]  enable wallet service successfully")
-		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessWalletServiceEnabled, nil)
 	} else {
 		a.logger.Infof("[WalletH][Enable] request sent successfully for enable wallet service")
-		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessWalletServiceEnableRequestSubmitted, nil)
 	}
 }
@@ -394,13 +394,13 @@ func (a *walletAdapter) DisableWalletService(w http.ResponseWriter, r *http.Requ
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	if md.IsMakerOnly {
 		a.logger.Infof("[WalletH][Disable]  disable wallet service successfully")
-		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessWalletServiceDisabled, nil)
 	} else {
 		a.logger.Infof("[WalletH][Disable] request sent successfully for disable wallet service")
-		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessWalletServiceDisableRequestSubmitted, nil)
 	}
 }
