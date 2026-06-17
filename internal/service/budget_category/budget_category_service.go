@@ -64,8 +64,8 @@ func (b *BudgetCategoryService) Authorize(ctx context.Context, action *model.CPS
 	log.Infof("[BudgetCatSvc][Authorize] action: %s", action.RequestAction)
 	var err error
 
-	budgetCategory, marshalErr := local_util.JsonUnmarshal[imodel.BudgetCategoryOracle](action.CurrentAction)
-	if marshalErr != nil || budgetCategory == nil {
+	payload, marshalErr := local_util.JsonUnmarshal[imodel.BudgetCategoryOracleCPSPayload](action.CurrentAction)
+	if marshalErr != nil || payload == nil {
 		errMsg := ""
 		if marshalErr != nil {
 			errMsg = marshalErr.Error()
@@ -77,10 +77,11 @@ func (b *BudgetCategoryService) Authorize(ctx context.Context, action *model.CPS
 		log.Errorf("[BudgetCatSvc][Authorize] unmarshal err: %v", marshalErr)
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
 	}
+	budgetCategory := imodel.BudgetCategoryPayloadToOracle(*payload)
 
 	switch action.RequestAction {
 	case string(constants.RequestCreateBudgetCategory):
-		err = b.budgetCategoryRepo.Create(ctx, budgetCategory)
+		err = b.budgetCategoryRepo.Create(ctx, &budgetCategory)
 		if err != nil {
 			span.AddEvent("[Authorize] failed to create budget category", trace.WithAttributes(
 				attribute.String("error", err.Error()),
@@ -91,7 +92,7 @@ func (b *BudgetCategoryService) Authorize(ctx context.Context, action *model.CPS
 		}
 		log.Infof("[BudgetCatSvc][Authorize] created")
 	case string(constants.RequestUpdateBudgetCategory):
-		err = b.budgetCategoryRepo.Update(ctx, action.UniqueId, budgetCategory)
+		err = b.budgetCategoryRepo.Update(ctx, action.UniqueId, &budgetCategory)
 		if err != nil {
 			span.AddEvent("[Authorize] failed to update budget category", trace.WithAttributes(
 				attribute.String("error", err.Error()),
@@ -184,15 +185,15 @@ func (b *BudgetCategoryService) CreateBudgetCategory(ctx context.Context, req bu
 		return errors.New(localization.ErrorBudgetCategoryNameAlreadyExists.Code)
 	}
 
-	budgetCategory := &imodel.BudgetCategory{
+	budgetCategory := imodel.BudgetCategoryOracle{
 		Name:        req.Name,
 		AccountType: req.Type,
 		Color:       req.Color,
 		Icon:        iconURL,
-		IsEnabled:   true,
+		IsEnabled:   1,
 	}
 
-	cpsActionData := lib.CpsModelBuilder("", makerUser, nil, budgetCategory, string(constants.RequestCreateBudgetCategory), constants.CREATE)
+	cpsActionData := lib.CpsModelBuilder("", makerUser, nil, imodel.BudgetCategoryOracleToPayload(budgetCategory), string(constants.RequestCreateBudgetCategory), constants.CREATE)
 
 	if err := b.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
 		span.AddEvent("[CreateBudgetCategory] failed to create CPS action", trace.WithAttributes(
@@ -354,8 +355,8 @@ func (b *BudgetCategoryService) UpdateBudgetCategory(ctx context.Context, id str
 	cpsActionData := lib.CpsModelBuilder(
 		id,
 		makerUser,
-		existingBudgetCategory,
-		&newBudgetCategory,
+		imodel.BudgetCategoryOracleToPayload(*existingBudgetCategory),
+		imodel.BudgetCategoryOracleToPayload(newBudgetCategory),
 		string(constants.RequestUpdateBudgetCategory),
 		constants.UPDATE,
 	)
@@ -421,7 +422,7 @@ func (b *BudgetCategoryService) DeleteBudgetCategory(ctx context.Context, id str
 	deletedCategory.IsDeleted = 1
 	deletedCategory.LastModifiedAt = time.Now().UTC().Format(time.RFC3339)
 
-	cpsActionData := lib.CpsModelBuilder(id, makerUser, existingBudgetCategory, &deletedCategory, string(constants.RequestDeleteBudgetCategory), constants.DELETE)
+	cpsActionData := lib.CpsModelBuilder(id, makerUser, imodel.BudgetCategoryOracleToPayload(*existingBudgetCategory), imodel.BudgetCategoryOracleToPayload(deletedCategory), string(constants.RequestDeleteBudgetCategory), constants.DELETE)
 
 	if err := b.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
 		span.AddEvent("[DeleteBudgetCategory] failed to create CPS action", trace.WithAttributes(
@@ -480,7 +481,7 @@ func (b *BudgetCategoryService) EnableOrDisableBudgetCategory(ctx context.Contex
 		requestType = string(constants.RequestDisableBudgetCategory)
 	}
 
-	cpsActionData := lib.CpsModelBuilder(id, makerUser, existingBudgetCategory, &update, requestType, constants.UPDATE)
+	cpsActionData := lib.CpsModelBuilder(id, makerUser, imodel.BudgetCategoryOracleToPayload(*existingBudgetCategory), imodel.BudgetCategoryOracleToPayload(update), requestType, constants.UPDATE)
 
 	if err := b.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
 		span.AddEvent("[EnableOrDisableBudgetCategory] failed to create CPS action", trace.WithAttributes(
