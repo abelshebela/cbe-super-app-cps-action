@@ -264,6 +264,7 @@ type BPSUserRepository interface {
 	GetByUserID(ctx context.Context, userID string) (*bps_model.BPSUser, error)
 	GetByUsername(ctx context.Context, userName string) (*bps_model.BPSUser, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]bps_user_dto.BPSUserResposenDTO], error)
+	EnableDisableBPSUser(ctx context.Context, id string, enable bool) error
 	Update(ctx context.Context, BpsUser *bps_model.BPSUser) error
 	Create(ctx context.Context, BpsUser bps_model.BPSUser) error
 	FindByFilterKey(ctx context.Context, field, value string) (*bps_model.BPSUser, error)
