@@ -147,7 +147,7 @@ func (r *repository) FindByID(ctx context.Context, id string) (*donation_categor
 	return out, nil
 }
 
-// FindByName: case-sensitive lookup among non-deleted rows. Returns
+// FindByName: case-insensitive lookup among non-deleted rows. Returns
 // ErrorResourceNotFound on miss so core.DonationNameExists string-matches.
 func (r *repository) FindByName(ctx context.Context, name string) (*donation_category.DonationCategoryListResponse, error) {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
@@ -156,7 +156,7 @@ func (r *repository) FindByName(ctx context.Context, name string) (*donation_cat
 
 	q := `SELECT ` + donationCategorySelectCols + `
 	      FROM DONATION_CATEGORIES
-	      WHERE CATEGORY_NAME = :1 AND IS_DELETED = 0
+	      WHERE UPPER(CATEGORY_NAME) = UPPER(:1) AND IS_DELETED = 0
 	      FETCH FIRST 1 ROW ONLY`
 
 	row := r.db.QueryRowContext(ctx, q, name)
