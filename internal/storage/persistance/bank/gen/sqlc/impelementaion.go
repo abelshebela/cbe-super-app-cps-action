@@ -203,7 +203,9 @@ func (q *Queries) FindAllWithPagination(ctx context.Context, filterParam types.F
 	}
 	log.Infof("[BankOracleRepository][FindAllWithPagination] total records: %d", total)
 
-	if total == 0 {
+	offset := (filterParam.Page - 1) * filterParam.PerPage
+	limit := filterParam.PerPage
+	if total == 0 || int64(offset) >= total {
 		meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 		resp := &types.PaginatedResponse[[]imodel.BankOracle]{
 			Data: []imodel.BankOracle{},
@@ -212,9 +214,6 @@ func (q *Queries) FindAllWithPagination(ctx context.Context, filterParam types.F
 		log.Infof("[BankOracleRepository][FindAllWithPagination] no records found")
 		return resp, nil
 	}
-
-	offset := (filterParam.Page - 1) * filterParam.PerPage
-	limit := filterParam.PerPage
 	// If requested offset is beyond total, return all data (no pagination)
 	if int64(offset) >= total {
 		offset = 0
