@@ -2,7 +2,6 @@ package customer
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
-	accountLookupDto "cbe-super-app-cps-action/internal/constants/dto/account_lookup"
 	dto "cbe-super-app-cps-action/internal/constants/dto/customer_kyc"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
@@ -20,6 +19,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	coreio "github.com/hugokessem/coreio/core"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -31,6 +31,7 @@ type customerKYCService struct {
 	cpsService     service.CPSActionService
 	accountService account_lookup.Account
 	cpsUserRepo    storage.CpsUserRepository
+	coreio         coreio.CBECoreAPIInterface
 	logger         utils.Logger
 	minio          *s3.Client
 	bucketName     string
@@ -42,6 +43,7 @@ func NewCustomerKYCService(repo storage.CustomerKYCRepository,
 	cpsService service.CPSActionService,
 	cpsUserRepo storage.CpsUserRepository,
 	accountLookUpService account_lookup.Account,
+	coreio coreio.CBECoreAPIInterface,
 	logger utils.Logger,
 	minio *s3.Client,
 	bucketName string,
@@ -53,6 +55,7 @@ func NewCustomerKYCService(repo storage.CustomerKYCRepository,
 		cpsService:     cpsService,
 		cpsUserRepo:    cpsUserRepo,
 		accountService: accountLookUpService,
+		coreio:         coreio,
 		logger:         logger,
 		minio:          minio,
 		bucketName:     bucketName,
@@ -311,66 +314,80 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 
 	switch string(cpsAction.RequestAction) {
 	case string(constants.RequestApproveCustomerKYC):
-		userData, err := local_util.JsonUnmarshal[imodel.KYCRequest](cpsAction.CurrentAction)
+		userData, err := local_util.JsonUnmarshal[imodel.CustomerKYC](cpsAction.CurrentAction)
 		if err != nil {
 			return nil, err
 		}
 
-		var fistName, middleName, lastName string
+		var firstName, middleName, lastName string
 
-		if len(userData.FullName) > 3 {
-			fistName = strings.Split(userData.FullName, " ")[0]
-			middleName = strings.Split(userData.FullName, " ")[1]
-			lastName = strings.Split(userData.FullName, " ")[2]
-		} else if len(userData.FullName) == 2 {
-			fistName = strings.Split(userData.FullName, " ")[0]
-			lastName = strings.Split(userData.FullName, " ")[1]
-		} else {
-			fistName = userData.FullName
+		nameParts := strings.Fields(strings.TrimSpace(userData.KYCData.FullName))
+
+		switch len(nameParts) {
+		case 1:
+			firstName = nameParts[0]
+		case 2:
+			firstName = nameParts[0]
+			lastName = nameParts[1]
+		default:
+			firstName = nameParts[0]
+			middleName = nameParts[1]
+			lastName = strings.Join(nameParts[2:], " ")
 		}
 
-		data := accountLookupDto.AccountCreateParams{
-			Username:    strings.TrimSpace(userData.FullName),
-			Password:    constants.Empty,
-			FirstName:   fistName,
-			MiddleName:  middleName,
-			LastName:    lastName,
-			PhoneNumber: userData.PhoneNumber,
+		data := coreio.CreateCustomerParam{
+			FirstName:  firstName,
+			MiddleName: middleName,
+			LastName:   lastName,
+
+			PhoneNumber: userData.KYCData.PhoneNumber,
+
 			Address: strings.Join([]string{
-				"Region: " + userData.Address.Region,
-				"Zone: " + userData.Address.Zone,
-				"Kebele: " + userData.Address.Kebele,
-				"Woreda: " + userData.Address.Woreda,
-			}, " "),
-			PostalCode:         constants.Empty,
-			ISOCountryCode:     userData.Country,
-			AccountOffice:      constants.Empty,
-			Industry:           constants.Empty,
-			ISONationalityCode: userData.Nationality,
-			ISOResidentCode:    userData.Country,
-			UniqueID:           userData.OriginID,
-			IssuesBy:           constants.Empty,
-			IssuedDate:         constants.Empty,
-			ExpiryDate:         constants.Empty,
-			Gender:             userData.Gender,
-			DateOfBirth:        userData.BirthDate.Format("2006-01-02"),
-			MaritalStatus:      userData.MaritalStatus,
-			Email:              userData.Email,
-			EmploymentStatus:   userData.EmployementStatus,
-			Occupation:         userData.Occupation,
-			EmployerName:       constants.Empty,
-			EmployerAddress:    constants.Empty,
-			EmployerBusiness:   userData.SourceOfIncome,
-			CustomerCurrency:   userData.Currency,
-			Salary:             userData.MonthlyIncome,
-			AnnualBonus:        constants.Empty,
-			NetMonthlyIncome:   userData.MonthlyIncome,
-			NetMonthlyExpence:  constants.Empty,
-			TinNumber:          userData.USTIN,
-			MotherName:         userData.MothersName,
-			CustomerGroup:      string(constants.MASS),
+				"Region: " + userData.KYCData.Address.Region,
+				"Zone: " + userData.KYCData.Address.Zone,
+				"Kebele: " + userData.KYCData.Address.Kebele,
+				"Woreda: " + userData.KYCData.Address.Woreda,
+			}, ", "),
+
+			PostalCode:     constants.Empty,
+			ISOCountryCode: userData.KYCData.Country,
+
+			AccountOffice: constants.Empty,
+			Industry:      constants.Empty,
+
+			ISONationalityCode: userData.KYCData.Nationality,
+			ISOResidentCode:    userData.KYCData.Country,
+
+			UniqueID:   userData.KYCData.OriginID,
+			IssuesBy:   constants.Empty,
+			IssuedDate: constants.Empty,
+			ExpiryDate: constants.Empty,
+
+			Gender:      userData.KYCData.Gender,
+			DateOfBirth: userData.KYCData.BirthDate.Format("2006-01-02"),
+
+			MaritalStatus: userData.KYCData.MaritalStatus,
+			Email:         userData.KYCData.Email,
+
+			EmploymentStatus: userData.KYCData.EmployementStatus,
+			Occupation:       userData.KYCData.Occupation,
+
+			EmployerName:     constants.Empty,
+			EmployerAddress:  constants.Empty,
+			EmployerBusiness: userData.KYCData.SourceOfIncome,
+
+			CustomerCurrency:  userData.KYCData.Currency,
+			Salary:            userData.KYCData.MonthlyIncome,
+			AnnualBonus:       constants.Empty,
+			NetMonthlyIncome:  userData.KYCData.MonthlyIncome,
+			NetMonthlyExpence: constants.Empty,
+
+			TinNumber:     userData.KYCData.USTIN,
+			MotherName:    userData.KYCData.MothersName,
+			CustomerGroup: string(constants.MASS),
 		}
-		userAccount, err := core.CreateAccountToCore(ctx, data, s.accountService, s.logger)
+
+		userAccount, err := core.CreateAccountToCore(ctx, data, s.accountService, s.coreio, s.logger)
 		if err != nil {
 			log.Errorf("[CustKycSvc][Authorize] core account creation failed: %v", err)
 			return nil, err
