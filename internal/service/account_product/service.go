@@ -162,13 +162,13 @@ func (s *accountProductService) Create(ctx context.Context, req ap_dto.CreateAPR
 		return nil, errors.New(localization.ErrorAPAlreadyExists.Code)
 	}
 
-	iconURL, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Icon,
-		string(constants.AccountProductFolderName), *s.cfg, "", s.logger)
-	if err != nil {
-		span.AddEvent("icon upload failed", trace.WithAttributes(attribute.String("error", err.Error())))
-		log.Errorf("[APSvc][Create] upload icon err: %v", err)
-		return nil, errors.New(localization.ErrorUnhandledServer.Code)
-	}
+	// iconURL, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Icon,
+	// 	string(constants.AccountProductFolderName), *s.cfg, "", s.logger)
+	// if err != nil {
+	// 	span.AddEvent("icon upload failed", trace.WithAttributes(attribute.String("error", err.Error())))
+	// 	log.Errorf("[APSvc][Create] upload icon err: %v", err)
+	// 	return nil, errors.New(localization.ErrorUnhandledServer.Code)
+	// }
 
 	coverImageURL, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.CoverImage,
 		string(constants.AccountProductFolderName), *s.cfg, "", s.logger)
@@ -193,9 +193,9 @@ func (s *accountProductService) Create(ctx context.Context, req ap_dto.CreateAPR
 		ProductFeatures:       req.ProductFeatures,
 		HasPhysicalCard:       req.HasPhysicalCard,
 		HasVirtualCard:        req.HasVirtualCard,
-		ProductIcon:           iconURL,
-		ProductCoverImage:     coverImageURL,
-		IsEnabled:             true,
+		// ProductIcon:           iconURL,
+		ProductCoverImage: coverImageURL,
+		IsEnabled:         true,
 	}
 
 	action := lib.CpsModelBuilder("", makerData, nil, payload,

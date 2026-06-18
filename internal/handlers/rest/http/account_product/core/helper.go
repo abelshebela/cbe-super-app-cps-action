@@ -48,11 +48,11 @@ func ParseIconFile(r *http.Request, isRequired bool, logger utils.Logger) (*mult
 func ParseCreateRequest(r *http.Request, logger utils.Logger) (ap_dto.CreateAPRequest, error) {
 	var req ap_dto.CreateAPRequest
 
-	icon, err := ParseIconFile(r, true, logger)
-	if err != nil {
-		return req, err
-	}
-	req.Icon = icon
+	// icon, err := ParseIconFile(r, true, logger)
+	// if err != nil {
+	// 	return req, err
+	// }
+	// req.Icon = icon
 
 	coverImage, err := ParseCoverImageFile(r, true, logger)
 	if err != nil {
@@ -117,11 +117,11 @@ func ParseCreateRequest(r *http.Request, logger utils.Logger) (ap_dto.CreateAPRe
 func ParseUpdateRequest(r *http.Request, logger utils.Logger) (ap_dto.UpdateAPRequest, error) {
 	var req ap_dto.UpdateAPRequest
 
-	icon, err := ParseIconFile(r, false, logger)
-	if err != nil {
-		return req, err
-	}
-	req.Icon = icon
+	// icon, err := ParseIconFile(r, false, logger)
+	// if err != nil {
+	// 	return req, err
+	// }
+	// req.Icon = icon
 
 	coverImage, err := ParseCoverImageFile(r, false, logger)
 	if err != nil {
@@ -203,12 +203,12 @@ func MapToResponse(m *imodel.AccountProduct) ap_dto.APResponse {
 		ProductFeatures:       m.ProductFeatures,
 		HasPhysicalCard:       m.HasPhysicalCard,
 		HasVirtualCard:        m.HasVirtualCard,
-		ProductIcon:           m.ProductIcon,
-		ProductCoverImage:     m.ProductCoverImage,
-		IsEnabled:             m.IsEnabled,
-		IsDeleted:             m.IsDeleted,
-		CreatedAt:             m.CreatedAt.String(),
-		LastModifiedAt:        m.LastModifiedAt.String(),
+		// ProductIcon:           m.ProductIcon,
+		ProductCoverImage: m.ProductCoverImage,
+		IsEnabled:         m.IsEnabled,
+		IsDeleted:         m.IsDeleted,
+		CreatedAt:         m.CreatedAt.String(),
+		LastModifiedAt:    m.LastModifiedAt.String(),
 	}
 }
 
