@@ -26,18 +26,20 @@ import (
 )
 
 type accountProductService struct {
-	repo       storage.AccountProductRepository
-	cpsService service.CPSActionService
-	logger     utils.Logger
-	minio      *s3.Client
-	bucketName string
-	cfg        *config.VaultConfig
+	repo         storage.AccountProductRepository
+	categoryRepo storage.AccountProductCategoryRepository
+	cpsService   service.CPSActionService
+	logger       utils.Logger
+	minio        *s3.Client
+	bucketName   string
+	cfg          *config.VaultConfig
 }
 
 var _ service.AccountProductService = (*accountProductService)(nil)
 
 func NewAccountProductService(
 	repo storage.AccountProductRepository,
+	categoryRepo storage.AccountProductCategoryRepository,
 	cpsService service.CPSActionService,
 	logger utils.Logger,
 	minio *s3.Client,
@@ -45,12 +47,13 @@ func NewAccountProductService(
 	cfg *config.VaultConfig,
 ) service.AccountProductService {
 	return &accountProductService{
-		repo:       repo,
-		cpsService: cpsService,
-		logger:     logger,
-		minio:      minio,
-		bucketName: bucketName,
-		cfg:        cfg,
+		repo:         repo,
+		categoryRepo: categoryRepo,
+		cpsService:   cpsService,
+		logger:       logger,
+		minio:        minio,
+		bucketName:   bucketName,
+		cfg:          cfg,
 	}
 }
 
@@ -198,6 +201,16 @@ func (s *accountProductService) Create(ctx context.Context, req ap_dto.CreateAPR
 		IsEnabled:         true,
 	}
 
+	if s.categoryRepo != nil {
+		if cat, err := s.categoryRepo.FindByID(ctx, req.AccountCategoryID); err == nil {
+			payload.CategoryName    = cat.CategoryName
+			payload.CBSCategoryCode = cat.CBSCategoryCode
+			payload.AccountType     = cat.AccountType
+		} else {
+			log.Errorf("[APSvc][Create] category lookup err: %v", err)
+		}
+	}
+
 	action := lib.CpsModelBuilder("", makerData, nil, payload,
 		string(constants.RequestCreateAccountProduct), constants.CREATE)
 
@@ -243,6 +256,15 @@ func (s *accountProductService) Update(ctx context.Context, id string, req ap_dt
 	}
 	if req.AccountCategoryID != "" {
 		updated.AccountCategoryID = req.AccountCategoryID
+		if s.categoryRepo != nil {
+			if cat, err := s.categoryRepo.FindByID(ctx, req.AccountCategoryID); err == nil {
+				updated.CategoryName    = cat.CategoryName
+				updated.CBSCategoryCode = cat.CBSCategoryCode
+				updated.AccountType     = cat.AccountType
+			} else {
+				log.Errorf("[APSvc][Update] category lookup err: %v", err)
+			}
+		}
 	}
 	if req.AccountCurrency != "" {
 		updated.AccountCurrency = strings.ToUpper(req.AccountCurrency)
