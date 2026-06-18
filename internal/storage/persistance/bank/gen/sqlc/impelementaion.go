@@ -226,7 +226,7 @@ func (q *Queries) FindAllWithPagination(ctx context.Context, filterParam types.F
 		return resp, nil
 	}
 	if int64(offset)+int64(limit) > total {
-		return &types.PaginatedResponse[[]imodel.BankOracle]{}, nil
+		limit = int(total) - offset
 	}
 	log.Debugf("[BankOracleRepository][FindAllWithPagination] offset: %d, limit: %d", offset, limit)
 
