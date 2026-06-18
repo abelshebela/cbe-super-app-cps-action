@@ -88,6 +88,15 @@ const (
 	Blocked                         RequestAction = "BLOCKED"
 	BpsAction                       RequestAction = "BPS_ACTION"
 	CreateChequeAuthorizationAction RequestAction = "CREATE_CHEQUE_AUTHORIZATION_ACTION"
+	ActivateResetPin                RequestAction = "ACTIVATE_RESET_PIN"
+	UnlockPin                       RequestAction = "UNLOCK_PIN"
+	ActivateDeactivated             RequestAction = "ACTIVATE_DEACTIVATED"
+	ActivatePinUnlock               RequestAction = "ACTIVATE_PIN_UNLOCK"
+	EnableDisableUSSD               RequestAction = "ENABLE_DISABLE_USSD"
+	EnableDisableInApp              RequestAction = "ENABLE_DISABLE_INAPP"
+	EnableDisableBoth               RequestAction = "ENABLE_DISABLE_BOTH"
+	ActivateTerminated              RequestAction = "ACTIVATE_TERMINATED"
+	ActivateChangePhoneNumber       RequestAction = "ACTIVATE_CHANGE_PHONE_NUMBER"
 
 	//==================================================
 	User                     RequestAction = "user"
