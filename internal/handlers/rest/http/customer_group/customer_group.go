@@ -71,6 +71,8 @@ func (h *CustomerGroupAdapter) CreateCustomerGroup(w http.ResponseWriter, r *htt
 		localization.SendSuccessResponse(w, localization.CustomerGroupCreated, nil)
 		return
 	}
+
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.CustomerGroupCreationSubmittedSuccessfully, nil)
 }
 
