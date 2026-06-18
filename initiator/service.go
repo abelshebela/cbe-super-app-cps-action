@@ -109,7 +109,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	bank_service := bankService.NewBankService(logger, persistence.BankPersistence, oracle.BankOracle, nil, minioClient, minioPubUrl, cfg, cfg.S3BucketName)
 	accountSubTypeService := account_sub_type_svc.NewAccountSubTypeService(oracle.AccountSubType, nil, logger)
 	accountProductCategoryService := apc_svc.NewAccountProductCategoryService(oracle.AccountProductCategory, nil, logger)
-	accountProductService := ap_svc.NewAccountProductService(oracle.AccountProduct, nil, logger, minioClient, cfg.S3BucketName, cfg)
+	accountProductService := ap_svc.NewAccountProductService(oracle.AccountProduct, oracle.AccountProductCategory, nil, logger, minioClient, cfg.S3BucketName, cfg)
 	accountOpeningTermsService := tac_svc.NewAccountOpeningTermsService(oracle.AccountOpeningTerms, oracle.AccountProduct, nil, logger, minioClient, cfg.S3BucketName, cfg)
 	walletService := wallet.NewWalletService(oracle.WalletOracle, nil, oracle.ServicesPersistence, minioClient, minioPubUrl, cfg.S3BucketName, cfg, logger)
 	bpsActionService := bps_action_service.NewBPSActionService(persistence.BPSActionRolePersistence, persistence.BpsActionPersistence, oracle.Customer, persistence.ArchivedLinkedAccountPersistence, persistence.BPSUserPersistence, persistence.CpsUserPersistence, persistence.UserActionLogPersistence, logger, bps_action_service.Dispatcher{}, *cfg)
@@ -247,7 +247,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	serviceContainer.AccountSubTypeContainer = accountSubTypeService
 	accountProductCategoryService = apc_svc.NewAccountProductCategoryService(oracle.AccountProductCategory, cpsActionService, logger)
 	serviceContainer.AccountProductCategoryContainer = accountProductCategoryService
-	accountProductService = ap_svc.NewAccountProductService(oracle.AccountProduct, cpsActionService, logger, minioClient, cfg.S3BucketName, cfg)
+	accountProductService = ap_svc.NewAccountProductService(oracle.AccountProduct, oracle.AccountProductCategory, cpsActionService, logger, minioClient, cfg.S3BucketName, cfg)
 	serviceContainer.AccountProductContainer = accountProductService
 	accountOpeningTermsService = tac_svc.NewAccountOpeningTermsService(oracle.AccountOpeningTerms, oracle.AccountProduct, cpsActionService, logger, minioClient, cfg.S3BucketName, cfg)
 	serviceContainer.AccountOpeningTermsContainer = accountOpeningTermsService
@@ -297,7 +297,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	// rebuilt dispatcher that has all containers populated, preventing nil-dispatch panics).
 	accountProductCategoryService = apc_svc.NewAccountProductCategoryService(oracle.AccountProductCategory, cpsActionService, logger)
 	serviceContainer.AccountProductCategoryContainer = accountProductCategoryService
-	accountProductService = ap_svc.NewAccountProductService(oracle.AccountProduct, cpsActionService, logger, minioClient, cfg.S3BucketName, cfg)
+	accountProductService = ap_svc.NewAccountProductService(oracle.AccountProduct, oracle.AccountProductCategory, cpsActionService, logger, minioClient, cfg.S3BucketName, cfg)
 	serviceContainer.AccountProductContainer = accountProductService
 	accountOpeningTermsService = tac_svc.NewAccountOpeningTermsService(oracle.AccountOpeningTerms, oracle.AccountProduct, cpsActionService, logger, minioClient, cfg.S3BucketName, cfg)
 	serviceContainer.AccountOpeningTermsContainer = accountOpeningTermsService
