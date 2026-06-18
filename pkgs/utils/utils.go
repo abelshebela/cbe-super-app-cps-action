@@ -12,7 +12,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"image"
 	"io"
 	"math"
 	"mime/multipart"
@@ -174,28 +173,7 @@ func IsValidImage(fileHeader *multipart.FileHeader) bool {
 
 	contentType := http.DetectContentType(buffer[:n])
 
-	if !allowedMIMETypes[contentType] {
-		return false
-	}
-
-	// Reset cursor
-	_, err = file.Seek(0, io.SeekStart)
-	if err != nil {
-		return false
-	}
-
-	// Validate actual image structure without full decode
-	_, format, err := image.DecodeConfig(file)
-	if err != nil {
-		return false
-	}
-
-	switch format {
-	case "jpeg", "png", "gif", "webp":
-		return true
-	default:
-		return false
-	}
+	return allowedMIMETypes[contentType]
 }
 
 func IsValidVideo(fileHeader *multipart.FileHeader) bool {
