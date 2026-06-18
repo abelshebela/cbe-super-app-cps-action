@@ -307,7 +307,7 @@ func (b *bpsUserService) FetchUserByUserName(ctx context.Context, userName strin
 			attribute.String("job_title", user.JobTitle),
 		))
 		b.logger.Errorf("[BpsUserSvc][FetchByUserName] failed to fetch role by job title: %s, err: %v", user.JobTitle, err)
-		return nil, errors.New(localization.ErrorRoleNotFound.Code)
+		// return nil, errors.New(localization.ErrorRoleNotFound.Code)
 	}
 	if jobRoles != nil && jobRoles.Role != "" {
 		span.AddEvent("[FetchUserByUserName] role found for job title", trace.WithAttributes(attribute.String("job_title", user.JobTitle)))
