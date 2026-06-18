@@ -323,7 +323,7 @@ func (b *bpsUserService) FetchUserByUserName(ctx context.Context, userName strin
 		))
 		b.logger.Errorf("[BpsUserSvc][FetchByUserName] failed to fetch role by code: %s, err: %v", jobRoles.Role, err)
 		// return nil, errors.New(localization.ErrorRoleNotFound.Code)
-	} else {
+	} else if role != nil && role.Name != "" {
 		cleanBPSUser.RoleName = role.Name
 	}
 
