@@ -216,7 +216,7 @@ func (q *Queries) FindAllWithPagination(ctx context.Context, filterParam types.F
 
 	offset := (page - 1) * perPage
 	limit := perPage
-	if total == 0 || int64(offset) >= total || int64(limit) >= total {
+	if total == 0 || int64(offset) >= total {
 		meta := local_util.BuildPaginationMeta(total, page, perPage)
 		resp := &types.PaginatedResponse[[]imodel.BankOracle]{
 			Data: []imodel.BankOracle{},
