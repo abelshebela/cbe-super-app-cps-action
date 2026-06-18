@@ -416,6 +416,7 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 
 		roleID := rawRoleID
 		UpperCaseAction := strings.ToUpper(actionName)
+
 		idxDoc, err = repo.FindByRoleAndAction(ctx, roleID, UpperCaseAction, action.Version)
 		if err != nil {
 			span.RecordError(err)
