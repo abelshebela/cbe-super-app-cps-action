@@ -55,3 +55,25 @@ type CPSUser struct {
 	DelegationID       bson.ObjectID `json:"delegation_id" bson:"delegation_id"`
 	DelegatedRoleCode  string        `json:"delegated_role_code" bson:"delegated_role_code"`
 }
+type ExportCPSUser struct {
+	UserCode    string `json:"user_code,omitempty" bson:"user_code"`
+	FullName    string `json:"full_name,omitempty" bson:"full_name"`
+	Role        string `json:"role,omitempty" bson:"role"`
+	Department  string `json:"department,omitempty" bson:"department"`
+	PhoneNumber string `json:"phone_number,omitempty" bson:"phone_number"`
+	Email       string `json:"email,omitempty" bson:"email"`
+	UserName    string `json:"username,omitempty" bson:"username"`
+	JobTitle    string `json:"job_title" bson:"job_title"`
+
+	Enabled      bool       `json:"enabled,omitempty" bson:"enabled"`
+	DateJoined   *time.Time `json:"date_joined,omitempty" bson:"date_joined"`
+	LastModified *time.Time `json:"last_modified,omitempty" bson:"last_modified"`
+	CreatedAt    time.Time  `json:"created_at" bson:"created_at"`
+
+	Country string `json:"country,omitempty" bson:"country"`
+	Region  string `json:"region,omitempty" bson:"region"`
+
+	IsDelegationActive bool          `json:"is_delegation_active" bson:"is_delegation_active"`
+	DelegationID       bson.ObjectID `json:"delegation_id" bson:"delegation_id"`
+	DelegatedRoleCode  string        `json:"delegated_role_code" bson:"delegated_role_code"`
+}
