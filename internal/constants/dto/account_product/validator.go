@@ -5,8 +5,6 @@ import (
 	"regexp"
 	"strings"
 
-	"cbe-super-app-cps-action/pkgs/utils"
-
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
@@ -52,27 +50,8 @@ func apValidCurrency(value interface{}) error {
 	return nil
 }
 
-func apValidIcon(value interface{}) error {
-	fh, ok := value.(interface{ GetHeader() interface{} })
-	_ = fh
-	_ = ok
-	return nil
-}
-
-func validateIconFile(req *CreateAPRequest) error {
-	if req.Icon == nil {
-		return validation.NewError("validation_icon_required", "icon image is required")
-	}
-	if !utils.IsValidImage(req.Icon) {
-		return validation.NewError("validation_icon_invalid", "icon must be a valid image (jpeg/png/gif/webp)")
-	}
-	return nil
-}
 
 func (r CreateAPRequest) Validate() error {
-	if err := validateIconFile(&r); err != nil {
-		return err
-	}
 	return validation.ValidateStruct(&r,
 		validation.Field(&r.CBSProductCode,
 			validation.Required,
@@ -113,9 +92,6 @@ func (r CreateAPRequest) Validate() error {
 }
 
 func (r UpdateAPRequest) Validate() error {
-	if r.Icon != nil && !utils.IsValidImage(r.Icon) {
-		return validation.NewError("validation_icon_invalid", "icon must be a valid image (jpeg/png/gif/webp)")
-	}
 	return validation.ValidateStruct(&r,
 		validation.Field(&r.CBSProductCode,
 			validation.Length(0, 64),
