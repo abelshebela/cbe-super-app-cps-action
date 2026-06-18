@@ -186,9 +186,29 @@ func (r *repository) FindAllWithPagination(ctx context.Context, filterParam type
 		}
 
 		if v, ok := filterParam.Filters["is_enabled"]; ok {
-			if s, _ := v.(int); strings.TrimSpace(strconv.Itoa(s)) != "" {
-				conds = append(conds, fmt.Sprintf("UPPER(t.IS_ENABLED) = %d", idx))
-				args = append(args, s)
+			var isEnabledVal int
+			var isEnabledSet bool
+			switch val := v.(type) {
+			case int:
+				isEnabledVal = val
+				isEnabledSet = true
+			case float64:
+				isEnabledVal = int(val)
+				isEnabledSet = true
+			case string:
+				if parsed, err := strconv.Atoi(strings.TrimSpace(val)); err == nil {
+					isEnabledVal = parsed
+					isEnabledSet = true
+				}
+			case bool:
+				if val {
+					isEnabledVal = 1
+				}
+				isEnabledSet = true
+			}
+			if isEnabledSet {
+				conds = append(conds, fmt.Sprintf("t.IS_ENABLED = :%d", idx))
+				args = append(args, isEnabledVal)
 				idx++
 			}
 		}
