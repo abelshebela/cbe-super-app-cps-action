@@ -158,12 +158,20 @@ INSERT INTO USERS (
 		currency = "ETB"
 	}
 
+	// Parse T24 YYYYMMDD date string to time.Time for Oracle DATE column
+	var dob *time.Time
+	if t, parseErr := time.Parse("20060102", detail.DateOfBirth); parseErr == nil {
+		dob = &t
+	} else {
+		log.Warnf("[customerKYCRepository][CreateUser] unparseable DateOfBirth %q: %v", detail.DateOfBirth, parseErr)
+	}
+
 	_, err = tx.ExecContext(ctx, insertUserQ,
 		userCode,           // :1  USER_CODE
 		username,           // :2  USERNAME
 		detail.Email,       // :3  CONTACT_EMAIL
 		detail.PhoneNumber, // :4  CONTACT_PHONE
-		detail.Customer,    // :5  CUSTOMER_NUMBER  (was "")
+		detail.Customer,    // :5  CUSTOMER_NUMBER
 
 		detail.Industry,  // :6  SECTOR
 		detail.Ownership, // :7  OWNERSHIP
@@ -174,11 +182,11 @@ INSERT INTO USERS (
 		middleName,      // :11 MIDDLE_NAME
 		detail.FullName, // :12 FULL_NAME
 
-		detail.Gender,      // :13 GENDER
-		detail.DateOfBirth, // :14 BIRTH_OF_DATE
+		detail.Gender, // :13 GENDER
+		dob,           // :14 BIRTH_OF_DATE — time.Time for Oracle DATE (was string "YYYYMMDD" → ORA-01861)
 
-		"", // :15 PIN
-		"", // :16 PIN_HISTORY
+		"UNSET", // :15 PIN — NOT NULL; user sets PIN later via app
+		"",      // :16 PIN_HISTORY
 		0,  // :17 FAILED_LOGIN_ATTEMPT
 		0,  // :18 IS_LOCKED
 
