@@ -46,22 +46,152 @@ func NewCPSUserRepository(client *mongo.Client, redisRepository storage.RedisRep
 	}
 }
 
-func (r *CPSUserStorage) FindForExport(ctx context.Context, startDate, endDate time.Time, userName string) ([]imodel.CPSUser, error) {
-	filter := bson.M{
+func (r *CPSUserStorage) FindForExport(ctx context.Context, startDate, endDate time.Time, userName string) ([]imodel.ExportCPSUser, error) {
+	matchFilter := bson.M{
 		"created_at": bson.M{"$gte": startDate, "$lte": endDate},
 		"is_deleted": bson.M{"$ne": true},
 	}
 	if userName != "" {
-		filter["username"] = bson.M{"$regex": "^" + regexp.QuoteMeta(userName) + "$", "$options": "i"}
+		matchFilter["username"] = bson.M{"$regex": "^" + regexp.QuoteMeta(userName) + "$", "$options": "i"}
 	}
 
-	cursor, err := r.collection.Find(ctx, filter)
+	pipeline := mongo.Pipeline{
+		// Stage 1: Match users by date range
+		bson.D{{Key: "$match", Value: matchFilter}},
+
+		// Stage 2: Lookup department name
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from": "department",
+			"let":  bson.M{"dept_id": "$department"},
+			"pipeline": mongo.Pipeline{
+				bson.D{{Key: "$match", Value: bson.M{
+					"$expr": bson.M{"$eq": []interface{}{"$_id", "$$dept_id"}},
+				}}},
+				bson.D{{Key: "$project", Value: bson.M{"department": 1}}},
+			},
+			"as": "department_info",
+		}}},
+		bson.D{{Key: "$unwind", Value: bson.M{
+			"path":                       "$department_info",
+			"preserveNullAndEmptyArrays": true,
+		}}},
+
+		// Stage 3: Lookup active delegation (enable==true and not yet expired)
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from": "role_delegations",
+			"let":  bson.M{"uid": "$username"},
+			"pipeline": mongo.Pipeline{
+				bson.D{{Key: "$match", Value: bson.M{
+					"$expr": bson.M{
+						"$and": bson.A{
+							bson.M{"$eq": []interface{}{bson.M{"$toLower": "$delegated_user_id"}, bson.M{"$toLower": "$$uid"}}},
+							bson.M{"$eq": []interface{}{"$enable", true}},
+							bson.M{"$lte": []interface{}{"$start_at", "$$NOW"}},
+							bson.M{"$gt": []interface{}{"$end_at", "$$NOW"}},
+						},
+					},
+				}}},
+				bson.D{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},
+				bson.D{{Key: "$limit", Value: 1}},
+				bson.D{{Key: "$project", Value: bson.M{"end_at": 1}}},
+			},
+			"as": "delegation_info",
+		}}},
+		bson.D{{Key: "$unwind", Value: bson.M{
+			"path":                       "$delegation_info",
+			"preserveNullAndEmptyArrays": true,
+		}}},
+
+		// Stage 4: Lookup last modification action (UPDATE/DELETE/ENABLE/DISABLE after CREATE)
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from": "cps_actions",
+			"let":  bson.M{"ucode": "$user_code"},
+			"pipeline": mongo.Pipeline{
+				bson.D{{Key: "$match", Value: bson.M{
+					"$expr": bson.M{
+						"$and": bson.A{
+							bson.M{"$in": []interface{}{"$request_action", bson.A{
+								"CREATE_CPS_USER", "UPDATE_CPS_USER", "DELETE_CPS_USER",
+								"ENABLE_CPS_USER", "DISABLE_CPS_USER",
+							}}},
+							bson.M{"$eq": []interface{}{"$previous_action.user_code", "$$ucode"}},
+						},
+					},
+				}}},
+				bson.D{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},
+				bson.D{{Key: "$limit", Value: 1}},
+				bson.D{{Key: "$project", Value: bson.M{"request_action": 1, "created_at": 1}}},
+			},
+			"as": "last_modification_info",
+		}}},
+		bson.D{{Key: "$unwind", Value: bson.M{
+			"path":                       "$last_modification_info",
+			"preserveNullAndEmptyArrays": true,
+		}}},
+
+		// Stage 5: Lookup the original CREATE action for created_by and approved_by
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from": "cps_actions",
+			"let":  bson.M{"ucode": "$user_code"},
+			"pipeline": mongo.Pipeline{
+				bson.D{{Key: "$match", Value: bson.M{
+					"$expr": bson.M{
+						"$and": bson.A{
+							bson.M{"$eq": []interface{}{"$request_action", "CREATE_CPS_USER"}},
+							bson.M{"$eq": []interface{}{"$action_status", "APPROVED"}},
+							bson.M{"$eq": []interface{}{"$current_action.user_code", "$$ucode"}},
+						},
+					},
+				}}},
+				bson.D{{Key: "$limit", Value: 1}},
+				bson.D{{Key: "$project", Value: bson.M{"maker_id": 1, "checker_users": 1}}},
+			},
+			"as": "create_action_info",
+		}}},
+		bson.D{{Key: "$unwind", Value: bson.M{
+			"path":                       "$create_action_info",
+			"preserveNullAndEmptyArrays": true,
+		}}},
+
+		// Stage 6: Project into ExportCPSUser shape
+		bson.D{{Key: "$project", Value: bson.M{
+			"_id":                        0,
+			"first_name":                 "$full_name",
+			"phone_number":               1,
+			"email":                      1,
+			"department":                 "$department_info.department",
+			"job_title":                  1,
+			"role":                       1,
+			"username":                   1,
+			"created_at":                 1,
+			"enabled":                    1,
+			"last_login":                 1,
+			"expiry_date_for_delegation": "$delegation_info.end_at",
+			"last_modification_action":   "$last_modification_info.request_action",
+			"last_modified":              "$last_modification_info.created_at",
+			"created_by": bson.M{
+				"$cond": bson.M{
+					"if":   bson.M{"$ne": []interface{}{"$create_action_info.maker_id", ""}},
+					"then": "$create_action_info.maker_id",
+					"else": "SSO",
+				},
+			},
+			"approved_by": bson.M{
+				"$ifNull": []interface{}{
+					bson.M{"$arrayElemAt": []interface{}{"$create_action_info.checker_users.checker_id", 0}},
+					"",
+				},
+			},
+		}}},
+	}
+
+	cursor, err := r.collection.Aggregate(ctx, pipeline)
 	if err != nil {
 		return nil, local_util.HandleDBError(err)
 	}
 	defer cursor.Close(ctx)
 
-	var users []imodel.CPSUser
+	var users []imodel.ExportCPSUser
 	if err := cursor.All(ctx, &users); err != nil {
 		return nil, local_util.HandleDBError(err)
 	}

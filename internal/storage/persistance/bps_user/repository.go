@@ -2,6 +2,8 @@ package bps_user
 
 import (
 	// "cbe-super-app-cps-action/internal/constants/lib"
+	"cbe-super-app-cps-action/internal/constants"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -50,20 +52,137 @@ func NewBPSUserRepository(client *mongo.Client, cfg *config.VaultConfig, dbName 
 	}
 }
 
-func (b *BPSUserStorage) FindForExport(ctx context.Context, startDate, endDate time.Time, userName string) ([]bps_model.BPSUser, error) {
+func (b *BPSUserStorage) FindForExport(ctx context.Context, startDate, endDate time.Time, userName string) ([]imodel.ExportBPSUser, error) {
 	filter := bpsUserActiveFilter()
 	filter["created_at"] = bson.M{"$gte": startDate, "$lte": endDate}
 	if userName != "" {
 		filter["username"] = bson.M{"$regex": "^" + regexp.QuoteMeta(userName) + "$", "$options": "i"}
 	}
 
-	cursor, err := b.collection.Find(ctx, filter)
+	pipeline := mongo.Pipeline{
+		bson.D{{Key: "$match", Value: filter}},
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from": "roles",
+			"let":  bson.M{"job_title_value": "$job_title"},
+			"pipeline": mongo.Pipeline{
+				bson.D{{Key: "$match", Value: bson.M{
+					"$expr": bson.M{"$or": bson.A{
+						bson.M{"$eq": bson.A{"$job_title", "$$job_title_value"}},
+						bson.M{"$eq": bson.A{"$name", "$$job_title_value"}},
+						bson.M{"$eq": bson.A{"$role", "$$job_title_value"}},
+						bson.M{"$eq": bson.A{"$code", "$$job_title_value"}},
+					}},
+				}}},
+				bson.D{{Key: "$limit", Value: 1}},
+				bson.D{{Key: "$project", Value: bson.M{"role": 1, "name": 1, "job_title": 1, "code": 1}}},
+			},
+			"as": "role_info",
+		}}},
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from": "role_delegations",
+			"let":  bson.M{"uname": "$username"},
+			"pipeline": mongo.Pipeline{
+				bson.D{{Key: "$match", Value: bson.M{
+					"$expr": bson.M{"$and": bson.A{
+						bson.M{"$eq": []interface{}{bson.M{"$toLower": "$delegated_user_id"}, bson.M{"$toLower": "$$uname"}}},
+						bson.M{"$eq": []interface{}{"$enable", true}},
+						bson.M{"$lte": []interface{}{"$start_at", "$$NOW"}},
+						bson.M{"$gt": []interface{}{"$end_at", "$$NOW"}},
+					}},
+				}}},
+				bson.D{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},
+				bson.D{{Key: "$limit", Value: 1}},
+				bson.D{{Key: "$project", Value: bson.M{"end_at": 1}}},
+			},
+			"as": "delegation_info",
+		}}},
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from": "cps_actions",
+			"let":  bson.M{"user_id": "$user_code"},
+			"pipeline": mongo.Pipeline{
+				bson.D{{Key: "$match", Value: bson.M{
+					"$expr": bson.M{"$and": bson.A{
+						bson.M{"$in": bson.A{"$request_action", bson.A{
+							string(constants.RequestCreateBPSUser),
+							string(constants.RequestBpsUserUpdate),
+							string(constants.RequestBpsUserDelete),
+							string(constants.RequestEnableBPSUser),
+							string(constants.RequestDisableBPSUser),
+						}}},
+						bson.M{"$eq": bson.A{"$previous_action.user_code", "$$user_id"}},
+					}},
+				}}},
+				bson.D{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},
+				bson.D{{Key: "$limit", Value: 1}},
+				bson.D{{Key: "$project", Value: bson.M{"request_action": 1, "created_at": 1}}},
+			},
+			"as": "last_action_info",
+		}}},
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from": "cps_actions",
+			"let":  bson.M{"user_id": "$user_code"},
+			"pipeline": mongo.Pipeline{
+				bson.D{{Key: "$match", Value: bson.M{
+					"$expr": bson.M{"$and": bson.A{
+						bson.M{"$eq": bson.A{"$request_action", string(constants.RequestCreateBPSUser)}},
+						bson.M{"$eq": bson.A{"$action_status", "APPROVED"}},
+						bson.M{"$eq": bson.A{"$current_action.user_code", "$$user_id"}},
+					}},
+				}}},
+				bson.D{{Key: "$limit", Value: 1}},
+				bson.D{{Key: "$project", Value: bson.M{"maker_id": 1, "checker_users": 1}}},
+			},
+			"as": "create_action_info",
+		}}},
+
+		bson.D{{Key: "$unwind", Value: bson.M{"path": "$role_info", "preserveNullAndEmptyArrays": true}}},
+		bson.D{{Key: "$unwind", Value: bson.M{"path": "$delegation_info", "preserveNullAndEmptyArrays": true}}},
+		bson.D{{Key: "$unwind", Value: bson.M{"path": "$last_action_info", "preserveNullAndEmptyArrays": true}}},
+		bson.D{{Key: "$unwind", Value: bson.M{"path": "$create_action_info", "preserveNullAndEmptyArrays": true}}},
+
+		bson.D{{Key: "$project", Value: bson.M{
+			"_id":          0,
+			"first_name":   "$full_name",
+			"phone_number": 1,
+			"email":        1,
+			"department":   bson.M{"$ifNull": bson.A{"$branch_name", bson.M{"$arrayElemAt": bson.A{"$branch_code", 0}}}},
+			"job_title":    1,
+			"role": bson.M{"$ifNull": bson.A{
+				"$role_info.role",
+				bson.M{"$ifNull": bson.A{
+					"$role_info.name",
+					bson.M{"$ifNull": bson.A{
+						"$role_info.code",
+						"$role",
+					}},
+				}},
+			}},
+			"username":                   1,
+			"created_at":                 1,
+			"expiry_date_for_delegation": "$delegation_info.end_at",
+			"last_modification_action":   "$last_action_info.request_action",
+			"last_modified":              "$last_action_info.created_at",
+			"created_by": bson.M{"$cond": bson.M{
+				"if":   bson.M{"$ne": bson.A{"$create_action_info.maker_id", ""}},
+				"then": "$create_action_info.maker_id",
+				"else": "SSO",
+			}},
+			"approved_by": bson.M{"$ifNull": bson.A{
+				bson.M{"$arrayElemAt": bson.A{"$create_action_info.checker_users.checker_id", 0}},
+				"",
+			}},
+			"enabled":    1,
+			"last_login": 1,
+		}}},
+	}
+
+	cursor, err := b.collection.Aggregate(ctx, pipeline)
 	if err != nil {
 		return nil, local_util.HandleDBError(err)
 	}
 	defer cursor.Close(ctx)
 
-	var users []bps_model.BPSUser
+	var users []imodel.ExportBPSUser
 	if err := cursor.All(ctx, &users); err != nil {
 		return nil, local_util.HandleDBError(err)
 	}
