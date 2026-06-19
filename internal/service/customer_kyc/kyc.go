@@ -398,7 +398,7 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 			CustomerGroup: string(constants.MASS),
 			NationalId:    userData.KYCData.Sub,
 
-			Url: s.cfg.AccountOpeningURL,
+			Url: "https://superrapp-account-opening-https-ace-uat.apps.cp4itest.cbe.local/cust_creation",
 			Header: map[string]string{
 				"Authorization": "Bearer " + token,
 			},
