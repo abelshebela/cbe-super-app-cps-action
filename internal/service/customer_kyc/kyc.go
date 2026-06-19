@@ -345,6 +345,7 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 			return nil, err
 		}
 
+		log.Infof("[CustKycSvc][Authorize] creating core account for customer token: %s", token)
 		data := coreio.CreateCustomerParam{
 			FirstName:  firstName,
 			MiddleName: middleName,
@@ -409,7 +410,7 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 			log.Errorf("[CustKycSvc][Authorize] core account creation failed: %v", err)
 			return nil, err
 		}
-		log.Infof("[CustKycSvc][Authorize] core account created for customer: %s", data.UniqueID)
+		log.Infof("[CustKycSvc][Authorize] core account created for customer: %s", userAccount)
 
 		if err = s.repo.CreateUser(ctx, userAccount, *userData); err != nil {
 			return nil, err
