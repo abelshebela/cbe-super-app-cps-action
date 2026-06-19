@@ -457,6 +457,7 @@ func (a *servicesAdapter) UpdateServiceList(w http.ResponseWriter, r *http.Reque
 //	@Produce		json
 //	@Param			page			query		int		false	"Page number"		default(1)
 //	@Param			per_page		query		int		false	"Items per page"	default(10)
+//	@Param			param			query		string	false	"Use 'all' to return all records without pagination"
 //	@Param			service_name	query		string	false	"Filter by service_name"
 //	@Param			service_code	query		string	false	"Filter by service_code"
 //	@Param			service_type	query		string	false	"Filter by service_type"
