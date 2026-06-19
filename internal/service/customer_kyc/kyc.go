@@ -345,43 +345,42 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 			return nil, err
 		}
 
-		log.Infof("[CustKycSvc][Authorize] creating core account for customer token: %s", token)
 		data := coreio.CreateCustomerParam{
-			FirstName:  firstName,
-			MiddleName: middleName,
-			LastName:   lastName,
+			// T24 MNEMONIC is generated from name — must be uppercase trimmed
+			FirstName:  strings.ToUpper(strings.TrimSpace(firstName)),
+			MiddleName: strings.ToUpper(strings.TrimSpace(middleName)),
+			LastName:   strings.ToUpper(strings.TrimSpace(lastName)),
 
 			PhoneNumber: userData.KYCData.PhoneNumber,
 
-			Address: strings.Join([]string{
-				"Region: " + userData.KYCData.Address.Region,
-				"Zone: " + userData.KYCData.Address.Zone,
-				"Kebele: " + userData.KYCData.Address.Kebele,
-				"Woreda: " + userData.KYCData.Address.Woreda,
-			}, ", "),
+			// T24 ADDRESS field has a ~35-char limit
+			Address: strings.TrimSpace(userData.KYCData.Address.Woreda),
 
 			PostalCode:     constants.Empty,
-			ISOCountryCode: userData.KYCData.Country,
+			ISOCountryCode: strings.ToUpper(strings.TrimSpace(userData.KYCData.Country)),
 
-			AccountOffice: constants.Empty,
+			// TODO: move AccountOffice to config
+			AccountOffice: "7124",
 			Industry:      constants.Empty,
 
-			ISONationalityCode: userData.KYCData.Nationality,
-			ISOResidentCode:    userData.KYCData.Country,
+			ISONationalityCode: strings.ToUpper(strings.TrimSpace(userData.KYCData.Nationality)),
+			ISOResidentCode:    strings.ToUpper(strings.TrimSpace(userData.KYCData.Country)),
 
 			UniqueID:   userData.KYCData.OriginID,
-			IssuesBy:   constants.Empty,
+			IssuesBy:   strings.ToUpper(string(userData.KYCData.Vendor)),
 			IssuedDate: constants.Empty,
 			ExpiryDate: constants.Empty,
 
-			Gender:      userData.KYCData.Gender,
-			DateOfBirth: userData.KYCData.BirthDate.Format("2006-01-02"),
+			// T24 GENDER lookup: "MALE" / "FEMALE"
+			Gender: strings.ToUpper(strings.TrimSpace(userData.KYCData.Gender)),
+			// T24 DATE.OF.BIRTH must be YYYYMMDD (no dashes)
+			DateOfBirth: userData.KYCData.BirthDate.Format("20060102"),
 
-			MaritalStatus: userData.KYCData.MaritalStatus,
+			MaritalStatus: strings.ToUpper(strings.TrimSpace(userData.KYCData.MaritalStatus)),
 			Email:         userData.KYCData.Email,
 
-			EmploymentStatus: userData.KYCData.EmployementStatus,
-			Occupation:       userData.KYCData.Occupation,
+			EmploymentStatus: strings.ToUpper(strings.TrimSpace(userData.KYCData.EmployementStatus)),
+			Occupation:       strings.ToUpper(strings.TrimSpace(userData.KYCData.Occupation)),
 
 			EmployerName:     constants.Empty,
 			EmployerAddress:  constants.Empty,
@@ -394,8 +393,8 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 			NetMonthlyExpence: constants.Empty,
 
 			TinNumber:     userData.KYCData.USTIN,
-			MotherName:    userData.KYCData.MothersName,
-			CustomerGroup: string(constants.MASS),
+			MotherName:    strings.ToUpper(strings.TrimSpace(userData.KYCData.MothersName)),
+			CustomerGroup: t24CustomerGroup(userData.KYCData.SubAccountType),
 			NationalId:    userData.KYCData.Sub,
 
 			Url: "https://superrapp-account-opening-https-ace-uat.apps.cp4itest.cbe.local/cust_creation",
@@ -487,4 +486,13 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 	}
 
 	return cpsAction, nil
+}
+
+// t24CustomerGroup maps the app's sub-account type to a T24 customer group code.
+// Falls back to "RETAIL" when empty, matching the working sandbox example.
+func t24CustomerGroup(subAccountType string) string {
+	if g := strings.ToUpper(strings.TrimSpace(subAccountType)); g != "" {
+		return g
+	}
+	return "RETAIL"
 }
