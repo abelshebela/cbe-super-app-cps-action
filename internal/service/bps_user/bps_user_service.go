@@ -62,18 +62,42 @@ func NewBPSUserService(repo storage.BPSUserRepository, JobRolesRepo storage.JobR
 	}
 }
 
-func bpsUserExportRow(user bps_model.BPSUser) []string {
+func bpsUserExportRow(user imodel.ExportBPSUser) []string {
+	createdBy := user.CreatedBy
+	if createdBy == "" {
+		createdBy = "SSO"
+	}
+	lastModified := ""
+	if !user.LastModified.IsZero() {
+		lastModified = user.LastModified.Format(time.RFC3339)
+	}
+	expiryDate := ""
+	userType := "Permanent"
+	if !user.ExpiryDateForDelegation.IsZero() {
+		userType = "Delegation"
+		expiryDate = user.ExpiryDateForDelegation.Format(time.RFC3339)
+	}
+	lastLogin := ""
+	if !user.LastLogin.IsZero() {
+		lastLogin = user.LastLogin.Format(time.RFC3339)
+	}
 	return []string{
-		user.UserCode,
-		user.FullName,
-		user.Username,
-		user.Email,
+		user.FirstName,
 		user.PhoneNumber,
-		strings.Join(user.BranchCode, ","),
+		user.Email,
+		user.Branch,
 		user.JobTitle,
 		user.Role,
-		fmt.Sprintf("%t", user.Enabled),
+		user.UserName,
 		user.CreatedAt.Format(time.RFC3339),
+		lastLogin,
+		fmt.Sprintf("%t", user.Enabled),
+		userType,
+		expiryDate,
+		user.LastModificationAction,
+		lastModified,
+		createdBy,
+		user.ApprovedBy,
 	}
 }
 
@@ -100,7 +124,7 @@ func (b *bpsUserService) ExportUsers(ctx context.Context, startDate, endDate tim
 		return "", errors.New(localization.BpsUserDataNotFoundInDateRange.Code)
 	}
 
-	headers := []string{"User Code", "Full Name", "Username", "Email", "Phone Number", "Branch Codes", "Job Title", "Role", "Enabled", "Created At"}
+	headers := []string{"Full Name", "Phone Number", "Email", "Branch", "Job Title", "Role", "Username", "Created At", "Last Login", "Enabled", "User Type", "Expiry Date (Delegation)", "Last Modification Action", "Last Modified", "Created By", "Approved By"}
 
 	ext := "csv"
 	if fileType == string(lib.FileTypePDF) {

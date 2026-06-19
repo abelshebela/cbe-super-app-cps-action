@@ -99,7 +99,7 @@ func (h *accountProductCategoryAdapter) Create(w http.ResponseWriter, r *http.Re
 
 	if rc := apc_core.ValidateCreate(&req); rc.Code != "" {
 		span.SetAttributes(attribute.String("invalid input", rc.Code))
-		log.Errorf("[APCHandler][Create] validation: %s", rc.Code)
+		log.Errorf("[APCHandler][Create] validation: %s", rc.Message)
 		localization.SendErrorResponse(w, rc, nil, nil)
 		return
 	}
