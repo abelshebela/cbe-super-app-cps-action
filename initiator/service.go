@@ -100,7 +100,14 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	mediaProducer := media.CreateKafkaProducer(logger, cfg)
 	accountLookupAdapter := account_lookup.NewCoreAccountLookupAdapter(persistence.AccountLookup, cfg.CbeCoreUrl, time.Duration(cfg.ServerTimeout)*time.Second, logger)
 
-	tokenProviderClient := tp_client.NewTokenProviderClient(cfg.AccountOpeningTokenURL, cfg.AccountOpeningClientID, cfg.AccountOpeningClientSecret, cfg.AccountOpeningScope, logger)
+	// TODO: move to config
+	const (
+		tokenURL          = "https://devapisuperapp.cbe.com.et/superapp/parser/proxy/cbe-dev/sandbox/oauth-mb-cbebirr/oauth2/token?target=https%3A%2F%2Fapi-gw-uat-gateway-apic-nonprod.apps.cp4itest.cbe.local"
+		tokenClientID     = "f1ceebd8d6d5b802dc7fd8332ab33603"
+		tokenClientSecret = "05ac01f2f134bfff2549669bc11bd6cc"
+		tokenScope        = "mb-cbebirr-scope"
+	)
+	tokenProviderClient := tp_client.NewTokenProviderClient(tokenURL, tokenClientID, tokenClientSecret, tokenScope, logger)
 	tokenProviderService := token_provider_svc.NewTokenProviderService(tokenProviderClient, redis, logger)
 
 	feedbackService := feedback.NewFeedbackService(persistence.FeedbackPersistence, oracle.Customer, logger)
