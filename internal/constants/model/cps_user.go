@@ -57,22 +57,32 @@ type CPSUser struct {
 }
 
 type ExportCPSUser struct {
-	FirstName               string    `json:"first_name,omitempty" bson:"first_name"`
-	MiddleName              string    `json:"middle_name,omitempty" bson:"middle_name"`
-	LastName                string    `json:"last_name,omitempty" bson:"last_name"`
-	PhoneNumber             string    `json:"phone_number,omitempty" bson:"phone_number"`
-	Email                   string    `json:"email,omitempty" bson:"email"`
-	Department              string    `json:"department,omitempty" bson:"department"`
-	JobTitle                string    `json:"job_title" bson:"job_title"`
-	Role                    string    `json:"role,omitempty" bson:"role"`
-	UserName                string    `json:"username,omitempty" bson:"username"`
-	CreatedAt               time.Time `json:"created_at" bson:"created_at"`
+	// find from cps_user collection
+	FirstName   string    `json:"first_name,omitempty" bson:"first_name"`
+	MiddleName  string    `json:"middle_name,omitempty" bson:"middle_name"`
+	LastName    string    `json:"last_name,omitempty" bson:"last_name"`
+	PhoneNumber string    `json:"phone_number,omitempty" bson:"phone_number"`
+	Email       string    `json:"email,omitempty" bson:"email"`
+	Department  string    `json:"department,omitempty" bson:"department"`
+	JobTitle    string    `json:"job_title" bson:"job_title"`
+	Role        string    `json:"role,omitempty" bson:"role"`
+	UserName    string    `json:"username,omitempty" bson:"username"`
+	CreatedAt   time.Time `json:"created_at" bson:"created_at"`
+	Enabled     bool      `json:"enabled,omitempty" bson:"enabled"`
+	LastLogin   time.Time `json:"last_login" bson:"last_login"`
+
+	// from roles_delegation collection by using the returned user id from cps_user collection filter by delegated_user_id == current users id and is_active == true plus the statat and endat for the roles_delegation  then we will get the endat for ExpiryDateForDelegation
+	// if roles_delegation is found then the UserType will be "Delegation" if not found then the UserType will be "permanent" while keeping the ExpiryDateForDelegation empty
 	ExpiryDateForDelegation time.Time `json:"expiry_date_for_delegation" bson:"expiry_date_for_delegation"`
-	LastModificationAction  string    `json:"last_modification_action" bson:"last_modification_action"`
-	LastModified            time.Time `json:"last_modified,omitempty" bson:"last_modified"`
-	CreatedBy               string    `json:"created_by,omitempty" bson:"created_by"`
-	ApprovedBy              string    `json:"approved_by,omitempty" bson:"approved_by"`
-	Enabled                 bool      `json:"enabled,omitempty" bson:"enabled"`
-	LastLogin               time.Time `json:"last_login" bson:"last_login"`
 	UserType                string    `json:"user_type,omitempty" bson:"user_type"`
+
+	// from cps_actions collection filter by request_action between "CREATE_CPS_USER" "UPDATE_CPS_USER" "DELETE_CPS_USER" "ENABLE_CPS_USER" "DISABLE_CPS_USER" thenwe will get the last action and last modified date for that user
+	// cps_actions.previous_action.id == current users id => then we will get the last modification action(which will be cps_actions.request_action) and last modified date(which will be cps_actions.created_at)
+	LastModificationAction string    `json:"last_modification_action" bson:"last_modification_action"`
+	LastModified           time.Time `json:"last_modified,omitempty" bson:"last_modified"`
+
+	// from cps_actions collection filter by request_action ==  "CREATE_CPS_USER" and action_status == "Approved" then we find for cps_actions.current_action.user_code == current users user_code => then we will get the created by user which will be cps_actions.maker_id and approved by user which will be cps_actions.checker_users[0].checker_id
+	// if maker_id is empty replay with "SSO" and approved by with ""
+	CreatedBy  string `json:"created_by,omitempty" bson:"created_by"`
+	ApprovedBy string `json:"approved_by,omitempty" bson:"approved_by"`
 }
