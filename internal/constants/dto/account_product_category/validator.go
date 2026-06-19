@@ -88,21 +88,34 @@ func (r CreateAPCRequest) Validate() error {
 }
 
 func (r UpdateAPCRequest) Validate() error {
-	return validation.ValidateStruct(&r,
-		validation.Field(&r.ProductLine,
-			validation.When(r.ProductLine != "", validation.By(validProductLine)),
-		),
-		validation.Field(&r.CBSCategoryCode,
-			validation.Length(0, 64),
-			validation.When(r.CBSCategoryCode != "", validation.By(codeFormat)),
-		),
-		validation.Field(&r.CategoryName,
-			validation.Length(0, 128),
-			validation.When(r.CategoryName != "", validation.By(noSpecialChars)),
-		),
-		validation.Field(&r.Description,
-			validation.Length(0, 512),
-			validation.When(r.Description != "", validation.By(noSpecialChars)),
-		),
-	)
+	if r.ProductLine != "" {
+		if err := validProductLine(r.ProductLine); err != nil {
+			return errors.New(err.Error())
+		}
+	}
+	if r.CBSCategoryCode != "" {
+		if len(r.CBSCategoryCode) > 64 {
+			return errors.New("CBS Category Code must be at most 64 characters")
+		}
+		if err := codeFormat(r.CBSCategoryCode); err != nil {
+			return errors.New("CBS Category Code: " + err.Error())
+		}
+	}
+	if r.CategoryName != "" {
+		if len(r.CategoryName) > 128 {
+			return errors.New("Category Name must be at most 128 characters")
+		}
+		if err := noSpecialChars(r.CategoryName); err != nil {
+			return errors.New("Category Name: " + err.Error())
+		}
+	}
+	if r.Description != "" {
+		if len(r.Description) > 512 {
+			return errors.New("Description must be at most 512 characters")
+		}
+		if err := noSpecialChars(r.Description); err != nil {
+			return errors.New("Description: " + err.Error())
+		}
+	}
+	return nil
 }
