@@ -171,7 +171,7 @@ func (r *CPSUserStorage) FindForExport(ctx context.Context, startDate, endDate t
 			"last_modified":              "$last_modification_info.created_at",
 			"created_by": bson.M{
 				"$cond": bson.M{
-					"if":   bson.M{"$ne": []interface{}{"$create_action_info.maker_id", ""}},
+					"if":   bson.M{"$ne": bson.A{"$create_action_info.maker_id", ""}},
 					"then": "$create_action_info.maker_id",
 					"else": "SSO",
 				},
