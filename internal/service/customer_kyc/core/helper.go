@@ -19,12 +19,17 @@ import (
 func CreateAccountToCore(ctx context.Context, data coreio.CreateCustomerParam, accountLookupService accountLookup.Account, coreio coreio.CBECoreAPIInterface, logger utils.Logger) (*coreio.CreateCustomerResult, error) {
 	response, err := coreio.CreateCustomer(ctx, data)
 	if err != nil {
+		logger.Errorf("failed to create customer: %v", err)
 		return nil, err
 	}
 
-	if response == nil || !response.Success {
-		logger.Errorf("failed to create customer: %v", err)
-		return nil, fmt.Errorf("customer creation returned empty response")
+	if response == nil {
+		return nil, fmt.Errorf("customer creation returned nil response")
+	}
+
+	if !response.Success {
+		logger.Errorf("customer creation rejected by core: %v", response.Messages)
+		return nil, fmt.Errorf("customer creation failed: %s", strings.Join(response.Messages, ", "))
 	}
 
 	return response, nil
