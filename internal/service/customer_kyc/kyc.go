@@ -357,14 +357,14 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 			Address: strings.TrimSpace(userData.KYCData.Address.Woreda),
 
 			PostalCode:     constants.Empty,
-			ISOCountryCode: strings.ToUpper(strings.TrimSpace(userData.KYCData.Country)),
+			ISOCountryCode: "ET", // TODO: derive from Country field once ISO alpha-2 is confirmed in data
 
 			// TODO: move AccountOffice to config
 			AccountOffice: "7124",
 			Industry:      constants.Empty,
 
-			ISONationalityCode: strings.ToUpper(strings.TrimSpace(userData.KYCData.Nationality)),
-			ISOResidentCode:    strings.ToUpper(strings.TrimSpace(userData.KYCData.Country)),
+			ISONationalityCode: "ET", // TODO: derive from Nationality field once ISO alpha-2 is confirmed in data
+			ISOResidentCode:    "ET", // TODO: derive from Country field once ISO alpha-2 is confirmed in data
 
 			UniqueID:   userData.KYCData.OriginID,
 			IssuesBy:   strings.ToUpper(string(userData.KYCData.Vendor)),
@@ -379,17 +379,17 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 			MaritalStatus: strings.ToUpper(strings.TrimSpace(userData.KYCData.MaritalStatus)),
 			Email:         userData.KYCData.Email,
 
-			EmploymentStatus: strings.ToUpper(strings.TrimSpace(userData.KYCData.EmployementStatus)),
+			EmploymentStatus: t24EmploymentStatus(userData.KYCData.EmployementStatus),
 			Occupation:       strings.ToUpper(strings.TrimSpace(userData.KYCData.Occupation)),
 
 			EmployerName:     constants.Empty,
 			EmployerAddress:  constants.Empty,
 			EmployerBusiness: userData.KYCData.SourceOfIncome,
 
-			CustomerCurrency:  userData.KYCData.Currency,
-			Salary:            userData.KYCData.MonthlyIncome,
+			CustomerCurrency: t24Currency(userData.KYCData.Currency),
+			Salary:            t24Amount(userData.KYCData.MonthlyIncome),
 			AnnualBonus:       constants.Empty,
-			NetMonthlyIncome:  userData.KYCData.MonthlyIncome,
+			NetMonthlyIncome:  t24Amount(userData.KYCData.MonthlyIncome),
 			NetMonthlyExpence: constants.Empty,
 
 			TinNumber:     userData.KYCData.USTIN,
@@ -403,7 +403,7 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 			},
 		}
 
-		s.logger.Infof("[CustKycSvc][Authorize] creating core account data: %v — uniqueID=%s sub=%s url=%s", data, data.UniqueID, data.NationalId, data.Url)
+		s.logger.Infof("[CustKycSvc][Authorize] core call params — uniqueID=%s employmentStatus=%s salary=%s nationality=%s country=%s", data.UniqueID, data.EmploymentStatus, data.Salary, data.ISONationalityCode, data.ISOCountryCode)
 		userAccount, err := core.CreateAccountToCore(ctx, data, s.accountService, s.coreio, s.logger)
 		if err != nil {
 			log.Errorf("[CustKycSvc][Authorize] core account creation failed: %v", err)
@@ -495,4 +495,41 @@ func t24CustomerGroup(subAccountType string) string {
 		return g
 	}
 	return "RETAIL"
+}
+
+// t24Amount returns the amount string for T24 currency fields.
+// T24 rejects empty strings with "CURRENCY MISSING"; default to "0".
+func t24Amount(v string) string {
+	if strings.TrimSpace(v) == "" {
+		return "0"
+	}
+	return v
+}
+
+// t24Currency defaults to "ETB" when the stored currency field is empty.
+func t24Currency(currency string) string {
+	if strings.TrimSpace(currency) == "" {
+		return "ETB"
+	}
+	return strings.ToUpper(strings.TrimSpace(currency))
+}
+
+// t24EmploymentStatus maps mobile-app employment status values to T24 lookup codes.
+func t24EmploymentStatus(status string) string {
+	switch strings.ToUpper(strings.TrimSpace(status)) {
+	case "FULL_TIME", "FULLTIME", "FULL-TIME":
+		return "EMPLOYED"
+	case "SELF_EMPLOYED", "SELFEMPLOYED", "SELF-EMPLOYED":
+		return "SELF-EMP"
+	case "PART_TIME", "PARTTIME", "PART-TIME":
+		return "EMPLOYED"
+	case "UNEMPLOYED":
+		return "UNEMPL"
+	case "RETIRED":
+		return "RETIRED"
+	case "STUDENT":
+		return "STUDENT"
+	default:
+		return strings.ToUpper(strings.TrimSpace(status))
+	}
 }
