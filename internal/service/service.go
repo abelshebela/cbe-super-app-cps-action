@@ -641,6 +641,10 @@ type AccountOpeningTermsService interface {
 	Delete(ctx context.Context, id string) error
 }
 
+type TokenProviderService interface {
+	GetToken(ctx context.Context) (string, error)
+}
+
 type ServiceLayer struct {
 	RoleService                   RoleService
 	EventService                  EventService
@@ -708,6 +712,7 @@ type ServiceLayer struct {
 	AccountProductCategory        AccountProductCategoryService
 	AccountProduct                AccountProductService
 	AccountOpeningTerms           AccountOpeningTermsService
+	TokenProvider                 TokenProviderService
 }
 
 type ServiceContainer struct {
