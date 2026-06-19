@@ -92,33 +92,46 @@ func (r CreateAPRequest) Validate() error {
 }
 
 func (r UpdateAPRequest) Validate() error {
-	return validation.ValidateStruct(&r,
-		validation.Field(&r.CBSProductCode,
-			validation.Length(0, 64),
-			validation.When(r.CBSProductCode != "", validation.By(apCodeFormat)),
-		),
-		validation.Field(&r.ProductName,
-			validation.Length(0, 128),
-			validation.When(r.ProductName != "", validation.By(apNoSpecialChars)),
-		),
-		validation.Field(&r.ProductTagLine,
-			validation.Length(0, 128),
-			validation.When(r.ProductTagLine != "", validation.By(apNoSpecialChars)),
-		),
-		validation.Field(&r.AccountCurrency,
-			validation.When(r.AccountCurrency != "", validation.By(apValidCurrency)),
-		),
-		validation.Field(&r.MinimumOpeningBalance,
-			validation.When(r.MinimumOpeningBalance != 0, validation.Min(float64(1))),
-		),
-		validation.Field(&r.MinimumMaintenanceFee,
-			validation.When(r.MinimumMaintenanceFee != 0, validation.Min(float64(1))),
-		),
-		validation.Field(&r.FaqURL,
-			validation.Length(0, 512),
-		),
-		validation.Field(&r.ProductFeatures,
-			validation.Length(0, 1024),
-		),
-	)
+	if r.CBSProductCode != "" {
+		if len(r.CBSProductCode) > 64 {
+			return errors.New("CBS Product Code must be at most 64 characters")
+		}
+		if err := apCodeFormat(r.CBSProductCode); err != nil {
+			return errors.New("CBS Product Code: " + err.Error())
+		}
+	}
+	if r.ProductName != "" {
+		if len(r.ProductName) > 128 {
+			return errors.New("Product Name must be at most 128 characters")
+		}
+		if err := apNoSpecialChars(r.ProductName); err != nil {
+			return errors.New("Product Name: " + err.Error())
+		}
+	}
+	if r.ProductTagLine != "" {
+		if len(r.ProductTagLine) > 128 {
+			return errors.New("Product Tag Line must be at most 128 characters")
+		}
+		if err := apNoSpecialChars(r.ProductTagLine); err != nil {
+			return errors.New("Product Tag Line: " + err.Error())
+		}
+	}
+	if r.AccountCurrency != "" {
+		if err := apValidCurrency(r.AccountCurrency); err != nil {
+			return errors.New("Account Currency: " + err.Error())
+		}
+	}
+	if r.MinimumOpeningBalance != 0 && r.MinimumOpeningBalance < 1 {
+		return errors.New("Minimum Opening Balance must be at least 1")
+	}
+	if r.MinimumMaintenanceFee != 0 && r.MinimumMaintenanceFee < 1 {
+		return errors.New("Minimum Maintenance Fee must be at least 1")
+	}
+	if len(r.FaqURL) > 512 {
+		return errors.New("FAQ URL must be at most 512 characters")
+	}
+	if len(r.ProductFeatures) > 1024 {
+		return errors.New("Product Features must be at most 1024 characters")
+	}
+	return nil
 }
