@@ -339,6 +339,12 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 			lastName = strings.Join(nameParts[2:], " ")
 		}
 
+		token, err := s.tokenProvider.GetToken(ctx)
+		if err != nil {
+			log.Errorf("[CustKycSvc][Authorize] token fetch: %v", err)
+			return nil, err
+		}
+
 		data := coreio.CreateCustomerParam{
 			FirstName:  firstName,
 			MiddleName: middleName,
@@ -389,6 +395,12 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 			TinNumber:     userData.KYCData.USTIN,
 			MotherName:    userData.KYCData.MothersName,
 			CustomerGroup: string(constants.MASS),
+			NationalId:    userData.KYCData.Sub,
+
+			Url: s.cfg.AccountOpeningURL,
+			Header: map[string]string{
+				"Authorization": "Bearer " + token,
+			},
 		}
 
 		s.logger.Infof("[CustKycSvc][Authorize] creating core account for customer: %s", data.UniqueID)
@@ -397,38 +409,7 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 			log.Errorf("[CustKycSvc][Authorize] core account creation failed: %v", err)
 			return nil, err
 		}
-
-		log.Infof("[CustKycSvc][Authorize] core account created successfully for customer: %s, account number: %s", data.UniqueID, userAccount)
-		token, err := s.tokenProvider.GetToken(ctx)
-		if err != nil {
-			log.Errorf("[CustKycSvc][Authorize] token fetch: %v", err)
-			return nil, err
-		}
-
-		log.Infof("[CustKycSvc][Authorize] token fetched successfully for account creation %v", token)
-		accountResult, err := s.coreio.AccountCreation(ctx, coreio.AccountCreationParam{
-			Username:       s.cfg.CbeCoreUsername,
-			Password:       s.cfg.CbeCorePassword,
-			CustomerNumber: userAccount.Detail.Customer,
-			Category:       userData.KYCData.AccountType,
-			Currency:       userData.KYCData.Currency,
-			Url:            s.cfg.AccountOpeningURL,
-			Header: map[string]string{
-				"Authorization": "Bearer " + token,
-			},
-		})
-
-		if err != nil {
-			log.Errorf("[CustKycSvc][Authorize] account creation: %v", err)
-			return nil, err
-		}
-
-		log.Infof("[CustKycSvc][Authorize] account creation response *****************: %v", accountResult)
-		if !accountResult.Success {
-			log.Errorf("[CustKycSvc][Authorize] account creation failed: %v", accountResult.Messages)
-			return nil, fmt.Errorf("account creation failed: %s", strings.Join(accountResult.Messages, ", "))
-		}
-		log.Infof("[CustKycSvc][Authorize] account created for customer=%s", userAccount.Detail.Customer)
+		log.Infof("[CustKycSvc][Authorize] core account created for customer: %s", data.UniqueID)
 
 		if err = s.repo.CreateUser(ctx, userAccount, *userData); err != nil {
 			return nil, err
