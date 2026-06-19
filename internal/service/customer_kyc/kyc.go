@@ -402,6 +402,7 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 			return nil, err
 		}
 
+		log.Infof("[CustKycSvc][Authorize] token fetched successfully for account creation %v", token)
 		accountResult, err := s.coreio.AccountCreation(ctx, coreio.AccountCreationParam{
 			Username:       s.cfg.CbeCoreUsername,
 			Password:       s.cfg.CbeCorePassword,
