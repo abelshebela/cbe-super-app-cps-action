@@ -317,6 +317,7 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 
 	switch string(cpsAction.RequestAction) {
 	case string(constants.RequestApproveCustomerKYC):
+
 		userData, err := local_util.JsonUnmarshal[imodel.CustomerKYC](cpsAction.CurrentAction)
 		if err != nil {
 			return nil, err
@@ -390,12 +391,14 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 			CustomerGroup: string(constants.MASS),
 		}
 
+		s.logger.Infof("[CustKycSvc][Authorize] creating core account for customer: %s", data.UniqueID)
 		userAccount, err := core.CreateAccountToCore(ctx, data, s.accountService, s.coreio, s.logger)
 		if err != nil {
 			log.Errorf("[CustKycSvc][Authorize] core account creation failed: %v", err)
 			return nil, err
 		}
 
+		log.Infof("[CustKycSvc][Authorize] core account created successfully for customer: %s, account number: %s", data.UniqueID, userAccount)
 		token, err := s.tokenProvider.GetToken(ctx)
 		if err != nil {
 			log.Errorf("[CustKycSvc][Authorize] token fetch: %v", err)
@@ -414,6 +417,7 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 				"Authorization": "Bearer " + token,
 			},
 		})
+
 		if err != nil {
 			log.Errorf("[CustKycSvc][Authorize] account creation: %v", err)
 			return nil, err
