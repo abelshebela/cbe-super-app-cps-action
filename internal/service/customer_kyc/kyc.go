@@ -404,7 +404,7 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 			},
 		}
 
-		s.logger.Infof("[CustKycSvc][Authorize] creating core account — uniqueID=%s sub=%s url=%s", data.UniqueID, data.NationalId, data.Url)
+		s.logger.Infof("[CustKycSvc][Authorize] creating core account data: %v — uniqueID=%s sub=%s url=%s", data, data.UniqueID, data.NationalId, data.Url)
 		userAccount, err := core.CreateAccountToCore(ctx, data, s.accountService, s.coreio, s.logger)
 		if err != nil {
 			log.Errorf("[CustKycSvc][Authorize] core account creation failed: %v", err)
