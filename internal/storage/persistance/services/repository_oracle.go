@@ -1097,12 +1097,12 @@ OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`
 	}
 	defer rows.Close()
 
-	var list []imodel.ServiceKey
+	list := make([]imodel.ServiceKey, 0)
+
 	for rows.Next() {
-		var listID string
 		var item imodel.ServiceKey
 		if err := rows.Scan(
-			&listID,
+			&item.ID,
 			&item.ServiceName,
 			&item.ServiceKey,
 			&item.AccountType,
@@ -1113,8 +1113,6 @@ OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`
 			log.Errorf("[ServicesRepo][FindAllServiceListWithPagination] scan failed: %v", err)
 			return nil, local_util.HandleDBError(err)
 		}
-
-		item.ID = listID
 
 		list = append(list, item)
 	}
