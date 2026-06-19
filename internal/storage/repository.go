@@ -35,8 +35,9 @@ import (
 	bps_user_dto "cbe-super-app-cps-action/internal/constants/dto/bps_user"
 	service_dto "cbe-super-app-cps-action/internal/constants/dto/services"
 	bps_action "cbe-super-app-cps-action/internal/constants/model"
-
 	event_model "cbe-super-app-cps-action/internal/constants/model"
+
+	coreio "github.com/hugokessem/coreio/core"
 
 	bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 	// mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
@@ -939,7 +940,7 @@ type CustomerKYCRepository interface {
 	// Create(ctx context.Context, req *imodel.CustomerKYC) error
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.CustomerKYC], error)
 	FindByID(ctx context.Context, id string) (*imodel.CustomerKYC, error)
-	CreateUser(ctx context.Context, userAccount types.Account, userData imodel.KYCRequest) error
+	CreateUser(ctx context.Context, userAccount *coreio.CreateCustomerResult, userData imodel.CustomerKYC) error
 	UpdateKYCStatus(ctx context.Context, id, status, rejectionReason string, approved bool) error
 	FindKycInReview(ctx context.Context, kycID string) (*imodel.StartedKycReview, error)
 	StartKycReview(ctx context.Context, reviewData *imodel.StartedKycReview) (*imodel.StartedKycReview, error)

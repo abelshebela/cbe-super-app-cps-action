@@ -26,7 +26,7 @@ func Init(router chi.Router, h tac_interface.TermAndConditionHandler, authMiddle
 			Path: pathResource, Handler: h.GetByID, Middlewares: auth},
 		{Method: http.MethodPost,
 			Path: pathCollection, Handler: h.Upload, Middlewares: auth},
-		{Method: http.MethodPut, Path: pathResource, Handler: h.Update, Middlewares: auth},
+		{Method: http.MethodPatch, Path: pathResource, Handler: h.Update, Middlewares: auth},
 		{Method: http.MethodDelete, Path: pathResource, Handler: h.Delete, Middlewares: auth},
 	}
 

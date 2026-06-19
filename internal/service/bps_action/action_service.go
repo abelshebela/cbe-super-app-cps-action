@@ -418,6 +418,14 @@ func (ba *bpsActionService) GetBPSActionsForApprover(ctx context.Context, userID
 
 	}
 
+	for _, action := range result.Data {
+		if action.ServiceName == "" {
+			if mod, ok := ResolveModuleForRA(RequestAction(action.RequestAction)); ok {
+				action.ServiceName = mod
+			}
+		}
+	}
+
 	log.Infof("[BpsActionSvc][GetBPSActionsForApprover] ----------------found %d actions for user %s with filter %+v", len(result.Data), userID, filterParams.Filters)
 	return result, nil
 
@@ -460,6 +468,13 @@ func (ba *bpsActionService) GetBPSActionsForAuditor(ctx context.Context, userID 
 			span.AddEvent("failed to find all with pagination for auditor (NOTCHECKED)", trace.WithAttributes(attribute.String("error", err.Error())))
 			return nil, err
 		}
+		for _, action := range result.Data {
+			if action.ServiceName == "" {
+				if mod, ok := ResolveModuleForRA(RequestAction(action.RequestAction)); ok {
+					action.ServiceName = mod
+				}
+			}
+		}
 		return result, nil
 	}
 
@@ -500,6 +515,14 @@ func (ba *bpsActionService) GetBPSActionsForAuditor(ctx context.Context, userID 
 		return nil, err
 	}
 
+	for _, action := range result.Data {
+		if action.ServiceName == "" {
+			if mod, ok := ResolveModuleForRA(RequestAction(action.RequestAction)); ok {
+				action.ServiceName = mod
+			}
+		}
+	}
+
 	return result, nil
 }
 
@@ -528,6 +551,14 @@ func (ba *bpsActionService) GetBPSActions(ctx context.Context, userID, role stri
 
 		return nil, err
 
+	}
+
+	for _, action := range result.Data {
+		if action.ServiceName == "" {
+			if mod, ok := ResolveModuleForRA(RequestAction(action.RequestAction)); ok {
+				action.ServiceName = mod
+			}
+		}
 	}
 
 	return result, nil

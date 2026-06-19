@@ -16,6 +16,20 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
+func ParseCoverImageFile(r *http.Request, isRequired bool, logger utils.Logger) (*multipart.FileHeader, error) {
+	_, fileHeader, err := local_util.ParseMultipartFormFile(r, "cover_image", int64(constants.MaxMemoryForUpload))
+	if err != nil {
+		if err == http.ErrMissingFile {
+			if isRequired {
+				return nil, fmt.Errorf("cover image is required")
+			}
+			return nil, nil
+		}
+		logger.Errorf("[APHandler][ParseCoverImage] parse err: %v", err)
+		return nil, fmt.Errorf("failed to parse cover image file: %w", err)
+	}
+	return fileHeader, nil
+}
 func ParseIconFile(r *http.Request, isRequired bool, logger utils.Logger) (*multipart.FileHeader, error) {
 	_, fileHeader, err := local_util.ParseMultipartFormFile(r, "icon", int64(constants.MaxMemoryForUpload))
 	if err != nil {
@@ -34,11 +48,17 @@ func ParseIconFile(r *http.Request, isRequired bool, logger utils.Logger) (*mult
 func ParseCreateRequest(r *http.Request, logger utils.Logger) (ap_dto.CreateAPRequest, error) {
 	var req ap_dto.CreateAPRequest
 
-	icon, err := ParseIconFile(r, true, logger)
+	// icon, err := ParseIconFile(r, true, logger)
+	// if err != nil {
+	// 	return req, err
+	// }
+	// req.Icon = icon
+
+	coverImage, err := ParseCoverImageFile(r, true, logger)
 	if err != nil {
 		return req, err
 	}
-	req.Icon = icon
+	req.CoverImage = coverImage
 
 	req.CBSProductCode = strings.TrimSpace(r.FormValue("cps_product_code"))
 	req.ProductName = strings.TrimSpace(r.FormValue("product_name"))
@@ -97,11 +117,17 @@ func ParseCreateRequest(r *http.Request, logger utils.Logger) (ap_dto.CreateAPRe
 func ParseUpdateRequest(r *http.Request, logger utils.Logger) (ap_dto.UpdateAPRequest, error) {
 	var req ap_dto.UpdateAPRequest
 
-	icon, err := ParseIconFile(r, false, logger)
+	// icon, err := ParseIconFile(r, false, logger)
+	// if err != nil {
+	// 	return req, err
+	// }
+	// req.Icon = icon
+
+	coverImage, err := ParseCoverImageFile(r, false, logger)
 	if err != nil {
 		return req, err
 	}
-	req.Icon = icon
+	req.CoverImage = coverImage
 
 	req.CBSProductCode = strings.TrimSpace(r.FormValue("cps_product_code"))
 	req.ProductName = strings.TrimSpace(r.FormValue("product_name"))
@@ -177,12 +203,12 @@ func MapToResponse(m *imodel.AccountProduct) ap_dto.APResponse {
 		ProductFeatures:       m.ProductFeatures,
 		HasPhysicalCard:       m.HasPhysicalCard,
 		HasVirtualCard:        m.HasVirtualCard,
-		ProductIcon:           m.ProductIcon,
-		ProductCoverImage:     m.ProductCoverImage,
-		IsEnabled:             m.IsEnabled,
-		IsDeleted:             m.IsDeleted,
-		CreatedAt:             m.CreatedAt.String(),
-		LastModifiedAt:        m.LastModifiedAt.String(),
+		// ProductIcon:           m.ProductIcon,
+		ProductCoverImage: m.ProductCoverImage,
+		IsEnabled:         m.IsEnabled,
+		IsDeleted:         m.IsDeleted,
+		CreatedAt:         m.CreatedAt.String(),
+		LastModifiedAt:    m.LastModifiedAt.String(),
 	}
 }
 

@@ -77,6 +77,8 @@ func (h *accountProductAdapter) GetByID(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+
 	log.Infof("[APHandler][GetByID] found id=%s", id)
 	localization.SendSuccessResponse(w, localization.SuccessAPRetrieved, ap_core.MapToResponse(result))
 }
@@ -200,6 +202,11 @@ func (h *accountProductAdapter) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+		localization.SendSuccessResponse(w, localization.SuccessBankCreatedSuccessfully, nil)
+		return
+	}
 	log.Infof("[APHandler][Delete] request sent id=%s", id)
 	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessAPDeleteRequestSent, nil)

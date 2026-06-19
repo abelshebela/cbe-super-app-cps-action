@@ -1,28 +1,33 @@
 package core
 
 import (
-	accountLookupDto "cbe-super-app-cps-action/internal/constants/dto/account_lookup"
 	dto "cbe-super-app-cps-action/internal/constants/dto/customer_kyc"
 	"cbe-super-app-cps-action/internal/constants/model"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	accountLookup "cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
 	"context"
+	"fmt"
 	"strings"
 	"time"
+
+	coreio "github.com/hugokessem/coreio/core"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
-func CreateAccountToCore(ctx context.Context, data accountLookupDto.AccountCreateParams, accountLookupService accountLookup.Account, logger utils.Logger) (types.Account, error) {
-
-	accountResponse, err := accountLookupService.CreateAccountWithFayda(ctx, data)
+func CreateAccountToCore(ctx context.Context, data coreio.CreateCustomerParam, accountLookupService accountLookup.Account, coreio coreio.CBECoreAPIInterface, logger utils.Logger) (*coreio.CreateCustomerResult, error) {
+	response, err := coreio.CreateCustomer(ctx, data)
 	if err != nil {
-		logger.Errorf("[KycVerifCore][CreateLink] create account err: %v", err)
-		return types.Account{}, err
+		return nil, err
 	}
 
-	return accountResponse, nil
+	if response == nil || !response.Success {
+		logger.Errorf("failed to create customer: %v", err)
+		return nil, fmt.Errorf("customer creation returned empty response")
+	}
+
+	return response, nil
 }
 
 func MapCustomerKYCToResponsePaginated(c *types.PaginatedResponse[[]imodel.CustomerKYC]) *types.PaginatedResponse[[]dto.CustomerKYCResponse] {
