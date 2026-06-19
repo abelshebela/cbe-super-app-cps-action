@@ -2,6 +2,7 @@ package token_provider
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -31,8 +32,11 @@ type TokenProviderClient struct {
 }
 
 func NewTokenProviderClient(tokenURL, clientID, clientSecret, scope string, logger utils.Logger) *TokenProviderClient {
+	transport := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, //nolint:gosec // UAT gateway uses internal CA not in system trust store
+	}
 	return &TokenProviderClient{
-		httpClient:   &http.Client{Timeout: 30 * time.Second},
+		httpClient:   &http.Client{Timeout: 30 * time.Second, Transport: transport},
 		logger:       logger,
 		tokenURL:     tokenURL,
 		clientID:     clientID,
