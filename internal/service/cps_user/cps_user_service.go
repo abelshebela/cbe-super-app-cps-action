@@ -64,23 +64,39 @@ func NewCPSUserService(repo storage.CpsUserRepository, JobRoleRepo storage.JobRo
 	}
 }
 
-func cpsUserExportRow(user imodel.CPSUser) []string {
-	department := ""
-	if user.Department != bson.NilObjectID {
-		department = user.Department.Hex()
-	}
+func cpsUserExportRow(user imodel.ExportCPSUser) []string {
+	expiryDate := ""
+	userType := "Permanent"
+	if !user.ExpiryDateForDelegation.IsZero() {
+		userType = "Delegation"
+		expiryDate = user.ExpiryDateForDelegation.Format(time.RFC3339)
 
+	}
+	lastModified := ""
+	if !user.LastModified.IsZero() {
+		lastModified = user.LastModified.Format(time.RFC3339)
+	}
+	lastLogin := ""
+	if !user.LastLogin.IsZero() {
+		lastLogin = user.LastLogin.Format(time.RFC3339)
+	}
 	return []string{
-		user.UserCode,
-		user.FullName,
-		user.UserName,
-		user.Email,
+		user.FirstName,
 		user.PhoneNumber,
+		user.Email,
+		user.Department,
 		user.JobTitle,
 		user.Role,
-		department,
-		fmt.Sprintf("%t", user.Enabled),
+		user.UserName,
 		user.CreatedAt.Format(time.RFC3339),
+		lastLogin,
+		fmt.Sprintf("%t", user.Enabled),
+		userType,
+		expiryDate,
+		user.LastModificationAction,
+		lastModified,
+		user.CreatedBy,
+		user.ApprovedBy,
 	}
 }
 
@@ -107,7 +123,13 @@ func (s *cpsUserService) ExportUsers(ctx context.Context, startDate, endDate tim
 		return "", errors.New(localization.CpsUserDataNotFoundInDateRange.Code)
 	}
 
-	headers := []string{"User Code", "Full Name", "Username", "Email", "Phone Number", "Job Title", "Role", "Department", "Enabled", "Created At"}
+	headers := []string{
+		"Full Name", "Phone Number", "Email", "Department", "Job Title", "Role",
+		"Username", "Created At", "Last Login", "Enabled",
+		"User Type", "Expiry Date (Delegation)",
+		"Last Modification Action", "Last Modified",
+		"Created By", "Approved By",
+	}
 
 	ext := "csv"
 	if fileType == string(lib.FileTypePDF) {

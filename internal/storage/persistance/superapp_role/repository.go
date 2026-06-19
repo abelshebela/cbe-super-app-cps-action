@@ -136,7 +136,7 @@ OFFSET :pg_offset ROWS FETCH NEXT :pg_limit ROWS ONLY`, where)
 }
 
 func collectRoleGroups(rows *sql.Rows) ([]imodel.SuperAppRoleGroup, error) {
-	var result []imodel.SuperAppRoleGroup
+	result := make([]imodel.SuperAppRoleGroup, 0)
 	for rows.Next() {
 		var role, label string
 		var groupEnabled int
