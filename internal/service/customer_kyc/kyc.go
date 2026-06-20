@@ -361,7 +361,7 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 			ISONationalityCode: "ET",
 			ISOResidentCode:    "ET",
 
-			UniqueID:   local_util.NonEmptyString(userData.KYCData.OriginID, userData.KYCData.Sub),
+			UniqueID:   t24LegalID(local_util.NonEmptyString(userData.KYCData.OriginID, userData.KYCData.Sub)),
 			IssuesBy:   strings.ToUpper(string(userData.KYCData.Vendor)),
 			IssuedDate: time.Now().Format("20060102"),
 			ExpiryDate: constants.Empty,
@@ -519,4 +519,13 @@ func t24EmploymentStatus(status string) string {
 	default:
 		return strings.ToUpper(strings.TrimSpace(status))
 	}
+}
+
+// t24LegalID truncates the ID to T24's LEGAL.ID max of 35 characters.
+func t24LegalID(id string) string {
+	const maxLen = 35
+	if len(id) <= maxLen {
+		return id
+	}
+	return id[:maxLen]
 }
