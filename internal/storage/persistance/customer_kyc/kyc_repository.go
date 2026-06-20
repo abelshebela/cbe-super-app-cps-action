@@ -57,7 +57,7 @@ func (r *customerKYCRepository) FindAllWithPagination(ctx context.Context, filte
 		}
 	}
 
-	results, err := r.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	results, err := r.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		log.Errorf("[CustomerKYC][FindAllWithPagination] failed to fetch data: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
@@ -187,8 +187,8 @@ INSERT INTO USERS (
 
 		"UNSET", // :15 PIN — NOT NULL; user sets PIN later via app
 		"",      // :16 PIN_HISTORY
-		0,  // :17 FAILED_LOGIN_ATTEMPT
-		0,  // :18 IS_LOCKED
+		0,       // :17 FAILED_LOGIN_ATTEMPT
+		0,       // :18 IS_LOCKED
 
 		0, // :19 IS_SUPERAPP_ENABLED
 		0, // :20 IS_USSD_ENABLED
