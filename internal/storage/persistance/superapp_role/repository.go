@@ -296,7 +296,7 @@ func (r *superAppRoleStorage) RoleExists(ctx context.Context, superappRole strin
 func (r *superAppRoleStorage) FindRoleBlockedAccessLists(ctx context.Context, superappRole string) ([]imodel.APPAccessList, error) {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
-	const q = `SELECT RAWTOHEX(g.ACCESS_LIST_ID), a.NAME, a.SERVICE_KEY, g.IS_ENABLED
+	const q = `SELECT RAWTOHEX(g.ACCESS_LIST_ID), a.NAME, a.SERVICE_KEY, a.IS_ENABLED
 		FROM ACCESS_LIST_BY_SUPERAPP_ROLE g
 		JOIN ACCESS_LISTS a ON g.ACCESS_LIST_ID = a.ID
 		WHERE g.SUPERAPP_ROLE_ID = :1
