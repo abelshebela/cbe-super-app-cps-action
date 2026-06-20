@@ -8,6 +8,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/storage"
+	"cbe-super-app-cps-action/internal/storage/kafka"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"encoding/csv"
@@ -34,6 +35,7 @@ type roleDelegation struct {
 	cpsService   service.CPSActionService
 	branchRepo   storage.AccountBlockRepository
 	minioClient  *s3.Client
+	kafkaClient  kafka.NotificationProducer
 	bucketName   string
 	cfg          config.VaultConfig
 	logger       utils.Logger
@@ -75,10 +77,18 @@ func (r *roleDelegation) Authorize(ctx context.Context, cpsAction *model.CPSActi
 		if err := r.repo.CreateWithExistingUser(ctx, &roleDelegation); err != nil {
 			return nil, err
 		}
+		// send mail to notify the delegated user about the new role delegation and timeframe
+		if err := r.kafkaClient.PublishMessage(ctx, "", "email", "role-delegation", ""); err != nil {
+			log.Errorf("[RoleDelegation Service][Authorize] failed to send notification email: %v", err)
+		}
 	case string(constants.RequestCreateRoleDelegationForNewUser):
 		roleDelegation.CreatedAt = time.Now()
 		if err := r.repo.CreateWithNewUser(ctx, &roleDelegation); err != nil {
 			return nil, err
+		}
+		// send mail to notify the delegated user about the new role delegation and timeframe
+		if err := r.kafkaClient.PublishMessage(ctx, "", "email", "role-delegation", ""); err != nil {
+			log.Errorf("[RoleDelegation Service][Authorize] failed to send notification email: %v", err)
 		}
 	case string(constants.RequestUpdateRoleDelegation):
 		roleDelegation.UpdatedAt = time.Now()
@@ -591,7 +601,6 @@ func roleDelegationPreferredValue(preferred, fallback string) string {
 	}
 	return fallback
 }
-
 
 func NewRoleDelegationService(repo storage.RoleDelegationRepository, jobTitleRepo storage.JobRoleRepository, cpsUserRepo storage.CpsUserRepository, bpsUserRepo storage.BPSUserRepository, department storage.DepartmentRepository, roleRepo storage.RoleRepository, branchRepo storage.AccountBlockRepository, cpsService service.CPSActionService, minioClient *s3.Client, bucketName string, cfg config.VaultConfig, logger utils.Logger) service.RoleDelegationService {
 	return &roleDelegation{
