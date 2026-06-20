@@ -321,21 +321,21 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 			return nil, err
 		}
 
-		var firstName, middleName, lastName string
+		// var firstName, middleName, lastName string
 
-		nameParts := strings.Fields(strings.TrimSpace(userData.KYCData.FullName))
+		// nameParts := strings.Fields(strings.TrimSpace(userData.KYCData.FullName))
 
-		switch len(nameParts) {
-		case 1:
-			firstName = nameParts[0]
-		case 2:
-			firstName = nameParts[0]
-			lastName = nameParts[1]
-		default:
-			firstName = nameParts[0]
-			middleName = nameParts[1]
-			lastName = strings.Join(nameParts[2:], " ")
-		}
+		// switch len(nameParts) {
+		// case 1:
+		// 	firstName = nameParts[0]
+		// case 2:
+		// 	firstName = nameParts[0]
+		// 	lastName = nameParts[1]
+		// default:
+		// 	firstName = nameParts[0]
+		// 	middleName = nameParts[1]
+		// 	lastName = strings.Join(nameParts[2:], " ")
+		// }
 
 		token, err := s.tokenProvider.GetToken(ctx)
 		if err != nil {
@@ -344,57 +344,97 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 		}
 
 		data := coreio.CreateCustomerParam{
-			FirstName:  strings.ToUpper(strings.TrimSpace(firstName)),
-			MiddleName: strings.ToUpper(strings.TrimSpace(middleName)),
-			LastName:   strings.ToUpper(strings.TrimSpace(lastName)),
-
-			PhoneNumber: userData.KYCData.PhoneNumber,
-
-			Address: strings.TrimSpace(userData.KYCData.Address.Woreda),
-
-			PostalCode:     constants.Empty,
-			ISOCountryCode: "ET",
-
-			AccountOffice: s.cfg.CentralKYCBranchCode,
-			Industry:      constants.Empty,
-
+			FirstName:          "DAWIT",
+			MiddleName:         "GIRMA",
+			LastName:           "BEKELE",
+			PhoneNumber:        "+251911234567",
+			Address:            "BOLE, ADDIS ABABA",
+			PostalCode:         "1000",
+			ISOCountryCode:     "ET",
+			AccountOffice:      "7020",
+			Industry:           "1201",
 			ISONationalityCode: "ET",
 			ISOResidentCode:    "ET",
-
-			UniqueID:   t24LegalID(local_util.NonEmptyString(userData.KYCData.OriginID, userData.KYCData.Sub)),
-			IssuesBy:   strings.ToUpper(string(userData.KYCData.Vendor)),
-			IssuedDate: t24IssuedDate(userData.KYCData.IssuedDate),
-			ExpiryDate: constants.Empty,
-
-			Gender:      strings.ToUpper(strings.TrimSpace(userData.KYCData.Gender)),
-			DateOfBirth: userData.KYCData.BirthDate.Format("20060102"),
-
-			MaritalStatus: strings.ToUpper(strings.TrimSpace(userData.KYCData.MaritalStatus)),
-			Email:         userData.KYCData.Email,
-
-			EmploymentStatus: t24EmploymentStatus(userData.KYCData.EmployementStatus),
-			Occupation:       strings.ToUpper(strings.TrimSpace(userData.KYCData.Occupation)),
-
-			EmployerName:     constants.Empty,
-			EmployerAddress:  constants.Empty,
-			EmployerBusiness: userData.KYCData.SourceOfIncome,
-
-			CustomerCurrency:  t24Currency(userData.KYCData.Currency),
-			Salary:            t24Amount(userData.KYCData.MonthlyIncome),
-			AnnualBonus:       constants.Empty,
-			NetMonthlyIncome:  t24Amount(userData.KYCData.MonthlyIncome),
-			NetMonthlyExpence: constants.Empty,
-
-			TinNumber:     userData.KYCData.USTIN,
-			MotherName:    strings.ToUpper(strings.TrimSpace(userData.KYCData.MothersName)),
-			CustomerGroup: t24CustomerGroup(userData.KYCData.SubAccountType),
-			NationalId:    userData.KYCData.Sub,
-
-			Url: s.cfg.CustomerCreateURL,
+			UniqueID:           "9988776655443322",
+			IssuesBy:           "FAYDA",
+			IssuedDate:         "20230315",
+			ExpiryDate:         "20330315",
+			Gender:             "MALE",
+			DateOfBirth:        "19950520",
+			MaritalStatus:      "MARRIED",
+			Email:              "dawit.bekele@example.com",
+			EmploymentStatus:   "EMPLOYED",
+			Occupation:         "SOFTWARE ENGINEER",
+			EmployerName:       "ETHIO TECH SOLUTIONS",
+			EmployerAddress:    "ADDIS ABABA",
+			EmployerBusiness:   "INFORMATION TECHNOLOGY",
+			CustomerCurrency:   "ETB",
+			Salary:             "120000",
+			AnnualBonus:        "75000",
+			NetMonthlyIncome:   "95000",
+			NetMonthlyExpence:  "40000",
+			TinNumber:          "1234567890123456",
+			MotherName:         "MESERET KASSA",
+			CustomerGroup:      "RETAIL",
+			NationalId:         "9988776655443322",
+			Url:                s.cfg.CustomerCreateURL,
 			Header: map[string]string{
 				"Authorization": "Bearer " + token,
 			},
 		}
+
+		// data := coreio.CreateCustomerParam{
+		// 	FirstName:  strings.ToUpper(strings.TrimSpace(firstName)),
+		// 	MiddleName: strings.ToUpper(strings.TrimSpace(middleName)),
+		// 	LastName:   strings.ToUpper(strings.TrimSpace(lastName)),
+
+		// 	PhoneNumber: userData.KYCData.PhoneNumber,
+
+		// 	Address: strings.TrimSpace(userData.KYCData.Address.Woreda),
+
+		// 	PostalCode:     constants.Empty,
+		// 	ISOCountryCode: "ET",
+
+		// 	AccountOffice: s.cfg.CentralKYCBranchCode,
+		// 	Industry:      constants.Empty,
+
+		// 	ISONationalityCode: "ET",
+		// 	ISOResidentCode:    "ET",
+
+		// 	UniqueID:   t24LegalID(local_util.NonEmptyString(userData.KYCData.OriginID, userData.KYCData.Sub)),
+		// 	IssuesBy:   strings.ToUpper(string(userData.KYCData.Vendor)),
+		// 	IssuedDate: t24IssuedDate(userData.KYCData.IssuedDate),
+		// 	ExpiryDate: constants.Empty,
+
+		// 	Gender:      strings.ToUpper(strings.TrimSpace(userData.KYCData.Gender)),
+		// 	DateOfBirth: userData.KYCData.BirthDate.Format("20060102"),
+
+		// 	MaritalStatus: strings.ToUpper(strings.TrimSpace(userData.KYCData.MaritalStatus)),
+		// 	Email:         userData.KYCData.Email,
+
+		// 	EmploymentStatus: t24EmploymentStatus(userData.KYCData.EmployementStatus),
+		// 	Occupation:       strings.ToUpper(strings.TrimSpace(userData.KYCData.Occupation)),
+
+		// 	EmployerName:     constants.Empty,
+		// 	EmployerAddress:  constants.Empty,
+		// 	EmployerBusiness: userData.KYCData.SourceOfIncome,
+
+		// 	CustomerCurrency:  t24Currency(userData.KYCData.Currency),
+		// 	Salary:            t24Amount(userData.KYCData.MonthlyIncome),
+		// 	AnnualBonus:       constants.Empty,
+		// 	NetMonthlyIncome:  t24Amount(userData.KYCData.MonthlyIncome),
+		// 	NetMonthlyExpence: constants.Empty,
+
+		// 	TinNumber:     userData.KYCData.USTIN,
+		// 	MotherName:    strings.ToUpper(strings.TrimSpace(userData.KYCData.MothersName)),
+		// 	CustomerGroup: t24CustomerGroup(userData.KYCData.SubAccountType),
+		// 	NationalId:    userData.KYCData.Sub,
+
+		// 	Url: s.cfg.CustomerCreateURL,
+		// 	Header: map[string]string{
+		// 		"Authorization": "Bearer " + token,
+		// 	},
+		// }
 
 		s.logger.Infof("[CustKycSvc][Authorize] core call params — uniqueID=%s employmentStatus=%s salary=%s nationality=%s country=%s", data.UniqueID, data.EmploymentStatus, data.Salary, data.ISONationalityCode, data.ISOCountryCode)
 		userAccount, err := core.CreateAccountToCore(ctx, data, s.accountService, s.coreio, s.cfg, s.logger)
