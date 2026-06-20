@@ -99,39 +99,53 @@ func (r *customerKYCRepository) FindByID(ctx context.Context, id string) (*imode
 func (r *customerKYCRepository) CreateUser(ctx context.Context, userAccount *coreio.CreateCustomerResult, userData imodel.CustomerKYC) error {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
-	const q = `
+	detail := userAccount.Detail
+	userCode := "SA" + detail.Customer
+
+	var firstName, middleName, lastName string
+	nameParts := strings.Fields(detail.FullName)
+	switch len(nameParts) {
+	case 1:
+		firstName = nameParts[0]
+	case 2:
+		firstName = nameParts[0]
+		lastName = nameParts[1]
+	default:
+		firstName = nameParts[0]
+		middleName = strings.Join(nameParts[1:len(nameParts)-1], " ")
+		lastName = nameParts[len(nameParts)-1]
+	}
+	username := core.GenerateUsername(firstName, lastName, middleName)
+
+	tx, err := r.oracleDB.BeginTx(ctx, nil)
+	if err != nil {
+		log.Errorf("[customerKYCRepository][CreateUser] begin tx: %v", err)
+		return local_util.HandleDBError(err)
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	// ── 1. Resolve CBE bank ID ────────────────────────────────────────────
+	const bankQ = `SELECT RAWTOHEX(id) FROM banks WHERE is_cbe = 1 AND is_enabled = 1 AND is_deleted = 0 AND ROWNUM = 1`
+	var bankID string
+	if err := tx.QueryRowContext(ctx, bankQ).Scan(&bankID); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return errors.New("cbe bank not found")
+		}
+		log.Errorf("[customerKYCRepository][CreateUser] fetch bank id: %v", err)
+		return local_util.HandleDBError(err)
+	}
+
+	// ── 2. INSERT into USERS ──────────────────────────────────────────────
+	const insertUserQ = `
 INSERT INTO USERS (
-	USER_CODE,
-	USERNAME,
-	CONTACT_EMAIL,
-	CONTACT_PHONE,
-	CUSTOMER_NUMBER,
-	SECTOR,
-	OWNERSHIP,
-	INDUSTRY,
-	FIRST_NAME,
-	LAST_NAME,
-	MIDDLE_NAME,
-	FULL_NAME,
-	GENDER,
-	BIRTH_OF_DATE,
-	PIN,
-	PIN_HISTORY,
-	FAILED_LOGIN_ATTEMPT,
-	IS_LOCKED,
-	IS_SUPERAPP_ENABLED,
-	IS_USSD_ENABLED,
-	IS_USSD_ACTIVE,
-	IS_BLOCKED,
-	IS_SUPERAPP_ACTIVE,
-	LANGUAGE,
-	PUSH_TOKEN,
-	BRANCH_CODE,
-	IS_BUDGET_ENABLED,
-	EXPIRY_AT,
-	PIN_CREATED_AT,
-	CREATED_AT,
-	LAST_MODIFIED_AT
+	USER_CODE, USERNAME, CONTACT_EMAIL, CONTACT_PHONE, CUSTOMER_NUMBER,
+	SECTOR, OWNERSHIP, INDUSTRY,
+	FIRST_NAME, LAST_NAME, MIDDLE_NAME, FULL_NAME,
+	GENDER, BIRTH_OF_DATE,
+	PIN, PIN_HISTORY, FAILED_LOGIN_ATTEMPT, IS_LOCKED,
+	IS_SUPERAPP_ENABLED, IS_USSD_ENABLED, IS_USSD_ACTIVE, IS_BLOCKED, IS_SUPERAPP_ACTIVE,
+	LANGUAGE, PUSH_TOKEN, BRANCH_CODE, IS_BUDGET_ENABLED, EXPIRY_AT,
+	PIN_CREATED_AT, CREATED_AT, LAST_MODIFIED_AT
 ) VALUES (
 	:1, :2, :3, :4, :5, :6, :7, :8, :9,
 	:10, :11, :12, :13, :14, :15, :16, :17, :18, :19,
@@ -139,81 +153,109 @@ INSERT INTO USERS (
 	SYSTIMESTAMP, SYSTIMESTAMP, SYSTIMESTAMP
 )`
 
-	detail := userAccount.Detail
-
-	var firstName, middleName, lastName string
-
-	nameParts := strings.Fields(detail.FullName)
-
-	switch len(nameParts) {
-	case 1:
-		firstName = nameParts[0]
-
-	case 2:
-		firstName = nameParts[0]
-		lastName = nameParts[1]
-
-	default:
-		firstName = nameParts[0]
-		middleName = strings.Join(nameParts[1:len(nameParts)-1], " ")
-		lastName = nameParts[len(nameParts)-1]
+	currency := detail.Currency
+	if strings.TrimSpace(currency) == "" {
+		currency = "ETB"
 	}
 
-	userCode := "SA" + detail.Customer
+	// Parse T24 YYYYMMDD date string to time.Time for Oracle DATE column
+	var dob *time.Time
+	if t, parseErr := time.Parse("20060102", detail.DateOfBirth); parseErr == nil {
+		dob = &t
+	} else {
+		log.Warnf("[customerKYCRepository][CreateUser] unparseable DateOfBirth %q: %v", detail.DateOfBirth, parseErr)
+	}
 
-	username := core.GenerateUsername(
-		firstName,
-		lastName,
-		middleName,
-	)
+	_, err = tx.ExecContext(ctx, insertUserQ,
+		userCode,           // :1  USER_CODE
+		username,           // :2  USERNAME
+		detail.Email,       // :3  CONTACT_EMAIL
+		detail.PhoneNumber, // :4  CONTACT_PHONE
+		detail.Customer,    // :5  CUSTOMER_NUMBER
 
-	_, err := r.oracleDB.ExecContext(
-		ctx,
-		q,
+		detail.Industry,  // :6  SECTOR
+		detail.Ownership, // :7  OWNERSHIP
+		detail.Industry,  // :8  INDUSTRY
 
-		userCode,           // USER_CODE
-		username,           // USERNAME
-		detail.Email,       // CONTACT_EMAIL
-		detail.PhoneNumber, // CONTACT_PHONE
-		"",                 // CUSTOMER_NUMBER
+		firstName,       // :9  FIRST_NAME
+		lastName,        // :10 LAST_NAME
+		middleName,      // :11 MIDDLE_NAME
+		detail.FullName, // :12 FULL_NAME
 
-		detail.Industry,  // SECTOR
-		detail.Ownership, // OWNERSHIP
-		detail.Industry,  // INDUSTRY
+		detail.Gender, // :13 GENDER
+		dob,           // :14 BIRTH_OF_DATE — time.Time for Oracle DATE (was string "YYYYMMDD" → ORA-01861)
 
-		firstName,       // FIRST_NAME
-		lastName,        // LAST_NAME
-		middleName,      // MIDDLE_NAME
-		detail.FullName, // FULL_NAME
+		"UNSET", // :15 PIN — NOT NULL; user sets PIN later via app
+		"",      // :16 PIN_HISTORY
+		0,  // :17 FAILED_LOGIN_ATTEMPT
+		0,  // :18 IS_LOCKED
 
-		detail.Gender,      // GENDER
-		detail.DateOfBirth, // BIRTH_OF_DATE
+		0, // :19 IS_SUPERAPP_ENABLED
+		0, // :20 IS_USSD_ENABLED
+		0, // :21 IS_USSD_ACTIVE
+		0, // :22 IS_BLOCKED
+		0, // :23 IS_SUPERAPP_ACTIVE
 
-		"", // PIN
-		"", // PIN_HISTORY
-		0,  // FAILED_LOGIN_ATTEMPT
-		0,  // IS_LOCKED
+		"EN", // :24 LANGUAGE
+		"",   // :25 PUSH_TOKEN
 
-		0, // IS_SUPERAPP_ENABLED
-		0, // IS_USSD_ENABLED
-		0, // IS_USSD_ACTIVE
-		0, // IS_BLOCKED
-		0, // IS_SUPERAPP_ACTIVE
-
-		"EN", // LANGUAGE
-		"",   // PUSH_TOKEN
-
-		detail.AccountOfficer, // BRANCH_CODE
-
-		0, // IS_BUDGET_ENABLED
-		0, // EXPIRY_AT
+		detail.AccountOfficer, // :26 BRANCH_CODE
+		0,                     // :27 IS_BUDGET_ENABLED
+		(*time.Time)(nil),     // :28 EXPIRY_AT — NULL (was 0, caused ORA-00932)
 	)
 	if err != nil {
-		log.Errorf(
-			"[customerKYCRepository][CreateUser] insert failed: %v",
-			err,
-		)
+		log.Errorf("[customerKYCRepository][CreateUser] user insert: %v", err)
+		return local_util.HandleDBError(err)
+	}
+	log.Infof("[customerKYCRepository][CreateUser] user created: %s", userCode)
 
+	// ── 3. INSERT into ACCOUNTS ───────────────────────────────────────────
+	const insertAccountQ = `
+INSERT INTO ACCOUNTS (
+	BANK_ID, ACCOUNT_HOLDER_NAME, ACCOUNT_NUMBER,
+	ACCOUNT_CURRENCY, ACCOUNT_TYPE, ACCOUNT_BRANCH, CUSTOMER_NUMBER
+) VALUES (
+	HEXTORAW(:bank_id), :holder_name, :account_number,
+	:currency, :account_type, :branch, :customer_number
+) RETURNING RAWTOHEX(ID) INTO :id`
+
+	var accountID string
+	_, err = tx.ExecContext(ctx, insertAccountQ,
+		sql.Named("bank_id", bankID),
+		sql.Named("holder_name", detail.FullName),
+		sql.Named("account_number", detail.Customer),
+		sql.Named("currency", currency),
+		sql.Named("account_type", userData.KYCData.AccountType),
+		sql.Named("branch", detail.AccountOfficer),
+		sql.Named("customer_number", detail.Customer),
+		sql.Named("id", sql.Out{Dest: &accountID}),
+	)
+	if err != nil {
+		log.Errorf("[customerKYCRepository][CreateUser] account insert: %v", err)
+		return local_util.HandleDBError(err)
+	}
+	log.Infof("[customerKYCRepository][CreateUser] account created: id=%s number=%s", accountID, detail.Customer)
+
+	// ── 4. INSERT into LINKED_ACCOUNTS ────────────────────────────────────
+	const insertLinkedQ = `
+INSERT INTO LINKED_ACCOUNTS (
+	USER_CODE, ACCOUNT_ID, IS_MAIN_ACCOUNT, IS_SUPERAPP_ENABLED, IS_USSD_ENABLED, IS_ACTIVE
+) VALUES (
+	:user_code, HEXTORAW(:account_id), 1, 1, 0, 1
+)`
+
+	_, err = tx.ExecContext(ctx, insertLinkedQ,
+		sql.Named("user_code", userCode),
+		sql.Named("account_id", accountID),
+	)
+	if err != nil {
+		log.Errorf("[customerKYCRepository][CreateUser] linked account insert: %v", err)
+		return local_util.HandleDBError(err)
+	}
+	log.Infof("[customerKYCRepository][CreateUser] linked account created: user=%s account=%s", userCode, accountID)
+
+	if err := tx.Commit(); err != nil {
+		log.Errorf("[customerKYCRepository][CreateUser] commit: %v", err)
 		return local_util.HandleDBError(err)
 	}
 

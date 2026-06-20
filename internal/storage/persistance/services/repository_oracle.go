@@ -1009,9 +1009,16 @@ func (s *ServicesStorage) FindAllServiceListWithPagination(ctx context.Context, 
 		page = int64(filterParam.Page)
 	}
 	offset := (page - 1) * limit
+	fetchAll := false
+	if filterParam.Filters != nil {
+		if value, ok := filterParam.Filters["data"]; ok {
+			if data, ok := local_util.StringFromFilterValue(value); ok && strings.EqualFold(data, "all") {
+				fetchAll = true
+			}
+		}
+	}
 
-	clauses := []string{"is_enabled = is_enabled", "is_deleted = 0"}
-	clauses = []string{}
+	clauses := []string{}
 	args := []interface{}{}
 
 	search := strings.TrimSpace(filterParam.Search)
@@ -1069,10 +1076,20 @@ SELECT
   last_modified_at
 FROM %s
 WHERE %s AND is_deleted = 0
-ORDER BY created_at DESC
-OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, accessListTable, where)
+ORDER BY created_at DESC`, accessListTable, where)
 
-	listArgs := append(args, sql.Named("offset", offset), sql.Named("limit", limit))
+	listArgs := args
+	if !fetchAll {
+		listQ += `
+OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`
+		listArgs = append(args, sql.Named("offset", offset), sql.Named("limit", limit))
+	} else {
+		if total > 0 {
+			limit = total
+		}
+		page = 1
+	}
+
 	rows, err := s.db.QueryContext(ctx, listQ, listArgs...)
 	if err != nil {
 		log.Errorf("[ServicesRepo][FindAllServiceListWithPagination] list query failed: %v", err)
@@ -1080,12 +1097,12 @@ OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, accessListTable, where)
 	}
 	defer rows.Close()
 
-	var list []imodel.ServiceKey
+	list := make([]imodel.ServiceKey, 0)
+
 	for rows.Next() {
-		var listID string
 		var item imodel.ServiceKey
 		if err := rows.Scan(
-			&listID,
+			&item.ID,
 			&item.ServiceName,
 			&item.ServiceKey,
 			&item.AccountType,
@@ -1096,8 +1113,6 @@ OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, accessListTable, where)
 			log.Errorf("[ServicesRepo][FindAllServiceListWithPagination] scan failed: %v", err)
 			return nil, local_util.HandleDBError(err)
 		}
-
-		item.ID = listID
 
 		list = append(list, item)
 	}
