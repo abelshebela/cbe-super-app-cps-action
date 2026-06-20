@@ -31,7 +31,7 @@ func extractDuplicateContract(message string) string {
 }
 
 func CreateAccountToCore(ctx context.Context, data core.CreateCustomerParam, accountLookupService accountLookup.Account, coreAPI core.CBECoreAPIInterface, cfg *config.VaultConfig, logger utils.Logger) (*core.CusteomerAccountCreationResponse, error) {
-	response, err := coreAPI.AccountCreate(ctx, data, cfg.AccountCreateURL, "6501")
+	response, err := coreAPI.AccountCreate(ctx, data, cfg.AccountOpeningURL, "6501")
 	if err != nil {
 		logger.Errorf("failed to create customer: %v", err)
 		return nil, err
