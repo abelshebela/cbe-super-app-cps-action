@@ -32,13 +32,18 @@ func NewMiniAppMerchantOracleRepository(logger shared_utils.Logger, db *sql.DB) 
 
 func (m *miniAppMerchantOraclePersistence) Create(ctx context.Context, merchant *local_model.MiniAppMerchant) (*local_model.MiniAppMerchant, error) {
 	q := querypkg.MiniAppMerchantInsert
-	fmt.Printf("%T\n", fmt.Sprintf("%s", merchant.SettlementMethod))
-	fmt.Printf("%#v\n", fmt.Sprintf("%s", merchant.SettlementMethod))
-	_, err := m.db.ExecContext(ctx, q, merchant.MerchantName, merchant.MerchantCode, fmt.Sprintf("%s", merchant.SettlementMethod), merchant.BankAccountNumber, boolToInt64(merchant.Enabled), boolToInt64(merchant.IsDeleted), merchant.CreatedAt, merchant.UpdatedAt, merchant.PhoneNumber, merchant.Email)
+	var err error
+	if merchant.SettlementMethod == local_model.SettlementMethodDirect || merchant.SettlementMethod == local_model.SettlementMethodGL{
+
+	_, err = m.db.ExecContext(ctx, q, merchant.MerchantName, merchant.MerchantCode, fmt.Sprintf("%s", merchant.SettlementMethod), merchant.BankAccountNumber, boolToInt64(merchant.Enabled), boolToInt64(merchant.IsDeleted), merchant.CreatedAt, merchant.UpdatedAt, merchant.PhoneNumber, merchant.Email)
+	}else{
+		_, err = m.db.ExecContext(ctx, q, merchant.MerchantName, merchant.MerchantCode, string(merchant.SettlementMethod), nil, boolToInt64(merchant.Enabled), boolToInt64(merchant.IsDeleted), merchant.CreatedAt, merchant.UpdatedAt, merchant.PhoneNumber, merchant.Email)
+	}
 	if err != nil {
 		m.logger.Errorf("[miniapp_merchant CREATE] got error while creating merchant %w", err)
 		return nil, constants.ErrDatabaseError
 	}
+
 
 	return &local_model.MiniAppMerchant{
 		ID:                strings.ToUpper(merchant.ID),
@@ -54,11 +59,18 @@ func (m *miniAppMerchantOraclePersistence) Create(ctx context.Context, merchant 
 }
 
 func (m *miniAppMerchantOraclePersistence) Update(ctx context.Context, id string, merchant *local_model.MiniAppMerchant) error {
-	if !isHexID(id) {
+	if !IsValidRaw16ID(id) {
 		return constants.ErrInvalidID
 	}
 	q := querypkg.MiniAppMerchantUpdate
-	res, err := m.db.ExecContext(ctx, q, merchant.MerchantName, merchant.MerchantCode, string(merchant.SettlementMethod), merchant.BankAccountNumber, merchant.UpdatedAt,merchant.PhoneNumber,merchant.Email, id)
+	var res sql.Result
+	var  err error
+	if merchant.SettlementMethod == local_model.SettlementMethodDirect || merchant.SettlementMethod == local_model.SettlementMethodGL{
+
+	res, err = m.db.ExecContext(ctx, q, merchant.MerchantName, merchant.MerchantCode, string(merchant.SettlementMethod), merchant.BankAccountNumber, merchant.UpdatedAt,merchant.PhoneNumber,merchant.Email, id)
+	} else {
+		res, err = m.db.ExecContext(ctx, q, merchant.MerchantName, merchant.MerchantCode, string(merchant.SettlementMethod), nil, merchant.UpdatedAt,merchant.PhoneNumber,merchant.Email, id)
+	}
 	if err != nil {
 		m.logger.Errorf("[miniapp_merchant UPDATE] got error while update merchant %w", err)
 
