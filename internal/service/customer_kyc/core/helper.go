@@ -1,7 +1,7 @@
 package core
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
+	// "cbe-super-app-cps-action/internal/constants"
 	dto "cbe-super-app-cps-action/internal/constants/dto/customer_kyc"
 	"cbe-super-app-cps-action/internal/constants/model"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
@@ -31,7 +31,7 @@ func extractDuplicateContract(message string) string {
 }
 
 func CreateAccountToCore(ctx context.Context, data core.CreateCustomerParam, accountLookupService accountLookup.Account, coreAPI core.CBECoreAPIInterface, cfg *config.VaultConfig, logger utils.Logger) (*core.CusteomerAccountCreationResponse, error) {
-	response, err := coreAPI.AccountCreate(ctx, data, cfg.AccountCreateURL, string(constants.SavingsAccountCategory))
+	response, err := coreAPI.AccountCreate(ctx, data, cfg.AccountCreateURL, "6501")
 	if err != nil {
 		logger.Errorf("failed to create customer: %v", err)
 		return nil, err
