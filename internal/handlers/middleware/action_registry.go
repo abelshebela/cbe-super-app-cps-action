@@ -158,8 +158,9 @@ var cpsActionRegistry = map[string]string{
 	// "DELETE cps_users": "CPSUSER",
 
 	// DeviceVersion
-	"POST device_versions":  "DEVICEVERSION",
-	"PATCH device_versions": "DEVICEVERSION",
+	"POST device_versions":              "DEVICEVERSION",
+	"PATCH device_versions":             "DEVICEVERSION",
+	"PATCH device_versions/state":       "DEVICEVERSION",
 
 	// Donation
 	"POST donation":   "DONATION",

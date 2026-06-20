@@ -363,9 +363,10 @@ type DeviceVersionServiceSrv interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	CreateDeviceVersion(ctx context.Context, deviceVersion deviceversion.CreateDeviceVersionRequest) error
 	EnableDisableDeviceVersion(ctx context.Context, id string, enableDisable bool) error
-	GetAllDeviceVersions(ctx context.Context, filterParams *types.Filter) (types.PaginatedResponse[[]model.DeviceVersionControl], error)
-	GetDeviceVersionByID(ctx context.Context, id string) (model.DeviceVersionControl, error)
+	GetAllDeviceVersions(ctx context.Context, filterParams *types.Filter) (types.PaginatedResponse[[]local_model.DeviceVersionControl], error)
+	GetDeviceVersionByID(ctx context.Context, id string) (local_model.DeviceVersionControl, error)
 	UpdateDeviceVersion(ctx context.Context, id string, req deviceversion.UpdateDeviceVersionRequest) error
+	SetDeviceState(ctx context.Context, id string, deviceState string) error
 }
 
 // type ServiceService interface {

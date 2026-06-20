@@ -346,6 +346,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorDeviceVersionDeleteFailed,
 	ErrorDeviceVersionEnableFailed,
 	ErrorDeviceVersionDisableFailed,
+	ErrorDeviceVersionAlreadyInState,
 	ErrorInvalidKey,
 	ErrorInvalidEncData,
 	ErrorInvalidPadding,
@@ -1031,6 +1032,8 @@ var ResponseCodesList = []ResponseCode{
 	SuccessDeviceVersionUpdatedSP,
 	SuccessDeviceVersionEnabledSP,
 	SuccessDeviceVersionDisabledSP,
+	SuccessDeviceVersionStateSetSP,
+	SuccessDeviceVersionStateSetRequestSubmitted,
 
 	//feedback
 	SuccessFeedbackCreatedSP,
@@ -4098,6 +4101,20 @@ var (
 		Code:       "SUCCESS_DEVICE_VERSION_DISABLED",
 		StatusCode: StatusOK,
 		Message:    MsgDeviceVersionDisabledSuccessfullySP,
+		Type:       "success",
+	}
+
+	SuccessDeviceVersionStateSetSP = ResponseCode{
+		Code:       "SUCCESS_DEVICE_VERSION_STATE_SET",
+		StatusCode: StatusOK,
+		Message:    MsgDeviceVersionStateSetSuccessfullySP,
+		Type:       "success",
+	}
+
+	SuccessDeviceVersionStateSetRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_DEVICE_VERSION_STATE_SET_REQUEST_CREATED",
+		StatusCode: StatusOK,
+		Message:    MsgDeviceVersionStateSetRequestSubmitted,
 		Type:       "success",
 	}
 
@@ -7295,6 +7312,13 @@ var (
 		Code:       "ERROR_DEVICE_VERSION_DISABLE_FAILED",
 		StatusCode: StatusInternalServerError,
 		Message:    MsgDeviceVersionDisableFailed,
+		Type:       "error",
+	}
+
+	ErrorDeviceVersionAlreadyInState = ResponseCode{
+		Code:       "ERROR_DEVICE_VERSION_ALREADY_IN_STATE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDeviceVersionAlreadyInState,
 		Type:       "error",
 	}
 
