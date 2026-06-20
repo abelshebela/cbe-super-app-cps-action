@@ -363,7 +363,7 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 
 			UniqueID:   t24LegalID(local_util.NonEmptyString(userData.KYCData.OriginID, userData.KYCData.Sub)),
 			IssuesBy:   strings.ToUpper(string(userData.KYCData.Vendor)),
-			IssuedDate: userData.CreatedAt.Format("20060102"),
+			IssuedDate: t24IssuedDate(userData.KYCData.IssuedDate),
 			ExpiryDate: constants.Empty,
 
 			Gender:      strings.ToUpper(strings.TrimSpace(userData.KYCData.Gender)),
@@ -519,6 +519,16 @@ func t24EmploymentStatus(status string) string {
 	default:
 		return strings.ToUpper(strings.TrimSpace(status))
 	}
+}
+
+// t24IssuedDate returns the Fayda ID issuance date for T24's LEGAL.ISS.DATE field.
+// If the stored IssuedDate is empty (older KYC records), falls back to 2 years before today
+// so it is always in the past relative to T24's UAT/production business date.
+func t24IssuedDate(issuedDate string) string {
+	if strings.TrimSpace(issuedDate) != "" {
+		return issuedDate
+	}
+	return time.Now().AddDate(-2, 0, 0).Format("20060102")
 }
 
 // t24LegalID truncates the ID to T24's LEGAL.ID max of 35 characters.
