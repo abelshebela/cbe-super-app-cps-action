@@ -3,16 +3,18 @@ package deviceversioncontrol
 import (
 	"time"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-func deviceVersionControlMapper(deviceVersionControl model.DeviceVersionControl) bson.M {
+func deviceVersionControlMapper(deviceVersionControl imodel.DeviceVersionControl) bson.M {
 	return bson.M{
-		"platform":       deviceVersionControl.Platform,
-		"latest_version": deviceVersionControl.LatestVersion,
-		"enabled":        deviceVersionControl.Enabled,
-		"updated_at":     time.Now(),
+		"platform":            deviceVersionControl.Platform,
+		"latest_version":      deviceVersionControl.LatestVersion,
+		"enabled":             deviceVersionControl.Enabled,
+		"is_maintenance_mode": deviceVersionControl.IsMaintenanceMode,
+		"device_state":        deviceVersionControl.DeviceState,
+		"updated_at":          time.Now(),
 	}
 }
