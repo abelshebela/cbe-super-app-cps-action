@@ -442,6 +442,40 @@ func (r *roleDelegationRepository) FindAllWithPagination(ctx context.Context, fi
 		}
 	}
 
+	// start_date/end_date are validated in handler; apply them as additional bounds.
+	rangeAndClauses := bson.A{}
+	if startDateRaw, ok := filterParam.Filters["start_date"]; ok {
+		if startDate, ok := startDateRaw.(time.Time); ok {
+			rangeAndClauses = append(rangeAndClauses, bson.M{"start_at": bson.M{"$gte": startDate}})
+		}
+	}
+
+	if endDateRaw, ok := filterParam.Filters["end_date"]; ok {
+		if endDate, ok := endDateRaw.(time.Time); ok {
+			rangeAndClauses = append(rangeAndClauses, bson.M{"end_at": bson.M{"$lte": endDate}})
+		}
+	}
+
+	if len(rangeAndClauses) > 0 {
+		if existingAnd, exists := filter["$and"]; exists {
+			switch v := existingAnd.(type) {
+			case bson.A:
+				filter["$and"] = append(v, rangeAndClauses...)
+			case []bson.M:
+				andClauses := make(bson.A, 0, len(v)+len(rangeAndClauses))
+				for _, clause := range v {
+					andClauses = append(andClauses, clause)
+				}
+				andClauses = append(andClauses, rangeAndClauses...)
+				filter["$and"] = andClauses
+			default:
+				filter["$and"] = rangeAndClauses
+			}
+		} else {
+			filter["$and"] = rangeAndClauses
+		}
+	}
+
 	total, err := r.repo.TotalCount(ctx, filter)
 	if err != nil {
 		log.Errorf("[RoleDelegationRepository][FindByUsername] failed to count role delegations: %v", err)
