@@ -45,8 +45,10 @@ func CreateAccountToCore(ctx context.Context, data core.CreateCustomerParam, acc
 	// }
 
 	if !response.Success {
+		logger.Debugf("failed to create account 1: %v", response.Messages)
 		message := strings.Join(response.Messages, ", ")
 
+		logger.Debugf("failed to create account 2: %v", response.Messages)
 		// Handle T24 duplicate override
 		if strings.Contains(message, "POSSIBLE DUPLICATE CONTRACT") {
 
