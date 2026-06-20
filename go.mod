@@ -17,13 +17,13 @@ require (
 	github.com/godror/godror v0.50.0
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/google/uuid v1.6.0
-	github.com/hugokessem/coreio v1.1.19
+	github.com/hugokessem/coreio v1.1.22
 	github.com/prometheus/client_golang v1.23.2
 	github.com/redis/go-redis/v9 v9.20.1
 	github.com/shopspring/decimal v1.4.0
 	github.com/swaggo/http-swagger v1.3.4
 	github.com/swaggo/swag v1.16.6 // indirect
-	gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.4.18
+	gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.4.19
 	go.mongodb.org/mongo-driver v1.17.6
 	go.mongodb.org/mongo-driver/v2 v2.6.0
 	go.opentelemetry.io/contrib/instrumentation/go.mongodb.org/mongo-driver/v2/mongo/otelmongo v0.0.0-20251212233814-2da61975ff42
