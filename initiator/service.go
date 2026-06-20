@@ -8,8 +8,6 @@ import (
 	accountblock "cbe-super-app-cps-action/internal/service/account_block"
 	ap_svc "cbe-super-app-cps-action/internal/service/account_product"
 	apc_svc "cbe-super-app-cps-action/internal/service/account_product_category"
-	token_provider_svc "cbe-super-app-cps-action/internal/service/token_provider"
-	tp_client "cbe-super-app-cps-action/internal/storage/external_call/token_provider"
 	account_sub_type_svc "cbe-super-app-cps-action/internal/service/account_sub_type"
 	accountvalidation "cbe-super-app-cps-action/internal/service/account_validation"
 	advert "cbe-super-app-cps-action/internal/service/ad"
@@ -24,7 +22,9 @@ import (
 	newstag_service "cbe-super-app-cps-action/internal/service/news_tag"
 	role_delegation_service "cbe-super-app-cps-action/internal/service/role_delegation"
 	tac_svc "cbe-super-app-cps-action/internal/service/term_and_condition"
+	token_provider_svc "cbe-super-app-cps-action/internal/service/token_provider"
 	"cbe-super-app-cps-action/internal/storage"
+	tp_client "cbe-super-app-cps-action/internal/storage/external_call/token_provider"
 	"cbe-super-app-cps-action/internal/storage/kafka"
 	queue "cbe-super-app-cps-action/internal/storage/queue_system"
 	"time"
@@ -77,15 +77,20 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/hugokessem/coreio/core"
+	access_list_cache "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/catch/access_list"
+	service_cache "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/catch/service"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
+	sharedRedis "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config/redis"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	logge "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils/logger"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persistence, oracle OraclePersistence, coreInterface core.CBECoreAPIInterface,
 	logger utils.Logger, sitotagRPCClient transactionpb.TransactionServiceClient,
 	cfg *config.VaultConfig, minioClient *s3.Client, redis storage.RedisRepository, smsService *lib.NotificationStore,
-	clientOrchestrationProducer *kafka.ClientOrchestrationProducer, presignClient *s3.PresignClient, queueManager *queue.QueueManager) service.ServiceLayer {
+	clientOrchestrationProducer *kafka.ClientOrchestrationProducer, presignClient *s3.PresignClient, queueManager *queue.QueueManager,
+	sharedRedisClient *sharedRedis.RedisClient, cacheLogger logge.Logger) service.ServiceLayer {
 
 	// Initiate Service Layer
 	// Inject Oracle-based AccountBlock into AccessListSegmentation persistence
@@ -109,6 +114,8 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	)
 	tokenProviderClient := tp_client.NewTokenProviderClient(tokenURL, tokenClientID, tokenClientSecret, tokenScope, logger)
 	tokenProviderService := token_provider_svc.NewTokenProviderService(tokenProviderClient, redis, logger)
+	serviceCache := service_cache.NewServiceCatch(*sharedRedisClient, cacheLogger)
+	accessListCache := access_list_cache.NewAccessListCatch(*sharedRedisClient, cacheLogger)
 
 	feedbackService := feedback.NewFeedbackService(persistence.FeedbackPersistence, oracle.Customer, logger)
 	portalCardService := portalcard.NewportalCardService(persistence.PortalCardPersistence, logger)
@@ -166,7 +173,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	cpsActionRoleService := cps_action_role_service.NewCPSActionRoleService(persistence.CPSActionRolePersistence, persistence.CPSActionApproveIndexPersistence, persistence.JobRolePersistence, nil, logger)
 	eventMerchantService := event_merchant_service.NewEventMerchantService(oracle.EventMerchant, nil, accountLookupAdapter, persistence.MerchantLookup, cfg, logger)
 	logisticsMerchantService := logistics_merchant_service.NewLogisticsMerchantService(oracle.LogisticsMerchantOracle, nil, accountLookupAdapter, cfg, logger)
-	servicesService := services_svc.NewServicesService(oracle.ServicesPersistence, persistence.UssdMerchantPersistence, nil, coreInterface, logger)
+	servicesService := services_svc.NewServicesService(oracle.ServicesPersistence, persistence.UssdMerchantPersistence, nil, coreInterface, serviceCache, accessListCache, logger)
 	miniAppProductCodeContainer := miniapp.NewMiniAppProductCodeService(persistence.MiniAppProductCodePersistence, logger)
 	accessListSegmentationService := access_list_segmentation_service.NewAccessListSegmentationService(oracle.AccessListSegmentaion, nil, oracle.AccessListOracle, persistence.AccountBlockPersistence, persistence.CustomerService, persistence.CPSRoles, logger)
 	customerSegmentationService := customer_segmentation.NewCustomerSegmentation(oracle.CustomerSegmentation, oracle.NewCPSRolesStorage, nil, nil, logger)
@@ -317,7 +324,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 
 	// Services catalog service (uses CPSAction for maker-checker)
 	// servicesService = services_svc.NewServicesService(persistence.ServicesPersistence, cpsActionService, logger)
-	servicesService = services_svc.NewServicesService(oracle.ServicesPersistence, persistence.UssdMerchantPersistence, cpsActionService, coreInterface, logger)
+	servicesService = services_svc.NewServicesService(oracle.ServicesPersistence, persistence.UssdMerchantPersistence, cpsActionService, coreInterface, serviceCache, accessListCache, logger)
 	// serviceContainer.ServicesContainer = servicesService
 	serviceContainer.MiniAppMerchantContainer = miniMerchant
 	ecommerceMerchantService = ecommerce_merchant.NewEcommerceMerchantService(oracle.EcommerceMerchant, oracle.ServicesPersistence, cpsActionService, persistence.MerchantLookup, coreInterface, logger, accountLookupAdapter, *cfg)

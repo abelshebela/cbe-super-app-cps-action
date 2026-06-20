@@ -36,13 +36,15 @@ type servicesService struct {
 	accessListCache accessList_cache.AccessListCatch
 }
 
-func NewServicesService(repo storage.ServicesRepository, ussdMerchant storage.UssdMerchantRepository, cps service.CPSActionService, core coreio.CBECoreAPIInterface, logger utils.Logger) *servicesService {
+func NewServicesService(repo storage.ServicesRepository, ussdMerchant storage.UssdMerchantRepository, cps service.CPSActionService, core coreio.CBECoreAPIInterface, serviceCache service_cache.ServiceCatch, accessListCache accessList_cache.AccessListCatch, logger utils.Logger) *servicesService {
 	return &servicesService{
-		repo:         repo,
-		ussdMerchant: ussdMerchant,
-		cps:          cps,
-		core:         core,
-		logger:       logger,
+		repo:            repo,
+		ussdMerchant:    ussdMerchant,
+		cps:             cps,
+		core:            core,
+		serviceCache:    serviceCache,
+		accessListCache: accessListCache,
+		logger:          logger,
 	}
 }
 
