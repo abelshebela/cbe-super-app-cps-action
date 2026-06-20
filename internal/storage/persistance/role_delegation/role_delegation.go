@@ -154,16 +154,17 @@ func (r *roleDelegationRepository) CreateWithNewUser(ctx context.Context, role *
 			}
 		} else {
 			_, err = r.bpsUserCollection.InsertOne(sc, model.BPSUser{
-				UserCode:    role.DelegatedUserUserCode,
-				FullName:    role.DelegatedUserFullName,
-				Role:        role.DelegatedUserExistingRole,
-				PhoneNumber: role.DelegatedUserPhoneNumber,
-				Email:       role.DelegatedUserEmail,
-				UserName:    role.DelegatedUserID,
-				JobTitle:    role.DelegatedUserJobTitle,
-				BranchCode:  []string{role.DelegatedUserDepartmentOrBranch},
-				Enabled:     true,
-				CreatedAt:   now,
+				UserCode:         role.DelegatedUserUserCode,
+				FullName:         role.DelegatedUserFullName,
+				Role:             role.DelegatedUserExistingRole,
+				PhoneNumber:      role.DelegatedUserPhoneNumber,
+				Email:            role.DelegatedUserEmail,
+				UserName:         role.DelegatedUserID,
+				JobTitle:         role.DelegatedUserJobTitle,
+				BranchCode:       []string{role.DelegatedUserDepartmentOrBranch},
+				Enabled:          true,
+				CreatedAt:        now,
+				IsFirstTimeLogin: true,
 			})
 			if err != nil {
 				log.Errorf("[RoleDelegationRepository][Create] failed to update bps user delegate: %v", err)
