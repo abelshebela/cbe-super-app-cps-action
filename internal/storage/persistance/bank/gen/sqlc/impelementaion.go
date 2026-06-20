@@ -21,8 +21,9 @@ func NewBankRepository(db *sql.DB, log utils.Logger) storage.BankOracleRepositor
 	}
 }
 func (q *Queries) Create(ctx context.Context, bank *imodel.BankOracle) error {
-	query := `INSERT INTO banks (id, bank_name, logo, bic_code, is_enabled, account_length, has_alpha_numeric, created_at, last_modified_at, is_cbe)
-		VALUES (SYS_GUID(), :1, :2, :3, :4, :5, :6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, :7)`
+	var bankID string
+	query := `INSERT INTO banks (ID, bank_name, logo, bic_code, is_enabled, account_length, has_alpha_numeric, created_at, last_modified_at, is_cbe)
+		VALUES (SYS_GUID(), :1, :2, :3, :4, :5, :6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, :7) RETURNING RAWTOHEX(ID) INTO :8`
 	_, err := q.db.ExecContext(ctx, query,
 		bank.BankName,
 		bank.Logo,
@@ -31,7 +32,9 @@ func (q *Queries) Create(ctx context.Context, bank *imodel.BankOracle) error {
 		bank.AccountLength,
 		bank.HasAlphaNumeric,
 		bank.IS_CBE,
+		sql.Out{Dest: &bankID},
 	)
+	bank.ID = bankID
 	return err
 }
 
