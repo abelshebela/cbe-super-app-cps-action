@@ -39,26 +39,9 @@ func CreateAccountToCore(ctx context.Context, data core.CreateCustomerParam, acc
 		return nil, fmt.Errorf("customer creation returned nil response")
 	}
 
-	// if !response.Success {
-	// 	logger.Errorf("customer creation rejected by core: %v", response.Messages)
-	// 	return nil, fmt.Errorf("customer creation failed: %s", strings.Join(response.Messages, ", "))
-	// }
-
 	if !response.Success {
-		logger.Debugf("failed to create account 1: %v", response.Messages)
-		message := strings.Join(response.Messages, ", ")
-
-		logger.Debugf("failed to create account 2: %v", response.Messages)
-		// Handle T24 duplicate override
-		if strings.Contains(message, "POSSIBLE DUPLICATE CONTRACT") {
-
-			logger.Warnf("T24 duplicate customer detected: %s", message)
-
-			// extract existing customer ID
-			duplicateCustomerID := extractDuplicateContract(message)
-			logger.Errorf("Duplicate user exists in core: %v", duplicateCustomerID)
-			return nil, fmt.Errorf("duplicate user exists")
-		}
+		logger.Errorf("customer creation rejected by core: %v", response.Messages)
+		return nil, fmt.Errorf("customer creation failed: %s", strings.Join(response.Messages, ", "))
 	}
 
 	// Workaround: coreio maps Detail.Customer to T24 EMPLOYERSNAME which is always empty.

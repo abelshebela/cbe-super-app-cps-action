@@ -94,15 +94,7 @@ func (c *customerKYCAdapter) GetAllKYCRequests(w http.ResponseWriter, r *http.Re
 
 	filterParam := util.ExtractFilterParams(r)
 
-	search := r.URL.Query().Get("search")
-	filter := r.URL.Query().Get("filter")
-
-	if err := util.NoSpecialChars(search); err != nil {
-		localization.SendErrorByCodeResponse(w, err.Error())
-		return
-	}
-
-	if err := util.NoSpecialChars(filter); err != nil {
+	if err := util.NoSpecialChars(filterParam.Search); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}

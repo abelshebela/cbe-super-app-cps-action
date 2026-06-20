@@ -116,6 +116,7 @@ func (s *accountBlockService) GetAllBranches(ctx context.Context, filterParams *
 		return nil, err
 	}
 
+	filterParams.Search = strings.TrimSpace(filterParams.Search)
 	if data.Data != nil && isEnabled != nil {
 		if *isEnabled == data.Data[0].IsEnabled && (filterParams.Search == data.Data[0].Code || strings.EqualFold(filterParams.Search, data.Data[0].Name)) {
 			if *isEnabled {
