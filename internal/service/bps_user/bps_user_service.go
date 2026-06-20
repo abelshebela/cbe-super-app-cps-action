@@ -62,18 +62,42 @@ func NewBPSUserService(repo storage.BPSUserRepository, JobRolesRepo storage.JobR
 	}
 }
 
-func bpsUserExportRow(user bps_model.BPSUser) []string {
+func bpsUserExportRow(user imodel.ExportBPSUser) []string {
+	createdBy := user.CreatedBy
+	if createdBy == "" {
+		createdBy = "SSO"
+	}
+	lastModified := ""
+	if !user.LastModified.IsZero() {
+		lastModified = user.LastModified.Format(time.RFC3339)
+	}
+	expiryDate := ""
+	userType := "Permanent"
+	if !user.ExpiryDateForDelegation.IsZero() {
+		userType = "Delegation"
+		expiryDate = user.ExpiryDateForDelegation.Format(time.RFC3339)
+	}
+	lastLogin := ""
+	if !user.LastLogin.IsZero() {
+		lastLogin = user.LastLogin.Format(time.RFC3339)
+	}
 	return []string{
-		user.UserCode,
-		user.FullName,
-		user.Username,
-		user.Email,
+		user.FirstName,
 		user.PhoneNumber,
-		strings.Join(user.BranchCode, ","),
+		user.Email,
+		user.Branch,
 		user.JobTitle,
 		user.Role,
-		fmt.Sprintf("%t", user.Enabled),
+		user.UserName,
 		user.CreatedAt.Format(time.RFC3339),
+		lastLogin,
+		fmt.Sprintf("%t", user.Enabled),
+		userType,
+		expiryDate,
+		user.LastModificationAction,
+		lastModified,
+		createdBy,
+		user.ApprovedBy,
 	}
 }
 
@@ -100,7 +124,7 @@ func (b *bpsUserService) ExportUsers(ctx context.Context, startDate, endDate tim
 		return "", errors.New(localization.BpsUserDataNotFoundInDateRange.Code)
 	}
 
-	headers := []string{"User Code", "Full Name", "Username", "Email", "Phone Number", "Branch Codes", "Job Title", "Role", "Enabled", "Created At"}
+	headers := []string{"Full Name", "Phone Number", "Email", "Branch", "Job Title", "Role", "Username", "Created At", "Last Login", "Enabled", "User Type", "Expiry Date (Delegation)", "Last Modification Action", "Last Modified", "Created By", "Approved By"}
 
 	ext := "csv"
 	if fileType == string(lib.FileTypePDF) {
@@ -285,29 +309,7 @@ func (b *bpsUserService) FetchUserByUserName(ctx context.Context, userName strin
 		b.logger.Errorf("[BpsUserSvc][FetchByUserName] not found: %s", userName)
 		return nil, errors.New(localization.ErrorUserNotFound.Code)
 	}
-	jobRoles, err := b.Job_roles_repo.FindByName(ctx, user.JobTitle)
-	if err != nil {
-		span.AddEvent("[FetchUserByUserName] failed to fetch role by job title", trace.WithAttributes(
-			attribute.String("error", err.Error()),
-			attribute.String("job_title", user.JobTitle),
-		))
-		b.logger.Errorf("[BpsUserSvc][FetchByUserName] failed to fetch role by job title: %s, err: %v", user.JobTitle, err)
-		return nil, errors.New(localization.ErrorRoleNotFound.Code)
-	}
-	if jobRoles == nil || jobRoles.Role == "" {
-		span.AddEvent("[FetchUserByUserName] role not found for job title", trace.WithAttributes(attribute.String("job_title", user.JobTitle)))
-		b.logger.Errorf("[BpsUserSvc][FetchByUserName] role not found for job title: %s", user.JobTitle)
-		return nil, errors.New(localization.ErrorRoleNotFound.Code)
-	}
-	role, err := b.RoleRepository.FindByCode(ctx, jobRoles.Role)
-	if err != nil {
-		span.AddEvent("[FetchUserByUserName] failed to fetch role by code", trace.WithAttributes(
-			attribute.String("error", err.Error()),
-			attribute.String("role_code", jobRoles.Role),
-		))
-		b.logger.Errorf("[BpsUserSvc][FetchByUserName] failed to fetch role by code: %s, err: %v", jobRoles.Role, err)
-		return nil, errors.New(localization.ErrorRoleNotFound.Code)
-	}
+
 	cleanBPSUser := imodel.BPSUser{
 		ID:          user.ID,
 		UserCode:    user.UserCode,
@@ -319,9 +321,35 @@ func (b *bpsUserService) FetchUserByUserName(ctx context.Context, userName strin
 		BranchName:  user.BranchName,
 		HomeBranch:  user.HomeBranch,
 		JobTitle:    user.JobTitle,
-		Role:        jobRoles.Role,
 		Enabled:     user.Enabled,
-		RoleName:    role.Name,
+	}
+
+	jobRoles, err := b.Job_roles_repo.FindByName(ctx, user.JobTitle)
+	if err != nil {
+		span.AddEvent("[FetchUserByUserName] failed to fetch role by job title", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("job_title", user.JobTitle),
+		))
+		b.logger.Errorf("[BpsUserSvc][FetchByUserName] failed to fetch role by job title: %s, err: %v", user.JobTitle, err)
+		// return nil, errors.New(localization.ErrorRoleNotFound.Code)
+	}
+	if jobRoles != nil && jobRoles.Role != "" {
+		span.AddEvent("[FetchUserByUserName] role found for job title", trace.WithAttributes(attribute.String("job_title", user.JobTitle)))
+		b.logger.Errorf("[BpsUserSvc][FetchByUserName] role found for job title: %s", user.JobTitle)
+		// return nil, errors.New(localization.ErrorRoleNotFound.Code)
+		cleanBPSUser.Role = jobRoles.Role
+
+		role, err := b.RoleRepository.FindByCode(ctx, jobRoles.Role)
+		if err != nil {
+			span.AddEvent("[FetchUserByUserName] failed to fetch role by code", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("role_code", jobRoles.Role),
+			))
+			b.logger.Errorf("[BpsUserSvc][FetchByUserName] failed to fetch role by code: %s, err: %v", jobRoles.Role, err)
+			// return nil, errors.New(localization.ErrorRoleNotFound.Code)
+		} else if role != nil && role.Name != "" {
+			cleanBPSUser.RoleName = role.Name
+		}
 	}
 
 	b.logger.Infof("[BpsUserSvc][FetchByUserName] retrieved username: %s", userName)

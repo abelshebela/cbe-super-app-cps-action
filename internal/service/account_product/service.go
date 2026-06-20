@@ -26,18 +26,20 @@ import (
 )
 
 type accountProductService struct {
-	repo       storage.AccountProductRepository
-	cpsService service.CPSActionService
-	logger     utils.Logger
-	minio      *s3.Client
-	bucketName string
-	cfg        *config.VaultConfig
+	repo         storage.AccountProductRepository
+	categoryRepo storage.AccountProductCategoryRepository
+	cpsService   service.CPSActionService
+	logger       utils.Logger
+	minio        *s3.Client
+	bucketName   string
+	cfg          *config.VaultConfig
 }
 
 var _ service.AccountProductService = (*accountProductService)(nil)
 
 func NewAccountProductService(
 	repo storage.AccountProductRepository,
+	categoryRepo storage.AccountProductCategoryRepository,
 	cpsService service.CPSActionService,
 	logger utils.Logger,
 	minio *s3.Client,
@@ -45,12 +47,13 @@ func NewAccountProductService(
 	cfg *config.VaultConfig,
 ) service.AccountProductService {
 	return &accountProductService{
-		repo:       repo,
-		cpsService: cpsService,
-		logger:     logger,
-		minio:      minio,
-		bucketName: bucketName,
-		cfg:        cfg,
+		repo:         repo,
+		categoryRepo: categoryRepo,
+		cpsService:   cpsService,
+		logger:       logger,
+		minio:        minio,
+		bucketName:   bucketName,
+		cfg:          cfg,
 	}
 }
 
@@ -162,13 +165,13 @@ func (s *accountProductService) Create(ctx context.Context, req ap_dto.CreateAPR
 		return nil, errors.New(localization.ErrorAPAlreadyExists.Code)
 	}
 
-	iconURL, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Icon,
-		string(constants.AccountProductFolderName), *s.cfg, "", s.logger)
-	if err != nil {
-		span.AddEvent("icon upload failed", trace.WithAttributes(attribute.String("error", err.Error())))
-		log.Errorf("[APSvc][Create] upload icon err: %v", err)
-		return nil, errors.New(localization.ErrorUnhandledServer.Code)
-	}
+	// iconURL, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Icon,
+	// 	string(constants.AccountProductFolderName), *s.cfg, "", s.logger)
+	// if err != nil {
+	// 	span.AddEvent("icon upload failed", trace.WithAttributes(attribute.String("error", err.Error())))
+	// 	log.Errorf("[APSvc][Create] upload icon err: %v", err)
+	// 	return nil, errors.New(localization.ErrorUnhandledServer.Code)
+	// }
 
 	coverImageURL, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.CoverImage,
 		string(constants.AccountProductFolderName), *s.cfg, "", s.logger)
@@ -177,6 +180,8 @@ func (s *accountProductService) Create(ctx context.Context, req ap_dto.CreateAPR
 		log.Errorf("[APSvc][Create] upload cover image err: %v", err)
 		return nil, errors.New(localization.ErrorUnhandledServer.Code)
 	}
+
+	log.Infof("[AccountProduct][Create] Cover Image: %v", coverImageURL)
 
 	payload := imodel.AccountProduct{
 		CBSProductCode:        req.CBSProductCode,
@@ -191,9 +196,19 @@ func (s *accountProductService) Create(ctx context.Context, req ap_dto.CreateAPR
 		ProductFeatures:       req.ProductFeatures,
 		HasPhysicalCard:       req.HasPhysicalCard,
 		HasVirtualCard:        req.HasVirtualCard,
-		ProductIcon:           iconURL,
-		ProductCoverImage:     coverImageURL,
-		IsEnabled:             true,
+		// ProductIcon:           iconURL,
+		ProductCoverImage: coverImageURL,
+		IsEnabled:         true,
+	}
+
+	if s.categoryRepo != nil {
+		if cat, err := s.categoryRepo.FindByID(ctx, req.AccountCategoryID); err == nil {
+			payload.CategoryName    = cat.CategoryName
+			payload.CBSCategoryCode = cat.CBSCategoryCode
+			payload.AccountType     = cat.AccountType
+		} else {
+			log.Errorf("[APSvc][Create] category lookup err: %v", err)
+		}
 	}
 
 	action := lib.CpsModelBuilder("", makerData, nil, payload,
@@ -241,6 +256,15 @@ func (s *accountProductService) Update(ctx context.Context, id string, req ap_dt
 	}
 	if req.AccountCategoryID != "" {
 		updated.AccountCategoryID = req.AccountCategoryID
+		if s.categoryRepo != nil {
+			if cat, err := s.categoryRepo.FindByID(ctx, req.AccountCategoryID); err == nil {
+				updated.CategoryName    = cat.CategoryName
+				updated.CBSCategoryCode = cat.CBSCategoryCode
+				updated.AccountType     = cat.AccountType
+			} else {
+				log.Errorf("[APSvc][Update] category lookup err: %v", err)
+			}
+		}
 	}
 	if req.AccountCurrency != "" {
 		updated.AccountCurrency = strings.ToUpper(req.AccountCurrency)
@@ -267,19 +291,19 @@ func (s *accountProductService) Update(ctx context.Context, id string, req ap_dt
 		updated.HasVirtualCard = *req.HasVirtualCard
 	}
 
-	if req.Icon != nil {
+	if req.CoverImage != nil {
 		var objectKey string
-		if existing.ProductIcon != "" {
-			objectKey = path.Base(existing.ProductIcon)
+		if existing.ProductCoverImage != "" {
+			objectKey = path.Base(existing.ProductCoverImage)
 		}
-		iconURL, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Icon,
+		coverImageURL, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.CoverImage,
 			string(constants.AccountProductFolderName), *s.cfg, objectKey, s.logger)
 		if err != nil {
-			span.AddEvent("icon upload failed", trace.WithAttributes(attribute.String("error", err.Error())))
-			log.Errorf("[APSvc][Update] upload icon err: %v", err)
+			span.AddEvent("cover image upload failed", trace.WithAttributes(attribute.String("error", err.Error())))
+			log.Errorf("[APSvc][Update] upload cover image err: %v", err)
 			return nil, errors.New(localization.ErrorUnhandledServer.Code)
 		}
-		updated.ProductIcon = iconURL
+		updated.ProductCoverImage = coverImageURL
 	}
 
 	action := lib.CpsModelBuilder(id, makerData, existing, updated,

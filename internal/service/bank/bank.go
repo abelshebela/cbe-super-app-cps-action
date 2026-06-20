@@ -245,7 +245,7 @@ func (b *BankService) CreateOneBank(ctx context.Context, bank_request bank_dto.C
 		}
 	}
 
-	action := lib.CpsModelBuilder("", makerData, nil, bank, string(constants.RequestCreateBank), constants.CREATE)
+	action := lib.CpsModelBuilder("", makerData, nil, bank_core.BankOracleToPayload(bank), string(constants.RequestCreateBank), constants.CREATE)
 
 	err = b.cpsService.CreateCPSAction(ctx, &action)
 	if err != nil {
@@ -287,7 +287,7 @@ func (b *BankService) DeleteOneBank(ctx context.Context, id string) error {
 	newBankData := *bank
 
 	newBankData.IsDeleted = true
-	action := lib.CpsModelBuilder(id, makerData, bank, newBankData, string(constants.RequestDeleteBank), constants.DELETE)
+	action := lib.CpsModelBuilder(id, makerData, bank_core.BankOracleToPayload(*bank), bank_core.BankOracleToPayload(newBankData), string(constants.RequestDeleteBank), constants.DELETE)
 
 	err = b.cpsService.CreateCPSAction(ctx, &action)
 	if err != nil {
@@ -354,7 +354,7 @@ func (b *BankService) EnableOrDisableBank(ctx context.Context, id string, enable
 	// } else {
 	// 	enable = string(constants.RequestDisableBank)
 	// }
-	action := lib.CpsModelBuilder(id, makerData, bank, newBankData, enable, constants.UPDATE)
+	action := lib.CpsModelBuilder(id, makerData, bank_core.BankOracleToPayload(*bank), bank_core.BankOracleToPayload(newBankData), enable, constants.UPDATE)
 
 	err = b.cpsService.CreateCPSAction(ctx, &action)
 	if err != nil {
@@ -469,7 +469,7 @@ func (b *BankService) UpdateLogo(ctx context.Context, id string, logo bank_dto.U
 
 	newBankData.Logo = URL
 
-	action := lib.CpsModelBuilder(id, makerData, bank, newBankData, string(constants.RequestUpdateBankLogo), constants.UPDATE)
+	action := lib.CpsModelBuilder(id, makerData, bank_core.BankOracleToPayload(*bank), bank_core.BankOracleToPayload(newBankData), string(constants.RequestUpdateBankLogo), constants.UPDATE)
 
 	err = b.cpsService.CreateCPSAction(ctx, &action)
 	if err != nil {
@@ -600,7 +600,7 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 		}
 	}
 
-	action := lib.CpsModelBuilder(id, makerData, bank, updatedBank, string(constants.RequestUpdateBank), constants.UPDATE)
+	action := lib.CpsModelBuilder(id, makerData, bank_core.BankOracleToPayload(*bank), bank_core.BankOracleToPayload(updatedBank), string(constants.RequestUpdateBank), constants.UPDATE)
 
 	err = b.cpsService.CreateCPSAction(ctx, &action)
 	if err != nil {

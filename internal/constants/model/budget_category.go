@@ -15,13 +15,14 @@ const (
 )
 
 type BudgetCategory struct {
-	ID        bson.ObjectID      `bson:"_id,omitempty" json:"id,omitempty"`
-	Name      string             `bson:"name" json:"name"`
-	Color     string             `bson:"color" json:"color"`
-	Icon      string             `bson:"icon" json:"icon"`
-	Type      BudgetCategoryType `bson:"type" json:"type"`
-	Enabled   bool               `bson:"enabled" json:"enabled"`
-	IsDeleted bool               `bson:"is_deleted" json:"is_deleted"`
-	CreatedAt time.Time          `bson:"created_at" json:"created_at"`
-	UpdatedAt time.Time          `bson:"updated_at" json:"updated_at"`
+	ID          bson.ObjectID      `bson:"_id,omitempty" json:"id,omitempty"`
+	Name        string             `bson:"name" json:"name"`
+	AccountType string             `bson:"account_type" json:"account_type"`
+	Color       string             `bson:"color" json:"color"`
+	Icon        string             `bson:"icon" json:"icon"`
+	Type        BudgetCategoryType `bson:"type" json:"type"`
+	IsEnabled   bool               `bson:"is_enabled" json:"is_enabled"`
+	IsDeleted   bool               `bson:"is_deleted" json:"is_deleted"`
+	CreatedAt   time.Time          `bson:"created_at" json:"created_at"`
+	UpdatedAt   time.Time          `bson:"updated_at" json:"updated_at"`
 }

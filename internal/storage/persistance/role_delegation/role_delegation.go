@@ -154,16 +154,17 @@ func (r *roleDelegationRepository) CreateWithNewUser(ctx context.Context, role *
 			}
 		} else {
 			_, err = r.bpsUserCollection.InsertOne(sc, model.BPSUser{
-				UserCode:    role.DelegatedUserUserCode,
-				FullName:    role.DelegatedUserFullName,
-				Role:        role.DelegatedUserExistingRole,
-				PhoneNumber: role.DelegatedUserPhoneNumber,
-				Email:       role.DelegatedUserEmail,
-				UserName:    role.DelegatedUserID,
-				JobTitle:    role.DelegatedUserJobTitle,
-				BranchCode:  []string{role.DelegatedUserDepartmentOrBranch},
-				Enabled:     true,
-				CreatedAt:   now,
+				UserCode:         role.DelegatedUserUserCode,
+				FullName:         role.DelegatedUserFullName,
+				Role:             role.DelegatedUserExistingRole,
+				PhoneNumber:      role.DelegatedUserPhoneNumber,
+				Email:            role.DelegatedUserEmail,
+				UserName:         role.DelegatedUserID,
+				JobTitle:         role.DelegatedUserJobTitle,
+				BranchCode:       []string{role.DelegatedUserDepartmentOrBranch},
+				Enabled:          true,
+				CreatedAt:        now,
+				IsFirstTimeLogin: true,
 			})
 			if err != nil {
 				log.Errorf("[RoleDelegationRepository][Create] failed to update bps user delegate: %v", err)
@@ -438,7 +439,6 @@ func (r *roleDelegationRepository) FindAllWithPagination(ctx context.Context, fi
 		if val == "Suspended" {
 			filter["enable"] = true
 			filter["start_at"] = bson.M{"$gt": time.Now()}
-			filter["end_at"] = bson.M{"$gt": time.Now()}
 		}
 	}
 

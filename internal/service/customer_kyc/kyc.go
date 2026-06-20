@@ -32,6 +32,7 @@ type customerKYCService struct {
 	accountService account_lookup.Account
 	cpsUserRepo    storage.CpsUserRepository
 	coreio         coreio.CBECoreAPIInterface
+	tokenProvider  service.TokenProviderService
 	logger         utils.Logger
 	minio          *s3.Client
 	bucketName     string
@@ -44,6 +45,7 @@ func NewCustomerKYCService(repo storage.CustomerKYCRepository,
 	cpsUserRepo storage.CpsUserRepository,
 	accountLookUpService account_lookup.Account,
 	coreio coreio.CBECoreAPIInterface,
+	tokenProvider service.TokenProviderService,
 	logger utils.Logger,
 	minio *s3.Client,
 	bucketName string,
@@ -56,6 +58,7 @@ func NewCustomerKYCService(repo storage.CustomerKYCRepository,
 		cpsUserRepo:    cpsUserRepo,
 		accountService: accountLookUpService,
 		coreio:         coreio,
+		tokenProvider:  tokenProvider,
 		logger:         logger,
 		minio:          minio,
 		bucketName:     bucketName,
@@ -314,6 +317,7 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 
 	switch string(cpsAction.RequestAction) {
 	case string(constants.RequestApproveCustomerKYC):
+
 		userData, err := local_util.JsonUnmarshal[imodel.CustomerKYC](cpsAction.CurrentAction)
 		if err != nil {
 			return nil, err
@@ -335,63 +339,77 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 			lastName = strings.Join(nameParts[2:], " ")
 		}
 
+		token, err := s.tokenProvider.GetToken(ctx)
+		if err != nil {
+			log.Errorf("[CustKycSvc][Authorize] token fetch: %v", err)
+			return nil, err
+		}
+
 		data := coreio.CreateCustomerParam{
-			FirstName:  firstName,
-			MiddleName: middleName,
-			LastName:   lastName,
+			// T24 MNEMONIC is generated from name — must be uppercase trimmed
+			FirstName:  strings.ToUpper(strings.TrimSpace(firstName)),
+			MiddleName: strings.ToUpper(strings.TrimSpace(middleName)),
+			LastName:   strings.ToUpper(strings.TrimSpace(lastName)),
 
 			PhoneNumber: userData.KYCData.PhoneNumber,
 
-			Address: strings.Join([]string{
-				"Region: " + userData.KYCData.Address.Region,
-				"Zone: " + userData.KYCData.Address.Zone,
-				"Kebele: " + userData.KYCData.Address.Kebele,
-				"Woreda: " + userData.KYCData.Address.Woreda,
-			}, ", "),
+			// T24 ADDRESS field has a ~35-char limit
+			Address: strings.TrimSpace(userData.KYCData.Address.Woreda),
 
 			PostalCode:     constants.Empty,
-			ISOCountryCode: userData.KYCData.Country,
+			ISOCountryCode: "ET", // TODO: derive from Country field once ISO alpha-2 is confirmed in data
 
-			AccountOffice: constants.Empty,
+			// TODO: move AccountOffice to config
+			AccountOffice: "7124",
 			Industry:      constants.Empty,
 
-			ISONationalityCode: userData.KYCData.Nationality,
-			ISOResidentCode:    userData.KYCData.Country,
+			ISONationalityCode: "ET", // TODO: derive from Nationality field once ISO alpha-2 is confirmed in data
+			ISOResidentCode:    "ET", // TODO: derive from Country field once ISO alpha-2 is confirmed in data
 
 			UniqueID:   userData.KYCData.OriginID,
-			IssuesBy:   constants.Empty,
+			IssuesBy:   strings.ToUpper(string(userData.KYCData.Vendor)),
 			IssuedDate: constants.Empty,
 			ExpiryDate: constants.Empty,
 
-			Gender:      userData.KYCData.Gender,
-			DateOfBirth: userData.KYCData.BirthDate.Format("2006-01-02"),
+			// T24 GENDER lookup: "MALE" / "FEMALE"
+			Gender: strings.ToUpper(strings.TrimSpace(userData.KYCData.Gender)),
+			// T24 DATE.OF.BIRTH must be YYYYMMDD (no dashes)
+			DateOfBirth: userData.KYCData.BirthDate.Format("20060102"),
 
-			MaritalStatus: userData.KYCData.MaritalStatus,
+			MaritalStatus: strings.ToUpper(strings.TrimSpace(userData.KYCData.MaritalStatus)),
 			Email:         userData.KYCData.Email,
 
-			EmploymentStatus: userData.KYCData.EmployementStatus,
-			Occupation:       userData.KYCData.Occupation,
+			EmploymentStatus: t24EmploymentStatus(userData.KYCData.EmployementStatus),
+			Occupation:       strings.ToUpper(strings.TrimSpace(userData.KYCData.Occupation)),
 
 			EmployerName:     constants.Empty,
 			EmployerAddress:  constants.Empty,
 			EmployerBusiness: userData.KYCData.SourceOfIncome,
 
-			CustomerCurrency:  userData.KYCData.Currency,
-			Salary:            userData.KYCData.MonthlyIncome,
+			CustomerCurrency: t24Currency(userData.KYCData.Currency),
+			Salary:            t24Amount(userData.KYCData.MonthlyIncome),
 			AnnualBonus:       constants.Empty,
-			NetMonthlyIncome:  userData.KYCData.MonthlyIncome,
+			NetMonthlyIncome:  t24Amount(userData.KYCData.MonthlyIncome),
 			NetMonthlyExpence: constants.Empty,
 
 			TinNumber:     userData.KYCData.USTIN,
-			MotherName:    userData.KYCData.MothersName,
-			CustomerGroup: string(constants.MASS),
+			MotherName:    strings.ToUpper(strings.TrimSpace(userData.KYCData.MothersName)),
+			CustomerGroup: t24CustomerGroup(userData.KYCData.SubAccountType),
+			NationalId:    userData.KYCData.Sub,
+
+			Url: "https://superrapp-account-opening-https-ace-uat.apps.cp4itest.cbe.local/cust_creation",
+			Header: map[string]string{
+				"Authorization": "Bearer " + token,
+			},
 		}
 
+		s.logger.Infof("[CustKycSvc][Authorize] core call params — uniqueID=%s employmentStatus=%s salary=%s nationality=%s country=%s", data.UniqueID, data.EmploymentStatus, data.Salary, data.ISONationalityCode, data.ISOCountryCode)
 		userAccount, err := core.CreateAccountToCore(ctx, data, s.accountService, s.coreio, s.logger)
 		if err != nil {
 			log.Errorf("[CustKycSvc][Authorize] core account creation failed: %v", err)
 			return nil, err
 		}
+		log.Infof("[CustKycSvc][Authorize] core account created for customer: %s", userAccount)
 
 		if err = s.repo.CreateUser(ctx, userAccount, *userData); err != nil {
 			return nil, err
@@ -468,4 +486,50 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 	}
 
 	return cpsAction, nil
+}
+
+// t24CustomerGroup maps the app's sub-account type to a T24 customer group code.
+// Falls back to "RETAIL" when empty, matching the working sandbox example.
+func t24CustomerGroup(subAccountType string) string {
+	if g := strings.ToUpper(strings.TrimSpace(subAccountType)); g != "" {
+		return g
+	}
+	return "RETAIL"
+}
+
+// t24Amount returns the amount string for T24 currency fields.
+// T24 rejects empty strings with "CURRENCY MISSING"; default to "0".
+func t24Amount(v string) string {
+	if strings.TrimSpace(v) == "" {
+		return "0"
+	}
+	return v
+}
+
+// t24Currency defaults to "ETB" when the stored currency field is empty.
+func t24Currency(currency string) string {
+	if strings.TrimSpace(currency) == "" {
+		return "ETB"
+	}
+	return strings.ToUpper(strings.TrimSpace(currency))
+}
+
+// t24EmploymentStatus maps mobile-app employment status values to T24 lookup codes.
+func t24EmploymentStatus(status string) string {
+	switch strings.ToUpper(strings.TrimSpace(status)) {
+	case "FULL_TIME", "FULLTIME", "FULL-TIME":
+		return "EMPLOYED"
+	case "SELF_EMPLOYED", "SELFEMPLOYED", "SELF-EMPLOYED":
+		return "SELF-EMP"
+	case "PART_TIME", "PARTTIME", "PART-TIME":
+		return "EMPLOYED"
+	case "UNEMPLOYED":
+		return "UNEMPL"
+	case "RETIRED":
+		return "RETIRED"
+	case "STUDENT":
+		return "STUDENT"
+	default:
+		return strings.ToUpper(strings.TrimSpace(status))
+	}
 }

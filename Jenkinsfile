@@ -1,13 +1,12 @@
 pipeline {
     agent {
         node {
-            label 'kr-jenkins-slave-1'
+            label 'kr-jenkins-slave-1 || kr-jenkins-slave-2 || aa-jenkins-slave-1 || aa-jenkins-slave-2'
         }
 
     }
 
     
-
     environment {
         TELEGRAM_TOKEN = credentials('TELEGRAM_TOKEN')
         TELEGRAM_CHAT_ID = credentials('TELEGRAM_CHAT_ID')
@@ -110,29 +109,29 @@ pipeline {
                 ])  
             }
         }
-        // sonarqube stage
-        stage('Build & SonarQube Analysis') {
-            steps {
-                echo 'Starting build and SonarQube analysis...'
-                script {
-                    try {
-                        withSonarQubeEnv('CSA-sonar') {
-                            sh '''
-                            ${SONAR_SCANNER_HOME}/bin/sonar-scanner \
-                            -Dsonar.projectKey=cbesuperapp-cps-action \
-                            -Dsonar.sources=. \
-                            -Dsonar.host.url=${SONAR_HOST_URL} \
-                            -Dsonar.token=${SONAR_TOKEN}
-                            '''
-                        }
-                        echo 'SonarQube analysis completed successfully.'
-                    } catch (Exception e) {
-                        echo "Error during build or SonarQube analysis: ${e.message}"
-                        // error 'Build or SonarQube analysis failed.'
-                    }
-                }
-            }
-        }
+        // // sonarqube stage
+        // stage('Build & SonarQube Analysis') {
+        //     steps {
+        //         echo 'Starting build and SonarQube analysis...'
+        //         script {
+        //             try {
+        //                 withSonarQubeEnv('CSA-sonar') {
+        //                     sh '''
+        //                     ${SONAR_SCANNER_HOME}/bin/sonar-scanner \
+        //                     -Dsonar.projectKey=cbesuperapp-cps-action \
+        //                     -Dsonar.sources=. \
+        //                     -Dsonar.host.url=${SONAR_HOST_URL} \
+        //                     -Dsonar.token=${SONAR_TOKEN}
+        //                     '''
+        //                 }
+        //                 echo 'SonarQube analysis completed successfully.'
+        //             } catch (Exception e) {
+        //                 echo "Error during build or SonarQube analysis: ${e.message}"
+        //                 // error 'Build or SonarQube analysis failed.'
+        //             }
+        //         }
+        //     }
+        // }
         // Stage to set the commit SHA as the image tag
         stage('Set Commit SHA') {
             steps {
@@ -175,6 +174,9 @@ pipeline {
         }   
         // Stage to update ArgoCD repository with new image tag
         stage('Update ArgoCD Repository') {
+             when {
+                expression { env.BRANCH_NAME == 'staging' || env.BRANCH_NAME == 'prod' }
+            }
             steps {
                 script {
                     withCredentials([

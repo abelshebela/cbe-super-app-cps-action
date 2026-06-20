@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -161,11 +162,11 @@ func (r *repository) FindAllWithPagination(ctx context.Context, filterParam type
 
 	if s := strings.TrimSpace(filterParam.Search); s != "" {
 		conds = append(conds, fmt.Sprintf(
-			"(UPPER(t.VERSION_LABEL) LIKE UPPER(:%d) OR TO_CHAR(t.ACTIVATION_TIME, 'YYYY-MM-DD HH24:MI:SS') LIKE :%d)",
-			idx, idx+1,
+			"(UPPER(t.VERSION_LABEL) LIKE UPPER(:%d) OR TO_CHAR(t.ACTIVATION_TIME, 'YYYY-MM-DD HH24:MI:SS') LIKE :%d OR UPPER(ap.PRODUCT_NAME) LIKE UPPER(:%d) OR UPPER(ap.CBS_PRODUCT_CODE) LIKE UPPER(:%d))",
+			idx, idx+1, idx+2, idx+3,
 		))
-		args = append(args, "%"+s+"%", "%"+s+"%")
-		idx += 2
+		args = append(args, "%"+s+"%", "%"+s+"%", "%"+s+"%", "%"+s+"%")
+		idx += 4
 	}
 
 	if filterParam.Filters != nil {
@@ -183,12 +184,40 @@ func (r *repository) FindAllWithPagination(ctx context.Context, filterParam type
 				idx++
 			}
 		}
+
+		if v, ok := filterParam.Filters["is_enabled"]; ok {
+			var isEnabledVal int
+			var isEnabledSet bool
+			switch val := v.(type) {
+			case int:
+				isEnabledVal = val
+				isEnabledSet = true
+			case float64:
+				isEnabledVal = int(val)
+				isEnabledSet = true
+			case string:
+				if parsed, err := strconv.Atoi(strings.TrimSpace(val)); err == nil {
+					isEnabledVal = parsed
+					isEnabledSet = true
+				}
+			case bool:
+				if val {
+					isEnabledVal = 1
+				}
+				isEnabledSet = true
+			}
+			if isEnabledSet {
+				conds = append(conds, fmt.Sprintf("t.IS_ENABLED = :%d", idx))
+				args = append(args, isEnabledVal)
+				idx++
+			}
+		}
 	}
 
 	where := strings.Join(conds, " AND ")
 
 	var total int64
-	if err := r.db.QueryRowContext(ctx, `SELECT COUNT(*) FROM ACCOUNT_OPENING_TERMS t WHERE `+where, args...).Scan(&total); err != nil {
+	if err := r.db.QueryRowContext(ctx, `SELECT COUNT(*)`+tacFromTable+`WHERE `+where, args...).Scan(&total); err != nil {
 		log.Errorf("[TACOracle][FindAll] count: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}

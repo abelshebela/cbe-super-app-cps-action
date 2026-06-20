@@ -49,18 +49,21 @@ func (h *CustomerGroupAdapter) CreateCustomerGroup(w http.ResponseWriter, r *htt
 	var req customer_group_dto.CreateSegmentRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		log.Errorf("[CreateCustomerGroup] decode err: %v", err)
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		localization.SendErrorByCodeResponse(w, "invalid request format")
 		return
 	}
 
 	if err := req.Validate(); err != nil {
 		log.Errorf("[CreateCustomerGroup] validation err: %v", err)
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
 	if err := h.svc.Create(ctx, req); err != nil {
 		span.RecordError(err)
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		log.Errorf("[CreateCustomerGroup] service err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -71,6 +74,8 @@ func (h *CustomerGroupAdapter) CreateCustomerGroup(w http.ResponseWriter, r *htt
 		localization.SendSuccessResponse(w, localization.CustomerGroupCreated, nil)
 		return
 	}
+
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.CustomerGroupCreationSubmittedSuccessfully, nil)
 }
 
@@ -118,6 +123,7 @@ func (h *CustomerGroupAdapter) UpdateCustomerGroup(w http.ResponseWriter, r *htt
 	if err := h.svc.Update(ctx, id, req); err != nil {
 		span.RecordError(err)
 		log.Errorf("[UpdateCustomerGroup] service err: %v", err)
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
