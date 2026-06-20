@@ -20,6 +20,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 
+	bank_catch "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/catch/bank"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -36,17 +37,19 @@ type BankService struct {
 	oracleRepo  storage.BankOracleRepository
 	cfg         *config.VaultConfig
 	minio       *s3.Client
+	catch       bank_catch.BankCatch
 	minioPubUrl string
 	bucketName  string
 }
 
-func NewBankService(logger utils.Logger, repo storage.BankRepository, oracleRepo storage.BankOracleRepository, cpsService service.CPSActionService, minio *s3.Client, minioPubUrl string, cfg *config.VaultConfig, bucketName string) service.BankService {
+func NewBankService(logger utils.Logger, repo storage.BankRepository, oracleRepo storage.BankOracleRepository, cpsService service.CPSActionService, catch bank_catch.BankCatch, minio *s3.Client, minioPubUrl string, cfg *config.VaultConfig, bucketName string) service.BankService {
 	return &BankService{
 		logger:      logger,
 		repo:        repo,
 		oracleRepo:  oracleRepo,
 		cpsService:  cpsService,
 		cfg:         cfg,
+		catch:       catch,
 		minio:       minio,
 		minioPubUrl: minioPubUrl,
 		bucketName:  bucketName,
@@ -58,7 +61,17 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "Bank", "Authorize")
 	defer span.End()
+	if cpsAction == nil {
+		span.AddEvent("[Authorize] nil CPS action")
+		log.Errorf("[BankSvc][Authorize] nil CPS action")
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	if cpsAction.CurrentAction == nil {
+		span.AddEvent("[Authorize] nil CurrentAction in CPS action", trace.WithAttributes(attribute.String("unique_id", cpsAction.UniqueId)))
+		log.Errorf("[BankSvc][Authorize] nil CurrentAction in CPS action, unique_id: %s", cpsAction.UniqueId)
 
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
 	var actionMap interface{}
 	marshaled, err := json.Marshal(cpsAction.CurrentAction)
 	if err != nil {
@@ -102,6 +115,35 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 			log.Errorf("[BankSvc][Authorize] create err: %v", err)
 			return nil, err
 		}
+		// create cache
+		err = b.catch.Set(ctx, bank_catch.BankData{
+			Name:            actionData.BankName,
+			BICCode:         actionData.BICCode,
+			AccountLength:   actionData.AccountLength,
+			IsEnabled:       actionData.IsEnabled == 1,
+			ImageURL:        actionData.Logo,
+			HasAlphaNumeric: actionData.HasAlphaNumeric == 1,
+			IsCBE:           actionData.IS_CBE == 1,
+		})
+		if err != nil {
+			span.AddEvent("[Authorize] bank cache create action failed", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
+			log.Errorf("[BankSvc][Authorize] cache create err: %v", err)
+		}
+		if banks, _, err := b.catch.GetAll(ctx); err == nil {
+			log.Infof("[BankSvc][Authorize] cache All after create: %+v", banks)
+			banks = append(banks, bank_catch.AllBankData{
+				BankID:   actionData.ID,
+				Name:     actionData.BankName,
+				BICCode:  actionData.BICCode,
+				ImageURL: actionData.Logo,
+			})
+			if err := b.catch.SetAll(ctx, banks); err != nil {
+				log.Errorf("[BankSvc][Authorize] cache set all err: %v", err)
+			}
+		}
 		log.Infof("[BankSvc][Authorize] created")
 	case string(constants.RequestDeleteBank):
 		err := b.oracleRepo.Delete(ctx, cpsAction.UniqueId)
@@ -112,6 +154,21 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 			))
 			log.Errorf("[BankSvc][Authorize] delete err: %v", err)
 			return nil, err
+		}
+		if err := b.catch.Delete(ctx, actionData.BICCode); err != nil {
+			log.Errorf("[BankSvc][Authorize] cache delete err: %v", err)
+		}
+		if banks, _, err := b.catch.GetAll(ctx); err == nil {
+			log.Infof("[BankSvc][Authorize] get All cache after delete: %+v", banks)
+			var newBanks = make([]bank_catch.AllBankData, 0)
+			for _, bank := range banks {
+				if bank.BICCode != actionData.BICCode {
+					newBanks = append(newBanks, bank)
+				}
+			}
+			if err := b.catch.SetAll(ctx, newBanks); err != nil {
+				log.Errorf("[BankSvc][Authorize] cache set all err: %v", err)
+			}
 		}
 		log.Infof("[BankSvc][Authorize] deleted id: %s", cpsAction.UniqueId)
 
@@ -131,6 +188,39 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 			))
 			log.Errorf("[BankSvc][Authorize] enable/disable err: %v", err)
 			return nil, err
+		}
+		// create cache
+		err = b.catch.Set(ctx, bank_catch.BankData{
+			Name:            actionData.BankName,
+			BICCode:         actionData.BICCode,
+			AccountLength:   actionData.AccountLength,
+			IsEnabled:       actionData.IsEnabled == 1,
+			ImageURL:        actionData.Logo,
+			HasAlphaNumeric: actionData.HasAlphaNumeric == 1,
+			IsCBE:           actionData.IS_CBE == 1,
+		})
+		if err != nil {
+			span.AddEvent("[Authorize] bank cache create action failed", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
+			log.Errorf("[BankSvc][Authorize] cache create err: %v", err)
+		}
+		if banks, _, err := b.catch.GetAll(ctx); err == nil {
+			log.Infof("[BankSvc][Authorize] get All cache after delete: %+v", banks)
+			var newBanks = make([]bank_catch.AllBankData, 0)
+			for _, bank := range banks {
+				if bank.BICCode != actionData.BICCode {
+					newBanks = append(newBanks, bank)
+				} else {
+					if actionData.IsEnabled == 1 {
+						newBanks = append(newBanks, bank)
+					}
+				}
+			}
+			if err := b.catch.SetAll(ctx, newBanks); err != nil {
+				log.Errorf("[BankSvc][Authorize] cache set all err: %v", err)
+			}
 		}
 		log.Infof("[BankSvc][Authorize] enable/disable done id: %s", cpsAction.UniqueId)
 	case string(constants.RequestUpdateBankLogo):
@@ -154,6 +244,43 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 			))
 			log.Errorf("[BankSvc][Authorize] update err: %v", err)
 			return nil, err
+		}
+		// create cache
+		err = b.catch.Set(ctx, bank_catch.BankData{
+			Name:            actionData.BankName,
+			BICCode:         actionData.BICCode,
+			AccountLength:   actionData.AccountLength,
+			IsEnabled:       actionData.IsEnabled == 1,
+			ImageURL:        actionData.Logo,
+			HasAlphaNumeric: actionData.HasAlphaNumeric == 1,
+			IsCBE:           actionData.IS_CBE == 1,
+		})
+		if err != nil {
+			span.AddEvent("[Authorize] bank cache create action failed", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
+			log.Errorf("[BankSvc][Authorize] cache create err: %v", err)
+		}
+
+		if banks, _, err := b.catch.GetAll(ctx); err == nil {
+			log.Infof("[BankSvc][Authorize] get All cache after delete: %+v", banks)
+			var newBanks = make([]bank_catch.AllBankData, 0)
+			for _, bank := range banks {
+				if bank.BankID == actionData.ID {
+					newBanks = append(newBanks, bank_catch.AllBankData{
+						BankID:   actionData.ID,
+						Name:     actionData.BankName,
+						BICCode:  actionData.BICCode,
+						ImageURL: actionData.Logo,
+					})
+				} else {
+					newBanks = append(newBanks, bank)
+				}
+			}
+			if err := b.catch.SetAll(ctx, newBanks); err != nil {
+				log.Errorf("[BankSvc][Authorize] cache set all err: %v", err)
+			}
 		}
 		log.Infof("[BankSvc][Authorize] updated id: %s", cpsAction.UniqueId)
 	default:
