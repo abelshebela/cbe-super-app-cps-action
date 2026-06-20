@@ -8,6 +8,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/storage"
+	"cbe-super-app-cps-action/internal/storage/kafka"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"encoding/csv"
@@ -20,6 +21,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	shared_dto "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/notification/dto"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -34,6 +36,7 @@ type roleDelegation struct {
 	cpsService   service.CPSActionService
 	branchRepo   storage.AccountBlockRepository
 	minioClient  *s3.Client
+	kafkaClient  kafka.NotificationProducer
 	bucketName   string
 	cfg          config.VaultConfig
 	logger       utils.Logger
@@ -75,10 +78,30 @@ func (r *roleDelegation) Authorize(ctx context.Context, cpsAction *model.CPSActi
 		if err := r.repo.CreateWithExistingUser(ctx, &roleDelegation); err != nil {
 			return nil, err
 		}
+		emailBody := roleDelegationEmailBody(roleDelegation)
+		emailMessage := shared_dto.SendEmailRequest{
+			Recipients: []shared_dto.EmailContact{{Name: roleDelegation.DelegatedUserFullName, Email: roleDelegation.DelegatedUserEmail}},
+			Subject:    "Role Delegation",
+			Body:       emailBody,
+		}
+		// send mail to notify the delegated user about the new role delegation and timeframe
+		if err := r.kafkaClient.PublishMessage(ctx, emailMessage, "email", "role-delegation", "role-delegation"); err != nil {
+			log.Errorf("[RoleDelegation Service][Authorize] failed to send notification email: %v", err)
+		}
 	case string(constants.RequestCreateRoleDelegationForNewUser):
 		roleDelegation.CreatedAt = time.Now()
 		if err := r.repo.CreateWithNewUser(ctx, &roleDelegation); err != nil {
 			return nil, err
+		}
+		emailBody := roleDelegationEmailBody(roleDelegation)
+		emailMessage := shared_dto.SendEmailRequest{
+			Recipients: []shared_dto.EmailContact{{Name: roleDelegation.DelegatedUserFullName, Email: roleDelegation.DelegatedUserEmail}},
+			Subject:    "Role Delegation",
+			Body:       emailBody,
+		}
+		// send mail to notify the delegated user about the new role delegation and timeframe
+		if err := r.kafkaClient.PublishMessage(ctx, emailMessage, "email", "role-delegation", "role-delegation"); err != nil {
+			log.Errorf("[RoleDelegation Service][Authorize] failed to send notification email: %v", err)
 		}
 	case string(constants.RequestUpdateRoleDelegation):
 		roleDelegation.UpdatedAt = time.Now()
@@ -592,6 +615,51 @@ func roleDelegationPreferredValue(preferred, fallback string) string {
 	return fallback
 }
 
+func roleDelegationEmailBody(roleDelegation imodel.RoleDelegation) string {
+	recipientName := roleDelegationPreferredValue(roleDelegation.DelegatedUserFullName, roleDelegation.DelegatedUserID)
+	oldRole := strings.TrimSpace(roleDelegationPreferredValue(roleDelegation.DelegatedUserExistingRoleName, roleDelegation.DelegatedUserExistingRole))
+	newRole := strings.TrimSpace(roleDelegationPreferredValue(roleDelegation.NewRoleIDName, roleDelegation.NewRoleID))
+	delegatorName := strings.TrimSpace(roleDelegationPreferredValue(roleDelegation.DelegatorUserFullName, roleDelegation.DelegatorUserID))
+	delegatorEmail := "Unavailable"
+	if strings.Contains(roleDelegation.DelegatorUserID, "@") {
+		delegatorEmail = strings.TrimSpace(roleDelegation.DelegatorUserID)
+	}
+
+	destinationLabel := "Department"
+	if strings.EqualFold(strings.TrimSpace(roleDelegation.DelegationType), "BPS") {
+		destinationLabel = "Branch"
+	}
+	destinationValue := strings.TrimSpace(roleDelegationPreferredValue(roleDelegation.NewDepartmentOrBranchName, roleDelegation.NewDepartmentOrBranch))
+
+	if oldRole == "" {
+		oldRole = "N/A"
+	}
+	if newRole == "" {
+		newRole = "N/A"
+	}
+	if delegatorName == "" {
+		delegatorName = "N/A"
+	}
+	if destinationValue == "" {
+		destinationValue = "N/A"
+	}
+
+	startAt := local_util.FormatTime(roleDelegation.StartAt)
+	endAt := local_util.FormatTime(roleDelegation.EndAt)
+
+	return fmt.Sprintf(
+		"Dear %s,\n\nPlease be informed that your role delegation has been changed from %s to %s, effective from %s to %s. This notification is issued by CPS Portal for your records.\n\nDelegator Information:\nName: %s\nEmail: %s\n\nNew %s: %s\n\nSincerely,\nCPS Portal",
+		recipientName,
+		oldRole,
+		newRole,
+		startAt,
+		endAt,
+		delegatorName,
+		delegatorEmail,
+		destinationLabel,
+		destinationValue,
+	)
+}
 
 func NewRoleDelegationService(repo storage.RoleDelegationRepository, jobTitleRepo storage.JobRoleRepository, cpsUserRepo storage.CpsUserRepository, bpsUserRepo storage.BPSUserRepository, department storage.DepartmentRepository, roleRepo storage.RoleRepository, branchRepo storage.AccountBlockRepository, cpsService service.CPSActionService, minioClient *s3.Client, bucketName string, cfg config.VaultConfig, logger utils.Logger) service.RoleDelegationService {
 	return &roleDelegation{
