@@ -61,16 +61,30 @@ func (s *superAppRoleService) GetTransferLimitByRole(ctx context.Context, supera
 		return nil, errors.New(localization.ErrorResourceNotFound.Code)
 	}
 
-	results := buildLimitResults(response)
+	search := extractSearchKey(filterParam)
+	results := buildLimitResults(response, search)
 	return paginate(results, filterParam), nil
 }
 
-func buildLimitResults(response *core.CustomerLimitFetchByServiceResult) []cps_roles_dto.ServiceLevelLimitResponse {
+func extractSearchKey(filterParam types.Filter) string {
+	search := strings.TrimSpace(filterParam.Search)
+	if filterParam.Filters != nil {
+		if raw, ok := filterParam.Filters["search"]; ok {
+			if s, ok := raw.(string); ok && strings.TrimSpace(s) != "" {
+				search = strings.TrimSpace(s)
+			}
+		}
+	}
+	return search
+}
+
+func buildLimitResults(response *core.CustomerLimitFetchByServiceResult, search string) []cps_roles_dto.ServiceLevelLimitResponse {
 	serviceMap := make(map[string]*cps_roles_dto.ServiceLevelLimitResponse)
+	needle := strings.ToLower(strings.TrimSpace(search))
 
 	if response.Detail != nil && response.Detail.GChannelType != nil {
 		for _, ch := range response.Detail.GChannelType.MChannelType {
-			applyChannelToMap(serviceMap, ch)
+			applyChannelToMap(serviceMap, ch, needle)
 		}
 	}
 
@@ -81,11 +95,14 @@ func buildLimitResults(response *core.CustomerLimitFetchByServiceResult) []cps_r
 	return results
 }
 
-func applyChannelToMap(serviceMap map[string]*cps_roles_dto.ServiceLevelLimitResponse, ch climit.MChannelType) {
+func applyChannelToMap(serviceMap map[string]*cps_roles_dto.ServiceLevelLimitResponse, ch climit.MChannelType, needle string) {
 	if ch.SGServiceTypes == nil {
 		return
 	}
 	for _, svc := range ch.SGServiceTypes.GServiceType {
+		if needle != "" && !strings.Contains(strings.ToLower(svc.Name), needle) {
+			continue
+		}
 		if _, exists := serviceMap[svc.Name]; !exists {
 			serviceMap[svc.Name] = &cps_roles_dto.ServiceLevelLimitResponse{Name: svc.Name}
 		}
