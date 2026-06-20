@@ -376,6 +376,36 @@ func (j *RoleDelegationHandler) FindAllWithPagination(w http.ResponseWriter, r *
 		return
 	}
 
+	startDateRaw := strings.TrimSpace(r.URL.Query().Get("start_date"))
+	endDateRaw := strings.TrimSpace(r.URL.Query().Get("end_date"))
+
+	if (startDateRaw == "" && endDateRaw != "") || (startDateRaw != "" && endDateRaw == "") {
+		log.Warnf("[RoleDelegationHandler][FindAllWithPagination] both start_date and end_date are required when filtering by range: start_date=%q end_date=%q", startDateRaw, endDateRaw)
+		localization.SendErrorResponse(w, localization.ErrorInvalidDateFormat, nil, nil)
+		return
+	}
+
+	if startDateRaw != "" && endDateRaw != "" {
+		startDate, endDate, err := local_util.FormatDateRangeToUTCStrings(startDateRaw, endDateRaw)
+		if err != nil {
+			log.Warnf("[RoleDelegationHandler][FindAllWithPagination] invalid date range format: start_date=%q end_date=%q err=%v", startDateRaw, endDateRaw, err)
+			localization.SendErrorResponse(w, localization.ErrorInvalidDateFormat, nil, nil)
+			return
+		}
+
+		if endDate.Before(startDate) {
+			log.Warnf("[RoleDelegationHandler][FindAllWithPagination] invalid date range order: start_date=%v end_date=%v", startDate, endDate)
+			localization.SendErrorResponse(w, localization.ErrorInvalidDateFormat, nil, nil)
+			return
+		}
+
+		if filterParams.Filters == nil {
+			filterParams.Filters = map[string]interface{}{}
+		}
+		filterParams.Filters["start_date"] = startDate
+		filterParams.Filters["end_date"] = endDate
+	}
+
 	resp, err := j.service.FindAllWithPagination(ctx, *filterParams)
 	if err != nil {
 		log.Errorf("[RoleDelegationHandler][FindAllWithPagination] service error: %v", err)
