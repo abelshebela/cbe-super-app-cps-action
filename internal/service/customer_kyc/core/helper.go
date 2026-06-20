@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/hugokessem/coreio/core"
-	customercreation "github.com/hugokessem/coreio/lib/core/customer/customer_creation"
 
 	// coreCustomer "github.com/hugokessem/coreio/lib/core/cusotmer/customer_creation"
 
@@ -55,13 +54,8 @@ func CreateAccountToCore(ctx context.Context, data core.CreateCustomerParam, acc
 
 			// extract existing customer ID
 			duplicateCustomerID := extractDuplicateContract(message)
-
-			return &core.CreateCustomerResult{
-				Success: true,
-				Detail: &customercreation.CustomerTypeDetail{
-					Customer: duplicateCustomerID,
-				},
-			}, nil
+			logger.Errorf("Duplicate user exists in core: %v", duplicateCustomerID)
+			return nil, fmt.Errorf("duplicate user exists")
 		}
 	}
 
