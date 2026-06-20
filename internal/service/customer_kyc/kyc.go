@@ -355,7 +355,7 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 			PostalCode:     constants.Empty,
 			ISOCountryCode: "ET",
 
-			AccountOffice: "7124",
+			AccountOffice: s.cfg.CentralKYCBranchCode,
 			Industry:      constants.Empty,
 
 			ISONationalityCode: "ET",
@@ -363,7 +363,7 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 
 			UniqueID:   userData.KYCData.OriginID,
 			IssuesBy:   strings.ToUpper(string(userData.KYCData.Vendor)),
-			IssuedDate: constants.Empty,
+			IssuedDate: time.Now().String(),
 			ExpiryDate: constants.Empty,
 
 			Gender:      strings.ToUpper(strings.TrimSpace(userData.KYCData.Gender)),
@@ -379,7 +379,7 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 			EmployerAddress:  constants.Empty,
 			EmployerBusiness: userData.KYCData.SourceOfIncome,
 
-			CustomerCurrency: t24Currency(userData.KYCData.Currency),
+			CustomerCurrency:  t24Currency(userData.KYCData.Currency),
 			Salary:            t24Amount(userData.KYCData.MonthlyIncome),
 			AnnualBonus:       constants.Empty,
 			NetMonthlyIncome:  t24Amount(userData.KYCData.MonthlyIncome),
@@ -390,7 +390,7 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 			CustomerGroup: t24CustomerGroup(userData.KYCData.SubAccountType),
 			NationalId:    userData.KYCData.Sub,
 
-			Url: "https://superrapp-account-opening-https-ace-uat.apps.cp4itest.cbe.local/cust_creation",
+			Url: s.cfg.AccountOpeningTokenURL,
 			Header: map[string]string{
 				"Authorization": "Bearer " + token,
 			},
@@ -402,9 +402,10 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 			log.Errorf("[CustKycSvc][Authorize] core account creation failed: %v", err)
 			return nil, err
 		}
+
 		log.Infof("[CustKycSvc][Authorize] core account created for customer: %s", userAccount)
 
-		if err = s.repo.CreateUser(ctx, userAccount, *userData); err != nil {
+		if err = s.repo.CreateUser(ctx, userAccount.CustomerCreationDetail, *userData); err != nil {
 			return nil, err
 		}
 
