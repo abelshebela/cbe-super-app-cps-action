@@ -305,6 +305,70 @@ func (h *deviceVersionAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// SetDeviceState
+//
+//	@Summary		Set Device State
+//	@Description	Set the device_state for a device version. Accepted values: FORCE_UPDATE, MAINTENANCE, STABLE. Derives force_update and is_maintenance_mode automatically.
+//	@Tags			Device Version
+//	@Accept			json
+//	@Produce		json
+//	@Param			id				path		string									true	"Device version ID"
+//	@Param			device_state	body		dvdto.SetDeviceStateRequest				true	"Device state"
+//	@Success		200				{object}	localization.StandardResponse{data=nil}	"Device version state updated"
+//	@Failure		400				{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		404				{object}	localization.StandardResponse{data=nil}	"Device version not found"
+//	@Failure		500				{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/device_versions/state/{id} [patch]
+func (h *deviceVersionAdapter) SetDeviceState(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "setDeviceState", "handler", "deviceVersion")
+	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, h.logger)
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
+
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
+		return
+	}
+
+	var req dvdto.SetDeviceStateRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		span.RecordError(err)
+		log.Errorf("[SetDeviceState] decode: %v", err)
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequestBody.Code)
+		return
+	}
+	if err := req.Validate(); err != nil {
+		span.RecordError(err)
+		log.Errorf("[SetDeviceState] validation: %v", err)
+		localization.SendBadRequestResponse(w, err.Error())
+		return
+	}
+
+	span.SetAttributes(
+		attribute.String("device_version.id", id),
+		attribute.String("device_version.device_state", req.DeviceState),
+	)
+	if err := h.svc.SetDeviceState(ctx, id, req.DeviceState); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
+		span.RecordError(err)
+		log.Errorf("[SetDeviceState] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	if md.IsMakerOnly {
+		log.Infof("[SetDeviceState] request sent successfully for id: %s state: %s", id, req.DeviceState)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+		localization.SendSuccessResponse(w, localization.SuccessDeviceVersionStateSetSP, nil)
+	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+		localization.SendSuccessResponse(w, localization.SuccessDeviceVersionStateSetRequestSubmitted, nil)
+	}
+}
+
 // Disable
 //
 //	@Summary		Disable Device Version

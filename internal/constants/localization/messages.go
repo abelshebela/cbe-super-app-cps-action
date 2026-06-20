@@ -471,10 +471,13 @@ const (
 	MsgDeviceVersionUpdateRequestSubmittedSuccess  = "Device version update request submitted"
 	MsgDeviceVersionCreateRequestSubmittedSuccess  = "Device version create request submitted"
 
-	MsgDeviceVersionCreatedSuccessfullySP  = "Device version created successfully"
-	MsgDeviceVersionUpdatedSuccessfullySP  = "Device version updated successfully "
-	MsgDeviceVersionEnabledSuccessfullySP  = "Device version enabled successfully"
-	MsgDeviceVersionDisabledSuccessfullySP = "Device version disabled successfully"
+	MsgDeviceVersionCreatedSuccessfullySP        = "Device version created successfully"
+	MsgDeviceVersionUpdatedSuccessfullySP        = "Device version updated successfully "
+	MsgDeviceVersionEnabledSuccessfullySP        = "Device version enabled successfully"
+	MsgDeviceVersionDisabledSuccessfullySP       = "Device version disabled successfully"
+	MsgDeviceVersionStateSetSuccessfullySP       = "Device version state updated successfully"
+	MsgDeviceVersionStateSetRequestSubmitted     = "Device version state update request submitted"
+	MsgDeviceVersionAlreadyInState               = "Device version is already in the requested state"
 
 	// Notification related success messages
 	MsgNotificationEnableRequestSubmitted  = "Notification enable request submitted successfully"
