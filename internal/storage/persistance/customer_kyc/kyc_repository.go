@@ -45,15 +45,38 @@ func (r *customerKYCRepository) FindAllWithPagination(ctx context.Context, filte
 
 	log.Infof("[CustomerKYC][FindAllWithPagination] fetching kyc requests")
 
+	// FilterBuilder handles kyc_status (exact), enabled (bool), created_at (date / date range).
 	allowed := []string{"kyc_status", "enabled", "created_at"}
 	filter, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, allowed)
+
+	// Always exclude soft-deleted documents.
+	filter["is_deleted"] = bson.M{"$ne": true}
+
+	// Text search across the most useful identifier fields.
 	if filterParam.Search != "" {
 		q := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		filter["$or"] = []bson.M{
 			{"kyc_data.full_name": q},
 			{"kyc_data.phone_number": q},
+			{"kyc_data.email": q},
+			{"kyc_data.origin_id": q},
 			{"kyc_status": q},
 			{"user_id": q},
+		}
+	}
+
+	// Nested-field filters: map friendly query-param keys to their MongoDB paths.
+	// ?vendor=FAYDA         → kyc_data.vendor
+	// ?account_type=SAVING  → kyc_data.account_type
+	// ?sub_account_type=IFB → kyc_data.sub_account_type
+	nestedFieldMap := map[string]string{
+		"vendor":           "kyc_data.vendor",
+		"account_type":     "kyc_data.account_type",
+		"sub_account_type": "kyc_data.sub_account_type",
+	}
+	for param, mongoField := range nestedFieldMap {
+		if v, ok := filterParam.Filters[param]; ok && v != nil && v != "" {
+			filter[mongoField] = v
 		}
 	}
 
