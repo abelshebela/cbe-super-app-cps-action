@@ -528,8 +528,15 @@ func t24IssuedDate(issuedDate string) string {
 	if strings.TrimSpace(issuedDate) != "" {
 		return issuedDate
 	}
-	return time.Now().AddDate(-2, 0, 0).Format("20060102")
+	return "20210101"
 }
+
+// func t24IssuedDate(issuedDate string) string {
+// 	if strings.TrimSpace(issuedDate) != "" {
+// 		return issuedDate
+// 	}
+// 	return time.Now().AddDate(-2, 0, 0).Format("20060102")
+// }
 
 // t24LegalID truncates the ID to T24's LEGAL.ID max of 35 characters.
 func t24LegalID(id string) string {
