@@ -390,7 +390,7 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 			CustomerGroup: t24CustomerGroup(userData.KYCData.SubAccountType),
 			NationalId:    userData.KYCData.Sub,
 
-			Url: s.cfg.AccountOpeningTokenURL,
+			Url: s.cfg.CustomerCreateURL,
 			Header: map[string]string{
 				"Authorization": "Bearer " + token,
 			},
