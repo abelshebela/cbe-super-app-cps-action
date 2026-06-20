@@ -195,6 +195,13 @@ const (
 	Ios     Platform = "IOS"
 )
 
+type AccountCategory string
+
+const (
+	SavingsAccountCategory AccountCategory = "SAVINGS"
+	CurrentAccountCategory AccountCategory = "CURRENT"
+)
+
 // ---------------------------------------------------------------------------
 // Vault Status
 // ---------------------------------------------------------------------------
