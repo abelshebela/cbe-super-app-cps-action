@@ -91,7 +91,6 @@ func (s *customerKYCService) FindByID(ctx context.Context, id string) (*dto.Cust
 	}
 	mappedResponse := core.MapCustomerKYCToResponse(result)
 
-	// If the kyc is in review status, get the start, and expiry time
 	if result.KYCStatus == imodel.KYCStatusInReview {
 		review, err := s.repo.FindKycInReview(ctx, id)
 		if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
@@ -127,7 +126,6 @@ func (s *customerKYCService) EnableOrDisable(ctx context.Context, id, reason str
 		return errors.New("Start KYC review before approving or rejecting the KYC request")
 	}
 
-	// Check if review time is not expired before allowing approval or rejection of the KYC request
 	if userReq.KYCStatus == imodel.KYCStatusInReview {
 		review, err := s.repo.FindKycInReview(ctx, id)
 		if err != nil {
@@ -346,34 +344,29 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 		}
 
 		data := coreio.CreateCustomerParam{
-			// T24 MNEMONIC is generated from name — must be uppercase trimmed
 			FirstName:  strings.ToUpper(strings.TrimSpace(firstName)),
 			MiddleName: strings.ToUpper(strings.TrimSpace(middleName)),
 			LastName:   strings.ToUpper(strings.TrimSpace(lastName)),
 
 			PhoneNumber: userData.KYCData.PhoneNumber,
 
-			// T24 ADDRESS field has a ~35-char limit
 			Address: strings.TrimSpace(userData.KYCData.Address.Woreda),
 
 			PostalCode:     constants.Empty,
-			ISOCountryCode: "ET", // TODO: derive from Country field once ISO alpha-2 is confirmed in data
+			ISOCountryCode: "ET",
 
-			// TODO: move AccountOffice to config
 			AccountOffice: "7124",
 			Industry:      constants.Empty,
 
-			ISONationalityCode: "ET", // TODO: derive from Nationality field once ISO alpha-2 is confirmed in data
-			ISOResidentCode:    "ET", // TODO: derive from Country field once ISO alpha-2 is confirmed in data
+			ISONationalityCode: "ET",
+			ISOResidentCode:    "ET",
 
 			UniqueID:   userData.KYCData.OriginID,
 			IssuesBy:   strings.ToUpper(string(userData.KYCData.Vendor)),
 			IssuedDate: constants.Empty,
 			ExpiryDate: constants.Empty,
 
-			// T24 GENDER lookup: "MALE" / "FEMALE"
-			Gender: strings.ToUpper(strings.TrimSpace(userData.KYCData.Gender)),
-			// T24 DATE.OF.BIRTH must be YYYYMMDD (no dashes)
+			Gender:      strings.ToUpper(strings.TrimSpace(userData.KYCData.Gender)),
 			DateOfBirth: userData.KYCData.BirthDate.Format("20060102"),
 
 			MaritalStatus: strings.ToUpper(strings.TrimSpace(userData.KYCData.MaritalStatus)),
@@ -459,7 +452,6 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 			return nil, err
 		}
 
-		// Set a new expiration time for the review to be picked by another reviewer if the current reviewer fails to complete the review in time
 		existingReview, err := s.repo.FindKycInReview(ctx, cpsAction.UniqueId)
 		if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 			log.Errorf("[CustKycSvc][Authorize] failed to check existing review: %v", err)
@@ -488,8 +480,6 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 	return cpsAction, nil
 }
 
-// t24CustomerGroup maps the app's sub-account type to a T24 customer group code.
-// Falls back to "RETAIL" when empty, matching the working sandbox example.
 func t24CustomerGroup(subAccountType string) string {
 	if g := strings.ToUpper(strings.TrimSpace(subAccountType)); g != "" {
 		return g
@@ -497,8 +487,6 @@ func t24CustomerGroup(subAccountType string) string {
 	return "RETAIL"
 }
 
-// t24Amount returns the amount string for T24 currency fields.
-// T24 rejects empty strings with "CURRENCY MISSING"; default to "0".
 func t24Amount(v string) string {
 	if strings.TrimSpace(v) == "" {
 		return "0"
@@ -506,7 +494,6 @@ func t24Amount(v string) string {
 	return v
 }
 
-// t24Currency defaults to "ETB" when the stored currency field is empty.
 func t24Currency(currency string) string {
 	if strings.TrimSpace(currency) == "" {
 		return "ETB"
@@ -514,7 +501,6 @@ func t24Currency(currency string) string {
 	return strings.ToUpper(strings.TrimSpace(currency))
 }
 
-// t24EmploymentStatus maps mobile-app employment status values to T24 lookup codes.
 func t24EmploymentStatus(status string) string {
 	switch strings.ToUpper(strings.TrimSpace(status)) {
 	case "FULL_TIME", "FULLTIME", "FULL-TIME":

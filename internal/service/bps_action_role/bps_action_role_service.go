@@ -232,6 +232,7 @@ func (s *bpsActionRoleService) Create(ctx context.Context, req actionrole_dto.Cr
 func (s *bpsActionRoleService) Update(ctx context.Context, actionCode string, req actionrole_dto.UpdateActionRoleRequest) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Update", "BPSActionRole", "Update")
 	defer span.End()
+
 	if actionCode == "" {
 		span.AddEvent("action code is empty", trace.WithAttributes(attribute.String("error", "action code is empty")))
 		return errors.New(localization.ErrorActionNameIsRequired.Code)
@@ -249,90 +250,20 @@ func (s *bpsActionRoleService) Update(ctx context.Context, actionCode string, re
 		return errors.New(localization.ErrorUserUnauthorized.Code)
 	}
 
-	if req.AssignedViewersRoles != nil {
-		if err := s.validateUniqueIDs(req.AssignedViewersRoles); err != nil {
-			span.AddEvent("failed to validate unique maker IDs", trace.WithAttributes(attribute.String("error", err.Error())))
-			if err.Error() != localization.ErrorResourceNotFound.Code {
-				return err
-			}
-		}
+	if err := s.validateUpdateRoles(req); err != nil {
+		span.AddEvent("role validation failed", trace.WithAttributes(attribute.String("error", err.Error())))
+		return err
 	}
 
-	if req.AssignedMakersRoles != nil {
-		if err := s.validateUniqueIDs(req.AssignedMakersRoles); err != nil {
-			span.AddEvent("failed to validate unique maker IDs", trace.WithAttributes(attribute.String("error", err.Error())))
-			return err
-		}
-	}
-	if req.AssignedCheckerRoles != nil {
-		if err := s.validateUniqueIDsInGroups(req.AssignedCheckerRoles); err != nil {
-			span.AddEvent("failed to validate unique checker IDs in groups", trace.WithAttributes(attribute.String("error", err.Error())))
-			return err
-		}
-	}
-	if req.AssignedAuditorRoles != nil {
-		if err := s.validateUniqueIDs(req.AssignedAuditorRoles); err != nil {
-			span.AddEvent("failed to validate unique auditor IDs", trace.WithAttributes(attribute.String("error", err.Error())))
-			return err
-		}
+	// Fetch raw stored document ([]string role codes, no $lookup) for fallback values.
+	rawOld, rawErr := s.repo.FindByActionName(ctx, actionCode)
+	if rawErr != nil {
+		span.AddEvent("failed to fetch raw action role for fallback", trace.WithAttributes(attribute.String("error", rawErr.Error())))
+		rawOld = &imodel.BPSActionRole{}
 	}
 
-	payload := imodel.BPSActionRole{
-		ActionCode:     actionCode,
-		PortalCardName: req.PortalCardName,
-		ActionName:     local_util.NonEmptyString(req.ActionName, old.ActionName),
-		IsMakerOnly:    req.IsMakerOnly || int32(len(req.AssignedCheckerRoles)) == 0,
-		IsViweOnly:     req.IsViewOnly || (int32(len(req.AssignedViewersRoles)) > 0 && len(req.AssignedViewersRoles) == 0 && len(req.AssignedCheckerRoles) == 0),
-		Enabled:        true,
-		ApproverCount:  int32(len(req.AssignedCheckerRoles)),
-	}
+	payload := s.buildUpdatePayload(actionCode, req, old, rawOld)
 
-	if req.AssignedViewersRoles != nil {
-		viewers := make([]string, 0, len(req.AssignedViewersRoles))
-		for _, code := range req.AssignedViewersRoles {
-			viewers = append(viewers, code)
-		}
-		payload.AssignedViewersRoles = viewers
-	}
-
-	if req.AssignedMakersRoles != nil {
-		makers := make([]string, 0, len(req.AssignedMakersRoles))
-		for _, code := range req.AssignedMakersRoles {
-			makers = append(makers, code)
-		}
-
-		payload.AssignedMakersRoles = makers
-	}
-
-	if req.IsMakerOnly {
-		payload.AssignedCheckerRoles = [][]string{}
-	} else if req.IsViewOnly {
-		payload.AssignedMakersRoles = []string{}
-		payload.AssignedAuditorRoles = []string{}
-		payload.AssignedCheckerRoles = [][]string{}
-	} else {
-		if req.AssignedCheckerRoles != nil {
-			checkers := make([][]string, 0, len(req.AssignedCheckerRoles))
-			for _, group := range req.AssignedCheckerRoles {
-				g := make([]string, 0, len(group))
-				for _, code := range group {
-					g = append(g, code)
-				}
-				checkers = append(checkers, g)
-			}
-			payload.AssignedCheckerRoles = checkers
-		}
-	}
-	if req.AssignedAuditorRoles != nil {
-		auditors := make([]string, 0, len(req.AssignedAuditorRoles))
-		for _, code := range req.AssignedAuditorRoles {
-			auditors = append(auditors, code)
-		}
-		payload.AssignedAuditorRoles = auditors
-	}
-
-	// Recalculate ApproverCount
-	payload.ApproverCount = int32(len(payload.AssignedCheckerRoles))
 	cpsAction := lib.CpsModelBuilder(
 		actionCode,
 		maker,
@@ -342,12 +273,110 @@ func (s *bpsActionRoleService) Update(ctx context.Context, actionCode string, re
 		constants.UPDATE,
 	)
 
-	err = s.cpsService.CreateCPSAction(ctx, &cpsAction)
-	if err != nil {
+	if err = s.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
 		span.AddEvent("failed to create cps action", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
 	}
 	return nil
+}
+
+// validateUpdateRoles runs existence/uniqueness checks on each role array that was provided.
+func (s *bpsActionRoleService) validateUpdateRoles(req actionrole_dto.UpdateActionRoleRequest) error {
+	if req.AssignedViewersRoles != nil {
+		if err := s.validateUniqueIDs(req.AssignedViewersRoles); err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+			return err
+		}
+	}
+	if req.AssignedMakersRoles != nil {
+		if err := s.validateUniqueIDs(req.AssignedMakersRoles); err != nil {
+			return err
+		}
+	}
+	if req.AssignedCheckerRoles != nil {
+		if err := s.validateUniqueIDsInGroups(req.AssignedCheckerRoles); err != nil {
+			return err
+		}
+	}
+	if req.AssignedAuditorRoles != nil {
+		if err := s.validateUniqueIDs(req.AssignedAuditorRoles); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// buildUpdatePayload assembles the BPSActionRole to persist, merging request fields
+// with existing values for any field not explicitly provided.
+func (s *bpsActionRoleService) buildUpdatePayload(
+	actionCode string,
+	req actionrole_dto.UpdateActionRoleRequest,
+	old *actionrole_dto.GetActionRoleByActionCodeRes,
+	rawOld *imodel.BPSActionRole,
+) imodel.BPSActionRole {
+	// IsMakerOnly: explicit flag wins; empty checker array → maker-only; nil → preserve existing.
+	isMakerOnly := resolveMakerOnly(req, old.IsMakerOnly)
+
+	payload := imodel.BPSActionRole{
+		ActionCode:           actionCode,
+		PortalCardName:       req.PortalCardName,
+		ActionName:           local_util.NonEmptyString(req.ActionName, old.ActionName),
+		IsMakerOnly:          isMakerOnly,
+		IsViweOnly:           req.IsViewOnly,
+		Enabled:              true,
+		AssignedViewersRoles: coalesceStringSlice(req.AssignedViewersRoles, rawOld.AssignedViewersRoles),
+	}
+
+	switch {
+	case req.IsViewOnly:
+		payload.AssignedMakersRoles = []string{}
+		payload.AssignedAuditorRoles = []string{}
+		payload.AssignedCheckerRoles = [][]string{}
+	case isMakerOnly:
+		payload.AssignedMakersRoles = coalesceStringSlice(req.AssignedMakersRoles, rawOld.AssignedMakersRoles)
+		payload.AssignedAuditorRoles = coalesceStringSlice(req.AssignedAuditorRoles, rawOld.AssignedAuditorRoles)
+		payload.AssignedCheckerRoles = [][]string{}
+	default:
+		payload.AssignedMakersRoles = coalesceStringSlice(req.AssignedMakersRoles, rawOld.AssignedMakersRoles)
+		payload.AssignedAuditorRoles = coalesceStringSlice(req.AssignedAuditorRoles, rawOld.AssignedAuditorRoles)
+		payload.AssignedCheckerRoles = coalesceCheckerSlice(req.AssignedCheckerRoles, rawOld.AssignedCheckerRoles)
+	}
+
+	payload.ApproverCount = int32(len(payload.AssignedCheckerRoles))
+	return payload
+}
+
+// resolveMakerOnly determines the IsMakerOnly flag for an update:
+// explicit req flag wins; if checkers sent as empty array → maker-only; otherwise keep old value.
+func resolveMakerOnly(req actionrole_dto.UpdateActionRoleRequest, oldValue bool) bool {
+	if req.IsMakerOnly {
+		return true
+	}
+	if req.AssignedCheckerRoles != nil {
+		return len(req.AssignedCheckerRoles) == 0
+	}
+	return oldValue
+}
+
+// coalesceStringSlice returns req if it was explicitly provided (non-nil), otherwise fallback.
+func coalesceStringSlice(req, fallback []string) []string {
+	if req != nil {
+		return req
+	}
+	return fallback
+}
+
+// coalesceCheckerSlice returns req if explicitly provided (non-nil), copying groups; otherwise fallback.
+func coalesceCheckerSlice(req, fallback [][]string) [][]string {
+	if req == nil {
+		return fallback
+	}
+	out := make([][]string, 0, len(req))
+	for _, group := range req {
+		g := make([]string, len(group))
+		copy(g, group)
+		out = append(out, g)
+	}
+	return out
 }
 
 func (s *bpsActionRoleService) Enable(ctx context.Context, actionCode string) error {
