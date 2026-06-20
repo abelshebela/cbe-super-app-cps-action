@@ -102,11 +102,13 @@ func (r *BPSActionRoleRepository) UpdateByActionCode(ctx context.Context, action
 
 	update := bson.M{
 		"action_name":             actionRole.ActionName,
+		"assigned_viewers_roles":  actionRole.AssignedViewersRoles,
 		"assigned_makers_roles":   actionRole.AssignedMakersRoles,
 		"assigned_checkers_roles": actionRole.AssignedCheckerRoles,
 		"assigned_auditor_roles":  actionRole.AssignedAuditorRoles,
 		"approver_count":          actionRole.ApproverCount,
 		"is_maker_only":           actionRole.IsMakerOnly,
+		"is_view_only":            actionRole.IsViweOnly,
 		"enabled":                 actionRole.Enabled,
 		"updated_at":              actionRole.UpdatedAt,
 	}
