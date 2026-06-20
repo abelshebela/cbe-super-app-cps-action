@@ -11,12 +11,24 @@ import (
 	"strings"
 	"time"
 
-	coreio "github.com/hugokessem/coreio/core"
+	"github.com/hugokessem/coreio/core"
+
+	// coreCustomer "github.com/hugokessem/coreio/lib/core/cusotmer/customer_creation"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
-func CreateAccountToCore(ctx context.Context, data coreio.CreateCustomerParam, accountLookupService accountLookup.Account, coreAPI coreio.CBECoreAPIInterface, logger utils.Logger) (*coreio.CreateCustomerResult, error) {
+func extractDuplicateContract(message string) string {
+	parts := strings.Fields(message)
+
+	if len(parts) == 0 {
+		return ""
+	}
+
+	return parts[len(parts)-1]
+}
+
+func CreateAccountToCore(ctx context.Context, data core.CreateCustomerParam, accountLookupService accountLookup.Account, coreAPI core.CBECoreAPIInterface, logger utils.Logger) (*core.CreateCustomerResult, error) {
 	response, err := coreAPI.CreateCustomer(ctx, data)
 	if err != nil {
 		logger.Errorf("failed to create customer: %v", err)
@@ -36,7 +48,7 @@ func CreateAccountToCore(ctx context.Context, data coreio.CreateCustomerParam, a
 	// The real customer number is in the response's transactionId but not exposed by the library.
 	// We recover it via PhoneLookup which queries T24 by MNEMONIC and returns CustomerID.
 	if response.Detail != nil && response.Detail.Customer == "" && response.Detail.Menmonic != "" {
-		lookup, lookupErr := coreAPI.PhoneLookup(ctx, coreio.PhoneLookupParam{PhoneNumber: response.Detail.Menmonic})
+		lookup, lookupErr := coreAPI.PhoneLookup(ctx, core.PhoneLookupParam{PhoneNumber: response.Detail.Menmonic})
 		if lookupErr != nil {
 			logger.Warnf("[CreateAccountToCore] customer number lookup by mnemonic=%s failed: %v", response.Detail.Menmonic, lookupErr)
 		} else if lookup != nil && lookup.Success && lookup.Detail != nil && lookup.Detail.CustomerID != "" {
