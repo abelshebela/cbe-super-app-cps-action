@@ -3,7 +3,6 @@ package cpsaction
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
@@ -37,8 +36,6 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 	action := cpsAction.RequestAction
 	span.SetAttributes(attribute.String("action", action))
 
-	fmt.Printf("Authorizing action: %s\n", cpsAction.RequestAction)
-
 	switch {
 	case IsActionInGroup(constants.RequestAction(action), "BANK"):
 		return d.app.BankContainer.Authorize(ctx, cpsAction)
@@ -57,9 +54,6 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 
 	case IsActionInGroup(constants.RequestAction(action), "KYCVERIFIER"):
 		return d.app.KYCVerifierContainer.Authorize(ctx, cpsAction)
-
-	// case IsActionInGroup(constants.RequestAction(action), "ACCOUNTBLOCK"):
-	// 	return d.app.AccountBlockContainer.Authorize(ctx, cpsAction)
 
 	case IsActionInGroup(constants.RequestAction(action), "SINGLEBRANCHENABLEACCOUNTBLOCK"):
 		return d.app.AccountBlockContainer.Authorize(ctx, cpsAction)
@@ -186,15 +180,10 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.AccessListSegmentationContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(constants.RequestAction(action), "ECOMMERCEMERCHANT"):
 		return d.app.EcommerceMerchantContainer.Authorize(ctx, cpsAction)
-	// case IsActionInGroup(constants.RequestAction(action), "CPSROLE"):
-	// 	return d.app.CPSRolesContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(constants.RequestAction(action), "CUSTOMERKYC"):
 		return d.app.CustomerKYCContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(constants.RequestAction(action), "CPSROLE"):
 		return d.app.SuperAppRoleContainer.Authorize(ctx, cpsAction)
-	// case IsActionInGroup(constants.RequestAction(action), "VAULT"):
-	// 	return d.app.VaultCategoryContainer.Authorize(ctx, cpsAction)
-
 	case IsActionInGroup(constants.RequestAction(action), "VAULTCATEGORIES"):
 		return d.app.VaultCategoryContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(constants.RequestAction(action), "VAULTEMERGENCYDEADLOCKREQUEST"):
@@ -203,7 +192,6 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.RoleDelegationContainer.Authorize(ctx, cpsAction)
 	default:
 		span.AddEvent("unsupported action", trace.WithAttributes(attribute.String("action", action)))
-		fmt.Printf("Unsupported action---------------------: %s\n", action)
 		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
 	}
 }
