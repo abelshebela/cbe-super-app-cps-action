@@ -4,6 +4,8 @@ import (
 	constants "cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
+	"encoding/hex"
+	"strings"
 	"time"
 
 	local_model "cbe-super-app-cps-action/internal/constants/model"
@@ -27,60 +29,94 @@ func NewMiniAppOracleRepository(logger shared_utils.Logger, db *sql.DB) storage.
 
 
 func (m *miniAppOraclePersistence) Create(ctx context.Context, miniApp *local_model.MiniApp) error {
-	// var merchantID any = nil
-	// if !miniApp.MerchantID.IsZero() {
-	// 	merchantID = miniApp.MerchantID[:]
-	// }
-
+	
+	var err error
+	if miniApp.AppType == local_model.NonFinancial{
 	q := querypkg.MiniAppsInsert
 
-_, err := m.db.ExecContext(
-    ctx, q,
-    miniApp.CategoryID,
-    miniApp.MerchantID,
-    miniApp.AppName,
-    miniApp.AppIcon,
-    string(miniApp.AppType),
-    miniApp.BannerImage,
-    miniApp.URL,
-    string(miniApp.AppViewType),
-    boolToInt64(miniApp.IsFeatured),
-    boolToInt64(miniApp.Enabled),
-    boolToInt64(miniApp.IsDeleted),
-    miniApp.CreatedAt,
-    miniApp.UpdatedAt,
-    miniApp.Credential.MerchantAppID,
-    miniApp.Credential.FabricAppID,
-    miniApp.Credential.ShortCode,
-    miniApp.Credential.AppSecret,
-    miniApp.Credential.PrivateKey,
-    miniApp.Credential.PublicKey,
-    miniApp.ServiceID, // SERVICE_ID
-)
+	_, err = m.db.ExecContext(
+		ctx, q,
+		miniApp.CategoryID,
+		nil,
+		miniApp.AppName,
+		miniApp.AppIcon,
+		string(miniApp.AppType),
+		miniApp.BannerImage,
+		miniApp.URL,
+		string(miniApp.AppViewType),
+		boolToInt64(miniApp.IsFeatured),
+		boolToInt64(miniApp.Enabled),
+		boolToInt64(miniApp.IsDeleted),
+		miniApp.CreatedAt,
+		miniApp.UpdatedAt,
+		miniApp.Credential.MerchantAppID,
+		miniApp.Credential.FabricAppID,
+		miniApp.Credential.ShortCode,
+		miniApp.Credential.AppSecret,
+		miniApp.Credential.PrivateKey,
+		miniApp.Credential.PublicKey,
+		miniApp.ServiceID, // SERVICE_ID
+	)}else{
+		q := querypkg.MiniAppsInsert
 
-	// fmt.Printf("Err :%v", err)
+		_, err = m.db.ExecContext(
+			ctx, q,
+			miniApp.CategoryID,
+			miniApp.MerchantID,
+			miniApp.AppName,
+			miniApp.AppIcon,
+			string(miniApp.AppType),
+			miniApp.BannerImage,
+			miniApp.URL,
+			string(miniApp.AppViewType),
+			boolToInt64(miniApp.IsFeatured),
+			boolToInt64(miniApp.Enabled),
+			boolToInt64(miniApp.IsDeleted),
+			miniApp.CreatedAt,
+			miniApp.UpdatedAt,
+			miniApp.Credential.MerchantAppID,
+			miniApp.Credential.FabricAppID,
+			miniApp.Credential.ShortCode,
+			miniApp.Credential.AppSecret,
+			miniApp.Credential.PrivateKey,
+			miniApp.Credential.PublicKey,
+			miniApp.ServiceID, // SERVICE_ID
+		)
+	}
+
 	if err != nil {
+		m.logger.Errorf("[create mini app cps]failed to create mini app db error for app type: %v", "err", miniApp.AppType, err)
+
 		return constants.ErrDatabaseError
 	}
 	return nil
 }
 
 func (m *miniAppOraclePersistence) Update(ctx context.Context, id string, miniApp *local_model.MiniApp) error {
-	// if !isHexID(id) {
-	// 	return constants.ErrInvalidID
-	// }
-	// var merchantID any = nil
-	// if !miniApp.MerchantID.IsZero() {
-	// 	merchantID = miniApp.MerchantID[:]
-	// }
+	if !IsValidRaw16ID(id) {
+		return constants.ErrInvalidID
+	}
+	var res sql.Result
+	var err error
+	if local_model.AppType((strings.ToUpper(string(miniApp.AppType)))) == local_model.NonFinancial {
+
 	q := querypkg.MiniAppsUpdate
-	res, err := m.db.ExecContext(
+	res, err = m.db.ExecContext(
+		ctx, q,
+		miniApp.CategoryID[:], nil, miniApp.AppName, miniApp.AppIcon, string(miniApp.AppType), miniApp.BannerImage, miniApp.URL, string(miniApp.AppViewType),
+		boolToInt64(miniApp.IsFeatured), boolToInt64(miniApp.Enabled), miniApp.UpdatedAt,
+		miniApp.Credential.MerchantAppID, miniApp.Credential.FabricAppID, miniApp.Credential.ShortCode, miniApp.Credential.AppSecret, miniApp.Credential.PrivateKey, miniApp.Credential.PublicKey,
+		miniApp.ServiceID, id,
+	)} else{
+			q := querypkg.MiniAppsUpdate
+	res, err = m.db.ExecContext(
 		ctx, q,
 		miniApp.CategoryID[:], miniApp.MerchantID, miniApp.AppName, miniApp.AppIcon, string(miniApp.AppType), miniApp.BannerImage, miniApp.URL, string(miniApp.AppViewType),
 		boolToInt64(miniApp.IsFeatured), boolToInt64(miniApp.Enabled), miniApp.UpdatedAt,
 		miniApp.Credential.MerchantAppID, miniApp.Credential.FabricAppID, miniApp.Credential.ShortCode, miniApp.Credential.AppSecret, miniApp.Credential.PrivateKey, miniApp.Credential.PublicKey,
 		miniApp.ServiceID, id,
 	)
+	}
 	if err != nil {
 		return constants.ErrDatabaseError
 	}
@@ -92,7 +128,7 @@ func (m *miniAppOraclePersistence) Update(ctx context.Context, id string, miniAp
 }
 
 func (m *miniAppOraclePersistence) Delete(ctx context.Context, id string) error {
-	if !isHexID(id) {
+	if !IsValidRaw16ID(id) {
 		return constants.ErrInvalidID
 	}
 	q := querypkg.MiniAppsSoftDelete
@@ -108,7 +144,7 @@ func (m *miniAppOraclePersistence) Delete(ctx context.Context, id string) error 
 }
 
 func (m *miniAppOraclePersistence) EnableOrDisable(ctx context.Context, id string, enable bool) error {
-	if !isHexID(id) {
+	if !IsValidRaw16ID(id) {
 		return constants.ErrInvalidID
 	}
 	q := querypkg.MiniAppsToggleEnable
@@ -137,4 +173,14 @@ func (m *miniAppOraclePersistence) RunInTransaction(ctx context.Context, fn func
 		return constants.ErrDatabaseError
 	}
 	return nil
+}
+
+
+func IsValidRaw16ID(id string) bool {
+	if len(id) != 32 {
+		return false
+	}
+
+	_, err := hex.DecodeString(id)
+	return err == nil
 }
