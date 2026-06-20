@@ -573,7 +573,7 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 		s.accessListCache.Set(ctx, accessList_cache.AccessListData{
 			ServiceName: listDoc.ServiceName,
 			ServiceKey:  listDoc.ServiceKey,
-			AccountType: accessList_cache.AccountType(listDoc.AccountType),
+			AccountType: listDoc.AccountType,
 		})
 
 	case string(constants.RequestUpdateServiceList):
@@ -594,7 +594,7 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 		s.accessListCache.Set(ctx, accessList_cache.AccessListData{
 			ServiceName: listDoc.ServiceName,
 			ServiceKey:  listDoc.ServiceKey,
-			AccountType: accessList_cache.AccountType(listDoc.AccountType),
+			AccountType: listDoc.AccountType,
 		})
 
 	case string(constants.RequestEnableServiceList):
