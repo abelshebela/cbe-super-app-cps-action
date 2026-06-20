@@ -698,6 +698,7 @@ func (a *AccountBlockStorage) findAllWithPagination(ctx context.Context, filterP
 	var isEnabledFilter interface{}
 	var regionIDs []string
 	var districtIDs []string
+	var isEnableCheck *bool
 
 	if filterParam.Search != "" {
 		search = filterParam.Search
@@ -713,6 +714,11 @@ func (a *AccountBlockStorage) findAllWithPagination(ctx context.Context, filterP
 		if v, ok := filterParam.Filters["is_enabled"]; ok {
 			if enabled, isBool := v.(bool); isBool {
 				isEnabledFilter = isEnabledToInt(enabled)
+			}
+		}
+		if v, ok := filterParam.Filters["status_check"]; ok {
+			if boolVal, ok := v.(bool); ok {
+				isEnableCheck = &boolVal
 			}
 		}
 	}
@@ -733,6 +739,10 @@ func (a *AccountBlockStorage) findAllWithPagination(ctx context.Context, filterP
 		idFilterSQL = " AND " + strings.Join(idClauses, " AND ")
 	}
 
+	nameSearchCondition := "LOWER(TRIM(name)) LIKE '%%' || LOWER(TRIM(:search)) || '%%'"
+	if isEnableCheck != nil {
+		nameSearchCondition = "LOWER(TRIM(name)) = LOWER(TRIM(:search))"
+	}
 	query := fmt.Sprintf(`SELECT
 			RAWTOHEX(id) AS id,
 			name,
@@ -752,12 +762,12 @@ func (a *AccountBlockStorage) findAllWithPagination(ctx context.Context, filterP
 		  AND is_deleted = 0
 		  %s
 		  AND (:search IS NULL
-		       OR LOWER(name) LIKE '%%' || LOWER(:search) || '%%'
+		       OR %s
 		       OR LOWER(code) LIKE '%%' || LOWER(:search) || '%%'
 		       OR LOWER(address) LIKE '%%' || LOWER(:search) || '%%')
 		  AND (:is_enabled IS NULL OR is_enabled = :is_enabled)
 		ORDER BY created_at DESC
-		OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, idFilterSQL)
+		OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, idFilterSQL, nameSearchCondition)
 
 	args = append(args,
 		sql.Named("type", string(entityType)),

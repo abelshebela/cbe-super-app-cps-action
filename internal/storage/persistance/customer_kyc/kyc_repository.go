@@ -210,8 +210,8 @@ INSERT INTO USERS (
 
 		"UNSET", // :15 PIN — NOT NULL; user sets PIN later via app
 		"",      // :16 PIN_HISTORY
-		0,  // :17 FAILED_LOGIN_ATTEMPT
-		0,  // :18 IS_LOCKED
+		0,       // :17 FAILED_LOGIN_ATTEMPT
+		0,       // :18 IS_LOCKED
 
 		0, // :19 IS_SUPERAPP_ENABLED
 		0, // :20 IS_USSD_ENABLED
