@@ -264,8 +264,15 @@ func (ba *bpsActionService) ApproveBPSAction(ctx context.Context, action *bps_mo
 	}
 
 	userData, _ := ctx.Value(constants.ContextKey("user_data")).(types.UserContext)
+	ba.logger.Infof("[BPSAction][ApproveBPSAction] userData: %+v", ctx.Value(constants.ContextKey("user_data")))
+	ba.logger.Infof("[BPSAction][ApproveBPSAction] userData: %+v", userData)
 
-	payload := bpsActionPublishPayload{ActionCode: action.ActionCode, ActionStatus: action.Status, RoleCode: rawRoleID, UserData: userData}
+	payload := bpsActionPublishPayload{
+		ActionCode:   action.ActionCode,
+		ActionStatus: action.Status,
+		RoleCode:     rawRoleID,
+		UserData:     userData,
+	}
 
 	log.Infof("[BPSAction][ApproveBPSAction] payload: %+v", payload)
 	if err := producer.PublishMessage(ctx, payload, "bps.approve", constants.BPSApproveTopic, "BPS_APPROVE"); err != nil {

@@ -9,6 +9,7 @@ import (
 	"encoding/base32"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -226,7 +227,17 @@ func ExtractUserContext(r *http.Request) types.UserContext {
 		val, _ := r.Context().Value(constants.ContextKey(key)).(bool)
 		return val
 	}
-
+	log.Printf("ExtractUserContext: is_erp=%v, user_code=%s, user_id=%s, full_name=%s, username=%s, phone_number=%s, department=%s, user_role=%s, role_checker_index=%s",
+		getBool("is_erp"),
+		get("user_code"),
+		get("user_id"),
+		get("full_name"),
+		get("username"),
+		get("phone_number"),
+		get("department"),
+		get("user_role"),
+		get("role_checker_index"),
+	)
 	return types.UserContext{
 		IsErp:        getBool("is_erp"),
 		UserCode:     get("user_code"),
