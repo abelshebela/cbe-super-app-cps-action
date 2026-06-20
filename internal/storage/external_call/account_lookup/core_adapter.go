@@ -153,6 +153,7 @@ func (s *CoreAccountLookupAdapter) CifSearch(ctx context.Context, cif string) ([
 		ColumnName:    "CUS.ID",
 		CriteriaValue: cif,
 	})
+
 	if err != nil {
 		s.Logger.Errorf("[AccountLookup][CifSearch] failed to search CIF: %v", err)
 		return nil, err
