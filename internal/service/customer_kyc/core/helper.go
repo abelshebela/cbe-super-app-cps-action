@@ -11,12 +11,25 @@ import (
 	"strings"
 	"time"
 
-	coreio "github.com/hugokessem/coreio/core"
+	"github.com/hugokessem/coreio/core"
+	customercreation "github.com/hugokessem/coreio/lib/core/customer/customer_creation"
+
+	// coreCustomer "github.com/hugokessem/coreio/lib/core/cusotmer/customer_creation"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
-func CreateAccountToCore(ctx context.Context, data coreio.CreateCustomerParam, accountLookupService accountLookup.Account, coreAPI coreio.CBECoreAPIInterface, logger utils.Logger) (*coreio.CreateCustomerResult, error) {
+func extractDuplicateContract(message string) string {
+	parts := strings.Fields(message)
+
+	if len(parts) == 0 {
+		return ""
+	}
+
+	return parts[len(parts)-1]
+}
+
+func CreateAccountToCore(ctx context.Context, data core.CreateCustomerParam, accountLookupService accountLookup.Account, coreAPI core.CBECoreAPIInterface, logger utils.Logger) (*core.CreateCustomerResult, error) {
 	response, err := coreAPI.CreateCustomer(ctx, data)
 	if err != nil {
 		logger.Errorf("failed to create customer: %v", err)
@@ -27,16 +40,36 @@ func CreateAccountToCore(ctx context.Context, data coreio.CreateCustomerParam, a
 		return nil, fmt.Errorf("customer creation returned nil response")
 	}
 
+	// if !response.Success {
+	// 	logger.Errorf("customer creation rejected by core: %v", response.Messages)
+	// 	return nil, fmt.Errorf("customer creation failed: %s", strings.Join(response.Messages, ", "))
+	// }
+
 	if !response.Success {
-		logger.Errorf("customer creation rejected by core: %v", response.Messages)
-		return nil, fmt.Errorf("customer creation failed: %s", strings.Join(response.Messages, ", "))
+		message := strings.Join(response.Messages, ", ")
+
+		// Handle T24 duplicate override
+		if strings.Contains(message, "POSSIBLE DUPLICATE CONTRACT") {
+
+			logger.Warnf("T24 duplicate customer detected: %s", message)
+
+			// extract existing customer ID
+			duplicateCustomerID := extractDuplicateContract(message)
+
+			return &core.CreateCustomerResult{
+				Success: true,
+				Detail: &customercreation.CustomerTypeDetail{
+					Customer: duplicateCustomerID,
+				},
+			}, nil
+		}
 	}
 
 	// Workaround: coreio maps Detail.Customer to T24 EMPLOYERSNAME which is always empty.
 	// The real customer number is in the response's transactionId but not exposed by the library.
 	// We recover it via PhoneLookup which queries T24 by MNEMONIC and returns CustomerID.
 	if response.Detail != nil && response.Detail.Customer == "" && response.Detail.Menmonic != "" {
-		lookup, lookupErr := coreAPI.PhoneLookup(ctx, coreio.PhoneLookupParam{PhoneNumber: response.Detail.Menmonic})
+		lookup, lookupErr := coreAPI.PhoneLookup(ctx, core.PhoneLookupParam{PhoneNumber: response.Detail.Menmonic})
 		if lookupErr != nil {
 			logger.Warnf("[CreateAccountToCore] customer number lookup by mnemonic=%s failed: %v", response.Detail.Menmonic, lookupErr)
 		} else if lookup != nil && lookup.Success && lookup.Detail != nil && lookup.Detail.CustomerID != "" {
