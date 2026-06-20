@@ -107,4 +107,6 @@ type KYCRequest struct {
 	MothersName       string    `json:"mothers_name" bson:"mothers_name"`
 	Vendor            Vendor    `json:"vendor" bson:"vendor"`
 	Address           Address   `json:"address" bson:"address"`
+	// IssuedDate is the Fayda ID issuance date in YYYYMMDD format, sourced from Fayda's verification response.
+	IssuedDate        string    `json:"issued_date" bson:"issued_date"`
 }
