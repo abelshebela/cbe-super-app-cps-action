@@ -216,10 +216,10 @@ type CPSActionRoleRepository interface {
 	FindByActionCodeOne(ctx context.Context, actionCode string) (*imodel.CPSActionRole, error)
 }
 type DeviceVersionControlRepository interface {
-	Save(ctx context.Context, deviceVersionControl model.DeviceVersionControl) error
-	FindOne(ctx context.Context, platform, deviceVersion string) (model.DeviceVersionControl, error)
-	FindByID(ctx context.Context, id string) (model.DeviceVersionControl, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (types.PaginatedResponse[[]model.DeviceVersionControl], error)
+	Save(ctx context.Context, deviceVersionControl imodel.DeviceVersionControl) error
+	FindOne(ctx context.Context, platform, deviceVersion string) (imodel.DeviceVersionControl, error)
+	FindByID(ctx context.Context, id string) (imodel.DeviceVersionControl, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (types.PaginatedResponse[[]imodel.DeviceVersionControl], error)
 	Update(ctx context.Context, id string, update bson.M) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error

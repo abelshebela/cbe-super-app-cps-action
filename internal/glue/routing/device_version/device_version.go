@@ -60,6 +60,14 @@ func Init(router chi.Router, handler dviface.DeviceVersionHandler, authMiddlewar
 				authMiddleware.AuthenticateToken,
 			},
 		},
+		{
+			Method:  http.MethodPatch,
+			Path:    "/device_versions/state/{id}",
+			Handler: handler.SetDeviceState,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
 	}
 
 	glue.RegisterRoutes(router, routes)

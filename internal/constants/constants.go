@@ -800,7 +800,8 @@ const (
 	RequestEnableDeviceVersion        RequestAction = "ENABLE_DEVICE_VERSION"
 	RequestDisableDeviceVersion       RequestAction = "DISABLE_DEVICE_VERSION"
 	RequestDeleteDeviceVersion        RequestAction = "DELETE_DEVICE_VERSION"
-	RequestEnableDisableDeviceVersion RequestAction = "ENABLE_DISABLE_DEVICE_VERSION"
+	RequestEnableDisableDeviceVersion  RequestAction = "ENABLE_DISABLE_DEVICE_VERSION"
+	RequestSetDeviceStateDeviceVersion RequestAction = "SET_DEVICE_STATE_DEVICE_VERSION"
 
 	// Customer
 	RequestEnableDisableCustomer RequestAction = "ENABLE_DISABLE_CUSTOMER"

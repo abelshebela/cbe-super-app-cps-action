@@ -3,6 +3,7 @@ package deviceversioncontrol
 import (
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/kafka"
@@ -10,8 +11,6 @@ import (
 	"context"
 	"errors"
 	"time"
-
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
@@ -21,7 +20,7 @@ import (
 )
 
 type DeviceVersionControlRepository struct {
-	deviceDal     dal.MongoDal[model.DeviceVersionControl, model.DeviceVersionControl]
+	deviceDal     dal.MongoDal[imodel.DeviceVersionControl, imodel.DeviceVersionControl]
 	client        *mongo.Client
 	kafkaProducer kafka.ClientOrchestrationProducer
 	logger        utils.Logger
@@ -29,14 +28,14 @@ type DeviceVersionControlRepository struct {
 
 func NewDeviceVersionControlRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.DeviceVersionControlRepository {
 	return &DeviceVersionControlRepository{
-		deviceDal:     dal.NewMongoDal[model.DeviceVersionControl, model.DeviceVersionControl](client, cfg, dbName, collection),
+		deviceDal:     dal.NewMongoDal[imodel.DeviceVersionControl, imodel.DeviceVersionControl](client, cfg, dbName, collection),
 		client:        client,
 		kafkaProducer: kafkaProducer,
 		logger:        logger,
 	}
 }
 
-func (d *DeviceVersionControlRepository) Save(ctx context.Context, deviceVersionControl model.DeviceVersionControl) error {
+func (d *DeviceVersionControlRepository) Save(ctx context.Context, deviceVersionControl imodel.DeviceVersionControl) error {
 	log := local_util.LoggerFromCtx(ctx, d.logger)
 
 	newDeviceVersion, err := d.deviceDal.InsertOne(ctx, deviceVersionControl)
@@ -115,13 +114,13 @@ func (d *DeviceVersionControlRepository) EnableOrDisable(ctx context.Context, id
 	return nil
 }
 
-func (d *DeviceVersionControlRepository) FindByID(ctx context.Context, id string) (model.DeviceVersionControl, error) {
+func (d *DeviceVersionControlRepository) FindByID(ctx context.Context, id string) (imodel.DeviceVersionControl, error) {
 	log := local_util.LoggerFromCtx(ctx, d.logger)
 
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		log.Errorf("[DeviceVersionControl][FindByID] invalid object id: %v", err)
-		return model.DeviceVersionControl{}, errors.New(localization.ErrorInvalidID.Code)
+		return imodel.DeviceVersionControl{}, errors.New(localization.ErrorInvalidID.Code)
 	}
 	filter := bson.M{"_id": objID}
 
@@ -129,13 +128,13 @@ func (d *DeviceVersionControlRepository) FindByID(ctx context.Context, id string
 	result, err := d.deviceDal.FindOne(ctx, filter, nil)
 	if err != nil {
 		log.Errorf("[DeviceVersionControl][FindByID] failed to find device version control: %v", err)
-		return model.DeviceVersionControl{}, local_util.HandleDBError(err)
+		return imodel.DeviceVersionControl{}, local_util.HandleDBError(err)
 	}
 	log.Infof("[DeviceVersionControl][FindByID] device version control retrieved successfully")
 	return *result, nil
 }
 
-func (d *DeviceVersionControlRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (types.PaginatedResponse[[]model.DeviceVersionControl], error) {
+func (d *DeviceVersionControlRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (types.PaginatedResponse[[]imodel.DeviceVersionControl], error) {
 	log := local_util.LoggerFromCtx(ctx, d.logger)
 
 	searchKeys := bson.M{}
@@ -169,14 +168,14 @@ func (d *DeviceVersionControlRepository) FindAllWithPagination(ctx context.Conte
 	data, err := d.deviceDal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		log.Errorf("[DeviceVersionControl][FindAllWithPagination] failed to fetch device version controls: %v", err)
-		return types.PaginatedResponse[[]model.DeviceVersionControl]{}, errors.New(localization.ErrorUnexpectedError.Code)
+		return types.PaginatedResponse[[]imodel.DeviceVersionControl]{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// 6. Count total
 	total, err := d.deviceDal.TotalCount(ctx, filter)
 	if err != nil {
 		log.Errorf("[DeviceVersionControl][FindAllWithPagination] failed to count device version controls: %v", err)
-		return types.PaginatedResponse[[]model.DeviceVersionControl]{}, errors.New(localization.ErrorUnexpectedError.Code)
+		return types.PaginatedResponse[[]imodel.DeviceVersionControl]{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// 7. Build pagination metadata
@@ -184,13 +183,13 @@ func (d *DeviceVersionControlRepository) FindAllWithPagination(ctx context.Conte
 	log.Infof("[DeviceVersionControl][FindAllWithPagination] retrieved %d device version controls", len(data))
 
 	// 8. Return standard paginated response
-	return types.PaginatedResponse[[]model.DeviceVersionControl]{
+	return types.PaginatedResponse[[]imodel.DeviceVersionControl]{
 		Data: data,
 		Meta: meta,
 	}, nil
 }
 
-func (d *DeviceVersionControlRepository) FindOne(ctx context.Context, platform, lastVersion string) (model.DeviceVersionControl, error) {
+func (d *DeviceVersionControlRepository) FindOne(ctx context.Context, platform, lastVersion string) (imodel.DeviceVersionControl, error) {
 	log := local_util.LoggerFromCtx(ctx, d.logger)
 
 	filter := bson.M{"platform": platform}
@@ -200,7 +199,7 @@ func (d *DeviceVersionControlRepository) FindOne(ctx context.Context, platform, 
 	result, err := d.deviceDal.FindOne(ctx, filter, nil)
 	if err != nil {
 		log.Errorf("[DeviceVersionControl][FindOne] failed to find device version control: %v", err)
-		return model.DeviceVersionControl{}, local_util.HandleDBError(err)
+		return imodel.DeviceVersionControl{}, local_util.HandleDBError(err)
 	}
 	return *result, nil
 }

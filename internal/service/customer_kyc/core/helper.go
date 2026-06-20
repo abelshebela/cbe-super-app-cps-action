@@ -1,7 +1,7 @@
 package core
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
+	// "cbe-super-app-cps-action/internal/constants"
 	dto "cbe-super-app-cps-action/internal/constants/dto/customer_kyc"
 	"cbe-super-app-cps-action/internal/constants/model"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
@@ -16,6 +16,7 @@ import (
 
 	// coreCustomer "github.com/hugokessem/coreio/lib/core/cusotmer/customer_creation"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -29,8 +30,8 @@ func extractDuplicateContract(message string) string {
 	return parts[len(parts)-1]
 }
 
-func CreateAccountToCore(ctx context.Context, data core.CreateCustomerParam, accountLookupService accountLookup.Account, coreAPI core.CBECoreAPIInterface, logger utils.Logger) (*core.CusteomerAccountCreationResponse, error) {
-	response, err := coreAPI.AccountCreate(ctx, data, string(constants.SavingsAccountCategory))
+func CreateAccountToCore(ctx context.Context, data core.CreateCustomerParam, accountLookupService accountLookup.Account, coreAPI core.CBECoreAPIInterface, cfg *config.VaultConfig, logger utils.Logger) (*core.CusteomerAccountCreationResponse, error) {
+	response, err := coreAPI.AccountCreate(ctx, data, cfg.AccountOpeningURL, "6501")
 	if err != nil {
 		logger.Errorf("failed to create customer: %v", err)
 		return nil, err
