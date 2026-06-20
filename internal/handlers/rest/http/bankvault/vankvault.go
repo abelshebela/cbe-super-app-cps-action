@@ -10,7 +10,7 @@ import (
 	"cbe-super-app-cps-action/internal/handlers/rest/http/bankvault/core"
 	"cbe-super-app-cps-action/internal/service"
 
-	common_utils "cbe-super-app-cps-action/pkgs/utils"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.opentelemetry.io/otel/attribute"
@@ -39,9 +39,9 @@ func InitBankVaultHandler(svc service.BankVaultService, logger utils.Logger) *ha
 //	@Security		BearerAuth
 //	@Router			/vault/products/create [post]
 func (h *handler) CreateBankVault(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "createBankVault", "handler", "bankVault")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createBankVault", "handler", "bankVault")
 	defer span.End()
-	log := common_utils.LoggerFromCtx(ctx, h.logger)
+	log := local_util.LoggerFromCtx(ctx, h.logger)
 	var req bankvault.CreateBankVaultProductRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		span.RecordError(err)
@@ -55,7 +55,7 @@ func (h *handler) CreateBankVault(w http.ResponseWriter, r *http.Request) {
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
-	lockPeriod, err := common_utils.ParseToYears(req.LockPeriodDays)
+	lockPeriod, err := local_util.ParseToYears(req.LockPeriodDays)
 	if err != nil {
 		span.RecordError(err)
 		log.Errorf("[CreateBankVault] lock period parse: %v", err)
@@ -66,6 +66,7 @@ func (h *handler) CreateBankVault(w http.ResponseWriter, r *http.Request) {
 	product := core.ToDomainCreateBankVaultRequest(req, lockPeriod)
 	id, err := h.service.CreateBankVault(ctx, product)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[CreateBankVault] service: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -94,20 +95,20 @@ func (h *handler) CreateBankVault(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/vault/products [get]
 func (h *handler) FindAllBankVaults(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "findAllBankVaults", "handler", "bankVault")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "findAllBankVaults", "handler", "bankVault")
 	defer span.End()
-	log := common_utils.LoggerFromCtx(ctx, h.logger)
-	params := common_utils.ExtractFilterParams(r)
+	log := local_util.LoggerFromCtx(ctx, h.logger)
+	params := local_util.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
 
-	if err := common_utils.NoSpecialChars(search); err != nil {
+	if err := local_util.NoSpecialChars(search); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	if err := common_utils.NoSpecialChars(filter); err != nil {
+	if err := local_util.NoSpecialChars(filter); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -138,10 +139,10 @@ func (h *handler) FindAllBankVaults(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/vault/products/{id} [get]
 func (h *handler) GetBankVault(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "getBankVault", "handler", "bankVault")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getBankVault", "handler", "bankVault")
 	defer span.End()
-	log := common_utils.LoggerFromCtx(ctx, h.logger)
-	id, err := common_utils.ExtractID(w, r)
+	log := local_util.LoggerFromCtx(ctx, h.logger)
+	id, err := local_util.ExtractID(w, r)
 	if id == "" {
 		appErr := middleware.NewValidationError("Product ID is required", map[string]interface{}{}).WithService("bankvault_product").
 			WithOperation("GetBankVault")
@@ -184,10 +185,10 @@ func (h *handler) GetBankVault(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/vault/products/update/{id} [patch]
 func (h *handler) UpdateBankVault(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "updateBankVault", "handler", "bankVault")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateBankVault", "handler", "bankVault")
 	defer span.End()
-	log := common_utils.LoggerFromCtx(ctx, h.logger)
-	id, err := common_utils.ExtractID(w, r)
+	log := local_util.LoggerFromCtx(ctx, h.logger)
+	id, err := local_util.ExtractID(w, r)
 	if id == "" {
 		appErr := middleware.NewValidationError("Product ID is required", map[string]interface{}{}).
 			WithService("bankvault_product").
@@ -197,6 +198,7 @@ func (h *handler) UpdateBankVault(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[UpdateBankVault] extract ID: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -230,6 +232,7 @@ func (h *handler) UpdateBankVault(w http.ResponseWriter, r *http.Request) {
 
 	_, err = h.service.UpdateBankVault(ctx, id, product)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[UpdateBankVault] service: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -255,10 +258,10 @@ func (h *handler) UpdateBankVault(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/vault/products/delete/{id} [delete]
 func (h *handler) DeleteBankVault(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "deleteBankVault", "handler", "bankVault")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "deleteBankVault", "handler", "bankVault")
 	defer span.End()
-	log := common_utils.LoggerFromCtx(ctx, h.logger)
-	id, err := common_utils.ExtractID(w, r)
+	log := local_util.LoggerFromCtx(ctx, h.logger)
+	id, err := local_util.ExtractID(w, r)
 	if id == "" {
 		appErr := middleware.NewValidationError("Product ID is required", map[string]interface{}{}).
 			WithService("bankvault_product").
@@ -268,6 +271,7 @@ func (h *handler) DeleteBankVault(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[DeleteBankVault] extract ID: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -278,6 +282,7 @@ func (h *handler) DeleteBankVault(w http.ResponseWriter, r *http.Request) {
 
 	_, err = h.service.DeleteBankVault(ctx, id)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[DeleteBankVault] service: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -304,10 +309,10 @@ func (h *handler) DeleteBankVault(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/vault/products/disable/{id} [patch]
 func (h *handler) DisableBankVault(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "disableBankVault", "handler", "bankVault")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableBankVault", "handler", "bankVault")
 	defer span.End()
-	log := common_utils.LoggerFromCtx(ctx, h.logger)
-	id, err := common_utils.ExtractID(w, r)
+	log := local_util.LoggerFromCtx(ctx, h.logger)
+	id, err := local_util.ExtractID(w, r)
 	if id == "" {
 		appErr := middleware.NewValidationError("Product ID is required", map[string]interface{}{}).
 			WithService("bankvault_product").
@@ -317,6 +322,7 @@ func (h *handler) DisableBankVault(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[DisableBankVault] extract ID: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -327,6 +333,7 @@ func (h *handler) DisableBankVault(w http.ResponseWriter, r *http.Request) {
 
 	err = h.service.DisableBankVault(ctx, id)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[DisableBankVault] service: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -352,10 +359,10 @@ func (h *handler) DisableBankVault(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/vault/products/enable/{id} [patch]
 func (h *handler) EnableBankVault(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "enableBankVault", "handler", "bankVault")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableBankVault", "handler", "bankVault")
 	defer span.End()
-	log := common_utils.LoggerFromCtx(ctx, h.logger)
-	id, err := common_utils.ExtractID(w, r)
+	log := local_util.LoggerFromCtx(ctx, h.logger)
+	id, err := local_util.ExtractID(w, r)
 	if id == "" {
 		appErr := middleware.NewValidationError("Product ID is required", map[string]interface{}{}).
 			WithService("bankvault_product").
@@ -365,6 +372,7 @@ func (h *handler) EnableBankVault(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[EnableBankVault] extract ID: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -375,6 +383,7 @@ func (h *handler) EnableBankVault(w http.ResponseWriter, r *http.Request) {
 
 	err = h.service.EnableBankVault(ctx, id)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[EnableBankVault] service: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -403,20 +412,20 @@ func (h *handler) EnableBankVault(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/vault/bank-vaults [get]
 func (h *handler) GetAllLockedBankVaults(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "getAllLockedBankVaults", "handler", "bankVault")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllLockedBankVaults", "handler", "bankVault")
 	defer span.End()
-	log := common_utils.LoggerFromCtx(ctx, h.logger)
-	params := common_utils.ExtractFilterParams(r)
+	log := local_util.LoggerFromCtx(ctx, h.logger)
+	params := local_util.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
 
-	if err := common_utils.NoSpecialChars(search); err != nil {
+	if err := local_util.NoSpecialChars(search); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	if err := common_utils.NoSpecialChars(filter); err != nil {
+	if err := local_util.NoSpecialChars(filter); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -435,7 +444,7 @@ func (h *handler) GetAllLockedBankVaults(w http.ResponseWriter, r *http.Request)
 
 // On development
 // func (h *handler) GetTransaction(w http.ResponseWriter, r *http.Request) {
-// 	transactionReference, err := common_utils.ExtractID(w, r)
+// 	transactionReference, err := local_util.ExtractID(w, r)
 // 	if transactionReference == "" {
 // 		localization.SendErrorByCodeResponse(w, err.Error())
 // 		return
@@ -474,20 +483,20 @@ func (h *handler) GetAllLockedBankVaults(w http.ResponseWriter, r *http.Request)
 //	@Security		BearerAuth
 //	@Router			/vault/group-vaults [get]
 func (h *handler) GetAllGroupVaults(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "getAllGroupVaults", "handler", "bankVault")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllGroupVaults", "handler", "bankVault")
 	defer span.End()
-	log := common_utils.LoggerFromCtx(ctx, h.logger)
-	params := common_utils.ExtractFilterParams(r)
+	log := local_util.LoggerFromCtx(ctx, h.logger)
+	params := local_util.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
 
-	if err := common_utils.NoSpecialChars(search); err != nil {
+	if err := local_util.NoSpecialChars(search); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	if err := common_utils.NoSpecialChars(filter); err != nil {
+	if err := local_util.NoSpecialChars(filter); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -506,7 +515,7 @@ func (h *handler) GetAllGroupVaults(w http.ResponseWriter, r *http.Request) {
 
 // On development
 // func (h *handler) GetGroupVault(w http.ResponseWriter, r *http.Request) {
-// 	id, err := common_utils.ExtractID(w, r)
+// 	id, err := local_util.ExtractID(w, r)
 // 	if id == "" {
 // 		localization.SendErrorByCodeResponse(w, err.Error())
 // 		return

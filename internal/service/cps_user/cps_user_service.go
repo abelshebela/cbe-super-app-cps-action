@@ -2,7 +2,9 @@ package cpsuser
 
 import (
 	"context"
+	"encoding/csv"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -17,6 +19,8 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -31,23 +35,137 @@ type cpsUserService struct {
 	bpsApproverRepo   storage.BPSActionApproveIndexRepository
 	permissionService service.PermissionService
 	departmentRepo    storage.DepartmentRepository
+	roleDelegation    storage.RoleDelegationRepository
+	roleRepo          storage.RoleRepository
 	logger            shared_utils.Logger
 	cpsService        service.CPSActionService
 	bpsRepo           storage.BPSUserRepository
+	minioClient       *s3.Client
+	bucketName        string
+	cfg               config.VaultConfig
 }
 
-func NewCPSUserService(repo storage.CpsUserRepository, JobRoleRepo storage.JobRoleRepository, approverRepo storage.CPSActionApproveIndexRepository, bpsApproverRepo storage.BPSActionApproveIndexRepository, departmentRepo storage.DepartmentRepository, permission service.PermissionService, cps service.CPSActionService, bps storage.BPSUserRepository, logger shared_utils.Logger) service.CPSUserService {
+func NewCPSUserService(repo storage.CpsUserRepository, JobRoleRepo storage.JobRoleRepository, roleRepo storage.RoleRepository, approverRepo storage.CPSActionApproveIndexRepository, bpsApproverRepo storage.BPSActionApproveIndexRepository, departmentRepo storage.DepartmentRepository, permission service.PermissionService, cps service.CPSActionService, bps storage.BPSUserRepository, roleDelegation storage.RoleDelegationRepository, minioClient *s3.Client, bucketName string, cfg config.VaultConfig, logger shared_utils.Logger) service.CPSUserService {
 	return &cpsUserService{
 		repo:              repo,
 		bpsRepo:           bps,
 		jobRoleRepo:       JobRoleRepo,
+		roleRepo:          roleRepo,
 		approverRepo:      approverRepo,
 		bpsApproverRepo:   bpsApproverRepo,
+		roleDelegation:    roleDelegation,
 		permissionService: permission,
 		cpsService:        cps,
 		logger:            logger,
 		departmentRepo:    departmentRepo,
+		minioClient:       minioClient,
+		bucketName:        bucketName,
+		cfg:               cfg,
 	}
+}
+
+func cpsUserExportRow(user imodel.ExportCPSUser) []string {
+	expiryDate := ""
+	userType := "Permanent"
+	if !user.ExpiryDateForDelegation.IsZero() {
+		userType = "Delegation"
+		expiryDate = user.ExpiryDateForDelegation.Format(time.RFC3339)
+
+	}
+	lastModified := ""
+	if !user.LastModified.IsZero() {
+		lastModified = user.LastModified.Format(time.RFC3339)
+	}
+	lastLogin := ""
+	if !user.LastLogin.IsZero() {
+		lastLogin = user.LastLogin.Format(time.RFC3339)
+	}
+	return []string{
+		user.FirstName,
+		user.PhoneNumber,
+		user.Email,
+		user.Department,
+		user.JobTitle,
+		user.Role,
+		user.UserName,
+		user.CreatedAt.Format(time.RFC3339),
+		lastLogin,
+		fmt.Sprintf("%t", user.Enabled),
+		userType,
+		expiryDate,
+		user.LastModificationAction,
+		lastModified,
+		user.CreatedBy,
+		user.ApprovedBy,
+	}
+}
+
+func (s *cpsUserService) ExportUsers(ctx context.Context, startDate, endDate time.Time, fileType, userName string) (string, error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
+	if s.minioClient == nil {
+		log.Errorf("[CPSUser/ExportUsers] minio client is not configured")
+		return "", errors.New(localization.CpsUserDataExportedError.Code)
+	}
+
+	fileType = strings.ToLower(strings.TrimSpace(fileType))
+	if fileType != string(lib.FileTypeCSV) && fileType != string(lib.FileTypePDF) {
+		return "", errors.New(localization.ErrorInvalidRequest.Code)
+	}
+
+	data, err := s.repo.FindForExport(ctx, startDate, endDate, userName)
+	if err != nil {
+		log.Errorf("[CPSUser/ExportUsers] failed to fetch users: %v", err)
+		return "", err
+	}
+
+	if len(data) == 0 {
+		return "", errors.New(localization.CpsUserDataNotFoundInDateRange.Code)
+	}
+
+	headers := []string{
+		"Full Name", "Phone Number", "Email", "Department", "Job Title", "Role",
+		"Username", "Created At", "Last Login", "Enabled",
+		"User Type", "Expiry Date (Delegation)",
+		"Last Modification Action", "Last Modified",
+		"Created By", "Approved By",
+	}
+
+	ext := "csv"
+	if fileType == string(lib.FileTypePDF) {
+		ext = "pdf"
+	}
+
+	objectName := fmt.Sprintf("cps_users_%s_to_%s_%d.%s", startDate.Format("20060102"), endDate.Format("20060102"), time.Now().Unix(), ext)
+
+	if fileType == string(lib.FileTypePDF) {
+		rows := make([][]string, 0, len(data))
+		for _, item := range data {
+			rows = append(rows, cpsUserExportRow(item))
+		}
+		url, exportErr := lib.ExportPDFAndUpload(ctx, s.minioClient, s.bucketName, s.cfg, objectName, headers, rows, lib.PDFExportOptions{PageSize: "A4"}, nil, s.logger)
+		if exportErr != nil {
+			log.Errorf("[CPSUser/ExportUsers] pdf export failed: %v", exportErr)
+			return "", errors.New(localization.CpsUserDataExportedError.Code)
+		}
+
+		return url, nil
+	}
+
+	url, exportErr := lib.ExportCSVAndUpload(ctx, s.minioClient, s.bucketName, s.cfg, objectName, headers, func(writer *csv.Writer) error {
+		for _, item := range data {
+			if err := writer.Write(cpsUserExportRow(item)); err != nil {
+				return err
+			}
+		}
+		return nil
+	}, s.logger)
+	if exportErr != nil {
+		log.Errorf("[CPSUser/ExportUsers] csv export failed: %v", exportErr)
+		return "", errors.New(localization.CpsUserDataExportedError.Code)
+	}
+
+	return url, nil
 }
 
 func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.CreateUserRequest) error {
@@ -287,12 +405,44 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, usercode string,
 		log.Infof("[CpsUserSvc][Update] no fields to update for user code: %s", usercode)
 		return errors.New("no fields to update")
 	}
+
 	makerData := local_util.ExtractUserFromContext(ctx)
 	userForAction := core.MapForActionWithDepartment(updated, department)
+
+	curDpt, err := s.departmentRepo.FindByID(ctx, currentUser.Department.Hex())
+	if err != nil {
+		span.AddEvent("failed to find department", trace.WithAttributes(attribute.String("error", err.Error())))
+		return err
+	}
+
+	prevUserData := cpsuser.CpsUserPopulatedResponse{
+		ID:                 currentUser.ID,
+		UserCode:           currentUser.UserCode,
+		FullName:           currentUser.FullName,
+		Role:               cpsuser.RoleResponse{Name: currentUser.Role},
+		Department:         &cpsuser.DepartmentResponse{ID: curDpt.ID, Name: curDpt.Department},
+		JobTitle:           currentUser.JobTitle,
+		Gender:             currentUser.Gender,
+		PhoneNumber:        currentUser.PhoneNumber,
+		Email:              currentUser.Email,
+		UserName:           currentUser.UserName,
+		Realm:              currentUser.Realm,
+		Enabled:            currentUser.Enabled,
+		DateJoined:         *currentUser.DateJoined,
+		LastModified:       *currentUser.LastModified,
+		Country:            currentUser.Country,
+		Region:             currentUser.Region,
+		PermissionCategory: currentUser.PermissionCategory,
+		LastLogin:          currentUser.LastLogin,
+		PasswordDisable:    currentUser.PasswordDisable,
+		IsFirstTimeLogin:   currentUser.IsFirstTimeLogin,
+		CreatedAt:          currentUser.CreatedAt,
+	}
+
 	cpsActionModel := lib.CpsModelBuilder(
 		usercode,
 		makerData,
-		currentUser,
+		prevUserData,
 		userForAction,
 		string(constants.RequestCpsUserUpdate),
 		constants.UPDATE,
@@ -454,11 +604,25 @@ func (s *cpsUserService) FetchUserByUserCode(ctx context.Context, userCode strin
 		span.AddEvent("failed to find user by id", trace.WithAttributes(attribute.String("error", err.Error())))
 		return nil, err
 	}
-
-	roles, err := s.jobRoleRepo.FindByName(ctx, user.JobTitle)
-	if err != nil {
-		span.AddEvent("failed to find role by name", trace.WithAttributes(attribute.String("error", err.Error())))
-		return nil, err
+	var roles *imodel.JobRole
+	if user.IsDelegationActive {
+		s.logger.Infof("fetching role by delegated role code: %s", user.DelegatedRoleCode)
+		roles, err = s.jobRoleRepo.FindByRole(ctx, user.DelegatedRoleCode)
+		if err != nil {
+			s.logger.Errorf("failed to find role by delegation err:%v", err)
+			span.AddEvent("failed to find role by role", trace.WithAttributes(attribute.String("error", err.Error())))
+			return nil, err
+		}
+		s.logger.Infof("found role by delegation: %v", roles)
+	} else {
+		s.logger.Infof("fetching role by job title: %s", user.JobTitle)
+		roles, err = s.jobRoleRepo.FindByName(ctx, user.JobTitle)
+		if err != nil {
+			s.logger.Errorf("failed to find role by job title err:%v", err)
+			span.AddEvent("failed to find role by name", trace.WithAttributes(attribute.String("error", err.Error())))
+			return nil, err
+		}
+		s.logger.Infof("found role by job title: %v", roles)
 	}
 
 	var makerAlloc, checkerAlloc, auditorAlloc, portalCard, bpsCheckerAlloc, bpsAuditorAlloc []string
@@ -517,6 +681,82 @@ func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) 
 	populated, err := s.repo.GetPopulatedWithRole(ctx, userCode)
 	if err != nil {
 		span.AddEvent("failed to get populated by id", trace.WithAttributes(attribute.String("error", err.Error())))
+		if !errors.Is(err, localization.ErrorUserNotFound) {
+			s.logger.Errorf("[GetCpsUserDetail] cps user not found for user code: %s in GetPopulatedWithRole", userCode)
+			return nil, err
+		}
+
+		populated, err = s.roleDelegation.FindByUserCode(ctx, userCode)
+		if err != nil {
+			span.AddEvent("failed to find role delegation by user code", trace.WithAttributes(attribute.String("error", err.Error())))
+			s.logger.Errorf("failed to find role delegation by user code err:%v", err)
+			return nil, err
+		}
+	}
+
+	s.logger.Infof("[GetCpsUserDetail] fetched populated user: %+v", populated)
+
+	var makerAlloc, checkerAlloc, auditorAlloc, portalCard, bpsCheckerAlloc, bpsAuditorAlloc []string
+	var roles *imodel.JobRole
+	if populated.IsDelegationActive {
+		s.logger.Infof("[GetCpsUserDetail]fetching role by delegated role: %s", populated.DelegatedRole)
+		rolesD, err := s.roleRepo.FindByCode(ctx, populated.DelegatedRole)
+		if err != nil {
+			s.logger.Errorf("[GetCpsUserDetail][FindByRole] failed to find role by delegation err:%v", err)
+			span.AddEvent("failed to find role by delegation", trace.WithAttributes(attribute.String("error", err.Error())))
+			return nil, err
+		}
+		populated.Role.Code = rolesD.Code
+		populated.Role.Name = rolesD.Name
+		roles, err = s.jobRoleRepo.FindByRole(ctx, rolesD.Code)
+		if err != nil {
+			s.logger.Errorf("[GetCpsUserDetail][FindByRole] failed to find role by delegation err:%v", err)
+			span.AddEvent("failed to find role by delegation", trace.WithAttributes(attribute.String("error", err.Error())))
+			return nil, localization.ErrorRoleNotFound
+		}
+
+	} else {
+		s.logger.Infof("[GetCpsUserDetail] fetching role by job title: %s", populated.JobTitle)
+		if populated.JobTitle != "" {
+			roles, err = s.jobRoleRepo.FindByName(ctx, populated.JobTitle)
+			if err != nil {
+				span.AddEvent("failed to find role by name", trace.WithAttributes(attribute.String("error", err.Error())))
+				return nil, err
+			}
+		}
+	}
+	s.logger.Infof("[GetCpsUserDetail] fetched role: %v", roles)
+	if roles != nil && roles.Enabled {
+		_, makerAlloc, checkerAlloc, auditorAlloc, portalCard, err = s.approverRepo.PopulateUserApproverAllocations(ctx, roles.Role)
+		if err != nil {
+			span.AddEvent("failed to populate user approver allocations", trace.WithAttributes(attribute.String("error", err.Error())))
+			return nil, err
+		}
+
+		_, _, bpsCheckerAlloc, bpsAuditorAlloc, err = s.bpsApproverRepo.PopulateUserApproverAllocations(ctx, roles.Role)
+		if err != nil {
+			span.AddEvent("failed to populate user approver allocations", trace.WithAttributes(attribute.String("error", err.Error())))
+			return nil, err
+		}
+	}
+
+	return core.ConvertToResponseDTO(portalCard, populated, makerAlloc, checkerAlloc, auditorAlloc, bpsCheckerAlloc, bpsAuditorAlloc), nil
+}
+func (s *cpsUserService) GetCpsUserDetailByUserName(ctx context.Context, userName string) (*cpsuser.CpsUserPopulatedResponse, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "GetCpsUserDetailByUserName", "CPSUser", "GetCpsUserDetailByUserName")
+
+	defer span.End()
+
+	if userName == "" {
+		span.AddEvent("user name is empty", trace.WithAttributes(attribute.String("error", "user code is empty")))
+		return nil, errors.New(localization.ErrorUserNameRequired.Code)
+	}
+
+	// populated, err := s.repo.GetPopulatedByID(ctx, userName)
+	populated, err := s.repo.GetPopulatedWithRoleByUserName(ctx, userName)
+	if err != nil {
+		span.AddEvent("failed to get populated by id", trace.WithAttributes(attribute.String("error", err.Error())))
+		s.logger.Errorf("[GetCpsUserDetailByUserName] cps user not found for user name: %s in GetPopulatedWithRoleByUserName", userName)
 		return nil, err
 	}
 
@@ -526,7 +766,8 @@ func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) 
 		roles, err = s.jobRoleRepo.FindByName(ctx, populated.JobTitle)
 		if err != nil {
 			span.AddEvent("failed to find role by name", trace.WithAttributes(attribute.String("error", err.Error())))
-			return nil, err
+			s.logger.Errorf("[GetCpsUserDetailByUserName][FindByName] failed to find role by job title err:%v", err)
+			// return nil, err
 		}
 	}
 

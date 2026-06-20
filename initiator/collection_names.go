@@ -66,6 +66,7 @@ var (
 	BPSActionsCollection             = "bps_actions"
 	SurveyFeedbackCollection         = "survey_feedbacks"
 	UserActionLogsCollection         = "user_action_logs"
+	RoleDelegationCollection         = "role_delegations"
 )
 
 // Minio Bucket Names

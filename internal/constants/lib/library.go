@@ -10,6 +10,7 @@ import (
 	"image/png"
 	"net/http"
 	"os"
+	"reflect"
 
 	// "cbe-super-app-cps-action/internal/constants/localization"
 	erp_merchant_update_dto "cbe-super-app-cps-action/internal/constants/dto/erp_merchant_update"
@@ -59,39 +60,12 @@ type FileProducerConfig struct {
 	ObjectName string
 }
 
-// extractFieldsFilter normalizes filterMap.Filters["fields"] into []string. Accepts:
-//   - []string (canonical, set by ExtractFilterParams)
-//   - []interface{} (repeated query keys)
-//   - string ("a,b,c")
+// extractFieldsFilter normalizes filterMap.Filters["fields"] into []string.
 func extractFieldsFilter(filters map[string]interface{}) []string {
-	raw, ok := filters["fields"]
-	if !ok || raw == nil {
+	if filters == nil {
 		return nil
 	}
-	switch v := raw.(type) {
-	case []string:
-		return v
-	case []interface{}:
-		out := make([]string, 0, len(v))
-		for _, x := range v {
-			if s, ok := x.(string); ok {
-				s = strings.TrimSpace(s)
-				if s != "" {
-					out = append(out, s)
-				}
-			}
-		}
-		return out
-	case string:
-		out := make([]string, 0)
-		for _, p := range strings.Split(v, ",") {
-			if s := strings.TrimSpace(p); s != "" {
-				out = append(out, s)
-			}
-		}
-		return out
-	}
-	return nil
+	return local_util.StringSliceFromFilterValue(filters["fields"])
 }
 
 // PDFLayout bundles font + row sizing for a tabular PDF export. It is derived from the
@@ -153,6 +127,182 @@ func truncatePDFCell(s string, colWidthMM, fontPt float64) string {
 	return s[:budget-3] + "..."
 }
 
+// PDFExportOptions configures page size for tabular PDF exports. Orientation and column
+// paging are chosen automatically from the column count.
+type PDFExportOptions struct {
+	PageSize string // A4 (default) or A5
+}
+
+const (
+	pdfSideMarginMM      = 10.0
+	pdfBannerHeightMM    = 22.0
+	pdfFooterMarginMM    = 18.0
+	pdfMinColWidthMM     = 14.0
+	pdfMaxColsPerSection = 10
+	pdfCellPadHMM        = 1.5 // horizontal inset inside each cell
+	pdfCellPadVMM        = 1.5 // vertical inset (top and bottom)
+)
+
+// pdfPageSizeMM returns full page width and height in millimeters.
+func pdfPageSizeMM(size, orientation string) (widthMM, heightMM float64) {
+	size = strings.ToUpper(strings.TrimSpace(size))
+	if size == "" {
+		size = "A4"
+	}
+	switch size {
+	case "A5":
+		if orientation == "L" {
+			return 210, 148
+		}
+		return 148, 210
+	default:
+		if orientation == "L" {
+			return 297, 210
+		}
+		return 210, 297
+	}
+}
+
+// pdfEffectiveLayout picks orientation and page size so every column gets at least
+// pdfMinColWidthMM of width; wide tables use landscape A4 and may split across sections.
+func pdfEffectiveLayout(requestedSize string, colCount int) (pageSize, orientation string, sections [][2]int) {
+	requestedSize = strings.ToUpper(strings.TrimSpace(requestedSize))
+	if requestedSize == "" {
+		requestedSize = "A4"
+	}
+	pageSize = requestedSize
+	orientation = "P"
+
+	if colCount <= 0 {
+		return pageSize, orientation, [][2]int{{0, 0}}
+	}
+
+	tryOrient := func(size, orient string) float64 {
+		w, _ := pdfPageSizeMM(size, orient)
+		return (w - 2*pdfSideMarginMM) / float64(colCount)
+	}
+
+	if tryOrient(pageSize, "P") < pdfMinColWidthMM || colCount > 7 {
+		orientation = "L"
+	}
+	if pageSize == "A5" && (orientation == "L" || colCount > 6) {
+		pageSize = "A4"
+	}
+	if tryOrient(pageSize, orientation) < pdfMinColWidthMM && pageSize != "A4" {
+		pageSize = "A4"
+		orientation = "L"
+	}
+
+	perSection := colCount
+	if orientation == "P" && colCount > pdfMaxColsPerSection {
+		perSection = pdfMaxColsPerSection
+	} else if orientation == "L" && colCount > pdfMaxColsPerSection+2 {
+		perSection = pdfMaxColsPerSection + 2
+	}
+	if perSection < 1 {
+		perSection = 1
+	}
+
+	for start := 0; start < colCount; start += perSection {
+		end := start + perSection
+		if end > colCount {
+			end = colCount
+		}
+		sections = append(sections, [2]int{start, end})
+	}
+	return pageSize, orientation, sections
+}
+
+func pdfLineHeightMM(fontPt float64) float64 {
+	if fontPt <= 0 {
+		fontPt = 8
+	}
+	// Convert pt → mm and add ~15% leading so wrapped lines don't collide.
+	return fontPt * 25.4 / 72.0 * 1.15
+}
+
+// pdfWrapFriendlyText inserts break hints in long unbroken tokens (emails, IDs, codes)
+// so SplitText wraps on punctuation instead of mid-word.
+func pdfWrapFriendlyText(s string) string {
+	if s == "" || strings.Contains(s, " ") || len(s) <= 14 {
+		return s
+	}
+	var b strings.Builder
+	b.Grow(len(s) + 8)
+	for i, r := range s {
+		b.WriteRune(r)
+		if i < len(s)-1 {
+			switch r {
+			case '@', '.', '_', '-', ':', '/', ',':
+				b.WriteByte(' ')
+			}
+		}
+	}
+	return b.String()
+}
+
+func pdfSplitCellLines(pdf *gofpdf.Fpdf, text string, innerWidthMM float64) []string {
+	text = pdfWrapFriendlyText(text)
+	if text == "" {
+		return []string{""}
+	}
+	lines := pdf.SplitText(text, innerWidthMM)
+	if len(lines) == 0 {
+		return []string{""}
+	}
+	return lines
+}
+
+func pdfRowLineCount(pdf *gofpdf.Fpdf, cells []string, colWidthMM float64) int {
+	inner := colWidthMM - 2*pdfCellPadHMM
+	if inner < 1 {
+		inner = 1
+	}
+	maxLines := 1
+	for _, cell := range cells {
+		if n := len(pdfSplitCellLines(pdf, cell, inner)); n > maxLines {
+			maxLines = n
+		}
+	}
+	return maxLines
+}
+
+func pdfCalcRowHeight(pdf *gofpdf.Fpdf, cells []string, colWidthMM, lineHt, minRowHt float64) float64 {
+	lineCount := pdfRowLineCount(pdf, cells, colWidthMM)
+	rowHt := 2*pdfCellPadVMM + float64(lineCount)*lineHt
+	if rowHt < minRowHt {
+		rowHt = minRowHt
+	}
+	return rowHt
+}
+
+// pdfDrawTableRow renders a bordered row with wrapped text; every cell in the row shares
+// the same height so columns stay aligned.
+func pdfDrawTableRow(pdf *gofpdf.Fpdf, x, y float64, cells []string, colWidthMM, lineHt, minRowHt float64, header bool) float64 {
+	innerW := colWidthMM - 2*pdfCellPadHMM
+	if innerW < 1 {
+		innerW = 1
+	}
+	rowHt := pdfCalcRowHeight(pdf, cells, colWidthMM, lineHt, minRowHt)
+
+	for i, cell := range cells {
+		xi := x + float64(i)*colWidthMM
+		if header {
+			pdf.SetFillColor(220, 220, 220)
+			pdf.Rect(xi, y, colWidthMM, rowHt, "FD")
+		} else {
+			pdf.Rect(xi, y, colWidthMM, rowHt, "D")
+		}
+		lines := pdfSplitCellLines(pdf, cell, innerW)
+		for li, line := range lines {
+			pdf.SetXY(xi+pdfCellPadHMM, y+pdfCellPadVMM+float64(li)*lineHt)
+			pdf.Cell(innerW, lineHt, line)
+		}
+	}
+	pdf.SetXY(x, y+rowHt)
+	return rowHt
+}
+
 // FileExporterForCPSAction streams CPS actions into CSV or PDF, honoring ?fields=... projection.
 //
 // The CpsActionCSVHeader callback is kept only for backwards compatibility and is NOT used
@@ -193,6 +343,9 @@ func FileExporterForCPSAction(ctx context.Context, cfg config.VaultConfig, minio
 
 	requestedFields := extractFieldsFilter(filterMap.Filters)
 	resolvedFields := ResolveCPSActionFields(requestedFields)
+	if len(requestedFields) > 0 && len(resolvedFields) == 0 {
+		return "", errors.New(localization.ErrorInvalidRequest.Code)
+	}
 	header := CPSActionHeadersFromFields(resolvedFields)
 
 	// 3. Build object key.
@@ -210,39 +363,23 @@ func FileExporterForCPSAction(ctx context.Context, cfg config.VaultConfig, minio
 
 	var url string
 	if fileType == "pdf" {
-		// Landscape A4 usable width ~277mm.
-		const usableWidthMM = 277.0
-		colWidth := usableWidthMM / float64(len(header))
-		layout := CalcPDFLayout(len(header))
-
-		url, err = ExportPDFAndUpload(ctx, minioClient, buckerName, cfg, objectName, header, func(pdf *gofpdf.Fpdf) error {
-			pdf.SetFont("Arial", "", layout.BodyFontPt)
-			for _, action := range data {
-				row, rerr := BuildCPSActionRowFromFields(action, resolvedFields)
-				if rerr != nil {
-					return rerr
-				}
-				for i, cell := range row {
-					// Per-column font override (e.g. action_code uses a smaller font so
-					// long fixed-format identifiers don't get truncated to "...").
-					fontPt := layout.BodyFontPt
-					if i < len(resolvedFields) {
-						if override, ok := CPSActionFieldFontOverride[resolvedFields[i]]; ok && override > 0 && override < fontPt {
-							fontPt = override
-						}
-					}
-					if fontPt != layout.BodyFontPt {
-						pdf.SetFont("Arial", "", fontPt)
-					}
-					pdf.CellFormat(colWidth, layout.BodyRowMM, truncatePDFCell(cell, colWidth, fontPt), "1", 0, "L", false, 0, "")
-					if fontPt != layout.BodyFontPt {
-						pdf.SetFont("Arial", "", layout.BodyFontPt)
-					}
-				}
-				pdf.Ln(-1)
+		rows := make([][]string, 0, len(data))
+		for _, action := range data {
+			row, rerr := BuildCPSActionRowFromFields(action, resolvedFields)
+			if rerr != nil {
+				return "", rerr
 			}
-			return nil
-		}, logger)
+			rows = append(rows, row)
+		}
+
+		colFontPt := make([]float64, len(resolvedFields))
+		for i, key := range resolvedFields {
+			if override, ok := CPSActionFieldFontOverride[key]; ok && override > 0 {
+				colFontPt[i] = override
+			}
+		}
+
+		url, err = ExportPDFAndUpload(ctx, minioClient, buckerName, cfg, objectName, header, rows, PDFExportOptions{PageSize: "A4"}, colFontPt, logger)
 		if err != nil {
 			logger.Errorf("[CPSExport] PDF export failed: %v", err)
 			return "", errors.New(localization.CpsActionDataExportedError.Code)
@@ -305,24 +442,91 @@ type CPSActionFieldSpec struct {
 	Extract func(a *model.CPSAction) string
 }
 
+// CPSActionExportSchema only exists to define the exported column order and the
+// json/bson tags used by the ?fields= filter.
+type CPSActionExportSchema struct {
+	ID                string `json:"id" bson:"_id"`
+	ActionCode        string `json:"action_code" bson:"action_code"`
+	MakerID           string `json:"maker_id" bson:"maker_id"`
+	MakerName         string `json:"maker_name" bson:"maker_name"`
+	MakerPhoneNumber  string `json:"maker_phone_number" bson:"maker_phone_number"`
+	CheckerUsers      string `json:"checker_users" bson:"checker_users"`
+	AuditorUsers      string `json:"auditor_users" bson:"auditor_users"`
+	AuditorNames      string `json:"auditor_names" bson:"auditor_names"`
+	AuditorID         string `json:"auditor_id" bson:"auditor_id"`
+	AuditorIDs        string `json:"auditor_ids" bson:"auditor_ids"`
+	AuditorMark       string `json:"auditor_mark" bson:"auditor_mark"`
+	AuditorMarks      string `json:"auditor_marks" bson:"auditor_marks"`
+	AuditorStatus     string `json:"auditor_status" bson:"auditor_status"`
+	CheckerName       string `json:"checker_name" bson:"checker_name"`
+	CheckerID         string `json:"checker_id" bson:"checker_id"`
+	CheckerIDs        string `json:"checker_ids" bson:"checker_ids"`
+	ActionStatus      string `json:"action_status" bson:"action_status"`
+	ActionType        string `json:"action_type" bson:"action_type"`
+	RequestAction     string `json:"request_action" bson:"request_action"`
+	CreatedAt         string `json:"created_at" bson:"created_at"`
+	LastModifiedAt    string `json:"last_modified_at" bson:"last_modified_at"`
+	MakerActionTime   string `json:"maker_action_time" bson:"maker_action_time"`
+	CheckerActionTime string `json:"checker_action_time" bson:"checker_action_time"`
+	AuditorActionTime string `json:"auditor_action_time" bson:"auditor_action_time"`
+	RejectionReason   string `json:"rejection_reason" bson:"rejection_reason"`
+	CanceledReason    string `json:"canceled_reason" bson:"canceled_reason"`
+}
+
+var cpsActionFieldTagAliases = func() map[string]string {
+	aliases := map[string]string{}
+	specType := reflect.TypeOf(CPSActionExportSchema{})
+	for i := 0; i < specType.NumField(); i++ {
+		field := specType.Field(i)
+		canonical := exportFieldKeyFromTag(field)
+		if canonical == "" {
+			continue
+		}
+		aliases[canonical] = canonical
+
+		for _, tagName := range []string{"json", "bson"} {
+			tag := strings.TrimSpace(field.Tag.Get(tagName))
+			if tag == "" || tag == "-" {
+				continue
+			}
+			key := strings.ToLower(strings.TrimSpace(strings.Split(tag, ",")[0]))
+			if key != "" {
+				aliases[key] = canonical
+			}
+		}
+	}
+	return aliases
+}()
+
 // CPSActionFieldRegistry maps field keys (as used in the ?fields=a,b,c query param) to
 // their header label and row extractor. Add new exportable fields here.
 var CPSActionFieldRegistry = map[string]CPSActionFieldSpec{
-	"id":                  {"ID", func(a *model.CPSAction) string { return a.ID.Hex() }},
+	"id":                  {"ID", cpsActionID},
 	"action_code":         {"Action Code", func(a *model.CPSAction) string { return a.ActionCode }},
 	"maker_id":            {"Maker ID", func(a *model.CPSAction) string { return a.MakerID }},
 	"maker_name":          {"Maker Name", func(a *model.CPSAction) string { return a.MakerName }},
 	"maker_phone_number":  {"Maker Phone Number", func(a *model.CPSAction) string { return a.MakerPhoneNumber }},
+	"checker_users":       {"Checker Users", cpsCheckerUsers},
+	"auditor_users":       {"Auditor Users", cpsAuditorUsers},
 	"auditor_names":       {"Auditor Names", cpsAuditorNames},
+	"auditor_id":          {"Auditor ID", cpsAuditorIDs},
+	"auditor_ids":         {"Auditor ID", cpsAuditorIDs},
+	"auditor_mark":        {"Auditor Mark", cpsAuditorMarks},
+	"auditor_marks":       {"Auditor Mark", cpsAuditorMarks},
 	"auditor_status":      {"Auditor Status", func(a *model.CPSAction) string { return string(a.AuditorStatus) }},
 	"checker_name":        {"Checker Name", cpsCheckerNames},
+	"checker_id":          {"Checker ID", cpsCheckerIDs},
+	"checker_ids":         {"Checker ID", cpsCheckerIDs},
 	"action_status":       {"Action Status", func(a *model.CPSAction) string { return a.ActionStatus }},
 	"action_type":         {"Action Type", func(a *model.CPSAction) string { return a.ActionType }},
 	"request_action":      {"Request Action", func(a *model.CPSAction) string { return a.RequestAction }},
 	"created_at":          {"Created At", func(a *model.CPSAction) string { return local_util.FormatTime(a.CreatedAt) }},
 	"last_modified_at":    {"Last Modified At", func(a *model.CPSAction) string { return local_util.FormatTime(a.LastModifiedAt) }},
 	"maker_action_time":   {"Maker Action Time", func(a *model.CPSAction) string { return local_util.FormatTime(a.MakerActionTime) }},
-	"checker_action_time": {"Checker Action Time", func(a *model.CPSAction) string { return local_util.FormatTime(a.LastModifiedAt) }},
+	"checker_action_time": {"Checker Action Time", cpsCheckerActionTimes},
+	"auditor_action_time": {"Auditor Action Time", cpsAuditorActionTimes},
+	"rejection_reason":    {"Rejection Reason", func(a *model.CPSAction) string { return a.RejectionReason }},
+	"canceled_reason":     {"Canceled Reason", func(a *model.CPSAction) string { return a.CanceledReason }},
 }
 
 // CPSActionFieldFontOverride lets specific columns render in a smaller font than the
@@ -361,6 +565,50 @@ func cpsAuditorNames(a *model.CPSAction) string {
 	return strings.Join(names, ", ")
 }
 
+func cpsCheckerUsers(a *model.CPSAction) string {
+	parts := make([]string, 0, len(a.CheckerUsers))
+	for _, checker := range a.CheckerUsers {
+		entry, ok := formatIDTimestamp(checker.CheckerID, checker.ApprovedAt)
+		if !ok {
+			continue
+		}
+		parts = append(parts, entry)
+	}
+	return strings.Join(parts, ", ")
+}
+
+func cpsAuditorUsers(a *model.CPSAction) string {
+	parts := make([]string, 0, len(a.AuditorUsers))
+	for _, auditor := range a.AuditorUsers {
+		entry, ok := formatIDTimestamp(auditor.AuditorID, auditor.ApprovedAt)
+		if !ok {
+			continue
+		}
+		parts = append(parts, entry)
+	}
+	return strings.Join(parts, ", ")
+}
+
+func cpsAuditorIDs(a *model.CPSAction) string {
+	ids := make([]string, 0, len(a.AuditorUsers))
+	for _, au := range a.AuditorUsers {
+		if au.AuditorID != "" {
+			ids = append(ids, au.AuditorID)
+		}
+	}
+	return strings.Join(ids, ", ")
+}
+
+func cpsAuditorMarks(a *model.CPSAction) string {
+	marks := make([]string, 0, len(a.AuditorUsers))
+	for _, au := range a.AuditorUsers {
+		if au.AuditorMark != "" {
+			marks = append(marks, string(au.AuditorMark))
+		}
+	}
+	return strings.Join(marks, ", ")
+}
+
 func cpsCheckerNames(a *model.CPSAction) string {
 	names := make([]string, 0, len(a.CheckerUsers))
 	for _, c := range a.CheckerUsers {
@@ -371,21 +619,74 @@ func cpsCheckerNames(a *model.CPSAction) string {
 	return strings.Join(names, ", ")
 }
 
-// ResolveCPSActionFields returns the effective field-key list (default when input is empty)
-// and drops any keys that are not registered.
+func cpsCheckerIDs(a *model.CPSAction) string {
+	ids := make([]string, 0, len(a.CheckerUsers))
+	for _, c := range a.CheckerUsers {
+		if c.CheckerID != "" {
+			ids = append(ids, c.CheckerID)
+		}
+	}
+	return strings.Join(ids, ", ")
+}
+
+func cpsCheckerActionTimes(a *model.CPSAction) string {
+	parts := make([]string, 0, len(a.CheckerUsers))
+	for _, checker := range a.CheckerUsers {
+		entry, ok := formatIDTimestamp(checker.CheckerID, checker.ApprovedAt)
+		if !ok {
+			continue
+		}
+		parts = append(parts, entry)
+	}
+	return strings.Join(parts, ", ")
+}
+
+func cpsAuditorActionTimes(a *model.CPSAction) string {
+	parts := make([]string, 0, len(a.AuditorUsers))
+	for _, auditor := range a.AuditorUsers {
+		entry, ok := formatIDTimestamp(auditor.AuditorID, auditor.ApprovedAt)
+		if !ok {
+			continue
+		}
+		parts = append(parts, entry)
+	}
+	return strings.Join(parts, ", ")
+}
+
+func formatIDTimestamp(id string, approvedAt time.Time) (string, bool) {
+	id = strings.TrimSpace(id)
+	if id == "" || approvedAt.IsZero() {
+		return "", false
+	}
+	return fmt.Sprintf("%s:%s", id, local_util.FormatTime(approvedAt)), true
+}
+
+// ResolveCPSActionFields returns the effective export column keys. When ?fields= is omitted
+// the default column set is used; when provided, only registered keys from that list are
+// included, in the same order as the request (unknown keys are skipped).
 func ResolveCPSActionFields(fields []string) []string {
 	if len(fields) == 0 {
 		return append([]string(nil), CPSActionDefaultFieldOrder...)
 	}
 	out := make([]string, 0, len(fields))
+	seen := make(map[string]bool, len(fields))
 	for _, f := range fields {
 		key := strings.TrimSpace(strings.ToLower(f))
-		if _, ok := CPSActionFieldRegistry[key]; ok {
-			out = append(out, key)
+		if key == "" || seen[key] {
+			continue
 		}
-	}
-	if len(out) == 0 {
-		return append([]string(nil), CPSActionDefaultFieldOrder...)
+		canonical, ok := cpsActionFieldTagAliases[key]
+		if !ok {
+			continue
+		}
+		if seen[canonical] {
+			continue
+		}
+		if _, ok := CPSActionFieldRegistry[canonical]; ok {
+			out = append(out, canonical)
+			seen[key] = true
+			seen[canonical] = true
+		}
 	}
 	return out
 }
@@ -408,6 +709,27 @@ func BuildCPSActionRowFromFields(a *model.CPSAction, fields []string) ([]string,
 		row[i] = CPSActionFieldRegistry[key].Extract(a)
 	}
 	return row, nil
+}
+
+func exportFieldKeyFromTag(field reflect.StructField) string {
+	for _, tagName := range []string{"json", "bson"} {
+		tag := strings.TrimSpace(field.Tag.Get(tagName))
+		if tag == "" || tag == "-" {
+			continue
+		}
+		key := strings.ToLower(strings.TrimSpace(strings.Split(tag, ",")[0]))
+		if key != "" {
+			return key
+		}
+	}
+	return strings.ToLower(field.Name)
+}
+
+func cpsActionID(a *model.CPSAction) string {
+	if a == nil {
+		return ""
+	}
+	return a.ID.Hex()
 }
 
 // BuildCPSActionRow keeps the legacy signature (full default row). New callers should use
@@ -983,66 +1305,6 @@ func parseDateInput(s string) (time.Time, error) {
 	return time.Time{}, fmt.Errorf("unable to parse date: %s", s)
 }
 
-// func UploadFileToMinio(
-// 	ctx context.Context,
-// 	s3Client *s3.Client,
-// 	bucketName string,
-// 	fileHeader *multipart.FileHeader,
-// 	prefix string,
-// 	env config.VaultConfig,
-// 	objectkey string,
-// 	logger interface {
-// 		Errorf(format string, args ...any)
-// 	},
-// ) (string, error) {
-
-// 	// Open file and buffer its content
-// 	file, err := fileHeader.Open()
-// 	if err != nil {
-// 		logger.Errorf("failed to open file: %v", err)
-// 		return "", errors.New(err.Error())
-// 	}
-// 	defer file.Close()
-
-// 	buf := new(bytes.Buffer)
-// 	n, err := io.Copy(buf, file)
-// 	if err != nil {
-// 		logger.Errorf("failed to read uploaded file error: %v", err)
-// 		return "", errors.New(err.Error())
-// 	}
-
-// 	// Build object key under a folder (bucketName used as folder/prefix)
-// 	// and generate unique filename based on prefix and timestamp to avoid collisions
-// 	genName := fmt.Sprintf("%s-%d-%s", prefix, time.Now().UnixNano(), fileHeader.Filename)
-// 	key := genName
-// 	// key := path.Join(bucketName, genName)
-
-// 	// Determine content type
-// 	contentType := fileHeader.Header.Get("Content-Type")
-// 	if strings.TrimSpace(contentType) == "" {
-// 		contentType = "application/octet-stream"
-// 	}
-
-// 	// Upload using the buffered bytes to avoid EOF issues
-// 	cl := n
-// 	putInput := &s3.PutObjectInput{
-// 		Bucket:        aws.String(bucketName), // secrets.AWS_BUCKET_NAME
-// 		Key:           aws.String(key),
-// 		Body:          bytes.NewReader(buf.Bytes()),
-// 		ContentType:   aws.String(contentType),
-// 		ContentLength: &cl,
-// 	}
-
-// 	if _, err := s3Client.PutObject(context.TODO(), putInput); err != nil {
-// 		logger.Errorf("upload failed error: %v", err)
-// 		return "", errors.New(err.Error())
-// 	}
-
-// 	// Build streamed URL served by the uploader service
-// 	url := fmt.Sprintf("%s/%s", env.MinioPublicEndPoint, strings.TrimPrefix(key, "/"))
-// 	return url, nil
-// }
-
 func BuildCPSActionDateRangeFilter(filterMap *types.Filter, startDate, endDate time.Time) bson.M {
 	rangeFilter := bson.M{
 		"$gte": startDate,
@@ -1316,9 +1578,10 @@ func drawCBEBanner(pdf *gofpdf.Fpdf, pageWidthMM, heightMM float64) {
 	pdf.SetFillColor(255, 255, 255)
 }
 
-// ExportPDFAndUpload builds a tabular PDF (portrait A4) from a header + row-writer callback
-// and uploads it to MinIO with the correct application/pdf content type. The header row
-// automatically repeats on every page; a "Page N/M" footer is added.
+// ExportPDFAndUpload builds a tabular PDF from headers + rows and uploads it to MinIO.
+// Orientation, page-size upgrades (A5→A4), and column paging are chosen automatically
+// from the column count so headers and body cells always share the same widths.
+// colFontPt may be nil or len(headers); non-zero entries override the body font for that column.
 func ExportPDFAndUpload(
 	ctx context.Context,
 	s3Client *s3.Client,
@@ -1326,13 +1589,14 @@ func ExportPDFAndUpload(
 	env config.VaultConfig,
 	objectKey string,
 	headers []string,
-	writeRows func(pdf *gofpdf.Fpdf) error,
+	rows [][]string,
+	opts PDFExportOptions,
+	colFontPt []float64,
 	logger interface {
 		Errorf(format string, args ...any)
 	},
 ) (string, error) {
 
-	// 1. Create temp PDF file.
 	tmpFile, err := os.CreateTemp("", "export_*.pdf")
 	if err != nil {
 		logger.Errorf("[ExportPDFAndUpload] create temp file: %v", err)
@@ -1341,65 +1605,131 @@ func ExportPDFAndUpload(
 	defer os.Remove(tmpFile.Name())
 	defer tmpFile.Close()
 
-	// 2. Portrait A4 (210x297mm) with auto page break so long datasets paginate cleanly.
-	// Top margin reserved for the Commercial Bank of Ethiopia branded banner.
-	pdf := gofpdf.New("P", "mm", "A4", "")
-	const (
-		bannerHeightMM = 22.0 // height of the purple CBE banner
-		sideMarginMM   = 10.0
-	)
-	pdf.SetMargins(sideMarginMM, bannerHeightMM+4, sideMarginMM)
-	pdf.SetAutoPageBreak(true, 15)
+	colCount := len(headers)
+	pageSize, orientation, sections := pdfEffectiveLayout(opts.PageSize, colCount)
+	pageWidth, pageHeight := pdfPageSizeMM(pageSize, orientation)
+
+	pdf := gofpdf.New(orientation, "mm", pageSize, "")
+	pdf.SetMargins(pdfSideMarginMM, pdfBannerHeightMM+4, pdfSideMarginMM)
+	// Row placement is manual so a wrapped row is never split across pages.
+	pdf.SetAutoPageBreak(false, 0)
 	pdf.AliasNbPages("")
 
-	// Portrait A4 usable width = 210 - 2*sideMarginMM = 190mm.
-	usable := 210.0 - 2*sideMarginMM
-	colWidth := usable
-	if len(headers) > 0 {
-		colWidth = usable / float64(len(headers))
+	contentBottomY := pageHeight - pdfFooterMarginMM
+
+	type sectionState struct {
+		headers []string
+		rows    [][]string
+		colFont []float64
+		label   string
+		colW    float64
+		layout  PDFLayout
+		lineHt  float64
 	}
 
-	// Responsive layout: header/body font + row height scale with column count so
-	// narrow portrait pages don't truncate content into "..." on every cell.
-	layout := CalcPDFLayout(len(headers))
-
-	// 3. Header runs on every page: CBE brand banner + table column header row.
-	pdf.SetHeaderFunc(func() {
-		drawCBEBanner(pdf, 210.0, bannerHeightMM)
-		// Column header row positioned right below the banner.
-		pdf.SetY(bannerHeightMM + 2)
-		pdf.SetX(sideMarginMM)
-		pdf.SetFont("Arial", "B", layout.HeaderFontPt)
-		pdf.SetTextColor(0, 0, 0)
-		pdf.SetFillColor(220, 220, 220)
-		for _, h := range headers {
-			pdf.CellFormat(colWidth, layout.HeaderRowMM, truncatePDFCell(h, colWidth, layout.HeaderFontPt), "1", 0, "C", true, 0, "")
+	buildSection := func(start, end int, label string) sectionState {
+		secHeaders := headers[start:end]
+		secRows := make([][]string, len(rows))
+		for i, row := range rows {
+			if end <= len(row) {
+				secRows[i] = row[start:end]
+			} else if start < len(row) {
+				secRows[i] = row[start:]
+			}
 		}
-		pdf.Ln(-1)
-		pdf.SetFont("Arial", "", layout.BodyFontPt)
+		var secFont []float64
+		if len(colFontPt) > start {
+			secFont = colFontPt[start:end]
+		}
+		usable := pageWidth - 2*pdfSideMarginMM
+		colW := usable
+		if len(secHeaders) > 0 {
+			colW = usable / float64(len(secHeaders))
+		}
+		layout := CalcPDFLayout(len(secHeaders))
+		return sectionState{
+			headers: secHeaders,
+			rows:    secRows,
+			colFont: secFont,
+			label:   label,
+			colW:    colW,
+			layout:  layout,
+			lineHt:  pdfLineHeightMM(layout.BodyFontPt),
+		}
+	}
+
+	var active sectionState
+	pdf.SetHeaderFunc(func() {
+		drawCBEBanner(pdf, pageWidth, pdfBannerHeightMM)
+		y := pdfBannerHeightMM + 2
+		if active.label != "" {
+			pdf.SetXY(pdfSideMarginMM, y)
+			pdf.SetFont("Arial", "I", 8)
+			pdf.CellFormat(pageWidth-2*pdfSideMarginMM, 4, active.label, "", 1, "L", false, 0, "")
+			y += 5
+		}
+		pdf.SetXY(pdfSideMarginMM, y)
+		pdf.SetFont("Arial", "B", active.layout.HeaderFontPt)
+		pdf.SetTextColor(0, 0, 0)
+		active.lineHt = pdfLineHeightMM(active.layout.HeaderFontPt)
+		pdfDrawTableRow(pdf, pdfSideMarginMM, y, active.headers, active.colW, active.lineHt, active.layout.HeaderRowMM, true)
+		pdf.SetFont("Arial", "", active.layout.BodyFontPt)
 	})
 
-	// 4. Footer with page numbers.
 	pdf.SetFooterFunc(func() {
 		pdf.SetY(-12)
 		pdf.SetFont("Arial", "I", 8)
 		pdf.CellFormat(0, 8, fmt.Sprintf("Page %d/{nb}", pdf.PageNo()), "", 0, "C", false, 0, "")
 	})
 
-	pdf.AddPage()
-	pdf.SetFont("Arial", "", layout.BodyFontPt)
+	for _, bounds := range sections {
+		label := ""
+		if len(sections) > 1 {
+			label = fmt.Sprintf("Columns %d-%d of %d", bounds[0]+1, bounds[1], colCount)
+		}
+		active = buildSection(bounds[0], bounds[1], label)
+		pdf.AddPage()
 
-	// 5. Body rows via caller callback.
-	if err := writeRows(pdf); err != nil {
-		logger.Errorf("[ExportPDFAndUpload] write rows: %v", err)
-		return "", fmt.Errorf("write rows: %w", err)
+		pdf.SetFont("Arial", "", active.layout.BodyFontPt)
+		active.lineHt = pdfLineHeightMM(active.layout.BodyFontPt)
+
+		for _, row := range active.rows {
+			if len(row) < len(active.headers) {
+				padded := make([]string, len(active.headers))
+				copy(padded, row)
+				row = padded
+			}
+			// Per-column font overrides use the smallest font in the row so wrapped lines align.
+			rowFont := active.layout.BodyFontPt
+			for i := range row {
+				if i < len(active.colFont) && active.colFont[i] > 0 && active.colFont[i] < rowFont {
+					rowFont = active.colFont[i]
+				}
+			}
+			if rowFont != active.layout.BodyFontPt {
+				pdf.SetFont("Arial", "", rowFont)
+			}
+			lineHt := pdfLineHeightMM(rowFont)
+			rowHt := pdfCalcRowHeight(pdf, row, active.colW, lineHt, active.layout.BodyRowMM)
+
+			// Keep the entire row on one page; header callback redraws column titles.
+			if pdf.GetY()+rowHt > contentBottomY {
+				pdf.AddPage()
+			}
+
+			x := pdfSideMarginMM
+			y := pdf.GetY()
+			pdfDrawTableRow(pdf, x, y, row, active.colW, lineHt, active.layout.BodyRowMM, false)
+			if rowFont != active.layout.BodyFontPt {
+				pdf.SetFont("Arial", "", active.layout.BodyFontPt)
+			}
+		}
 	}
+
 	if err := pdf.Error(); err != nil {
 		logger.Errorf("[ExportPDFAndUpload] pdf error: %v", err)
 		return "", fmt.Errorf("pdf error: %w", err)
 	}
-
-	// 6. Save PDF to temp file and flush OS buffers before re-reading.
 	if err := pdf.Output(tmpFile); err != nil {
 		logger.Errorf("[ExportPDFAndUpload] output pdf: %v", err)
 		return "", fmt.Errorf("output pdf: %w", err)
@@ -1415,8 +1745,6 @@ func ExportPDFAndUpload(
 		return "", fmt.Errorf("stat temp file: %w", err)
 	}
 
-	// 7. Upload as application/pdf (previously called UploadCSVToMinio which caused
-	// downloads to be served as text/csv even though the bytes were valid PDF).
 	url, err := UploadPDFToMinio(ctx, s3Client, bucketName, tmpFile, stat.Size(), env, objectKey, logger)
 	if err != nil {
 		return "", fmt.Errorf("upload to minio: %w", err)

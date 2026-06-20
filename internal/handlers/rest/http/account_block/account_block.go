@@ -459,6 +459,7 @@ func (a *accountBlockAdapter) EnableBranches(w http.ResponseWriter, r *http.Requ
 
 	err := a.accountBlockApplication.EnableOrDisableBranches(ctx, req.BranchIds, req.Reason, true)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[AccBlockH][EnableBranches] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -530,6 +531,7 @@ func (a *accountBlockAdapter) DisableBranches(w http.ResponseWriter, r *http.Req
 
 	err := a.accountBlockApplication.EnableOrDisableBranches(ctx, req.BranchIds, req.Reason, false)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[AccBlockH][DisableBranches] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -601,6 +603,7 @@ func (a *accountBlockAdapter) EnableRegions(w http.ResponseWriter, r *http.Reque
 
 	err := a.accountBlockApplication.EnableOrDisableRegions(ctx, req.RegionIds, req.Reason, true)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[AccBlockH][EnableRegions] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -673,6 +676,7 @@ func (a *accountBlockAdapter) DisableRegions(w http.ResponseWriter, r *http.Requ
 
 	err := a.accountBlockApplication.EnableOrDisableRegions(ctx, req.RegionIds, req.Reason, false)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[AccBlockH][DisableRegions] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -743,6 +747,7 @@ func (a *accountBlockAdapter) EnableDistricts(w http.ResponseWriter, r *http.Req
 
 	err := a.accountBlockApplication.EnableOrDisableDistricts(ctx, req.DistrictIds, req.Reason, true)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[AccBlockH][EnableDistricts] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -810,6 +815,7 @@ func (a *accountBlockAdapter) DisableDistricts(w http.ResponseWriter, r *http.Re
 
 	err := a.accountBlockApplication.EnableOrDisableDistricts(ctx, req.DistrictIds, req.Reason, false)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return

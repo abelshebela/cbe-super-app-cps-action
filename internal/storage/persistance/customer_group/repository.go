@@ -2,7 +2,6 @@ package customergroup
 
 import (
 	"context"
-	"crypto/md5"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -35,12 +34,6 @@ func NewCustomerGroupRepository(cfg *config.VaultConfig, db *sql.DB, logger util
 	}
 }
 
-func computeCheckSum(group, segment, subsegment string) string {
-	raw := fmt.Sprintf("%s:%s:%s", group, segment, subsegment)
-	sum := md5.Sum([]byte(raw))
-	return fmt.Sprintf("%x", sum)
-}
-
 func normalizeSegmentHex(id string) (string, bool) {
 	s := strings.TrimSpace(id)
 	s = strings.TrimPrefix(s, "0x")
@@ -65,46 +58,73 @@ func boolToNumber(v bool) int {
 	return 0
 }
 
-func (r *customerGroupStorage) DuplicateCheck(ctx context.Context, action, id, group, segment, subsegment string) (bool, error) {
+func (r *customerGroupStorage) DuplicateCheck(ctx context.Context, action, id, superAppRole, group, segment, subsegment string) error {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
-	var dupQ string
-	var segments, subsegments string
-	if segment == "" {
-		segments = "*"
-	} else {
-		segment = strings.TrimSpace(segment)
+
+	segVal := "*"
+	if segment != "" {
+		segVal = strings.TrimSpace(segment)
 	}
-	if subsegment == "" {
-		subsegments = "*"
-	} else {
-		subsegment = strings.TrimSpace(subsegment)
+	subVal := "*"
+	if subsegment != "" {
+		subVal = strings.TrimSpace(subsegment)
 	}
-	data := fmt.Sprintf("%s:%s:%s", strings.TrimSpace(group), segments, subsegments)
+	data := fmt.Sprintf("%s:%s:%s", strings.TrimSpace(group), segVal, subVal)
 	checkSum := checksum.Checksum(data)
 
 	var count int
 
-	// dupQ = `SELECT COUNT(*) FROM SEGMENTS WHERE CHECK_SUM = :1`
-
 	if action == "update" {
-		dupQ = `SELECT COUNT(*) FROM SEGMENTS WHERE CHECK_SUM = :1 AND ID != HEXTORAW(:2)`
-		idHex, ok := normalizeSegmentHex(id)
-		if !ok {
-			return false, errors.New(localization.ErrorInvalidID.Code)
-		}
-		if err := r.db.QueryRowContext(ctx, dupQ, checkSum, idHex).Scan(&count); err != nil {
+		dupQ := `SELECT COUNT(*) FROM SEGMENTS WHERE CHECK_SUM = :1 AND ID != HEXTORAW(:2)`
+		// roleQ := `SELECT COUNT(*) FROM SEGMENTS WHERE UPPER(TRIM(SUPERAPP_ROLE)) = UPPER(TRIM(:1)) AND ID != HEXTORAW(:2)`
+
+		// if err := r.db.QueryRowContext(ctx, roleQ, superAppRole, id).Scan(&roleCount); err != nil {
+		// 	log.Errorf("[CustomerGroup][DuplicateCheck:superapp_role] duplicate check failed: %v", err)
+		// 	return local_util.HandleDBError(err)
+		// }
+
+		// if roleCount > 0 {
+		// 	log.Warnf("[CustomerGroup][DuplicateCheck:superapp_role] duplicate super app role detected: %s", superAppRole)
+		// 	return errors.New(localization.ErrorSuperAppRoleAlreadyExists.Code)
+		// }
+
+		if err := r.db.QueryRowContext(ctx, dupQ, checkSum, id).Scan(&count); err != nil {
 			log.Errorf("[CustomerGroup][DuplicateCheck] duplicate check failed: %v", err)
-			return false, local_util.HandleDBError(err)
+			return local_util.HandleDBError(err)
 		}
+
+		if count > 0 {
+			log.Warnf("[CustomerGroup][DuplicateCheck] duplicate combination detected checksum=%s", checkSum)
+			return errors.New(localization.ErrorCustomerGroupAlreadyExists.Code)
+		}
+
 	} else {
-		dupQ = `SELECT COUNT(*) FROM SEGMENTS WHERE CHECK_SUM = :1`
+		dupQ := `SELECT COUNT(*) FROM SEGMENTS WHERE CHECK_SUM = :1`
+		// roleQ := `SELECT COUNT(*) FROM SEGMENTS WHERE UPPER(TRIM(SUPERAPP_ROLE)) = UPPER(TRIM(:1))`
+
+		// if err := r.db.QueryRowContext(ctx, roleQ, superAppRole).Scan(&roleCount); err != nil {
+		// 	log.Errorf("[CustomerGroup][DuplicateCheck:superapp_role] duplicate check failed: %v", err)
+		// 	return local_util.HandleDBError(err)
+		// }
+
+		// if roleCount > 0 {
+		// 	log.Warnf("[CustomerGroup][DuplicateCheck:superapp_role] duplicate super app role detected: %s", superAppRole)
+		// 	return errors.New(localization.ErrorSuperAppRoleAlreadyExists.Code)
+		// }
+
 		if err := r.db.QueryRowContext(ctx, dupQ, checkSum).Scan(&count); err != nil {
 			log.Errorf("[CustomerGroup][DuplicateCheck] duplicate check failed: %v", err)
-			return false, local_util.HandleDBError(err)
+			return local_util.HandleDBError(err)
 		}
+
+		if count > 0 {
+			log.Warnf("[CustomerGroup][DuplicateCheck] duplicate combination detected checksum=%s", checkSum)
+			return errors.New(localization.ErrorCustomerGroupAlreadyExists.Code)
+		}
+
 	}
 
-	return count > 0, nil
+	return nil
 }
 
 func (r *customerGroupStorage) Create(ctx context.Context, seg *imodel.Segment) error {

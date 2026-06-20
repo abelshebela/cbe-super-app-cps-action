@@ -11,6 +11,9 @@ import (
 	cps_auth "cbe-super-app-cps-action/grpc/auth/proto"
 	access_list_segmentation "cbe-super-app-cps-action/internal/glue/routing/access_list_segmentaion"
 	accountblock "cbe-super-app-cps-action/internal/glue/routing/account_block"
+	ap_routing "cbe-super-app-cps-action/internal/glue/routing/account_product"
+	apc_routing "cbe-super-app-cps-action/internal/glue/routing/account_product_category"
+	account_sub_type_routing "cbe-super-app-cps-action/internal/glue/routing/account_sub_type"
 	accountvalidation "cbe-super-app-cps-action/internal/glue/routing/account_validation"
 	advert "cbe-super-app-cps-action/internal/glue/routing/ad"
 	amountBasedAuth "cbe-super-app-cps-action/internal/glue/routing/amount_based_auth"
@@ -27,6 +30,8 @@ import (
 	logistic_merchant_router "cbe-super-app-cps-action/internal/glue/routing/logistic_merchant"
 	newscategory_routing "cbe-super-app-cps-action/internal/glue/routing/news_category"
 	newstag_routing "cbe-super-app-cps-action/internal/glue/routing/news_tag"
+	"cbe-super-app-cps-action/internal/glue/routing/role_delegation"
+	tac_routing "cbe-super-app-cps-action/internal/glue/routing/term_and_condition"
 
 	"cbe-super-app-cps-action/internal/glue/routing/services"
 	"cbe-super-app-cps-action/internal/glue/routing/transaction"
@@ -49,7 +54,6 @@ import (
 	cps_roles "cbe-super-app-cps-action/internal/glue/routing/cps_roles"
 	cps_user_det "cbe-super-app-cps-action/internal/glue/routing/cps_user"
 	customer_group_routing "cbe-super-app-cps-action/internal/glue/routing/customer_group"
-	superapp_role_routing "cbe-super-app-cps-action/internal/glue/routing/superapp_role"
 	customer_seg "cbe-super-app-cps-action/internal/glue/routing/customer_segmentation"
 	donation "cbe-super-app-cps-action/internal/glue/routing/donation"
 	donation_category "cbe-super-app-cps-action/internal/glue/routing/donation_category"
@@ -59,6 +63,7 @@ import (
 	hqRoute "cbe-super-app-cps-action/internal/glue/routing/hq"
 	jobRole "cbe-super-app-cps-action/internal/glue/routing/job_roles"
 	password "cbe-super-app-cps-action/internal/glue/routing/password_rule"
+	superapp_role_routing "cbe-super-app-cps-action/internal/glue/routing/superapp_role"
 
 	// permission_details "cbe-super-app-cps-action/internal/glue/routing/permission"
 	portalcard "cbe-super-app-cps-action/internal/glue/routing/portal_card"
@@ -78,8 +83,7 @@ import (
 	sharedMiddleware "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/middleware"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.uber.org/zap"
-
-	"github.com/go-chi/httprate"
+	// "github.com/go-chi/httprate"
 )
 
 func InitRoute(ctx context.Context, router *chi.Mux, encryptionMiddleware sharedMiddleware.EncMiddleware, handlerLayer Handler, client cps_auth.CpsAuthServiceClient, redisRepository storage.RedisRepository, logger utils.Logger, cfg *config.VaultConfig) {
@@ -104,7 +108,9 @@ func InitRoute(ctx context.Context, router *chi.Mux, encryptionMiddleware shared
 	router.Use(chiMiddleware.RealIP)
 	// CORS must run early so preflight OPTIONS requests are handled before auth/logging
 	// Security http rate limitter
-	router.Use(httprate.LimitByIP(100, 1*time.Minute))
+	/*
+		router.Use(httprate.LimitByIP(100, 1*time.Minute))
+	*/
 	// Security headers: HSTS, X-Content-Type-Options, X-Frame-Options, CSP, Cache-Control
 	router.Use(customeMiddleware.SecurityHeaders)
 	// Inject trace and span ids from OpenTelemetry span into context for logger extraction
@@ -145,6 +151,10 @@ func InitRoute(ctx context.Context, router *chi.Mux, encryptionMiddleware shared
 	unlink.Init(r, handlerLayer.UnlinkHandler, authMiddleware)
 	bpsUser.Init(r, handlerLayer.BpsHandler, authMiddleware)
 	bank.Init(r, handlerLayer.BankHandler, authMiddleware)
+	account_sub_type_routing.Init(r, handlerLayer.AccountSubTypeHandler, authMiddleware)
+	apc_routing.Init(r, handlerLayer.AccountProductCategoryHandler, authMiddleware)
+	ap_routing.Init(r, handlerLayer.AccountProductHandler, authMiddleware)
+	tac_routing.Init(r, handlerLayer.TermAndConditionHandler, authMiddleware)
 	eventhandler.Init(r, handlerLayer.EventHandler, authMiddleware)
 	wallet.Init(r, handlerLayer.WalletHandler, authMiddleware)
 	topup.Init(r, handlerLayer.TopupHandler, authMiddleware)
@@ -195,6 +205,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, encryptionMiddleware shared
 	customerkyc.Init(r, handlerLayer.CustomerKYCHandler, authMiddleware)
 
 	roles.Init(r, handlerLayer.RoleHandler, authMiddleware)
+	role_delegation.Init(r, handlerLayer.RoleDelegationHandler, authMiddleware)
 
 	secured := chi.NewRouter()
 

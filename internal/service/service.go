@@ -57,18 +57,23 @@ import (
 	event_model "cbe-super-app-cps-action/internal/constants/model"
 
 	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
-	mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
+	// mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	bpsUserDto "cbe-super-app-cps-action/internal/constants/dto/bps_user"
 
 	account_block_dto "cbe-super-app-cps-action/internal/constants/dto/account_block"
+	account_sub_type_dto "cbe-super-app-cps-action/internal/constants/dto/account_sub_type"
 	cps_roles_dto "cbe-super-app-cps-action/internal/constants/dto/cps_roles"
 	cust_kyc_dto "cbe-super-app-cps-action/internal/constants/dto/customer_kyc"
 	queue "cbe-super-app-cps-action/internal/storage/queue_system"
 
 	bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 	"go.mongodb.org/mongo-driver/v2/bson"
+
+	ap_dto "cbe-super-app-cps-action/internal/constants/dto/account_product"
+	apc_dto "cbe-super-app-cps-action/internal/constants/dto/account_product_category"
+	tac_dto "cbe-super-app-cps-action/internal/constants/dto/term_and_condition"
 )
 
 type ServicesService interface {
@@ -128,6 +133,7 @@ type BPSActionService interface {
 	GetBPSActionByUniqueID(ctx context.Context, id, department string) (*bps_action.BPSAction, error)
 	GetBPSActionByActionCode(ctx context.Context, uniqueID, department string) (*bps_action.BPSAction, error)
 	GetBPSActionDetailByActionCode(ctx context.Context, uniqueID, department string) (*bpsActionDto.BPSActionDetailResponse, error)
+	ReinstateCustomer(ctx context.Context, actionCode, userCode, reason string) error
 }
 
 type BranchService interface {
@@ -155,6 +161,7 @@ type CPSUserService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	CreateUserRequest(ctx context.Context, req cpsuser.CreateUserRequest) error
 	UpdateUserRequest(ctx context.Context, usercode string, req cpsuser.UpdateUserRequest) error
+	ExportUsers(ctx context.Context, startDate, endDate time.Time, fileType, userName string) (string, error)
 	FetchUserByUserCode(ctx context.Context, userCode string) (*cpsuser.CPSUserResponse, error)
 	GetAllCPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*cpsuser.CPSUserWithDepartment], error)
 	DeleteUserRequest(ctx context.Context, userCode string) error
@@ -162,6 +169,7 @@ type CPSUserService interface {
 	EnableUser(ctx context.Context, userCode string) error
 	GetPopulatedCpsUser(ctx context.Context, userCode string) (*cpsuser.CpsUserResponse, error)
 	GetCpsUserDetail(ctx context.Context, userCode string) (*cpsuser.CpsUserPopulatedResponse, error)
+	GetCpsUserDetailByUserName(ctx context.Context, userCode string) (*cpsuser.CpsUserPopulatedResponse, error)
 }
 
 type NotificationService interface {
@@ -355,9 +363,10 @@ type DeviceVersionServiceSrv interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	CreateDeviceVersion(ctx context.Context, deviceVersion deviceversion.CreateDeviceVersionRequest) error
 	EnableDisableDeviceVersion(ctx context.Context, id string, enableDisable bool) error
-	GetAllDeviceVersions(ctx context.Context, filterParams *types.Filter) (types.PaginatedResponse[[]model.DeviceVersionControl], error)
-	GetDeviceVersionByID(ctx context.Context, id string) (model.DeviceVersionControl, error)
+	GetAllDeviceVersions(ctx context.Context, filterParams *types.Filter) (types.PaginatedResponse[[]local_model.DeviceVersionControl], error)
+	GetDeviceVersionByID(ctx context.Context, id string) (local_model.DeviceVersionControl, error)
 	UpdateDeviceVersion(ctx context.Context, id string, req deviceversion.UpdateDeviceVersionRequest) error
+	SetDeviceState(ctx context.Context, id string, deviceState string) error
 }
 
 // type ServiceService interface {
@@ -463,6 +472,16 @@ type AvatarService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
+type AccountSubTypeService interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	GetAllAccountSubTypes(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]imodel.AccountSubType], error)
+	GetOneAccountSubType(ctx context.Context, id string) (*imodel.AccountSubType, error)
+	CreateOneAccountSubType(ctx context.Context, req account_sub_type_dto.CreateAccountSubTypeRequest) error
+	UpdateOneAccountSubType(ctx context.Context, id string, req account_sub_type_dto.UpdateAccountSubTypeRequest) error
+	DeleteOneAccountSubType(ctx context.Context, id string) error
+	EnableOrDisableAccountSubType(ctx context.Context, id string, enable bool) error
+}
+
 type BankService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	GetAllBank(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]imodel.BankOracle], error)
@@ -480,7 +499,9 @@ type BankService interface {
 
 type BPSUserService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	ExportUsers(ctx context.Context, startDate, endDate time.Time, fileType, userName string) (string, error)
 	FetchUserByUserCode(ctx context.Context, userCode string) (*bpsUserDto.BPSUserResposenDTO, error)
+	FetchUserByUserName(ctx context.Context, userCode string) (*imodel.BPSUser, error)
 	GetAllBPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]bpsUserDto.BPSUserResposenDTO], error)
 	UpdateStatusBpsUser(ctx context.Context, userCode string, status bool) error
 	CreateBPSUser(ctx context.Context, req bps_model.BPSUser) error
@@ -519,7 +540,7 @@ type LogisticsMerchantService interface {
 
 type MiniAppMerchant interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
-	FindByID(ctx context.Context, id string) (*mini_model.MiniAppMerchant, error)
+	FindByID(ctx context.Context, id string) (*local_model.MiniAppMerchant, error)
 }
 type JobRoleService interface {
 	Create(ctx context.Context, jobs imodel.JobRole) error
@@ -540,6 +561,19 @@ type RoleService interface {
 	FindById(ctx context.Context, id string) (*imodel.Role, error)
 	FindAll(ctx context.Context) (*[]imodel.Role, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.Role], error)
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+}
+type RoleDelegationService interface {
+	CreateWithExistingUser(ctx context.Context, jobs imodel.RoleDelegation) error
+	CreateWithNewUser(ctx context.Context, jobs imodel.RoleDelegation) error
+	Update(ctx context.Context, id string, update imodel.RoleDelegation) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	Delete(ctx context.Context, id string) error
+	Export(ctx context.Context, startDate, endDate time.Time, fileType string) (string, error)
+	FindById(ctx context.Context, id string) (*imodel.RoleDelegation, error)
+	FindByUsername(ctx context.Context, id string, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.RoleDelegation], error)
+	FindAll(ctx context.Context) (*[]imodel.RoleDelegation, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.RoleDelegation], error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
@@ -579,6 +613,39 @@ type CPSRolesService interface {
 	GetServiceLevelLimits(ctx context.Context, roleCode string, filterParam *types.Filter) (*types.PaginatedResponse[[]cps_roles_dto.ServiceLevelLimitResponse], error)
 }
 
+type AccountProductCategoryService interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	GetAll(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]imodel.AccountProductCategory], error)
+	GetByID(ctx context.Context, id string) (*imodel.AccountProductCategory, error)
+	Create(ctx context.Context, req apc_dto.CreateAPCRequest) (*imodel.AccountProductCategory, error)
+	Update(ctx context.Context, id string, req apc_dto.UpdateAPCRequest) (*imodel.AccountProductCategory, error)
+	Delete(ctx context.Context, id string) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+}
+
+type AccountProductService interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	GetAll(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]imodel.AccountProduct], error)
+	GetByID(ctx context.Context, id string) (*imodel.AccountProduct, error)
+	Create(ctx context.Context, req ap_dto.CreateAPRequest) (*imodel.AccountProduct, error)
+	Update(ctx context.Context, id string, req ap_dto.UpdateAPRequest) (*imodel.AccountProduct, error)
+	Delete(ctx context.Context, id string) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+}
+
+type AccountOpeningTermsService interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	GetAll(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]imodel.AccountOpeningTerms], error)
+	GetByID(ctx context.Context, id string) (*imodel.AccountOpeningTerms, error)
+	Upload(ctx context.Context, req tac_dto.CreateTACRequest) (*imodel.AccountOpeningTerms, error)
+	Update(ctx context.Context, id string, req tac_dto.UpdateTACRequest) (*imodel.AccountOpeningTerms, error)
+	Delete(ctx context.Context, id string) error
+}
+
+type TokenProviderService interface {
+	GetToken(ctx context.Context) (string, error)
+}
+
 type ServiceLayer struct {
 	RoleService                   RoleService
 	EventService                  EventService
@@ -590,6 +657,7 @@ type ServiceLayer struct {
 	BpsUser                       BPSUserService
 	BudgetCategory                BudgetCategoryService
 	Bank                          BankService
+	AccountSubType                AccountSubTypeService
 	PortalCard                    PortalCardService
 	Advert                        AdvertService
 	ValidationService             AccountValidationService
@@ -641,6 +709,11 @@ type ServiceLayer struct {
 	BPSActionService              BPSActionService
 	SuperAppRole                  SuperAppRoleService
 	QueueManager                  *queue.QueueManager
+	RoleDelegationService         RoleDelegationService
+	AccountProductCategory        AccountProductCategoryService
+	AccountProduct                AccountProductService
+	AccountOpeningTerms           AccountOpeningTermsService
+	TokenProvider                 TokenProviderService
 }
 
 type ServiceContainer struct {
@@ -653,6 +726,7 @@ type ServiceContainer struct {
 	AmountBasedAuthContainer           AmountBasedAuthService
 	AvatarDomian                       AvatarService
 	BankContainer                      BankService
+	AccountSubTypeContainer            AccountSubTypeService
 	BPSUserContainer                   BPSUserService
 	BudgetCategoryContainer            BudgetCategoryService
 	CPSActionContainer                 CPSActionService
@@ -711,6 +785,10 @@ type ServiceContainer struct {
 	BPSActionContainer                 BPSActionService
 	SuperAppRoleContainer              SuperAppRoleService
 	QueueManager                       *queue.QueueManager
+	RoleDelegationContainer            RoleDelegationService
+	AccountProductCategoryContainer    AccountProductCategoryService
+	AccountProductContainer            AccountProductService
+	AccountOpeningTermsContainer       AccountOpeningTermsService
 }
 
 type BPSActionRoleService interface {

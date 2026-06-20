@@ -8,6 +8,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/types"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+
 	"github.com/hugokessem/coreio/core"
 )
 
@@ -16,7 +17,7 @@ func (r *cpsRoleService) GlobalLimits(ctx context.Context) {}
 func (r *cpsRoleService) ServiceLevelLimit(ctx context.Context, serviceCode string) (*core.CustomerLimitFetchByServiceResult, error) {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
-	response, err := r.core.CustomerLimitFetchByService(core.CustomerLimitFetchByServiceParam{
+	response, err := r.core.CustomerLimitFetchByService(ctx, core.CustomerLimitFetchByServiceParam{
 		ServiceCode: serviceCode,
 	})
 	if err != nil {

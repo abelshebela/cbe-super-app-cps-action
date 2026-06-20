@@ -62,6 +62,7 @@ func (n NewsTagHandler) CreateNewsTags(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := n.service.CreateNewsTags(r.Context(), req.TagName); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		log.Errorf("[CreateNewsTags] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -98,6 +99,7 @@ func (n NewsTagHandler) DeleteNewsTag(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := n.service.DeleteNewsTag(r.Context(), id); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		log.Errorf("[DeleteNewsTag] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -234,6 +236,7 @@ func (n NewsTagHandler) UpdateNewsTag(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := n.service.UpdateNewsTag(r.Context(), id, req.TagName); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		log.Errorf("[UpdateNewsTag] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return

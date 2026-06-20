@@ -14,6 +14,8 @@ import (
 	"strings"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	walletCatch "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/catch/wallet"
+
 
 	"path"
 
@@ -40,9 +42,10 @@ type walletService struct {
 	bucketName  string
 	minioPubUrl string
 	cfg         *config.VaultConfig
+	walletCatch  walletCatch.WalletCatch
 }
 
-func NewWalletService(repo storage.WalletOracleRepository, cps service.CPSActionService, serviceRepo storage.ServicesRepository, minio *s3.Client, minioPubUrl string, bucketName string, cfg *config.VaultConfig, logger utils.Logger) service.WalletService {
+func NewWalletService(repo storage.WalletOracleRepository, cps service.CPSActionService, serviceRepo storage.ServicesRepository, minio *s3.Client, minioPubUrl string, bucketName string, cfg *config.VaultConfig,walletCatch walletCatch.WalletCatch, logger utils.Logger) service.WalletService {
 	return &walletService{
 		repo:        repo,
 		cpsService:  cps,
@@ -51,6 +54,7 @@ func NewWalletService(repo storage.WalletOracleRepository, cps service.CPSAction
 		minio:       minio,
 		bucketName:  bucketName,
 		cfg:         cfg,
+		walletCatch: walletCatch,
 	}
 }
 
@@ -100,7 +104,7 @@ func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRe
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
 
-	wallet := core.ToCreateWalletDoc(req, URL, services)
+	wallet := core.ToCreateWalletDoc(req, URL, services, nil)
 	wallet.Enabled = false
 
 	//here since the unique id is nil 000.. use other unique id like the code
@@ -120,6 +124,7 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 	log.Infof("[WalletSvc][Update] id: %s", id)
+
 	prevWallet, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		span.AddEvent("FindByID error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("id", id)))
@@ -175,7 +180,7 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 		return err
 	}
 
-	wallet := core.ToCreateWalletDoc(req, avatarURL, services)
+	wallet := core.ToCreateWalletDoc(req, avatarURL, services, prevWallet)
 
 	UpdateWallet, change_count := core.ToUpdateWalletDoc(*prevWallet, *wallet)
 	if avatarURL != prevWallet.Avatar {
@@ -380,24 +385,147 @@ func (s *walletService) Authorize(ctx context.Context, action *model.CPSAction) 
 			}
 		}
 		err = s.repo.Create(ctx, wallet)
+		if err != nil{
+			s.logger.Errorf("[wallet service authorizor create] error:%v",err)
+			return  nil,err
+		}
+		enabledWallerService := buildEnableWalletServices(wallet)
+		
+		err := s.walletCatch.Set(ctx,walletCatch.WalletData{
+				Name: wallet.Name,
+				UniqueCode: wallet.UniqueCode,
+				Logo: wallet.Avatar,
+				IsWalletEnabled: wallet.Enabled,
+				ServicesType:enabledWallerService, 
+				
+			})
+		if err != nil{
+			s.logger.Errorf("[wallet service Authorizor create] unable to set on redis err:%v",err)
+			return nil,err
+		}
 	case string(constants.RequestUpdateWallet):
 		span.AddEvent("Updating wallet", trace.WithAttributes(attribute.String("unique_code", wallet.UniqueCode)))
 		err = s.repo.Update(ctx, action.UniqueId, wallet)
+		if err != nil{
+				s.logger.Errorf("[wallet service authorizor update] error:%v",err)
+				return  nil,err
+		}
+
+		enabledWallerService := buildEnableWalletServices(wallet)
+		err := s.walletCatch.Set(ctx,walletCatch.WalletData{
+				Name: wallet.Name,
+				UniqueCode: wallet.UniqueCode,
+				Logo: wallet.Avatar,
+				IsWalletEnabled: wallet.Enabled,
+				ServicesType:enabledWallerService,
+				
+			})
+
+			if err != nil{
+			s.logger.Errorf("[wallet service Authorizor update] unable to set on redis err:%v",err)
+			return nil,err
+		}
+
 	case string(constants.RequestDeleteWallet):
 		span.AddEvent("Deleting wallet", trace.WithAttributes(attribute.String("unique_code", wallet.UniqueCode)))
 		err = s.repo.Delete(ctx, action.UniqueId)
+		if err != nil{
+			s.logger.Errorf("[wallet service authorizor update] error:%v",err)
+
+		}
+		err := s.walletCatch.Delete(ctx,wallet.UniqueCode)
+		if err != nil{
+			s.logger.Errorf("[wallet service Authorizor update] unable to set on redis err:%v",err)
+			return nil,err		
+		}
+
 	case string(constants.RequestEnableWallet):
 		span.AddEvent("Enabling wallet", trace.WithAttributes(attribute.String("unique_code", wallet.UniqueCode)))
 		err = s.repo.EnableOrDisable(ctx, action.UniqueId, true)
+
+		if err != nil{
+				s.logger.Errorf("[wallet service authorizor update] error:%v",err)
+				return  nil,err
+		}
+      enabledWallerService := buildEnableWalletServices(wallet)
+		err := s.walletCatch.Set(ctx,walletCatch.WalletData{
+				Name: wallet.Name,
+				UniqueCode: wallet.UniqueCode,
+				Logo: wallet.Avatar,
+				IsWalletEnabled: true,
+				ServicesType: enabledWallerService,
+			})
+
+			if err != nil{
+			s.logger.Errorf("[wallet service Authorizor enable] unable to set on redis err:%v",err)
+			return nil,err
+		}
 	case string(constants.RequestDisableWallet):
 		span.AddEvent("Disabling wallet", trace.WithAttributes(attribute.String("unique_code", wallet.UniqueCode)))
 		err = s.repo.EnableOrDisable(ctx, action.UniqueId, false)
+		if err != nil{
+				s.logger.Errorf("[wallet service authorizor update] error:%v",err)
+				return  nil,err
+		}
+		enabledWallerService := buildEnableWalletServices(wallet)
+		err := s.walletCatch.Set(ctx,walletCatch.WalletData{
+				Name: wallet.Name,
+				UniqueCode: wallet.UniqueCode,
+				Logo: wallet.Avatar,
+				IsWalletEnabled: false,
+				ServicesType: enabledWallerService,
+			})
+
+			if err != nil{
+			s.logger.Errorf("[wallet service Authorizor update] unable to set on redis err:%v",err)
+			return nil,err
+		}
 	case string(constants.RequestEnableWalletService):
 		span.AddEvent("Enabling wallet service", trace.WithAttributes(attribute.String("unique_code", wallet.UniqueCode)))
 		err = s.repo.EnableOrDisableService(ctx, action.UniqueId, true)
+		if err != nil{
+				s.logger.Errorf("[wallet service authorizor update] error:%v",err)
+				return  nil,err
+		}
+		enabledWalletService := buildEnableWalletServices(wallet)
+		err := s.walletCatch.Set(ctx,walletCatch.WalletData{
+				Name: wallet.Name,
+				UniqueCode: wallet.UniqueCode,
+				Logo: wallet.Avatar,
+				IsWalletEnabled:wallet.Enabled,
+				ServicesType: enabledWalletService,
+				
+				
+			})
+
+			if err != nil{
+			s.logger.Errorf("[wallet service Authorizor update] unable to set on redis err:%v",err)
+			return nil,err
+		}
 	case string(constants.RequestDisableWalletService):
 		span.AddEvent("Disabling wallet service", trace.WithAttributes(attribute.String("unique_code", wallet.UniqueCode)))
 		err = s.repo.EnableOrDisableService(ctx, action.UniqueId, false)
+		
+		if err != nil{
+				s.logger.Errorf("[wallet service authorizor update] error:%v",err)
+				return  nil,err
+		}
+
+		enabledWalletService := buildEnableWalletServices(wallet)
+		err := s.walletCatch.Set(ctx,walletCatch.WalletData{
+				Name: wallet.Name,
+				UniqueCode: wallet.UniqueCode,
+				Logo: wallet.Avatar,
+				IsWalletEnabled:wallet.Enabled,
+				ServicesType: enabledWalletService,
+				
+			})
+
+			if err != nil{
+			s.logger.Errorf("[wallet service Authorizor update] unable to set on redis err:%v",err)
+			return nil,err
+			}
+
 	default:
 		span.AddEvent("Unsupported action", trace.WithAttributes(attribute.String("action", action.RequestAction)))
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
@@ -410,3 +538,30 @@ func (s *walletService) Authorize(ctx context.Context, action *model.CPSAction) 
 	action.CurrentAction = wallet
 	return action, nil
 }
+
+
+func buildEnableWalletServices(wallet *local_model.WalletOracle)[]walletCatch.WalletServiceData{
+var walletServices = []walletCatch.WalletServiceData{}
+		if wallet.SelfServiceEnabled == 1{
+			walletServices = append(walletServices, walletCatch.WalletServiceData{
+				ServiceID: wallet.SelfServiceID,
+				ServiceType: walletCatch.ServiceType(wallet.SelfServiceName),
+
+			})
+		}
+		if wallet.OtherServiceEnabled == 1{
+			walletServices = append(walletServices, walletCatch.WalletServiceData{
+				ServiceID: wallet.OtherServiceID,
+				ServiceType: walletCatch.ServiceType(wallet.OtherServiceName),
+
+			})
+		}
+		if wallet.AgentServiceEnabled == 1{
+			walletServices = append(walletServices, walletCatch.WalletServiceData{
+				ServiceID: wallet.AgentServiceID,
+				ServiceType: walletCatch.ServiceType(wallet.AgentServiceName),
+
+			})
+		}
+		return  walletServices
+	}

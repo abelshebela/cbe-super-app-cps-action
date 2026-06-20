@@ -95,7 +95,12 @@ func (r *superAppRoleStorage) FindAllWithPagination(ctx context.Context, filterP
 }
 
 func (r *superAppRoleStorage) countDistinctRoles(ctx context.Context, where string, args []interface{}) (int, error) {
-	q := fmt.Sprintf(`SELECT COUNT(DISTINCT SUPERAPP_ROLE) FROM SEGMENTS WHERE %s`, where)
+	q := fmt.Sprintf(`SELECT COUNT(1) FROM (
+    SELECT 1
+    FROM SEGMENTS
+    WHERE %s
+    GROUP BY SUPERAPP_ROLE
+) grouped_roles`, where)
 	var total int
 	if err := r.db.QueryRowContext(ctx, q, args...).Scan(&total); err != nil {
 		return 0, local_util.HandleDBError(err)
@@ -105,13 +110,14 @@ func (r *superAppRoleStorage) countDistinctRoles(ctx context.Context, where stri
 
 func (r *superAppRoleStorage) fetchRoleGroups(ctx context.Context, where string, args []interface{}, limit, offset int) ([]imodel.SuperAppRoleGroup, error) {
 	q := fmt.Sprintf(`
-SELECT SUPERAPP_ROLE, SUPERAPP_ROLE_LABEL,
+SELECT SUPERAPP_ROLE,
+       MAX(SUPERAPP_ROLE_LABEL) KEEP (DENSE_RANK LAST ORDER BY LAST_MODIFIED_AT, CREATED_AT) AS SUPERAPP_ROLE_LABEL,
        MIN(IS_ENABLED) AS GROUP_ENABLED,
        MIN(CREATED_AT) AS FIRST_CREATED,
        MAX(LAST_MODIFIED_AT) AS LAST_TOUCHED
 FROM SEGMENTS
 WHERE %s
-GROUP BY SUPERAPP_ROLE, SUPERAPP_ROLE_LABEL
+GROUP BY SUPERAPP_ROLE
 ORDER BY SUPERAPP_ROLE
 OFFSET :pg_offset ROWS FETCH NEXT :pg_limit ROWS ONLY`, where)
 
@@ -130,7 +136,7 @@ OFFSET :pg_offset ROWS FETCH NEXT :pg_limit ROWS ONLY`, where)
 }
 
 func collectRoleGroups(rows *sql.Rows) ([]imodel.SuperAppRoleGroup, error) {
-	var result []imodel.SuperAppRoleGroup
+	result := make([]imodel.SuperAppRoleGroup, 0)
 	for rows.Next() {
 		var role, label string
 		var groupEnabled int
@@ -177,9 +183,11 @@ SELECT RAWTOHEX(ID), CUSTOMER_GROUP, CUSTOMER_GROUP_LABEL,
        IS_ENABLED, CREATED_AT, LAST_MODIFIED_AT
 FROM SEGMENTS
 WHERE SUPERAPP_ROLE IN (%s)
-ORDER BY SUPERAPP_ROLE, CREATED_AT`, strings.Join(placeholders, ", "))
+  AND %s
+ORDER BY SUPERAPP_ROLE, CREATED_AT`, strings.Join(placeholders, ", "), where)
 
-	rows, err := r.db.QueryContext(ctx, q, roleArgs...)
+	listArgs := append(roleArgs, args...)
+	rows, err := r.db.QueryContext(ctx, q, listArgs...)
 	if err != nil {
 		return local_util.HandleDBError(err)
 	}
@@ -288,7 +296,7 @@ func (r *superAppRoleStorage) RoleExists(ctx context.Context, superappRole strin
 func (r *superAppRoleStorage) FindRoleBlockedAccessLists(ctx context.Context, superappRole string) ([]imodel.APPAccessList, error) {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
-	const q = `SELECT RAWTOHEX(g.ACCESS_LIST_ID), a.NAME, a.SERVICE_KEY, g.IS_ENABLED
+	const q = `SELECT RAWTOHEX(g.ACCESS_LIST_ID), a.NAME, a.SERVICE_KEY, a.IS_ENABLED
 		FROM ACCESS_LIST_BY_SUPERAPP_ROLE g
 		JOIN ACCESS_LISTS a ON g.ACCESS_LIST_ID = a.ID
 		WHERE g.SUPERAPP_ROLE_ID = :1
@@ -417,6 +425,32 @@ func scanAccessLists(rows *sql.Rows) ([]imodel.APPAccessList, error) {
 		})
 	}
 	return result, nil
+}
+
+func (r *superAppRoleStorage) FindAccessListRelations(ctx context.Context) ([]imodel.AccessItemRelation, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	const q = `SELECT RAWTOHEX(PARENT_ID), RAWTOHEX(CHILD_ID) FROM ACCESS_LIST_RELATIONS ORDER BY PARENT_ID, CHILD_ID`
+	rows, err := r.db.QueryContext(ctx, q)
+	if err != nil {
+		log.Errorf("[SuperAppRoleRepo][FindAccessListRelations] query err: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+	defer rows.Close()
+
+	var out []imodel.AccessItemRelation
+	for rows.Next() {
+		var rel imodel.AccessItemRelation
+		if err := rows.Scan(&rel.ParentKey, &rel.ChildKey); err != nil {
+			log.Errorf("[SuperAppRoleRepo][FindAccessListRelations] scan err: %v", err)
+			return nil, local_util.HandleDBError(err)
+		}
+		out = append(out, rel)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, local_util.HandleDBError(err)
+	}
+	return out, nil
 }
 
 func (r *superAppRoleStorage) BulkDisableAccessLists(ctx context.Context, superappRole string, accessListIDs []string) error {

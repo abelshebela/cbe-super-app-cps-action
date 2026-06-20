@@ -19,26 +19,32 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	coreio "github.com/hugokessem/coreio/core"
+	accessList_cache "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/catch/access_list"
+	service_cache "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/catch/service"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type servicesService struct {
-	repo         storage.ServicesRepository
-	ussdMerchant storage.UssdMerchantRepository
-	cps          service.CPSActionService
-	core         coreio.CBECoreAPIInterface
-	logger       utils.Logger
+	repo            storage.ServicesRepository
+	ussdMerchant    storage.UssdMerchantRepository
+	cps             service.CPSActionService
+	core            coreio.CBECoreAPIInterface
+	logger          utils.Logger
+	serviceCache    service_cache.ServiceCatch
+	accessListCache accessList_cache.AccessListCatch
 }
 
-func NewServicesService(repo storage.ServicesRepository, ussdMerchant storage.UssdMerchantRepository, cps service.CPSActionService, core coreio.CBECoreAPIInterface, logger utils.Logger) *servicesService {
+func NewServicesService(repo storage.ServicesRepository, ussdMerchant storage.UssdMerchantRepository, cps service.CPSActionService, core coreio.CBECoreAPIInterface, serviceCache service_cache.ServiceCatch, accessListCache accessList_cache.AccessListCatch, logger utils.Logger) *servicesService {
 	return &servicesService{
-		repo:         repo,
-		ussdMerchant: ussdMerchant,
-		cps:          cps,
-		core:         core,
-		logger:       logger,
+		repo:            repo,
+		ussdMerchant:    ussdMerchant,
+		cps:             cps,
+		core:            core,
+		serviceCache:    serviceCache,
+		accessListCache: accessListCache,
+		logger:          logger,
 	}
 }
 
@@ -50,6 +56,20 @@ func (s *servicesService) Create(ctx context.Context, req service_dto.CreateServ
 	if err != nil && err.Error() != sql.ErrNoRows.Error() {
 		log.Errorf("[servicesService][Create] error checking existing service for serviceKeyId=%s: %v", req.ServiceKeyId, err)
 		return err
+	}
+
+	var service *service_dto.ServiceResponse
+	if accessList != nil {
+		service, err = s.repo.FindServiceByAccessListID(ctx, req.ServiceKeyId)
+		if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+			log.Errorf("[servicesService][Create] error checking existing service for serviceKey=%s: %v", req.ServiceKey, err)
+			return err
+		}
+
+		if accessList != nil && service != nil && strings.EqualFold(req.ServiceCode, service.ServiceCode) {
+			log.Warnf("[servicesService][Create] duplicate service detected for serviceKey=%s", req.ServiceKey)
+			return errors.New(localization.ErrorServiceExists.Code)
+		}
 	}
 
 	if req.ProductGlAccount != "" {
@@ -115,6 +135,22 @@ func (s *servicesService) Update(ctx context.Context, id string, req service_dto
 		return err
 	}
 
+	var service *service_dto.ServiceResponse
+	if accessList != nil {
+		if req.ServiceKeyId != nil {
+			service, err = s.repo.FindServiceByAccessListID(ctx, *req.ServiceKeyId)
+			if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+				log.Errorf("[servicesService][Create] error checking existing service for serviceKey=%s: %v", req.ServiceKey, err)
+				return err
+			}
+		}
+
+		if service != nil && service.ID != id && strings.EqualFold(*req.ServiceCode, service.ServiceCode) {
+			log.Warnf("[servicesService][Create] duplicate service detected for serviceKey=%s", req.ServiceKey)
+			return errors.New(localization.ErrorServiceExists.Code)
+		}
+	}
+
 	if req.ProductGlAccount != nil {
 		var accountDetail *model.AccountDetail
 		var accountDetailForPl model.AccountDetail
@@ -176,6 +212,7 @@ func (s *servicesService) Enable(ctx context.Context, id string) error {
 	if err != nil {
 		return err
 	}
+
 	if prev.Enabled {
 		return localization.ErrorAlreadyEnabled
 	}
@@ -253,6 +290,7 @@ func (s *servicesService) CreateServiceList(ctx context.Context, req *service_dt
 	if err != nil && err.Error() != localization.ErrorAccessListNotFound.Code {
 		return err
 	}
+
 	if list != nil {
 		return errors.New(localization.ErrorServiceListAlreadyExists.Code)
 	}
@@ -357,7 +395,7 @@ func (s *servicesService) DeleteServiceKey(ctx context.Context, id string) error
 
 func (s *servicesService) ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber string) (*model.AccountDetail, error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
-	response, err := s.core.NameLookup(coreio.NameLookupParam{AccountNumber: accountNumber})
+	response, err := s.core.NameLookup(ctx, coreio.NameLookupParam{AccountNumber: accountNumber})
 	if err != nil {
 		return nil, err
 	}
@@ -398,8 +436,41 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 	switch action.RequestAction {
 	case string(constants.RequestDeleteService):
 		err = s.repo.Delete(ctx, action.UniqueId, "")
+
+		// Get data for cache
+		serviceDoc, unmarshalErr := local_util.JsonUnmarshal[imodel.Service](action.CurrentAction)
+		if unmarshalErr != nil {
+			return nil, localization.ErrorInvalidActionData
+		}
+
+		var sources []string
+		for _, c := range serviceDoc.Cap {
+			sources = append(sources, string(c.Source))
+		}
+		sourceJoined := strings.Join(sources, ",")
+
+		// Delete from cache
+		s.serviceCache.Delete(ctx, service_cache.ServiceKey{
+			Source:      service_cache.Source(sourceJoined),
+			ServiceKey:  serviceDoc.ServiceKey,
+			ServiceCode: serviceDoc.ServiceCode,
+		})
+
 	case string(constants.RequestDeleteServiceList):
 		err = s.repo.Delete(ctx, "", action.UniqueId)
+
+		// Get data for cache
+		listDoc, unmarshalErr := local_util.JsonUnmarshal[imodel.ServiceKey](action.CurrentAction)
+		if unmarshalErr != nil {
+			return nil, localization.ErrorInvalidActionData
+		}
+
+		// Delete from cache
+		s.accessListCache.Delete(ctx, accessList_cache.AccessListKey{
+			ServiceName: listDoc.ServiceName,
+			ServiceKey:  listDoc.ServiceKey,
+		})
+
 	case string(constants.RequestCreateService):
 		serviceDoc, unmarshalErr := local_util.JsonUnmarshal[imodel.Service](action.CurrentAction)
 		if unmarshalErr != nil {
@@ -410,6 +481,38 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 		if err == nil {
 			action.CurrentAction = serviceDoc
 		}
+
+		// Set to cache
+		var sources []string
+		var currencies []string
+		var singleTransferCaps []string
+		var minimumTransferCaps []string
+
+		for _, c := range serviceDoc.Cap {
+			sources = append(sources, string(c.Source))
+			currencies = append(currencies, c.Currency)
+			singleTransferCaps = append(singleTransferCaps, c.SingleCap)
+			minimumTransferCaps = append(minimumTransferCaps, c.MinimumTransferCap)
+		}
+
+		sourceJoined := strings.Join(sources, ",")
+		currencyJoined := strings.Join(currencies, ",")
+		singleTransferCap := strings.Join(singleTransferCaps, ",")
+		minimumTransferCap := strings.Join(minimumTransferCaps, ",")
+
+		s.serviceCache.Set(ctx, service_cache.ServiceData{
+			AccessListID:       serviceDoc.ServiceKeyId,
+			ServiceKey:         serviceDoc.ServiceKey,
+			ServiceCode:        serviceDoc.ServiceCode,
+			MinimumFraudAmount: serviceDoc.MinimumFraudAmount,
+			ProductGlAccount:   serviceDoc.ProductGlAccount,
+			ServiceName:        serviceDoc.ServiceName,
+			Source:             service_cache.Source(sourceJoined),
+			Currency:           currencyJoined,
+			SingleTransferCap:  singleTransferCap,
+			MinimumTransferCap: minimumTransferCap,
+		})
+
 	case string(constants.RequestUpdateService):
 		serviceDoc, unmarshalErr := local_util.JsonUnmarshal[imodel.Service](action.CurrentAction)
 		if unmarshalErr != nil {
@@ -420,6 +523,38 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 		if err == nil {
 			action.CurrentAction = serviceDoc
 		}
+
+		// Set to cache
+		var sources []string
+		var currencies []string
+		var singleTransferCaps []string
+		var minimumTransferCaps []string
+
+		for _, c := range serviceDoc.Cap {
+			sources = append(sources, string(c.Source))
+			currencies = append(currencies, c.Currency)
+			singleTransferCaps = append(singleTransferCaps, c.SingleCap)
+			minimumTransferCaps = append(minimumTransferCaps, c.MinimumTransferCap)
+		}
+
+		sourceJoined := strings.Join(sources, ",")
+		currencyJoined := strings.Join(currencies, ",")
+		singleTransferCap := strings.Join(singleTransferCaps, ",")
+		minimumTransferCap := strings.Join(minimumTransferCaps, ",")
+
+		s.serviceCache.Set(ctx, service_cache.ServiceData{
+			AccessListID:       serviceDoc.ServiceKeyId,
+			ServiceKey:         serviceDoc.ServiceKey,
+			ServiceCode:        serviceDoc.ServiceCode,
+			MinimumFraudAmount: serviceDoc.MinimumFraudAmount,
+			ProductGlAccount:   serviceDoc.ProductGlAccount,
+			ServiceName:        serviceDoc.ServiceName,
+			Source:             service_cache.Source(sourceJoined),
+			Currency:           currencyJoined,
+			SingleTransferCap:  singleTransferCap,
+			MinimumTransferCap: minimumTransferCap,
+		})
+
 	case string(constants.RequestEnableService):
 		err = s.repo.EnableOrDisableServiceList(ctx, action.UniqueId, true)
 	case string(constants.RequestDisableService):
@@ -433,6 +568,14 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 		if err == nil {
 			action.CurrentAction = listDoc
 		}
+
+		// Set to cache
+		s.accessListCache.Set(ctx, accessList_cache.AccessListData{
+			ServiceName: listDoc.ServiceName,
+			ServiceKey:  listDoc.ServiceKey,
+			AccountType: listDoc.AccountType,
+		})
+
 	case string(constants.RequestUpdateServiceList):
 		listDoc, unmarshalErr := local_util.JsonUnmarshal[imodel.ServiceKey](action.CurrentAction)
 		if unmarshalErr != nil {
@@ -446,6 +589,14 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 		if err == nil {
 			action.CurrentAction = listDoc
 		}
+
+		// Set to cache
+		s.accessListCache.Set(ctx, accessList_cache.AccessListData{
+			ServiceName: listDoc.ServiceName,
+			ServiceKey:  listDoc.ServiceKey,
+			AccountType: listDoc.AccountType,
+		})
+
 	case string(constants.RequestEnableServiceList):
 		err = s.repo.EnableOrDisableServiceList(ctx, action.UniqueId, true)
 	case string(constants.RequestDisableServiceList):

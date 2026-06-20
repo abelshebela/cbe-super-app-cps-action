@@ -21,8 +21,9 @@ func NewBankRepository(db *sql.DB, log utils.Logger) storage.BankOracleRepositor
 	}
 }
 func (q *Queries) Create(ctx context.Context, bank *imodel.BankOracle) error {
-	query := `INSERT INTO banks (id, bank_name, logo, bic_code, is_enabled, account_length, has_alpha_numeric, created_at, last_modified_at, is_cbe)
-		VALUES (SYS_GUID(), :1, :2, :3, :4, :5, :6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, :7)`
+	var bankID string
+	query := `INSERT INTO banks (ID, bank_name, logo, bic_code, is_enabled, account_length, has_alpha_numeric, created_at, last_modified_at, is_cbe)
+		VALUES (SYS_GUID(), :1, :2, :3, :4, :5, :6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, :7) RETURNING RAWTOHEX(ID) INTO :8`
 	_, err := q.db.ExecContext(ctx, query,
 		bank.BankName,
 		bank.Logo,
@@ -31,7 +32,9 @@ func (q *Queries) Create(ctx context.Context, bank *imodel.BankOracle) error {
 		bank.AccountLength,
 		bank.HasAlphaNumeric,
 		bank.IS_CBE,
+		sql.Out{Dest: &bankID},
 	)
+	bank.ID = bankID
 	return err
 }
 
@@ -51,7 +54,7 @@ func (q *Queries) Update(ctx context.Context, id string, bank *imodel.BankOracle
 }
 
 func (q *Queries) Delete(ctx context.Context, id string) error {
-	query := `UPDATE BANKS SET is_deleted = 1 WHERE id = :1`
+	query := `DELETE FROM BANKS WHERE id = :1`
 	_, err := q.db.ExecContext(ctx, query, id)
 	return err
 }
@@ -165,6 +168,17 @@ func (q *Queries) FindAllWithPagination(ctx context.Context, filterParam types.F
 	log := local_util.LoggerFromCtx(ctx, q.logger)
 
 	log.Infof("[BankOracleRepository][FindAllWithPagination] called with filter: %+v", filterParam)
+	if filterParam.Page < 1 || filterParam.PerPage < 1 {
+		log.Warnf("[BankOracleRepository][FindAllWithPagination] invalid pagination params page=%d per_page=%d", filterParam.Page, filterParam.PerPage)
+		meta := local_util.BuildPaginationMeta(0, filterParam.Page, filterParam.PerPage)
+		return &types.PaginatedResponse[[]imodel.BankOracle]{
+			Data: []imodel.BankOracle{},
+			Meta: meta,
+		}, nil
+	}
+
+	page := filterParam.Page
+	perPage := filterParam.PerPage
 	// Build filtering logic
 	var filters []string
 	var args []interface{}
@@ -203,8 +217,10 @@ func (q *Queries) FindAllWithPagination(ctx context.Context, filterParam types.F
 	}
 	log.Infof("[BankOracleRepository][FindAllWithPagination] total records: %d", total)
 
-	if total == 0 {
-		meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
+	offset := (page - 1) * perPage
+	limit := perPage
+	if total == 0 || int64(offset) >= total {
+		meta := local_util.BuildPaginationMeta(total, page, perPage)
 		resp := &types.PaginatedResponse[[]imodel.BankOracle]{
 			Data: []imodel.BankOracle{},
 			Meta: meta,
@@ -212,14 +228,7 @@ func (q *Queries) FindAllWithPagination(ctx context.Context, filterParam types.F
 		log.Infof("[BankOracleRepository][FindAllWithPagination] no records found")
 		return resp, nil
 	}
-
-	offset := (filterParam.Page - 1) * filterParam.PerPage
-	limit := filterParam.PerPage
-	// If requested offset is beyond total, return all data (no pagination)
-	if int64(offset) >= total {
-		offset = 0
-		limit = int(total)
-	} else if int64(offset)+int64(limit) > total {
+	if int64(offset)+int64(limit) > total {
 		limit = int(total) - offset
 	}
 	log.Debugf("[BankOracleRepository][FindAllWithPagination] offset: %d, limit: %d", offset, limit)
@@ -271,7 +280,7 @@ func (q *Queries) FindAllWithPagination(ctx context.Context, filterParam types.F
 		return nil, err
 	}
 
-	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
+	meta := local_util.BuildPaginationMeta(total, page, perPage)
 	log.Debugf("[BankOracleRepository][FindAllWithPagination] meta: %+v", meta)
 	resp := &types.PaginatedResponse[[]imodel.BankOracle]{
 		Data: banks,

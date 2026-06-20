@@ -26,6 +26,7 @@ func (s *HTTPServer) HTTPServerStart(ctx context.Context, log utils.Logger) {
 	}()
 }
 
+
 func (s *HTTPServer) HTTPServerStop(ctx context.Context, log utils.Logger) {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
@@ -43,6 +44,8 @@ func (s *HTTPServer) HTTPServerStop(ctx context.Context, log utils.Logger) {
 		log.Infof("Server gracefully stopped")
 	}
 }
+
+
 
 func NewHTTPServer(config *config.VaultConfig, handler http.Handler) *HTTPServer {
 	srv := &http.Server{

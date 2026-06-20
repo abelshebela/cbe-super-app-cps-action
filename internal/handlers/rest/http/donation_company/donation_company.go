@@ -141,6 +141,7 @@ func (d *donationCompanyAdapter) CreateDonationCompany(w http.ResponseWriter, r 
 
 	req, err := core.ParseRequestFromMultipartForm(r, true)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[DonCompH][Create] parse form err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -158,6 +159,7 @@ func (d *donationCompanyAdapter) CreateDonationCompany(w http.ResponseWriter, r 
 		attribute.String("donation_company.name", req.CompanyName),
 	)
 	if err := d.donationCompanyApp.CreateDonationCompany(ctx, req); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[DonCompH][Create] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -274,6 +276,7 @@ func (d *donationCompanyAdapter) AccountLookup(w http.ResponseWriter, r *http.Re
 
 	accountInfo, err := d.donationCompanyApp.AccountLookup(ctx, accountNumber)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -313,6 +316,7 @@ func (d *donationCompanyAdapter) EnableDonationCompany(w http.ResponseWriter, r 
 
 	span.SetAttributes(attribute.String("donation_company.id", id))
 	if err := d.donationCompanyApp.EnableDonationCompany(ctx, id); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[DonCompH][Enable] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -359,6 +363,7 @@ func (d *donationCompanyAdapter) DisableDonationCompany(w http.ResponseWriter, r
 
 	span.SetAttributes(attribute.String("donation_company.id", id))
 	if err := d.donationCompanyApp.DisableDonationCompany(ctx, id); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[DonCompH][Disable] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -404,6 +409,7 @@ func (d *donationCompanyAdapter) DeleteDonationCompany(w http.ResponseWriter, r 
 
 	span.SetAttributes(attribute.String("donation_company.id", id))
 	if err := d.donationCompanyApp.DeleteDonationCompany(ctx, id); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[DonCompH][Delete] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())

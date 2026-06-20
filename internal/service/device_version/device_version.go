@@ -15,10 +15,11 @@ import (
 	"fmt"
 	"time"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
+	sharedmodel "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -42,14 +43,14 @@ func NewDeviceVersionService(deviceVersionRepo storage.DeviceVersionControlRepos
 }
 
 // Authorize applies the approved CPS action for Device Version operations.
-func (d *DeviceVersionService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+func (d *DeviceVersionService) Authorize(ctx context.Context, cpsAction *sharedmodel.CPSAction) (*sharedmodel.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, d.logger)
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "DeviceVersion", "Authorize")
 	defer span.End()
 
 	log.Infof("[DevVerSvc][Authorize] action: %s", cpsAction.RequestAction)
-	actionData, err := local_util.JsonUnmarshal[model.DeviceVersionControl](cpsAction.CurrentAction)
+	actionData, err := local_util.JsonUnmarshal[imodel.DeviceVersionControl](cpsAction.CurrentAction)
 	if err != nil {
 		log.Errorf("[DevVerSvc][Authorize] unmarshal err: %v", err)
 		span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(
@@ -104,7 +105,7 @@ func (d *DeviceVersionService) Authorize(ctx context.Context, cpsAction *model.C
 			}
 		}
 		log.Infof("[DevVerSvc][Authorize] created platform: %s", actionData.Platform)
-	case string(constants.RequestUpdateDeviceVersion), string(constants.RequestEnableDisableDeviceVersion):
+	case string(constants.RequestUpdateDeviceVersion), string(constants.RequestEnableDisableDeviceVersion), string(constants.RequestSetDeviceStateDeviceVersion):
 		if actionData.ForceUpdate {
 			err = d.DisableExistingDeviceVersion(ctx, actionData.Platform)
 			if err != nil {
@@ -208,17 +209,20 @@ func (d *DeviceVersionService) CreateDeviceVersion(ctx context.Context, deviceVe
 		return fmt.Errorf("device version control with version %s and platform %s already exists", deviceVersion.LatestVersion, deviceVersion.Platform)
 	}
 
-	new_device_version := model.DeviceVersionControl{
-		LatestVersion: deviceVersion.LatestVersion,
-		Platform:      deviceVersion.Platform,
-		CreatedBy:     makerData.FullName,
-		CreatedAt:     time.Now(),
-		ForceUpdate:   deviceVersion.ForceUpdate,
-		ReleaseNotes:  deviceVersion.ReleaseNotes,
-		Enabled:       true,
+	forceUpdate, isMaintenance := core.DeviceStateToFlags(deviceVersion.DeviceState)
+	newDeviceVersion := imodel.DeviceVersionControl{
+		LatestVersion:     deviceVersion.LatestVersion,
+		Platform:          deviceVersion.Platform,
+		CreatedBy:         makerData.FullName,
+		CreatedAt:         time.Now(),
+		DeviceState:       deviceVersion.DeviceState,
+		ForceUpdate:       forceUpdate,
+		IsMaintenanceMode: isMaintenance,
+		ReleaseNotes:      deviceVersion.ReleaseNotes,
+		Enabled:           true,
 	}
 
-	action := lib.CpsModelBuilder("", makerData, nil, new_device_version, string(constants.RequestCreateDeviceVersion), constants.CREATE)
+	action := lib.CpsModelBuilder("", makerData, nil, newDeviceVersion, string(constants.RequestCreateDeviceVersion), constants.CREATE)
 	if err := d.cpsService.CreateCPSAction(ctx, &action); err != nil {
 		log.Errorf("[DevVerSvc][Create] cps action err: %v", err)
 		span.AddEvent("Failed to create CPS action", trace.WithAttributes(
@@ -292,7 +296,7 @@ func (d *DeviceVersionService) EnableDisableDeviceVersion(ctx context.Context, i
 }
 
 // GetAllDeviceVersions implements service.DeviceVersionService.
-func (d *DeviceVersionService) GetAllDeviceVersions(ctx context.Context, filterParams *types.Filter) (types.PaginatedResponse[[]model.DeviceVersionControl], error) {
+func (d *DeviceVersionService) GetAllDeviceVersions(ctx context.Context, filterParams *types.Filter) (types.PaginatedResponse[[]imodel.DeviceVersionControl], error) {
 	log := local_util.LoggerFromCtx(ctx, d.logger)
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetAllDeviceVersions", "DeviceVersion", "GetAllDeviceVersions")
@@ -305,14 +309,14 @@ func (d *DeviceVersionService) GetAllDeviceVersions(ctx context.Context, filterP
 		span.AddEvent("Failed to fetch device versions", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 		))
-		return types.PaginatedResponse[[]model.DeviceVersionControl]{}, err
+		return types.PaginatedResponse[[]imodel.DeviceVersionControl]{}, err
 	}
 	log.Infof("[DevVerSvc][GetAll] count: %d", len(res.Data))
 	return res, nil
 }
 
 // GetDeviceVersionByID implements service.DeviceVersionService.
-func (d *DeviceVersionService) GetDeviceVersionByID(ctx context.Context, id string) (model.DeviceVersionControl, error) {
+func (d *DeviceVersionService) GetDeviceVersionByID(ctx context.Context, id string) (imodel.DeviceVersionControl, error) {
 	log := local_util.LoggerFromCtx(ctx, d.logger)
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetDeviceVersionByID", "DeviceVersion", "GetDeviceVersionByID")
@@ -325,7 +329,7 @@ func (d *DeviceVersionService) GetDeviceVersionByID(ctx context.Context, id stri
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
-		return model.DeviceVersionControl{}, err
+		return imodel.DeviceVersionControl{}, err
 	}
 	log.Infof("[DevVerSvc][GetByID] found id: %s", id)
 	return dv, nil
@@ -358,7 +362,7 @@ func (d *DeviceVersionService) UpdateDeviceVersion(ctx context.Context, id strin
 		return err
 	}
 
-	if existing == (model.DeviceVersionControl{}) {
+	if existing == (imodel.DeviceVersionControl{}) {
 		log.Errorf("[DevVerSvc][Update] not found: %s", id)
 		span.AddEvent("Device version not found", trace.WithAttributes(
 			attribute.String("error", localization.ErrorResourceNotFound.Code),
@@ -367,7 +371,7 @@ func (d *DeviceVersionService) UpdateDeviceVersion(ctx context.Context, id strin
 		return errors.New(localization.ErrorResourceNotFound.Code)
 	}
 	// apply updates
-	update, err := core.UpdateDeviceVersionBson(req, makerData.FullName, existing.Enabled, existing.ForceUpdate)
+	update, err := core.UpdateDeviceVersionBson(req, makerData.FullName, existing)
 	if err != nil {
 		log.Errorf("[DevVerSvc][Update] prepare data err: %v", err)
 		span.AddEvent("Failed to prepare update data", trace.WithAttributes(
@@ -376,7 +380,6 @@ func (d *DeviceVersionService) UpdateDeviceVersion(ctx context.Context, id strin
 		))
 		return err
 	}
-	update["enabled"] = existing.Enabled
 
 	action := lib.CpsModelBuilder(existing.ID.Hex(), makerData, &existing, update, string(constants.RequestUpdateDeviceVersion), constants.UPDATE)
 	if err := d.cpsService.CreateCPSAction(ctx, &action); err != nil {
@@ -411,7 +414,7 @@ func (d *DeviceVersionService) DisableExistingDeviceVersion(ctx context.Context,
 		))
 		return err
 	}
-	if existing == (model.DeviceVersionControl{}) {
+	if existing == (imodel.DeviceVersionControl{}) {
 		log.Infof("[DevVerSvc][DisableExisting] none found platform: %s", platform)
 		return nil
 	}
@@ -426,5 +429,58 @@ func (d *DeviceVersionService) DisableExistingDeviceVersion(ctx context.Context,
 		return errors.New(localization.ErrorOnDisablingExistingDeviceControl.Code)
 	}
 	log.Infof("[DevVerSvc][DisableExisting] disabled platform: %s", platform)
+	return nil
+}
+
+// SetDeviceState sets the device_state for a device version entry, deriving force_update and
+// is_maintenance_mode from the provided state enum (FORCE_UPDATE | MAINTENANCE | STABLE).
+func (d *DeviceVersionService) SetDeviceState(ctx context.Context, id string, deviceState string) error {
+	log := local_util.LoggerFromCtx(ctx, d.logger)
+
+	ctx, span := local_util.TraceLogger(ctx, "service", "SetDeviceState", "DeviceVersion", "SetDeviceState")
+	defer span.End()
+
+	makerData := local_util.ExtractUserFromContext(ctx)
+	if local_util.IsIncomplete(makerData) {
+		log.Errorf("[DevVerSvc][SetDeviceState] incomplete user")
+		span.AddEvent("Incomplete user data", trace.WithAttributes(
+			attribute.String("error", constants.IncompleteUserInfo),
+			attribute.String("id", id),
+		))
+		return errors.New(constants.IncompleteUserInfo)
+	}
+
+	existing, err := d.deviceVersionRepo.FindByID(ctx, id)
+	if err != nil {
+		log.Errorf("[DevVerSvc][SetDeviceState] find err: %v", err)
+		span.AddEvent("Failed to find device version", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
+		return err
+	}
+
+	if existing.DeviceState == deviceState {
+		return errors.New(localization.ErrorDeviceVersionAlreadyInState.Code)
+	}
+
+	forceUpdate, isMaintenance := core.DeviceStateToFlags(deviceState)
+	updated := existing
+	updated.DeviceState = deviceState
+	updated.ForceUpdate = forceUpdate
+	updated.IsMaintenanceMode = isMaintenance
+	updated.UpdatedBy = makerData.FullName
+	updated.UpdatedAt = time.Now()
+
+	action := lib.CpsModelBuilder(id, makerData, &existing, updated, string(constants.RequestSetDeviceStateDeviceVersion), constants.UPDATE)
+	if err := d.cpsService.CreateCPSAction(ctx, &action); err != nil {
+		log.Errorf("[DevVerSvc][SetDeviceState] cps action err: %v", err)
+		span.AddEvent("Failed to create CPS action", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
+		return err
+	}
+	log.Infof("[DevVerSvc][SetDeviceState] request created id: %s state: %s", id, deviceState)
 	return nil
 }

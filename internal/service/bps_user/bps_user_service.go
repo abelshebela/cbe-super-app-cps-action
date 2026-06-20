@@ -4,12 +4,14 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	localization "cbe-super-app-cps-action/internal/constants/localization"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	bps_user_core "cbe-super-app-cps-action/internal/service/bps_user/core"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
+	"encoding/csv"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -23,6 +25,8 @@ import (
 
 	bpsUserDto "cbe-super-app-cps-action/internal/constants/dto/bps_user"
 
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.opentelemetry.io/otel/attribute"
@@ -35,18 +39,128 @@ type bpsUserService struct {
 	CPSUserRepo    storage.CpsUserRepository
 	Job_roles_repo storage.JobRoleRepository
 	Branch_blocks  storage.AccountBlockRepository
+	RoleRepository storage.RoleRepository
 	logger         utils.Logger
+	minioClient    *s3.Client
+	bucketName     string
+	cfg            config.VaultConfig
 }
 
-func NewBPSUserService(repo storage.BPSUserRepository, JobRolesRepo storage.JobRoleRepository, cpsService service.CPSActionService, cpsUserRepo storage.CpsUserRepository, branch_blocks storage.AccountBlockRepository, logger utils.Logger) service.BPSUserService {
+func NewBPSUserService(repo storage.BPSUserRepository, JobRolesRepo storage.JobRoleRepository,
+	roleRepository storage.RoleRepository, cpsService service.CPSActionService, cpsUserRepo storage.CpsUserRepository, branch_blocks storage.AccountBlockRepository, minioClient *s3.Client, bucketName string, cfg config.VaultConfig, logger utils.Logger) service.BPSUserService {
 	return &bpsUserService{
 		cpsService:     cpsService,
 		repo:           repo,
 		CPSUserRepo:    cpsUserRepo,
 		Job_roles_repo: JobRolesRepo,
+		RoleRepository: roleRepository,
 		Branch_blocks:  branch_blocks,
 		logger:         logger,
+		minioClient:    minioClient,
+		bucketName:     bucketName,
+		cfg:            cfg,
 	}
+}
+
+func bpsUserExportRow(user imodel.ExportBPSUser) []string {
+	createdBy := user.CreatedBy
+	if createdBy == "" {
+		createdBy = "SSO"
+	}
+	lastModified := ""
+	if !user.LastModified.IsZero() {
+		lastModified = user.LastModified.Format(time.RFC3339)
+	}
+	expiryDate := ""
+	userType := "Permanent"
+	if !user.ExpiryDateForDelegation.IsZero() {
+		userType = "Delegation"
+		expiryDate = user.ExpiryDateForDelegation.Format(time.RFC3339)
+	}
+	lastLogin := ""
+	if !user.LastLogin.IsZero() {
+		lastLogin = user.LastLogin.Format(time.RFC3339)
+	}
+	return []string{
+		user.FirstName,
+		user.PhoneNumber,
+		user.Email,
+		user.Branch,
+		user.JobTitle,
+		user.Role,
+		user.UserName,
+		user.CreatedAt.Format(time.RFC3339),
+		lastLogin,
+		fmt.Sprintf("%t", user.Enabled),
+		userType,
+		expiryDate,
+		user.LastModificationAction,
+		lastModified,
+		createdBy,
+		user.ApprovedBy,
+	}
+}
+
+func (b *bpsUserService) ExportUsers(ctx context.Context, startDate, endDate time.Time, fileType, userName string) (string, error) {
+	log := local_util.LoggerFromCtx(ctx, b.logger)
+
+	if b.minioClient == nil {
+		log.Errorf("[BPSUser/ExportUsers] minio client is not configured")
+		return "", errors.New(localization.BpsUserDataExportedError.Code)
+	}
+
+	fileType = strings.ToLower(strings.TrimSpace(fileType))
+	if fileType != string(lib.FileTypeCSV) && fileType != string(lib.FileTypePDF) {
+		return "", errors.New(localization.ErrorInvalidRequest.Code)
+	}
+
+	data, err := b.repo.FindForExport(ctx, startDate, endDate, userName)
+	if err != nil {
+		log.Errorf("[BPSUser/ExportUsers] failed to fetch users: %v", err)
+		return "", err
+	}
+
+	if len(data) == 0 {
+		return "", errors.New(localization.BpsUserDataNotFoundInDateRange.Code)
+	}
+
+	headers := []string{"Full Name", "Phone Number", "Email", "Branch", "Job Title", "Role", "Username", "Created At", "Last Login", "Enabled", "User Type", "Expiry Date (Delegation)", "Last Modification Action", "Last Modified", "Created By", "Approved By"}
+
+	ext := "csv"
+	if fileType == string(lib.FileTypePDF) {
+		ext = "pdf"
+	}
+
+	objectName := fmt.Sprintf("bps_users_%s_to_%s_%d.%s", startDate.Format("20060102"), endDate.Format("20060102"), time.Now().Unix(), ext)
+
+	if fileType == string(lib.FileTypePDF) {
+		rows := make([][]string, 0, len(data))
+		for _, item := range data {
+			rows = append(rows, bpsUserExportRow(item))
+		}
+		url, exportErr := lib.ExportPDFAndUpload(ctx, b.minioClient, b.bucketName, b.cfg, objectName, headers, rows, lib.PDFExportOptions{PageSize: "A4"}, nil, b.logger)
+		if exportErr != nil {
+			log.Errorf("[BPSUser/ExportUsers] pdf export failed: %v", exportErr)
+			return "", errors.New(localization.BpsUserDataExportedError.Code)
+		}
+
+		return url, nil
+	}
+
+	url, exportErr := lib.ExportCSVAndUpload(ctx, b.minioClient, b.bucketName, b.cfg, objectName, headers, func(writer *csv.Writer) error {
+		for _, item := range data {
+			if err := writer.Write(bpsUserExportRow(item)); err != nil {
+				return err
+			}
+		}
+		return nil
+	}, b.logger)
+	if exportErr != nil {
+		log.Errorf("[BPSUser/ExportUsers] csv export failed: %v", exportErr)
+		return "", errors.New(localization.BpsUserDataExportedError.Code)
+	}
+
+	return url, nil
 }
 
 // Authorize implements service.BPSUserService.
@@ -128,27 +242,35 @@ func (b *bpsUserService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 		b.logger.Infof("[BpsUserSvc][Authorize] soft-deleted id: %s", cpsAction.UniqueId)
 		return nil, nil
 	case string(constants.RequestEnableBPSUser):
-		actionData.Enabled = true
 		b.logger.Infof("[BpsUserSvc][Authorize] enabling id: %s", cpsAction.UniqueId)
+		err := b.repo.EnableDisableBPSUser(ctx, actionData.ID.Hex(), true)
+		if err != nil {
+			span.AddEvent("[Authorize] failed to enable BPS user", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
+			b.logger.Errorf("[BpsUserSvc][Authorize] enable err: %v", err)
+			return nil, err
+		}
+		return nil, nil
 	case string(constants.RequestDisableBPSUser):
-		actionData.Enabled = false
 		b.logger.Infof("[BpsUserSvc][Authorize] disabling id: %s", cpsAction.UniqueId)
+		err := b.repo.EnableDisableBPSUser(ctx, actionData.ID.Hex(), false)
+		if err != nil {
+			span.AddEvent("[Authorize] failed to disable BPS user", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
+			b.logger.Errorf("[BpsUserSvc][Authorize] disable err: %v", err)
+			return nil, err
+		}
+		return nil, nil
 
 	default:
 		span.AddEvent("[Authorize] unsupported action", trace.WithAttributes(attribute.String("action", cpsAction.RequestAction)))
 		b.logger.Errorf("[BpsUserSvc][Authorize] unsupported action: %s", cpsAction.RequestAction)
 		return nil, errors.New(localization.ErrorActionNotFound.Code)
 	}
-	if err := b.repo.Update(ctx, &actionData); err != nil {
-		span.AddEvent("[Authorize] failed to update BPS user", trace.WithAttributes(
-			attribute.String("error", err.Error()),
-			attribute.String("unique_id", cpsAction.UniqueId),
-		))
-		b.logger.Errorf("[BpsUserSvc][Authorize] update err: %v", err)
-		return nil, err
-	}
-	b.logger.Infof("[BpsUserSvc][Authorize] authorized id: %s", cpsAction.UniqueId)
-	return nil, nil
 }
 
 // FetchUserByUserCode implements service.BPSUserService.
@@ -167,6 +289,71 @@ func (b *bpsUserService) FetchUserByUserCode(ctx context.Context, userCode strin
 	}
 	b.logger.Infof("[BpsUserSvc][FetchByCode] retrieved code: %s", userCode)
 	return user, nil
+}
+
+func (b *bpsUserService) FetchUserByUserName(ctx context.Context, userName string) (*imodel.BPSUser, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "FetchUserByUserName", "BPS User", "FetchUserByUserName")
+	defer span.End()
+
+	user, err := b.repo.GetByUsername(ctx, userName)
+	if err != nil {
+		span.AddEvent("[FetchUserByUserName] failed to fetch BPS user", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("user_code", userName),
+		))
+		b.logger.Errorf("[BpsUserSvc][FetchByUserName] fetch err: %v", err)
+		return nil, localization.ErrorBpsUserNotFound
+	}
+	if user == nil {
+		span.AddEvent("[FetchUserByUserName] BPS user not found", trace.WithAttributes(attribute.String("user_code", userName)))
+		b.logger.Errorf("[BpsUserSvc][FetchByUserName] not found: %s", userName)
+		return nil, errors.New(localization.ErrorUserNotFound.Code)
+	}
+
+	cleanBPSUser := imodel.BPSUser{
+		ID:          user.ID,
+		UserCode:    user.UserCode,
+		FullName:    user.FullName,
+		UserName:    user.Username,
+		PhoneNumber: user.PhoneNumber,
+		BranchCode:  user.BranchCode,
+		Email:       user.Email,
+		BranchName:  user.BranchName,
+		HomeBranch:  user.HomeBranch,
+		JobTitle:    user.JobTitle,
+		Enabled:     user.Enabled,
+	}
+
+	jobRoles, err := b.Job_roles_repo.FindByName(ctx, user.JobTitle)
+	if err != nil {
+		span.AddEvent("[FetchUserByUserName] failed to fetch role by job title", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("job_title", user.JobTitle),
+		))
+		b.logger.Errorf("[BpsUserSvc][FetchByUserName] failed to fetch role by job title: %s, err: %v", user.JobTitle, err)
+		// return nil, errors.New(localization.ErrorRoleNotFound.Code)
+	}
+	if jobRoles != nil && jobRoles.Role != "" {
+		span.AddEvent("[FetchUserByUserName] role found for job title", trace.WithAttributes(attribute.String("job_title", user.JobTitle)))
+		b.logger.Errorf("[BpsUserSvc][FetchByUserName] role found for job title: %s", user.JobTitle)
+		// return nil, errors.New(localization.ErrorRoleNotFound.Code)
+		cleanBPSUser.Role = jobRoles.Role
+
+		role, err := b.RoleRepository.FindByCode(ctx, jobRoles.Role)
+		if err != nil {
+			span.AddEvent("[FetchUserByUserName] failed to fetch role by code", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("role_code", jobRoles.Role),
+			))
+			b.logger.Errorf("[BpsUserSvc][FetchByUserName] failed to fetch role by code: %s, err: %v", jobRoles.Role, err)
+			// return nil, errors.New(localization.ErrorRoleNotFound.Code)
+		} else if role != nil && role.Name != "" {
+			cleanBPSUser.RoleName = role.Name
+		}
+	}
+
+	b.logger.Infof("[BpsUserSvc][FetchByUserName] retrieved username: %s", userName)
+	return &cleanBPSUser, nil
 }
 
 // GetAllBPSUsers implements service.BPSUserService.

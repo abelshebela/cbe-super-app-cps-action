@@ -12,7 +12,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	service "cbe-super-app-cps-action/internal/service"
-	common_utils "cbe-super-app-cps-action/pkgs/utils"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
@@ -53,18 +53,18 @@ func NewJobRoleHandler(service service.JobRoleService, logger utils.Logger) inbo
 //	@Security		BearerAuth
 //	@Router			/job_roles [get]
 func (j *JobRoleHandler) GetAllWithPagination(w http.ResponseWriter, r *http.Request) {
-	log := common_utils.LoggerFromCtx(r.Context(), j.logger)
-	filterParams := common_utils.ExtractFilterParams(r)
+	log := local_util.LoggerFromCtx(r.Context(), j.logger)
+	filterParams := local_util.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
 
-	if err := common_utils.NoSpecialChars(search); err != nil {
+	if err := local_util.NoSpecialChars(search); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	if err := common_utils.NoSpecialChars(filter); err != nil {
+	if err := local_util.NoSpecialChars(filter); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -91,7 +91,7 @@ func (j *JobRoleHandler) GetAllWithPagination(w http.ResponseWriter, r *http.Req
 //	@Security		BearerAuth
 //	@Router			/job_roles/all [get]
 func (j *JobRoleHandler) GetAll(w http.ResponseWriter, r *http.Request) {
-	log := common_utils.LoggerFromCtx(r.Context(), j.logger)
+	log := local_util.LoggerFromCtx(r.Context(), j.logger)
 	data, err := j.service.FindAll(r.Context())
 	if err != nil {
 		log.Errorf("[Roles][GetAll] service error: %v", err)
@@ -117,7 +117,7 @@ func (j *JobRoleHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/job_roles/{id} [get]
 func (j *JobRoleHandler) GetByID(w http.ResponseWriter, r *http.Request) {
-	log := common_utils.LoggerFromCtx(r.Context(), j.logger)
+	log := local_util.LoggerFromCtx(r.Context(), j.logger)
 	id := chi.URLParam(r, "id")
 	if strings.TrimSpace(id) == "" {
 		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
@@ -149,7 +149,7 @@ func (j *JobRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 	md := &types.ContextMetadata{}
 	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
 	localization.UpdateWriterContext(w, ctx)
-	log := common_utils.LoggerFromCtx(ctx, j.logger)
+	log := local_util.LoggerFromCtx(ctx, j.logger)
 
 	var body roles_dto.RequestJobRolesCreate
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
@@ -166,10 +166,12 @@ func (j *JobRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 	role := imodel.JobRole{
 		JobTitle:  strings.TrimSpace(body.JobTitle),
 		Role:      strings.TrimSpace(body.Role),
+		Code:      strings.TrimSpace(body.Code),
 		CreatedAt: time.Now(),
 	}
 
 	if err := j.service.Create(ctx, role); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -202,7 +204,7 @@ func (j *JobRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 	md := &types.ContextMetadata{}
 	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
 	localization.UpdateWriterContext(w, ctx)
-	log := common_utils.LoggerFromCtx(ctx, j.logger)
+	log := local_util.LoggerFromCtx(ctx, j.logger)
 
 	id := chi.URLParam(r, "id")
 	if strings.TrimSpace(id) == "" {
@@ -231,7 +233,12 @@ func (j *JobRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 		updated.Role = strings.TrimSpace(body.Role)
 	}
 
+	if body.Code != "" {
+		updated.Code = strings.TrimSpace(body.Code)
+	}
+
 	if err := j.service.Update(ctx, id, updated); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -262,7 +269,7 @@ func (j *JobRoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
 	md := &types.ContextMetadata{}
 	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
 	localization.UpdateWriterContext(w, ctx)
-	log := common_utils.LoggerFromCtx(ctx, j.logger)
+	log := local_util.LoggerFromCtx(ctx, j.logger)
 
 	id := chi.URLParam(r, "id")
 	if strings.TrimSpace(id) == "" {
@@ -271,6 +278,7 @@ func (j *JobRoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := j.service.EnableOrDisable(ctx, id, true); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		log.Errorf("[JobRoleHandler][Enable] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -303,7 +311,7 @@ func (j *JobRoleHandler) Disable(w http.ResponseWriter, r *http.Request) {
 	md := &types.ContextMetadata{}
 	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
 	localization.UpdateWriterContext(w, ctx)
-	log := common_utils.LoggerFromCtx(ctx, j.logger)
+	log := local_util.LoggerFromCtx(ctx, j.logger)
 
 	id := chi.URLParam(r, "id")
 	if strings.TrimSpace(id) == "" {
@@ -312,6 +320,7 @@ func (j *JobRoleHandler) Disable(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := j.service.EnableOrDisable(ctx, id, false); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		log.Errorf("[JobRoleHandler][Disable] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -344,7 +353,7 @@ func (j *JobRoleHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	md := &types.ContextMetadata{}
 	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
 	localization.UpdateWriterContext(w, ctx)
-	log := common_utils.LoggerFromCtx(ctx, j.logger)
+	log := local_util.LoggerFromCtx(ctx, j.logger)
 
 	id := chi.URLParam(r, "id")
 	if strings.TrimSpace(id) == "" {
@@ -353,6 +362,7 @@ func (j *JobRoleHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := j.service.Delete(ctx, id); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		log.Errorf("[JobRoleHandler][Delete] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return

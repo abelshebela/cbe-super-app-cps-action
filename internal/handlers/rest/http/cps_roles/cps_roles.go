@@ -47,6 +47,7 @@ func (c *cpsRolesHandler) CreateCPSRole(w http.ResponseWriter, r *http.Request) 
 	}
 
 	if err := c.svc.Create(ctx, req); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		log.Errorf("[CreateCPSRole] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -87,6 +88,7 @@ func (c *cpsRolesHandler) UpdateCPSRole(w http.ResponseWriter, r *http.Request) 
 	}
 
 	if err := c.svc.Update(ctx, id, req); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		log.Errorf("[UpdateCPSRole] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -158,6 +160,7 @@ func (c *cpsRolesHandler) EnableCPSRole(w http.ResponseWriter, r *http.Request) 
 	}
 
 	if err := c.svc.EnableOrDisable(ctx, id, true); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		log.Errorf("[EnableCPSRole] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -188,6 +191,7 @@ func (c *cpsRolesHandler) DisableCPSRole(w http.ResponseWriter, r *http.Request)
 	}
 
 	if err := c.svc.EnableOrDisable(ctx, id, false); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		log.Errorf("[DisableCPSRole] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -227,6 +231,7 @@ func (c *cpsRolesHandler) EnableServiceAccess(w http.ResponseWriter, r *http.Req
 	}
 
 	if err := c.svc.EnableServiceAccess(r.Context(), id, req); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		log.Errorf("[EnableServiceAccess] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -261,6 +266,7 @@ func (c *cpsRolesHandler) DisableServiceAccess(w http.ResponseWriter, r *http.Re
 	}
 
 	if err := c.svc.DisableServiceAccess(r.Context(), id, req); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		log.Errorf("[DisableServiceAccess] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -283,6 +289,7 @@ func (c *cpsRolesHandler) DeleteCPSRole(w http.ResponseWriter, r *http.Request) 
 	}
 
 	if err := c.svc.Delete(ctx, id); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		log.Errorf("[DeleteCPSRole] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return

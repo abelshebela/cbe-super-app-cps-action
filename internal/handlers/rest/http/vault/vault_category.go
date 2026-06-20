@@ -16,7 +16,7 @@ import (
 	"cbe-super-app-cps-action/internal/handlers/rest/http/vault/core"
 	"cbe-super-app-cps-action/internal/service"
 
-	common_utils "cbe-super-app-cps-action/pkgs/utils"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.opentelemetry.io/otel/attribute"
@@ -75,9 +75,9 @@ func InitVaultCategoryHandler(svc service.VaultCategoryService, logger utils.Log
 //	@Security		BearerAuth
 //	@Router			/vaultcategory/create [post]
 func (h *handler) CreateVaultCategory(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "createVaultCategory", "handler", "vaultCategory")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createVaultCategory", "handler", "vaultCategory")
 	defer span.End()
-	log := common_utils.LoggerFromCtx(ctx, h.logger)
+	log := local_util.LoggerFromCtx(ctx, h.logger)
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
@@ -157,6 +157,7 @@ func (h *handler) CreateVaultCategory(w http.ResponseWriter, r *http.Request) {
 	span.SetAttributes(attribute.String("vault_category.name", req.Name))
 	id, err := h.service.CreateVaultCategory(ctx, &req)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[CreateVaultCategory] service: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -189,21 +190,21 @@ func (h *handler) CreateVaultCategory(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/vaultcategory [get]
 func (h *handler) FindAllVaultCategories(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "findAllVaultCategories", "handler", "vaultCategory")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "findAllVaultCategories", "handler", "vaultCategory")
 	defer span.End()
-	log := common_utils.LoggerFromCtx(ctx, h.logger)
+	log := local_util.LoggerFromCtx(ctx, h.logger)
 
-	params := common_utils.ExtractFilterParams(r)
+	params := local_util.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
 
-	if err := common_utils.NoSpecialChars(search); err != nil {
+	if err := local_util.NoSpecialChars(search); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	if err := common_utils.NoSpecialChars(filter); err != nil {
+	if err := local_util.NoSpecialChars(filter); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -234,10 +235,10 @@ func (h *handler) FindAllVaultCategories(w http.ResponseWriter, r *http.Request)
 //	@Security		BearerAuth
 //	@Router			/vaultcategory/{id} [get]
 func (h *handler) GetVaultCategory(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "getVaultCategory", "handler", "vaultCategory")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getVaultCategory", "handler", "vaultCategory")
 	defer span.End()
-	log := common_utils.LoggerFromCtx(ctx, h.logger)
-	id, err := common_utils.ExtractID(w, r)
+	log := local_util.LoggerFromCtx(ctx, h.logger)
+	id, err := local_util.ExtractID(w, r)
 	if id == "" {
 		appErr := middleware.NewValidationError("vault category id is required", map[string]interface{}{}).WithService("bankvault_product").
 			WithOperation("GetBankVault")
@@ -279,15 +280,15 @@ func (h *handler) GetVaultCategory(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/vaultcategory/update/{id} [patch]
 func (h *handler) UpdateVaultCategory(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "updateVaultCategory", "handler", "vaultCategory")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateVaultCategory", "handler", "vaultCategory")
 	defer span.End()
-	log := common_utils.LoggerFromCtx(ctx, h.logger)
+	log := local_util.LoggerFromCtx(ctx, h.logger)
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	localization.UpdateWriterContext(w, ctx)
 
-	id, err := common_utils.ExtractID(w, r)
+	id, err := local_util.ExtractID(w, r)
 	if id == "" {
 		appErr := middleware.NewValidationError("vault category id is required", map[string]interface{}{}).WithService("vault_category").
 			WithOperation("UpdateVaultCategory")
@@ -399,6 +400,7 @@ func (h *handler) UpdateVaultCategory(w http.ResponseWriter, r *http.Request) {
 
 	_, err = h.service.UpdateVaultCategory(ctx, id, &req)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[UpdateVaultCategory] service: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -432,10 +434,10 @@ func (h *handler) UpdateVaultCategory(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/vaultcategory/delete/{id} [delete]
 func (h *handler) DeleteVaultCategory(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "deleteVaultCategory", "handler", "vaultCategory")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "deleteVaultCategory", "handler", "vaultCategory")
 	defer span.End()
-	log := common_utils.LoggerFromCtx(ctx, h.logger)
-	id, err := common_utils.ExtractID(w, r)
+	log := local_util.LoggerFromCtx(ctx, h.logger)
+	id, err := local_util.ExtractID(w, r)
 	if id == "" {
 		appErr := middleware.NewValidationError("vault category id is required", map[string]interface{}{}).WithService("vault_category").
 			WithOperation("DeleteVaultCategory")
@@ -452,6 +454,7 @@ func (h *handler) DeleteVaultCategory(w http.ResponseWriter, r *http.Request) {
 	span.SetAttributes(attribute.String("vault_category.id", id))
 	_, err = h.service.DeleteVaultCategory(ctx, id)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[DeleteVaultCategory] service: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -476,15 +479,15 @@ func (h *handler) DeleteVaultCategory(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/vaultcategory/disable/{id} [patch]
 func (h *handler) DisableVaultCategory(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "disableVaultCategory", "handler", "vaultCategory")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableVaultCategory", "handler", "vaultCategory")
 	defer span.End()
-	log := common_utils.LoggerFromCtx(ctx, h.logger)
+	log := local_util.LoggerFromCtx(ctx, h.logger)
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	localization.UpdateWriterContext(w, ctx)
 
-	id, err := common_utils.ExtractID(w, r)
+	id, err := local_util.ExtractID(w, r)
 	if id == "" {
 		appErr := middleware.NewValidationError("vault category id is required", map[string]interface{}{}).
 			WithService("vault_category").
@@ -494,6 +497,7 @@ func (h *handler) DisableVaultCategory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[DisableVaultCategory] extract ID: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -502,6 +506,7 @@ func (h *handler) DisableVaultCategory(w http.ResponseWriter, r *http.Request) {
 	span.SetAttributes(attribute.String("vault_category.id", id))
 	err = h.service.DisableVaultCategory(ctx, id)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[DisableVaultCategory] service: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -535,15 +540,15 @@ func (h *handler) DisableVaultCategory(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/vaultcategory/enable/{id} [patch]
 func (h *handler) EnableVaultCategory(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "enableVaultCategory", "handler", "vaultCategory")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableVaultCategory", "handler", "vaultCategory")
 	defer span.End()
-	log := common_utils.LoggerFromCtx(ctx, h.logger)
+	log := local_util.LoggerFromCtx(ctx, h.logger)
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	localization.UpdateWriterContext(w, ctx)
 
-	id, err := common_utils.ExtractID(w, r)
+	id, err := local_util.ExtractID(w, r)
 	if id == "" {
 		appErr := middleware.NewValidationError("vault category id is required", map[string]interface{}{}).
 			WithService("vault_category").
@@ -553,6 +558,7 @@ func (h *handler) EnableVaultCategory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[EnableVaultCategory] extract ID: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -561,6 +567,7 @@ func (h *handler) EnableVaultCategory(w http.ResponseWriter, r *http.Request) {
 	span.SetAttributes(attribute.String("vault_category.id", id))
 	err = h.service.EnableVaultCategory(ctx, id)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[EnableVaultCategory] service: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())

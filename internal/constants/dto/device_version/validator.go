@@ -10,6 +10,8 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
+const errDeviceStateInvalid = "device_state must be one of FORCE_UPDATE, MAINTENANCE, STABLE"
+
 // Clean normalizes fields for create
 func (r *CreateDeviceVersionRequest) Clean() {
 	r.Platform = strings.TrimSpace(strings.ToLower(r.Platform))
@@ -30,6 +32,10 @@ func (r CreateDeviceVersionRequest) Validate() error {
 		validation.Field(&r.Platform,
 			validation.Required,
 			validation.In("ANDROID", "IOS", "android", "ios"),
+		),
+		validation.Field(&r.DeviceState,
+			validation.Required,
+			validation.In("FORCE_UPDATE", "MAINTENANCE", "STABLE").Error(errDeviceStateInvalid),
 		),
 		validation.Field(&r.ReleaseNotes,
 			validation.Length(0, 500),
@@ -61,6 +67,9 @@ func (r UpdateDeviceVersionRequest) Validate() error {
 		validation.Field(&r.Platform,
 			validation.In("ANDROID", "IOS", "android", "ios").Error("platform must be either of ANDROID or IOS"),
 		),
+		validation.Field(&r.DeviceState,
+			validation.In("FORCE_UPDATE", "MAINTENANCE", "STABLE", "").Error(errDeviceStateInvalid),
+		),
 		validation.Field(&r.ReleaseNotes,
 			validation.Length(0, 500),
 			validation.By(utils.NoSpecialChars),
@@ -71,6 +80,15 @@ func (r UpdateDeviceVersionRequest) Validate() error {
 	}
 
 	return nil
+}
+
+func (r SetDeviceStateRequest) Validate() error {
+	return validation.ValidateStruct(&r,
+		validation.Field(&r.DeviceState,
+			validation.Required,
+			validation.In("FORCE_UPDATE", "MAINTENANCE", "STABLE").Error(errDeviceStateInvalid),
+		),
+	)
 }
 
 func (r *EnableOrDisableDeviceVersion) Clean() {

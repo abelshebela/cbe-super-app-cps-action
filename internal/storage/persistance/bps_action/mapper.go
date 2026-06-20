@@ -215,6 +215,7 @@ func mapBpsActionToEntity(dbAction types.BPSActionDocument) bps_action.BPSAction
 		PreviousAction:     previousAction,
 		VerifiedAt:         &verifiedAt,
 		Status:             dbAction.Status,
+		CustomerBarred:     dbAction.CustomerBarred,
 		CreatedAt:          createdAt,
 		LastModifiedAt:     lastModifiedAt,
 	}

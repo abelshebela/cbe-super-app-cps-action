@@ -9,4 +9,5 @@ type DeviceVersionHandler interface {
 	GetDeviceVersionByID(w http.ResponseWriter, r *http.Request)
 	Enable(w http.ResponseWriter, r *http.Request)
 	Disable(w http.ResponseWriter, r *http.Request)
+	SetDeviceState(w http.ResponseWriter, r *http.Request)
 }

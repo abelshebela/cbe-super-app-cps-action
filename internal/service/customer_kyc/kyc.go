@@ -2,7 +2,6 @@ package customer
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
-	accountLookupDto "cbe-super-app-cps-action/internal/constants/dto/account_lookup"
 	dto "cbe-super-app-cps-action/internal/constants/dto/customer_kyc"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
@@ -20,6 +19,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	coreio "github.com/hugokessem/coreio/core"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -31,6 +31,8 @@ type customerKYCService struct {
 	cpsService     service.CPSActionService
 	accountService account_lookup.Account
 	cpsUserRepo    storage.CpsUserRepository
+	coreio         coreio.CBECoreAPIInterface
+	tokenProvider  service.TokenProviderService
 	logger         utils.Logger
 	minio          *s3.Client
 	bucketName     string
@@ -42,6 +44,8 @@ func NewCustomerKYCService(repo storage.CustomerKYCRepository,
 	cpsService service.CPSActionService,
 	cpsUserRepo storage.CpsUserRepository,
 	accountLookUpService account_lookup.Account,
+	coreio coreio.CBECoreAPIInterface,
+	tokenProvider service.TokenProviderService,
 	logger utils.Logger,
 	minio *s3.Client,
 	bucketName string,
@@ -53,6 +57,8 @@ func NewCustomerKYCService(repo storage.CustomerKYCRepository,
 		cpsService:     cpsService,
 		cpsUserRepo:    cpsUserRepo,
 		accountService: accountLookUpService,
+		coreio:         coreio,
+		tokenProvider:  tokenProvider,
 		logger:         logger,
 		minio:          minio,
 		bucketName:     bucketName,
@@ -85,7 +91,6 @@ func (s *customerKYCService) FindByID(ctx context.Context, id string) (*dto.Cust
 	}
 	mappedResponse := core.MapCustomerKYCToResponse(result)
 
-	// If the kyc is in review status, get the start, and expiry time
 	if result.KYCStatus == imodel.KYCStatusInReview {
 		review, err := s.repo.FindKycInReview(ctx, id)
 		if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
@@ -121,7 +126,6 @@ func (s *customerKYCService) EnableOrDisable(ctx context.Context, id, reason str
 		return errors.New("Start KYC review before approving or rejecting the KYC request")
 	}
 
-	// Check if review time is not expired before allowing approval or rejection of the KYC request
 	if userReq.KYCStatus == imodel.KYCStatusInReview {
 		review, err := s.repo.FindKycInReview(ctx, id)
 		if err != nil {
@@ -169,63 +173,6 @@ func (s *customerKYCService) EnableOrDisable(ctx context.Context, id, reason str
 
 	return nil
 }
-
-// func (s *customerKYCService) Delete(ctx context.Context, id string) error {
-
-// 	ctx, span := local_util.TraceLogger(ctx, "service", "DeleteKYC", "CustomerKYC", "Delete")
-// 	defer span.End()
-
-// 	log.Infof("[CustKycSvc][Delete] id: %s", id)
-// 	makerData := local_util.ExtractUserFromContext(ctx)
-// 	if local_util.IsIncomplete(makerData) {
-// 		log.Errorf("[CustKycSvc][Delete] incomplete user")
-// 		return errors.New(constants.IncompleteUserInfo)
-// 	}
-
-// 	kyc, err := s.repo.FindByID(ctx, id)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	action := lib.CpsModelBuilder(id, makerData, kyc, nil, string(constants.RequestDeleteCustomerKYC), constants.DELETE)
-
-// 	if err := s.cpsService.CreateCPSAction(ctx, &action); err != nil {
-// 		log.Errorf("[CustKycSvc][Delete] cps action err: %v", err)
-// 		return err
-// 	}
-
-// 	return nil
-// }
-
-// func (s *customerKYCService) UpdateKYCStatus(ctx context.Context, id string, status string) error {
-
-// 	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateKYCStatus", "CustomerKYC", "UpdateKYCStatus")
-// 	defer span.End()
-
-// 	log.Infof("[CustKycSvc][UpdateStatus] id: %s status: %s", id, status)
-// 	makerData := local_util.ExtractUserFromContext(ctx)
-// 	if local_util.IsIncomplete(makerData) {
-// 		log.Errorf("[CustKycSvc][UpdateStatus] incomplete user")
-// 		return errors.New(constants.IncompleteUserInfo)
-// 	}
-
-// 	kyc, err := s.repo.FindByID(ctx, id)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	currentAction := *kyc
-// 	// currentAction.KYCStatus = status
-
-// 	action := lib.CpsModelBuilder(id, makerData, kyc, currentAction, string(constants.RequestUpdateCustomerKYC), constants.UPDATE)
-
-// 	if err := s.cpsService.CreateCPSAction(ctx, &action); err != nil {
-// 		log.Errorf("[CustKycSvc][UpdateStatus] cps action err: %v", err)
-// 		return err
-// 	}
-
-// 	return nil
-// }
 
 func (s *customerKYCService) StartKycReview(ctx context.Context, id string) (*imodel.StartedKycReview, error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
@@ -368,55 +315,97 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 
 	switch string(cpsAction.RequestAction) {
 	case string(constants.RequestApproveCustomerKYC):
+
 		userData, err := local_util.JsonUnmarshal[imodel.CustomerKYC](cpsAction.CurrentAction)
 		if err != nil {
 			return nil, err
 		}
 
-		var fistName, middleName, lastName string
+		var firstName, middleName, lastName string
 
-		if len(userData.KYCData.FullName) > 3 {
-			fistName = strings.Split(userData.KYCData.FullName, " ")[0]
-			middleName = strings.Split(userData.KYCData.FullName, " ")[1]
-			lastName = strings.Split(userData.KYCData.FullName, " ")[2]
-		} else if len(userData.KYCData.FullName) == 2 {
-			fistName = strings.Split(userData.KYCData.FullName, " ")[0]
-			lastName = strings.Split(userData.KYCData.FullName, " ")[1]
-		} else {
-			fistName = userData.KYCData.FullName
+		nameParts := strings.Fields(strings.TrimSpace(userData.KYCData.FullName))
+
+		switch len(nameParts) {
+		case 1:
+			firstName = nameParts[0]
+		case 2:
+			firstName = nameParts[0]
+			lastName = nameParts[1]
+		default:
+			firstName = nameParts[0]
+			middleName = nameParts[1]
+			lastName = strings.Join(nameParts[2:], " ")
 		}
 
-		data := accountLookupDto.AccountCreateParams{
-			Username:         strings.TrimSpace(userData.KYCData.FullName),
-			Password:         constants.Empty,
-			FirstName:        fistName,
-			MiddleName:       middleName,
-			LastName:         lastName,
-			PhoneNumber:      userData.KYCData.PhoneNumber,
-			Address:          strings.Join([]string{"Region: " + userData.KYCData.Address.Region, "Zone: " + userData.KYCData.Address.Zone, "Kebele: " + userData.KYCData.Address.Kebele, "Woreda: " + userData.KYCData.Address.Woreda}, " "),
-			Gender:           userData.KYCData.Gender,
-			MotherName:       userData.KYCData.MothersName,
-			DateOfBirth:      userData.KYCData.BirthDate.String(),
-			Salary:           userData.KYCData.MonthlyIncome,
-			EmploymentStatus: userData.KYCData.EmployementStatus,
-			CustomerGroup:    string(constants.MASS),
+		token, err := s.tokenProvider.GetToken(ctx)
+		if err != nil {
+			log.Errorf("[CustKycSvc][Authorize] token fetch: %v", err)
+			return nil, err
 		}
 
-		// data := accountLookupDto.CreateAccountRequest{
-		// 	CustomerName:      userData.KYCData.FullName,
-		// 	Gender:            constants.Gender(userData.KYCData.Gender),
-		// 	PhoneNumber:       userData.KYCData.PhoneNumber,
-		// 	AccountType:       userData.KYCData.AccountType,
-		// 	AccountBranchType: "",
-		// 	Picture:           userData.KYCData.SelfiePhoto,
-		// }
-		userAccount, err := core.CreateAccountToCore(ctx, data, s.accountService, s.logger)
+		data := coreio.CreateCustomerParam{
+			FirstName:  strings.ToUpper(strings.TrimSpace(firstName)),
+			MiddleName: strings.ToUpper(strings.TrimSpace(middleName)),
+			LastName:   strings.ToUpper(strings.TrimSpace(lastName)),
+
+			PhoneNumber: userData.KYCData.PhoneNumber,
+
+			Address: strings.TrimSpace(userData.KYCData.Address.Woreda),
+
+			PostalCode:     constants.Empty,
+			ISOCountryCode: "ET",
+
+			AccountOffice: s.cfg.CentralKYCBranchCode,
+			Industry:      constants.Empty,
+
+			ISONationalityCode: "ET",
+			ISOResidentCode:    "ET",
+
+			UniqueID:   local_util.NonEmptyString(userData.KYCData.OriginID, userData.KYCData.Sub),
+			IssuesBy:   strings.ToUpper(string(userData.KYCData.Vendor)),
+			IssuedDate: time.Now().Format("20060102"),
+			ExpiryDate: constants.Empty,
+
+			Gender:      strings.ToUpper(strings.TrimSpace(userData.KYCData.Gender)),
+			DateOfBirth: userData.KYCData.BirthDate.Format("20060102"),
+
+			MaritalStatus: strings.ToUpper(strings.TrimSpace(userData.KYCData.MaritalStatus)),
+			Email:         userData.KYCData.Email,
+
+			EmploymentStatus: t24EmploymentStatus(userData.KYCData.EmployementStatus),
+			Occupation:       strings.ToUpper(strings.TrimSpace(userData.KYCData.Occupation)),
+
+			EmployerName:     constants.Empty,
+			EmployerAddress:  constants.Empty,
+			EmployerBusiness: userData.KYCData.SourceOfIncome,
+
+			CustomerCurrency:  t24Currency(userData.KYCData.Currency),
+			Salary:            t24Amount(userData.KYCData.MonthlyIncome),
+			AnnualBonus:       constants.Empty,
+			NetMonthlyIncome:  t24Amount(userData.KYCData.MonthlyIncome),
+			NetMonthlyExpence: constants.Empty,
+
+			TinNumber:     userData.KYCData.USTIN,
+			MotherName:    strings.ToUpper(strings.TrimSpace(userData.KYCData.MothersName)),
+			CustomerGroup: t24CustomerGroup(userData.KYCData.SubAccountType),
+			NationalId:    userData.KYCData.Sub,
+
+			Url: s.cfg.AccountOpeningTokenURL,
+			Header: map[string]string{
+				"Authorization": "Bearer " + token,
+			},
+		}
+
+		s.logger.Infof("[CustKycSvc][Authorize] core call params — uniqueID=%s employmentStatus=%s salary=%s nationality=%s country=%s", data.UniqueID, data.EmploymentStatus, data.Salary, data.ISONationalityCode, data.ISOCountryCode)
+		userAccount, err := core.CreateAccountToCore(ctx, data, s.accountService, s.coreio, s.cfg, s.logger)
 		if err != nil {
 			log.Errorf("[CustKycSvc][Authorize] core account creation failed: %v", err)
 			return nil, err
 		}
 
-		if err = s.repo.CreateUser(ctx, userAccount, *userData); err != nil {
+		log.Infof("[CustKycSvc][Authorize] core account created for customer: %s", userAccount)
+
+		if err = s.repo.CreateUser(ctx, userAccount.CustomerCreationDetail, *userData); err != nil {
 			return nil, err
 		}
 
@@ -464,7 +453,6 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 			return nil, err
 		}
 
-		// Set a new expiration time for the review to be picked by another reviewer if the current reviewer fails to complete the review in time
 		existingReview, err := s.repo.FindKycInReview(ctx, cpsAction.UniqueId)
 		if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 			log.Errorf("[CustKycSvc][Authorize] failed to check existing review: %v", err)
@@ -486,29 +474,49 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 		}
 		return cpsAction, nil
 
-	// case string(constants.RequestCreateCustomerKYC):
-	// 	data, err := local_util.JsonUnmarshal[imodel.CustomerKYC](cpsAction.CurrentAction)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	if err := s.repo.Create(ctx, data); err != nil {
-	// 		return nil, err
-	// 	}
-	// case string(constants.RequestDeleteCustomerKYC):
-	// 	if err := s.repo.Delete(ctx, cpsAction.UniqueId); err != nil {
-	// 		return nil, err
-	// 	}
-	// case string(constants.RequestUpdateCustomerKYC):
-	// 	data, err := local_util.JsonUnmarshal[dto.UpdateKYCStatusRequest](cpsAction.CurrentAction)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	if err := s.repo.UpdateKYCStatus(ctx, cpsAction.UniqueId, data.KYCStatus); err != nil {
-	// 		return nil, err
-	// 	}
 	default:
 		return nil, fmt.Errorf("unsupported action: %s", cpsAction.RequestAction)
 	}
 
 	return cpsAction, nil
+}
+
+func t24CustomerGroup(subAccountType string) string {
+	if g := strings.ToUpper(strings.TrimSpace(subAccountType)); g != "" {
+		return g
+	}
+	return "RETAIL"
+}
+
+func t24Amount(v string) string {
+	if strings.TrimSpace(v) == "" {
+		return "0"
+	}
+	return v
+}
+
+func t24Currency(currency string) string {
+	if strings.TrimSpace(currency) == "" {
+		return "ETB"
+	}
+	return strings.ToUpper(strings.TrimSpace(currency))
+}
+
+func t24EmploymentStatus(status string) string {
+	switch strings.ToUpper(strings.TrimSpace(status)) {
+	case "FULL_TIME", "FULLTIME", "FULL-TIME":
+		return "EMPLOYED"
+	case "SELF_EMPLOYED", "SELFEMPLOYED", "SELF-EMPLOYED":
+		return "SELF-EMP"
+	case "PART_TIME", "PARTTIME", "PART-TIME":
+		return "EMPLOYED"
+	case "UNEMPLOYED":
+		return "UNEMPL"
+	case "RETIRED":
+		return "RETIRED"
+	case "STUDENT":
+		return "STUDENT"
+	default:
+		return strings.ToUpper(strings.TrimSpace(status))
+	}
 }

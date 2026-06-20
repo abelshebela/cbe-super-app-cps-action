@@ -1,28 +1,68 @@
 package core
 
 import (
-	accountLookupDto "cbe-super-app-cps-action/internal/constants/dto/account_lookup"
+	"cbe-super-app-cps-action/internal/constants"
 	dto "cbe-super-app-cps-action/internal/constants/dto/customer_kyc"
 	"cbe-super-app-cps-action/internal/constants/model"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	accountLookup "cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
 	"context"
+	"fmt"
 	"strings"
 	"time"
 
+	"github.com/hugokessem/coreio/core"
+
+	// coreCustomer "github.com/hugokessem/coreio/lib/core/cusotmer/customer_creation"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
-func CreateAccountToCore(ctx context.Context, data accountLookupDto.AccountCreateParams, accountLookupService accountLookup.Account, logger utils.Logger) (types.Account, error) {
+func extractDuplicateContract(message string) string {
+	parts := strings.Fields(message)
 
-	accountResponse, err := accountLookupService.CreateAccountWithFayda(ctx, data)
-	if err != nil {
-		logger.Errorf("[KycVerifCore][CreateLink] create account err: %v", err)
-		return types.Account{}, err
+	if len(parts) == 0 {
+		return ""
 	}
 
-	return accountResponse, nil
+	return parts[len(parts)-1]
+}
+
+func CreateAccountToCore(ctx context.Context, data core.CreateCustomerParam, accountLookupService accountLookup.Account, coreAPI core.CBECoreAPIInterface, cfg *config.VaultConfig, logger utils.Logger) (*core.CusteomerAccountCreationResponse, error) {
+	response, err := coreAPI.AccountCreate(ctx, data, cfg.AccountOpeningURL, string(constants.SavingsAccountCategory))
+	if err != nil {
+		logger.Errorf("failed to create customer: %v", err)
+		return nil, err
+	}
+
+	if response == nil {
+		return nil, fmt.Errorf("customer creation returned nil response")
+	}
+
+	if !response.AccountCreationDetail.Success {
+		logger.Errorf("customer creation rejected by core: %v", response.AccountCreationDetail.Messages)
+		return nil, fmt.Errorf("customer creation failed: %s", strings.Join(response.AccountCreationDetail.Messages, ", "))
+	}
+
+	// Workaround: coreio maps Detail.Customer to T24 EMPLOYERSNAME which is always empty.
+	// The real customer number is in the response's transactionId but not exposed by the library.
+	// We recover it via PhoneLookup which queries T24 by MNEMONIC and returns CustomerID.
+
+	// if response.AccountCreationDetail != nil && response.AccountCreationDetail.Detail.Customer == "" && response.AccountCreationDetail.Detail.CoCode != "" {
+	// 	lookup, lookupErr := coreAPI.PhoneLookup(ctx, core.PhoneLookupParam{PhoneNumber: response.AccountCreationDetail.Detail.})
+	// 	if lookupErr != nil {
+	// 		logger.Warnf("[CreateAccountToCore] customer number lookup by mnemonic=%s failed: %v", response.AccountCreationDetail.Menmonic, lookupErr)
+	// 	} else if lookup != nil && lookup.Success && lookup.Detail != nil && lookup.Detail.CustomerID != "" {
+	// 		response.AccountCreationDetail.Detail.Customer = lookup.Detail.CustomerID
+	// 		logger.Infof("[CreateAccountToCore] resolved customer number %s via mnemonic lookup", response.AccountCreationDetail.Detail.Customer)
+	// 	} else {
+	// 		logger.Warnf("[CreateAccountToCore] mnemonic lookup returned no CustomerID for mnemonic=%s", response.AccountCreationDetail.Menmonic)
+	// 	}
+	// }
+
+	return response, nil
 }
 
 func MapCustomerKYCToResponsePaginated(c *types.PaginatedResponse[[]imodel.CustomerKYC]) *types.PaginatedResponse[[]dto.CustomerKYCResponse] {
@@ -57,29 +97,29 @@ func MapCustomerKYCToResponsePaginated(c *types.PaginatedResponse[[]imodel.Custo
 			ID: item.ID.Hex(),
 
 			PersonalInformation: dto.PersonalInformation{
-				FirstName:    firstName,
-				MiddleName:   middleName,
-				LastName:     lastName,
-				MotherName:   item.KYCData.MothersName,
-				PhoneNumber:  item.KYCData.PhoneNumber,
-				Gender:       item.KYCData.Gender,
-				Nationality:  item.KYCData.Nationality,
-				DateOfBirth:  item.KYCData.BirthDate.Format(time.RFC3339),
-				MaritalStaus: "",
+				FirstName:     firstName,
+				MiddleName:    middleName,
+				LastName:      lastName,
+				MotherName:    item.KYCData.MothersName,
+				PhoneNumber:   item.KYCData.PhoneNumber,
+				Gender:        item.KYCData.Gender,
+				Nationality:   item.KYCData.Nationality,
+				DateOfBirth:   item.KYCData.BirthDate.Format(time.RFC3339),
+				MaritalStatus: item.KYCData.MaritalStatus,
 			},
 
 			ResidentialAddress: dto.ResidentialAddress{
 				Country: item.KYCData.Country,
+				Zone:    item.KYCData.Address.Zone,
 				Region:  item.KYCData.Address.Region,
-				City:    "",
-				SubCity: "",
 				Wereda:  item.KYCData.Address.Woreda,
 				Kebele:  item.KYCData.Address.Kebele,
 			},
 
 			FinancialInformation: dto.FinancialInformation{
 				EmploymentStatus:     item.KYCData.EmployementStatus,
-				Occupation:           "",
+				SourceOfIncome:       item.KYCData.SourceOfIncome,
+				Occupation:           item.KYCData.Occupation,
 				AverageMonthlyIncome: item.KYCData.MonthlyIncome,
 			},
 
@@ -144,29 +184,29 @@ func MapCustomerKYCToResponse(c *model.CustomerKYC) *dto.CustomerKYCResponse {
 		ID: c.ID.Hex(),
 
 		PersonalInformation: dto.PersonalInformation{
-			FirstName:    firstName,
-			MiddleName:   middleName,
-			LastName:     lastName,
-			MotherName:   c.KYCData.MothersName,
-			PhoneNumber:  c.KYCData.PhoneNumber,
-			Gender:       c.KYCData.Gender,
-			Nationality:  c.KYCData.Nationality,
-			DateOfBirth:  c.KYCData.BirthDate.Format(time.RFC3339),
-			MaritalStaus: "",
+			FirstName:     firstName,
+			MiddleName:    middleName,
+			LastName:      lastName,
+			MotherName:    c.KYCData.MothersName,
+			PhoneNumber:   c.KYCData.PhoneNumber,
+			Gender:        c.KYCData.Gender,
+			Nationality:   c.KYCData.Nationality,
+			DateOfBirth:   c.KYCData.BirthDate.Format(time.RFC3339),
+			MaritalStatus: c.KYCData.MaritalStatus,
 		},
 
 		ResidentialAddress: dto.ResidentialAddress{
 			Country: c.KYCData.Country,
+			Zone:    c.KYCData.Address.Zone,
 			Region:  c.KYCData.Address.Region,
-			City:    "",
-			SubCity: "",
 			Wereda:  c.KYCData.Address.Woreda,
 			Kebele:  c.KYCData.Address.Kebele,
 		},
 
 		FinancialInformation: dto.FinancialInformation{
 			EmploymentStatus:     c.KYCData.EmployementStatus,
-			Occupation:           "",
+			SourceOfIncome:       c.KYCData.SourceOfIncome,
+			Occupation:           c.KYCData.Occupation,
 			AverageMonthlyIncome: c.KYCData.MonthlyIncome,
 		},
 

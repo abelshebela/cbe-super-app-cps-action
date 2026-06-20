@@ -15,13 +15,12 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 const (
 	merchantsTable        = "MERCHANTS"
 	merchantBranchesTable = "MERCHANT_BRANCHES"
-	defaultPageSize       = 50
+	defaultPageSize       = 10
 )
 
 type EcommerceMerchantStorage struct {
@@ -782,57 +781,33 @@ OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, merchantsTable, where)
 	}, nil
 }
 
-func (m *EcommerceMerchantStorage) FindOne(ctx context.Context, filter bson.M) (*model.EcommerceMerchant, error) {
+func (m *EcommerceMerchantStorage) FindOneO(ctx context.Context, data *types.CheckMerchant, opts *types.MiniAppMerchantExistOptions) (*model.EcommerceMerchant, error) {
 	log := local_util.LoggerFromCtx(ctx, m.logger)
 
 	clauses := []string{"IS_DELETED = 0", "MERCHANT_TYPE = 'ECOMMERCE'"}
 	args := make([]interface{}, 0)
 	paramIdx := 1
 
-	if isDeletedRaw, ok := filter["is_deleted"]; ok {
-		if isDeleted, ok2 := isDeletedRaw.(bool); ok2 {
-			clauses = append(clauses, fmt.Sprintf("IS_DELETED = :%d", paramIdx))
-			args = append(args, boolToOracleNumber(isDeleted))
-			paramIdx++
-		}
+	orClauses := make([]string, 0, 2)
+	if strings.TrimSpace(data.MerchantCode) != "" {
+		orClauses = append(orClauses, fmt.Sprintf("LOWER(MERCHANT_CODE) = LOWER(:%d)", paramIdx))
+		args = append(args, data.MerchantCode)
+		paramIdx++
+	}
+	if strings.TrimSpace(data.BankAccountNumber) != "" {
+		orClauses = append(orClauses, fmt.Sprintf("MERCHANT_ACCOUNT_NUMBER = :%d", paramIdx))
+		args = append(args, data.BankAccountNumber)
+		paramIdx++
 	}
 
-	if orRaw, ok := filter["$or"]; ok {
-		if orConditions, ok2 := orRaw.([]bson.M); ok2 && len(orConditions) > 0 {
-			orClauses := make([]string, 0, len(orConditions))
-			for _, cond := range orConditions {
-				if v, ok := cond["merchant_code"]; ok {
-					orClauses = append(orClauses, fmt.Sprintf("LOWER(MERCHANT_CODE) = LOWER(:%d)", paramIdx))
-					args = append(args, fmt.Sprint(v))
-					paramIdx++
-				}
-				if v, ok := cond["bank_account_number"]; ok {
-					orClauses = append(orClauses, fmt.Sprintf("LOWER(MERCHANT_ACCOUNT_NUMBER) = LOWER(:%d)", paramIdx))
-					args = append(args, fmt.Sprint(v))
-					paramIdx++
-				}
-			}
-			if len(orClauses) > 0 {
-				clauses = append(clauses, "("+strings.Join(orClauses, " OR ")+")")
-			}
-		}
+	if len(orClauses) == 0 {
+		return nil, errors.New(localization.ErrorEcommerceMerchantNotFound.Code)
 	}
+	clauses = append(clauses, "("+strings.Join(orClauses, " OR ")+")")
 
-	if idRaw, ok := filter["_id"]; ok {
-		if idCond, ok2 := idRaw.(bson.M); ok2 {
-			if neRaw, ok3 := idCond["$ne"]; ok3 {
-				switch v := neRaw.(type) {
-				case bson.ObjectID:
-					clauses = append(clauses, fmt.Sprintf("RAWTOHEX(ID) != UPPER(:%d)", paramIdx))
-					args = append(args, v.Hex())
-					paramIdx++
-				case string:
-					clauses = append(clauses, fmt.Sprintf("RAWTOHEX(ID) != UPPER(:%d)", paramIdx))
-					args = append(args, v)
-					paramIdx++
-				}
-			}
-		}
+	if opts != nil && strings.TrimSpace(opts.ExcludeID) != "" {
+		clauses = append(clauses, fmt.Sprintf("RAWTOHEX(ID) != UPPER(:%d)", paramIdx))
+		args = append(args, opts.ExcludeID)
 	}
 
 	const selectCols = `
@@ -858,7 +833,7 @@ FROM MERCHANTS`
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, errors.New(localization.ErrorEcommerceMerchantNotFound.Code)
 		}
-		log.Errorf("[EcommerceMerchantRepo][FindOne] query failed: %v", err)
+		log.Errorf("[EcommerceMerchantRepo][FindOneO] query failed: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 

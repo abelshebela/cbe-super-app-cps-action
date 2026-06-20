@@ -33,6 +33,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorCustomerBlockedPermanently,
 	ErrorCustomerConvertIDFailed,
 	ErrorBranchDistrictCodeNotFound,
+	ErrorAPCHasActiveProducts,
 
 	ErrorExistUserName,
 	ErrorExistUserNameBPS,
@@ -40,6 +41,15 @@ var ResponseCodesList = []ResponseCode{
 	DonationDataExportedSuccess,
 	DonationDataExportedError,
 	DonationDataNotFoundInDateRange,
+	CpsUserDataExportedSuccess,
+	CpsUserDataExportedError,
+	CpsUserDataNotFoundInDateRange,
+	BpsUserDataExportedSuccess,
+	BpsUserDataExportedError,
+	BpsUserDataNotFoundInDateRange,
+	RoleDelegationDataExportedSuccess,
+	RoleDelegationDataExportedError,
+	RoleDelegationDataNotFoundInDateRange,
 	CpsActionDataExportedError,
 	CpsActionDataNotFoundInDateRange,
 
@@ -63,6 +73,19 @@ var ResponseCodesList = []ResponseCode{
 	SuccessServiceDisableRequestSubmitted,
 	SuccessServiceDisabled,
 
+	// role delegation related success responses
+	SuccessRoleDelegationCreated,
+	SuccessRoleDelegationUpdated,
+	SuccessRoleDelegationEnabled,
+	SuccessRoleDelegationDisabled,
+	SuccessRoleDelegationDelete,
+
+	SuccessRoleDelegationCreateRequestSubmitted,
+	SuccessRoleDelegationUpdateRequestSubmitted,
+	SuccessRoleDelegationEnableRequestSubmitted,
+	SuccessRoleDelegationDisableRequestSubmitted,
+	SuccessRoleDelegationDeleteRequestSubmitted,
+
 	SuccessUserCreated,
 	SuccessUserUpdated,
 	SuccessUserDeleted,
@@ -81,6 +104,18 @@ var ResponseCodesList = []ResponseCode{
 	SuccessDonationCompanyDeleteRequestSent,
 	SuccessAccountInfoFetched,
 	SuccessUnlinkCif,
+
+	ErrorTACNotFound,
+	ErrorTACAlreadyExists,
+	SuccessTACRetrieved,
+	SuccessTACsRetrieved,
+	SuccessTACDeleted,
+	SuccessTACDeleteRequestSent,
+	SuccessTACUpdated,
+	SuccessTACUpdateRequestSent,
+	SuccessTACUploaded,
+	SuccessTACUploadRequestSent,
+	
 
 	SuccessDonationImageUploaded,
 	SuccessDonationImagesUpdated,
@@ -311,6 +346,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorDeviceVersionDeleteFailed,
 	ErrorDeviceVersionEnableFailed,
 	ErrorDeviceVersionDisableFailed,
+	ErrorDeviceVersionAlreadyInState,
 	ErrorInvalidKey,
 	ErrorInvalidEncData,
 	ErrorInvalidPadding,
@@ -372,6 +408,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorServiceExists,
 	ErrorServiceNotFound,
 	ErrorChildServiceExists,
+	ErrorSuperAppRoleAlreadyExists,
 	ErrorBankDeleteRequestFailed,
 	ErrorBankAccountLengthRequired,
 	ErrorBankHasAlphaNumericRequired,
@@ -382,6 +419,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorBankDisableRequest,
 	ErrorBankEnableRequestFailed,
 	ErrorUserCodeRequired,
+	ErrorUserNameRequired,
 
 	ErrorEventNameRequired,
 	ErrorEventAlreadyExists,
@@ -552,6 +590,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAlreadyDeleted,
 	ErrorCannotDisableOwnRole,
 	ErrorCannotDisableOwnJobTitle,
+	ErrorJobRoleAlreadyEnabled,
+	ErrorJobRoleAlreadyDisabled,
 	ErrorRoleHasActiveJobs,
 	ErrorJobTitleHasActiveUsers,
 	ErrorRoleHasActiveJobsRoles,
@@ -561,6 +601,10 @@ var ResponseCodesList = []ResponseCode{
 	ErrorFailToUpdateParent,
 	ErrorFailToUpdateChild,
 	ErrorFailToUpdateBulkService,
+
+	// role delegation related errors
+	ErrorInvalidJobTitleID,
+	ErrorInvalidCPSUserID,
 
 	ErrorServiceListAlreadyExists,
 	ErrorAccessListNotFound,
@@ -615,6 +659,11 @@ var ResponseCodesList = []ResponseCode{
 	ErrorInvalidAppViewType,
 	ErrorExclusiveAppFlags,
 	ErrorUpdateMiniAppEmptyPayload,
+	ErrInvalidID,
+	ErrDatabaseError,
+	ErrCategoryNotFound,
+	ErrMiniAppMerchantNotFound,
+	ErrMiniAppNotFound,
 	//customer  and bulk relatedcode
 	UserNotFoundWithGivenID,
 	ErrorFailedToGetCustomerDetail,
@@ -732,6 +781,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorCPSRoleLabelAlreadyExists,
 	ErrorCPSRoleAccountTypeAlreadyExists,
 	ErrorCPSRoleNameAlreadyExists,
+	ErrorCPSRoleJobTitleAlreadyExists,
 
 	// OTP related error codes
 	ErrorOTPExpired,
@@ -824,6 +874,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorUsedRoleExisting,
 	ErrorUsedRoleCodeExisting,
 	ErrorUsedRoleNameExisting,
+	ErrorUsedJobRoleCodeExisting,
 	ErrorRoleIDMissing,
 
 	// transaction related responses
@@ -981,6 +1032,8 @@ var ResponseCodesList = []ResponseCode{
 	SuccessDeviceVersionUpdatedSP,
 	SuccessDeviceVersionEnabledSP,
 	SuccessDeviceVersionDisabledSP,
+	SuccessDeviceVersionStateSetSP,
+	SuccessDeviceVersionStateSetRequestSubmitted,
 
 	//feedback
 	SuccessFeedbackCreatedSP,
@@ -1027,6 +1080,80 @@ var ResponseCodesList = []ResponseCode{
 	SuccessDepartmentDisabled,
 	SuccessDeleteCreated,
 	ErrorBudgetCAtagoryINuser,
+
+	// role delegation errors
+	ErrorUserNotFoundOrDisabled,
+	ErrorRoleDelegationAlreadyEnabled,
+	ErrorRoleDelegationAlreadyDisabled,
+	ErrorInvalidDelegationUserType,
+	ErrorInvalidDelegationDepartment,
+	ErrorInvalidDelegationBranch,
+	ErrorBpsUserAlreadyExists,
+	ErrorCpsUserAlreadyExists,
+	ErrRoleDelegationForUserNotFound,
+	ErrNewRoleForDelegationNotFound,
+	ErrorBpsUserNotFound,
+
+	SuccessAccountSubTypeCreateRequestSent,
+	SuccessAccountSubTypeCreated,
+	SuccessAccountSubTypeUpdateRequestSent,
+	SuccessAccountSubTypeUpdated,
+	SuccessAccountSubTypeEnableRequestSent,
+	SuccessAccountSubTypeEnabled,
+	SuccessAccountSubTypeDisableRequestSent,
+	SuccessAccountSubTypeDisabled,
+	SuccessGetAllAccountSubTypes,
+	SuccessGetOneAccountSubType,
+	ErrorAccountSubTypeNotFound,
+	ErrorAccountSubTypeAlreadyEnabled,
+	ErrorAccountSubTypeAlreadyDisabled,
+	ErrorAccountSubTypeCodeAlreadyExists,
+	ErrorAccountSubTypeNameAlreadyExists,
+	ErrorAccountSubTypeNameRequired,
+	ErrorAccountSubTypeCodeRequired,
+	ErrorAccountSubTypeNameSpecialChar,
+	ErrorAccountSubTypeCodeSpecialChar,
+	ErrorAccountSubTypeAccountTypeRequired,
+	ErrorAccountSubTypeInvalidAccountType,
+	ErrorAccountSubTypeGenderRequired,
+	ErrorAccountSubTypeInvalidGender,
+
+	//*****************************************
+
+	SuccessAPCCreateRequestSent,
+	SuccessAPCCreated,
+	SuccessAPCUpdateRequestSent,
+	SuccessAPCUpdated,
+	SuccessAPCDeleteRequestSent,
+	SuccessAPCDeleted,
+	SuccessAPCEnableRequestSent,
+	SuccessAPCEnabled,
+	SuccessAPCDisableRequestSent,
+	SuccessAPCDisabled,
+	SuccessAPCsRetrieved,
+	SuccessAPCRetrieved,
+	ErrorAPCNotFound,
+	ErrorAPCAlreadyEnabled,
+	ErrorAPCAlreadyDisabled,
+	ErrorAPCAlreadyExists,
+	ErrorAPCHasActiveProducts,
+	SuccessAPCreateRequestSent,
+	SuccessAPCreated,
+	SuccessAPUpdateRequestSent,
+	SuccessAPUpdated,
+	SuccessAPDeleteRequestSent,
+	SuccessAPDeleted,
+	SuccessAPEnableRequestSent,
+	SuccessAPEnabled,
+	SuccessAPDisableRequestSent,
+	SuccessAPDisabled,
+	SuccessAPsRetrieved,
+	SuccessAPRetrieved,
+	ErrorAPNotFound,
+	ErrorAPAlreadyEnabled,
+	ErrorAPAlreadyDisabled,
+	ErrorAPAlreadyExists,
+	ErrorAPHasActiveTerms,
 }
 
 // Success Response Codes
@@ -1335,7 +1462,7 @@ var (
 
 	SuccessJobRolesFetchedSuccessfully = ResponseCode{
 		Code:       "SUCCESS_JOB_ROLRS_FETCHED_SUCCEESSFULLY",
-		StatusCode: StatusCreated,
+		StatusCode: StatusOK,
 		Message:    MsgJobRolesFetchedSuccess,
 		Type:       "success",
 	}
@@ -1868,6 +1995,69 @@ var (
 		Code:       "CPS_ACTION_DATA_NOT_FOUND_IN_DATE_RANGE",
 		StatusCode: StatusBadRequest,
 		Message:    MsgCpsActionDataNotFoundInDateRange,
+		Type:       "error",
+	}
+
+	RoleDelegationDataExportedSuccess = ResponseCode{
+		Code:       "ROLE_DELEGATION_DATA_EXPORT_SUCCESS",
+		StatusCode: StatusOK,
+		Message:    MsgRoleDelegationDataExportedSuccess,
+		Type:       "success",
+	}
+
+	RoleDelegationDataExportedError = ResponseCode{
+		Code:       "ROLE_DELEGATION_DATA_EXPORT_ERROR",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgRoleDelegationDataExportFailed,
+		Type:       "error",
+	}
+
+	RoleDelegationDataNotFoundInDateRange = ResponseCode{
+		Code:       "ROLE_DELEGATION_DATA_NOT_FOUND_IN_DATE_RANGE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgRoleDelegationDataNotFoundInRange,
+		Type:       "error",
+	}
+
+	CpsUserDataExportedSuccess = ResponseCode{
+		Code:       "CPS_USER_DATA_EXPORT_SUCCESS",
+		StatusCode: StatusOK,
+		Message:    MsgCpsUserDataExportedSuccessfully,
+		Type:       "success",
+	}
+
+	CpsUserDataExportedError = ResponseCode{
+		Code:       "CPS_USER_DATA_EXPORT_ERROR",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgCpsUserDataExportFailed,
+		Type:       "error",
+	}
+
+	CpsUserDataNotFoundInDateRange = ResponseCode{
+		Code:       "CPS_USER_DATA_NOT_FOUND_IN_DATE_RANGE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCpsUserDataNotFoundInDateRange,
+		Type:       "error",
+	}
+
+	BpsUserDataExportedSuccess = ResponseCode{
+		Code:       "BPS_USER_DATA_EXPORT_SUCCESS",
+		StatusCode: StatusOK,
+		Message:    MsgBpsUserDataExportedSuccessfully,
+		Type:       "success",
+	}
+
+	BpsUserDataExportedError = ResponseCode{
+		Code:       "BPS_USER_DATA_EXPORT_ERROR",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgBpsUserDataExportFailed,
+		Type:       "error",
+	}
+
+	BpsUserDataNotFoundInDateRange = ResponseCode{
+		Code:       "BPS_USER_DATA_NOT_FOUND_IN_DATE_RANGE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgBpsUserDataNotFoundInDateRange,
 		Type:       "error",
 	}
 
@@ -3300,6 +3490,39 @@ var (
 		Message:    "Avatar label not exist",
 		Type:       "error",
 	}
+	ErrMiniAppMerchantNotFound = ResponseCode{
+		Code:       "ERR_MINI_APP_MERCHANT_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "Mini app merchant not found.",
+		Type:       "error",
+	}
+	ErrMiniAppNotFound = ResponseCode{
+		Code:       "ERR_MINI_APP_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "Mini app  not found.",
+		Type:       "error",
+	}
+
+	ErrInvalidID = ResponseCode{
+		Code:       "ERR_INVALID_ID",
+		StatusCode: StatusBadRequest,
+		Message:    "Invalid ID",
+		Type:       "error",
+	}
+
+	ErrDatabaseError = ResponseCode{
+		Code:       "ERR_DATABASE",
+		StatusCode: StatusInternalServerError,
+		Message:    "A database error occurred. Please try again later.",
+		Type:       "error",
+	}
+
+	ErrCategoryNotFound = ResponseCode{
+		Code:       "ERR_CATEGORY_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "Category not found.",
+		Type:       "error",
+	}
 
 	// Portal Card related success response codes
 	SuccessPortalCardsFetched = ResponseCode{
@@ -3881,6 +4104,20 @@ var (
 		Type:       "success",
 	}
 
+	SuccessDeviceVersionStateSetSP = ResponseCode{
+		Code:       "SUCCESS_DEVICE_VERSION_STATE_SET",
+		StatusCode: StatusOK,
+		Message:    MsgDeviceVersionStateSetSuccessfullySP,
+		Type:       "success",
+	}
+
+	SuccessDeviceVersionStateSetRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_DEVICE_VERSION_STATE_SET_REQUEST_CREATED",
+		StatusCode: StatusOK,
+		Message:    MsgDeviceVersionStateSetRequestSubmitted,
+		Type:       "success",
+	}
+
 	// Ad related success response codes
 	SuccessAdvertCreatedSP = ResponseCode{
 		Code:       "SUCCESS_ADVERT_CREATED",
@@ -4357,6 +4594,77 @@ var (
 		Code:       "SERVICE_DISABLED",
 		StatusCode: StatusOK,
 		Message:    "Service disabled successfully",
+		Type:       "success",
+	}
+
+	// Role delegation success responses
+	SuccessRoleDelegationCreated = ResponseCode{
+		Code:       "SUCCESS_ROLE_DELEGATION_CREATED",
+		StatusCode: StatusOK,
+		Message:    "Role delegation created successfully",
+		Type:       "success",
+	}
+
+	SuccessRoleDelegationCreateRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_ROLE_DELEGATION_CREATE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Role delegation create request submitted successfully",
+		Type:       "success",
+	}
+
+	SuccessRoleDelegationUpdated = ResponseCode{
+		Code:       "SUCCESS_ROLE_DELEGATION_UPDATED",
+		StatusCode: StatusOK,
+		Message:    "Role delegation updated successfully",
+		Type:       "success",
+	}
+
+	SuccessRoleDelegationUpdateRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_ROLE_DELEGATION_UPDATE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Role delegation update request submitted successfully",
+		Type:       "success",
+	}
+
+	SuccessRoleDelegationEnabled = ResponseCode{
+		Code:       "SUCCESS_ROLE_DELEGATION_ENABLED",
+		StatusCode: StatusOK,
+		Message:    "Role delegation enabled successfully",
+		Type:       "success",
+	}
+
+	SuccessRoleDelegationEnableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_ROLE_DELEGATION_ENABLE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Role delegation enable request submitted successfully",
+		Type:       "success",
+	}
+
+	SuccessRoleDelegationDisabled = ResponseCode{
+		Code:       "SUCCESS_ROLE_DELEGATION_DISABLED",
+		StatusCode: StatusOK,
+		Message:    "Role delegation revoked successfully",
+		Type:       "success",
+	}
+
+	SuccessRoleDelegationDisableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_ROLE_DELEGATION_DISABLE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Role delegation revoke request submitted successfully",
+		Type:       "success",
+	}
+
+	SuccessRoleDelegationDelete = ResponseCode{
+		Code:       "SUCCESS_ROLE_DELEGATION_DELETED",
+		StatusCode: StatusOK,
+		Message:    "Role delegation deleted successfully",
+		Type:       "success",
+	}
+
+	SuccessRoleDelegationDeleteRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_ROLE_DELEGATION_DELETE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Role delegation delete request submitted successfully",
 		Type:       "success",
 	}
 
@@ -5662,6 +5970,13 @@ var (
 		Type:       "error",
 	}
 
+	ErrorUserNameRequired = ResponseCode{
+		Code:       "ERROR_USER_NAME_IS_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MSGUserNameIsRequired,
+		Type:       "error",
+	}
+
 	ErrorCannotDisableOwnAccount = ResponseCode{
 		Code:       "ERROR_USER_CANT_DISABLE_OWN_ACCOUNT",
 		StatusCode: StatusBadRequest,
@@ -6206,6 +6521,13 @@ var (
 		Code:       "ERROR_DUPLICATE_SEGMENT",
 		StatusCode: StatusConflict,
 		Message:    MsgDuplicateSegment,
+		Type:       "error",
+	}
+
+	ErrorSuperAppRoleAlreadyExists = ResponseCode{
+		Code:       "ERROR_SUPER_APP_ROLE_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    "Super app role already exists. Duplicate action",
 		Type:       "error",
 	}
 
@@ -6993,6 +7315,13 @@ var (
 		Type:       "error",
 	}
 
+	ErrorDeviceVersionAlreadyInState = ResponseCode{
+		Code:       "ERROR_DEVICE_VERSION_ALREADY_IN_STATE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDeviceVersionAlreadyInState,
+		Type:       "error",
+	}
+
 	ErrorMiniAppMerchantFetchPermissionsFailed = ResponseCode{
 		Code:       "ERROR_MINI_APP_MERCHANT_FETCH_PERMISSIONS_FAILED",
 		StatusCode: StatusInternalServerError,
@@ -7056,6 +7385,13 @@ var (
 		Code:       "ERROR_CPS_ROLE_NAME_ALREADY_EXISTS",
 		StatusCode: StatusConflict,
 		Message:    MsgCpsRoleNameAlreadyExists,
+		Type:       "error",
+	}
+
+	ErrorCPSRoleJobTitleAlreadyExists = ResponseCode{
+		Code:       "ERROR_CPS_ROLE_JOB_TITLE_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgCpsRoleJobTitleAlreadyExists,
 		Type:       "error",
 	}
 
@@ -7262,7 +7598,7 @@ var (
 	ErrorCustomerGroupAlreadyExists = ResponseCode{
 		Code:       "ERROR_CUSTOMER_GROUP_ALREADY_EXISTS",
 		StatusCode: StatusConflict,
-		Message:    "A segment with this group/segment/subsegment combination already exists",
+		Message:    "A segment with this group, segment, and subsegment combination already exists",
 		Type:       "error",
 	}
 	CustomerGroupCreationSubmittedSuccessfully = ResponseCode{
@@ -8384,6 +8720,18 @@ var (
 		Message:    MsgCannotDisableOwnJobTitle,
 		Type:       "error",
 	}
+	ErrorJobRoleAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_JOB_TITLE_ALREADY_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgJobRoleAlreadyEnabled,
+		Type:       "error",
+	}
+	ErrorJobRoleAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_JOB_TITLE_AREADY_DISABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgJobRoleAlreadyDisenabled,
+		Type:       "error",
+	}
 
 	ErrorRoleHasActiveJobs = ResponseCode{
 		Code:       "ERROR_ROLE_HAS_ACTIVE_JOBS",
@@ -8410,7 +8758,18 @@ var (
 		Message:    MsgDepartmentHasAssociatedUsers,
 		Type:       "error",
 	}
-
+	ErrorInvalidCPSUserID = ResponseCode{
+		Code:       "ERROR_INVALID_CPS_USER_ID",
+		StatusCode: StatusBadRequest,
+		Message:    "Invalid CPS user ID",
+		Type:       "error",
+	}
+	ErrorInvalidJobTitleID = ResponseCode{
+		Code:       "ERROR_INVALID_JOBTITLE_ID",
+		StatusCode: StatusBadRequest,
+		Message:    "Invalid job title ID",
+		Type:       "error",
+	}
 	ErrorOneOrMoreInvalidCodes = ResponseCode{
 		Code:       "ERROR_ONE_OR_MORE_INVALID_CODES",
 		StatusCode: StatusBadRequest,
@@ -9028,6 +9387,13 @@ var (
 		Type:       "error",
 	}
 
+	ErrorUsedJobRoleCodeExisting = ResponseCode{
+		Code:       "ERROR_USED_JOB_ROLE_CODE_EXISTING",
+		StatusCode: StatusBadRequest,
+		Message:    MsgExistingUsedJobRoleCode,
+		Type:       "error",
+	}
+
 	ErrorRoleIDMissing = ResponseCode{
 		Code:       "ERROR_ROLE_ID_MISSING",
 		StatusCode: StatusBadRequest,
@@ -9351,6 +9717,557 @@ var (
 		Code:       "ACCESS_LIST_SEGMENTATION_KEY_NOT_FOUND",
 		StatusCode: StatusNotFound,
 		Message:    MsgAccessListSegmentationKeyNotFound,
+		Type:       "error",
+	}
+	ErrorUserNotFoundOrDisabled = ResponseCode{
+		Code:       "ERROR_USER_NOT_FOUND_OR_DISABLED",
+		StatusCode: StatusNotFound,
+		Message:    MsgUserNotFoundOrDisabled,
+		Type:       "error",
+	}
+
+	ErrorRoleDelegationAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_ROLE_DELEGATION_ALREADY_DISABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgRoleDelegationAlreadyDisabled,
+		Type:       "error",
+	}
+	ErrorRoleDelegationAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_ROLE_DELEGATION_ALREADY_ENABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgRoleDelegationAlreadyEnabled,
+		Type:       "error",
+	}
+	ErrorInvalidDelegationUserType = ResponseCode{
+		Code:       "ERROR_INVALID_USER_TYPE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidDelegationUserType,
+		Type:       "error",
+	}
+	ErrorInvalidDelegationDepartment = ResponseCode{
+		Code:       "ERROR_INVALID_DELEGATION_DEPARTMENT",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidDelegationDepartment,
+		Type:       "error",
+	}
+	ErrorInvalidDelegationBranch = ResponseCode{
+		Code:       "ERROR_INVALID_DELEGATION_BRANCH",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidDelegationBranch,
+		Type:       "error",
+	}
+	ErrorBpsUserAlreadyExists = ResponseCode{
+		Code:       "ERROR_BPS_USER_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgBpsUserAlreadyExists,
+		Type:       "error",
+	}
+	ErrorCpsUserAlreadyExists = ResponseCode{
+		Code:       "ERROR_CPS_USER_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgCpsUserAlreadyExists,
+		Type:       "error",
+	}
+
+	// Account Sub Type success codes
+	SuccessAccountSubTypeCreateRequestSent = ResponseCode{
+		Code:       "SUCCESS_ACCOUNT_SUB_TYPE_CREATE_REQUEST_SENT",
+		StatusCode: StatusCreated,
+		Message:    MsgAccountSubTypeCreateRequestSent,
+		Type:       "success",
+	}
+
+	SuccessAccountSubTypeCreated = ResponseCode{
+		Code:       "SUCCESS_ACCOUNT_SUB_TYPE_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgAccountSubTypeCreated,
+		Type:       "success",
+	}
+
+	SuccessAccountSubTypeUpdateRequestSent = ResponseCode{
+		Code:       "SUCCESS_ACCOUNT_SUB_TYPE_UPDATE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgAccountSubTypeUpdateRequestSent,
+		Type:       "success",
+	}
+
+	SuccessAccountSubTypeUpdated = ResponseCode{
+		Code:       "SUCCESS_ACCOUNT_SUB_TYPE_UPDATED",
+		StatusCode: StatusOK,
+		Message:    MsgAccountSubTypeUpdated,
+		Type:       "success",
+	}
+
+	SuccessAccountSubTypeEnableRequestSent = ResponseCode{
+		Code:       "SUCCESS_ACCOUNT_SUB_TYPE_ENABLE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgAccountSubTypeEnableRequestSent,
+		Type:       "success",
+	}
+
+	SuccessAccountSubTypeEnabled = ResponseCode{
+		Code:       "SUCCESS_ACCOUNT_SUB_TYPE_ENABLED",
+		StatusCode: StatusOK,
+		Message:    MsgAccountSubTypeEnabled,
+		Type:       "success",
+	}
+
+	SuccessAccountSubTypeDisableRequestSent = ResponseCode{
+		Code:       "SUCCESS_ACCOUNT_SUB_TYPE_DISABLE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgAccountSubTypeDisableRequestSent,
+		Type:       "success",
+	}
+
+	SuccessAccountSubTypeDisabled = ResponseCode{
+		Code:       "SUCCESS_ACCOUNT_SUB_TYPE_DISABLED",
+		StatusCode: StatusOK,
+		Message:    MsgAccountSubTypeDisabled,
+		Type:       "success",
+	}
+
+	SuccessGetAllAccountSubTypes = ResponseCode{
+		Code:       "SUCCESS_GET_ALL_ACCOUNT_SUB_TYPES",
+		StatusCode: StatusOK,
+		Message:    MsgAccountSubTypesRetrieved,
+		Type:       "success",
+	}
+
+	SuccessGetOneAccountSubType = ResponseCode{
+		Code:       "SUCCESS_GET_ONE_ACCOUNT_SUB_TYPE",
+		StatusCode: StatusOK,
+		Message:    MsgAccountSubTypeRetrieved,
+		Type:       "success",
+	}
+
+	// Account Sub Type error codes
+	ErrorAccountSubTypeNotFound = ResponseCode{
+		Code:       "ERROR_ACCOUNT_SUB_TYPE_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgAccountSubTypeNotFound,
+		Type:       "error",
+	}
+
+	ErrorAccountSubTypeAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_ACCOUNT_SUB_TYPE_ALREADY_ENABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgAccountSubTypeAlreadyEnabled,
+		Type:       "error",
+	}
+
+	ErrorAccountSubTypeAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_ACCOUNT_SUB_TYPE_ALREADY_DISABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgAccountSubTypeAlreadyDisabled,
+		Type:       "error",
+	}
+
+	ErrorAccountSubTypeCodeAlreadyExists = ResponseCode{
+		Code:       "ERROR_ACCOUNT_SUB_TYPE_CODE_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgAccountSubTypeCodeAlreadyExists,
+		Type:       "error",
+	}
+
+	ErrorAccountSubTypeNameAlreadyExists = ResponseCode{
+		Code:       "ERROR_ACCOUNT_SUB_TYPE_NAME_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgAccountSubTypeNameAlreadyExists,
+		Type:       "error",
+	}
+
+	ErrorAccountSubTypeNameRequired = ResponseCode{
+		Code:       "ERROR_ACCOUNT_SUB_TYPE_NAME_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAccountSubTypeNameRequired,
+		Type:       "error",
+	}
+
+	ErrorAccountSubTypeCodeRequired = ResponseCode{
+		Code:       "ERROR_ACCOUNT_SUB_TYPE_CODE_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAccountSubTypeCodeRequired,
+		Type:       "error",
+	}
+
+	ErrorAccountSubTypeNameSpecialChar = ResponseCode{
+		Code:       "ERROR_ACCOUNT_SUB_TYPE_NAME_SPECIAL_CHAR",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAccountSubTypeNameSpecialChar,
+		Type:       "error",
+	}
+
+	ErrorAccountSubTypeCodeSpecialChar = ResponseCode{
+		Code:       "ERROR_ACCOUNT_SUB_TYPE_CODE_SPECIAL_CHAR",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAccountSubTypeCodeSpecialChar,
+		Type:       "error",
+	}
+
+	ErrorAccountSubTypeAccountTypeRequired = ResponseCode{
+		Code:       "ERROR_ACCOUNT_SUB_TYPE_ACCOUNT_TYPE_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAccountSubTypeAccountTypeReq,
+		Type:       "error",
+	}
+
+	ErrorAccountSubTypeInvalidAccountType = ResponseCode{
+		Code:       "ERROR_ACCOUNT_SUB_TYPE_INVALID_ACCOUNT_TYPE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAccountSubTypeInvalidAccountType,
+		Type:       "error",
+	}
+
+	ErrorAccountSubTypeGenderRequired = ResponseCode{
+		Code:       "ERROR_ACCOUNT_SUB_TYPE_GENDER_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAccountSubTypeGenderRequired,
+		Type:       "error",
+	}
+
+	ErrorAccountSubTypeInvalidGender = ResponseCode{
+		Code:       "ERROR_ACCOUNT_SUB_TYPE_INVALID_GENDER",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAccountSubTypeInvalidGender,
+		Type:       "error",
+	}
+
+	ErrRoleDelegationForUserNotFound = ResponseCode{
+		Code:       "ERROR_ROLE_DELEGATION_FOR_USER_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgRoleDelegationForUserNotFound,
+		Type:       "error",
+	}
+
+	ErrNewRoleForDelegationNotFound = ResponseCode{
+		Code:       "ERROR_NEW_ROLE_FOR_USER_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgRoleDelegationForUserNotFound,
+		Type:       "error",
+	}
+
+	ErrorBpsUserNotFound = ResponseCode{
+		Code:       "ERROR_BPS_USER_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgBPSUserNotFound,
+		Type:       "error"}
+	// Account Product Category success codes
+	SuccessAPCCreateRequestSent = ResponseCode{
+		Code:       "SUCCESS_APC_CREATE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgAPCCreateRequestSent,
+		Type:       "success",
+	}
+
+	SuccessAPCCreated = ResponseCode{
+		Code:       "SUCCESS_APC_CREATED",
+		StatusCode: StatusOK,
+		Message:    MsgAPCCreated,
+		Type:       "success",
+	}
+
+	SuccessAPCUpdateRequestSent = ResponseCode{
+		Code:       "SUCCESS_APC_UPDATE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgAPCUpdateRequestSent,
+		Type:       "success",
+	}
+
+	SuccessAPCUpdated = ResponseCode{
+		Code:       "SUCCESS_APC_UPDATED",
+		StatusCode: StatusOK,
+		Message:    MsgAPCUpdated,
+		Type:       "success",
+	}
+
+	SuccessAPCDeleteRequestSent = ResponseCode{
+		Code:       "SUCCESS_APC_DELETE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgAPCDeleteRequestSent,
+		Type:       "success",
+	}
+
+	SuccessAPCDeleted = ResponseCode{
+		Code:       "SUCCESS_APC_DELETED",
+		StatusCode: StatusOK,
+		Message:    MsgAPCDeleted,
+		Type:       "success",
+	}
+
+	SuccessAPCEnableRequestSent = ResponseCode{
+		Code:       "SUCCESS_APC_ENABLE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgAPCEnableRequestSent,
+		Type:       "success",
+	}
+
+	SuccessAPCEnabled = ResponseCode{
+		Code:       "SUCCESS_APC_ENABLED",
+		StatusCode: StatusOK,
+		Message:    MsgAPCEnabled,
+		Type:       "success",
+	}
+
+	SuccessAPCDisableRequestSent = ResponseCode{
+		Code:       "SUCCESS_APC_DISABLE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgAPCDisableRequestSent,
+		Type:       "success",
+	}
+
+	SuccessAPCDisabled = ResponseCode{
+		Code:       "SUCCESS_APC_DISABLED",
+		StatusCode: StatusOK,
+		Message:    MsgAPCDisabled,
+		Type:       "success",
+	}
+
+	SuccessAPCsRetrieved = ResponseCode{
+		Code:       "SUCCESS_APCS_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgAPCsRetrieved,
+		Type:       "success",
+	}
+
+	SuccessAPCRetrieved = ResponseCode{
+		Code:       "SUCCESS_APC_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgAPCRetrieved,
+		Type:       "success",
+	}
+
+	// Account Product Category error codes
+	ErrorAPCNotFound = ResponseCode{
+		Code:       "ERROR_APC_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgAPCNotFound,
+		Type:       "error",
+	}
+
+	ErrorAPCAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_APC_ALREADY_ENABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgAPCAlreadyEnabled,
+		Type:       "error",
+	}
+
+	ErrorAPCAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_APC_ALREADY_DISABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgAPCAlreadyDisabled,
+		Type:       "error",
+	}
+
+	ErrorAPCAlreadyExists = ResponseCode{
+		Code:       "ERROR_APC_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgAPCAlreadyExists,
+		Type:       "error",
+	}
+
+	ErrorAPCHasActiveProducts = ResponseCode{
+		Code:       "ERROR_APC_HAS_ACTIVE_PRODUCTS",
+		StatusCode: StatusConflict,
+		Message:    MsgAPCHasActiveProducts,
+		Type:       "error",
+	}
+
+	// Account Product success codes
+	SuccessAPCreateRequestSent = ResponseCode{
+		Code:       "SUCCESS_AP_CREATE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgAPCreateRequestSent,
+		Type:       "success",
+	}
+
+	SuccessAPCreated = ResponseCode{
+		Code:       "SUCCESS_AP_CREATED",
+		StatusCode: StatusOK,
+		Message:    MsgAPCreated,
+		Type:       "success",
+	}
+
+	SuccessAPUpdateRequestSent = ResponseCode{
+		Code:       "SUCCESS_AP_UPDATE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgAPUpdateRequestSent,
+		Type:       "success",
+	}
+
+	SuccessAPUpdated = ResponseCode{
+		Code:       "SUCCESS_AP_UPDATED",
+		StatusCode: StatusOK,
+		Message:    MsgAPUpdated,
+		Type:       "success",
+	}
+
+	SuccessAPDeleteRequestSent = ResponseCode{
+		Code:       "SUCCESS_AP_DELETE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgAPDeleteRequestSent,
+		Type:       "success",
+	}
+
+	SuccessAPDeleted = ResponseCode{
+		Code:       "SUCCESS_AP_DELETED",
+		StatusCode: StatusOK,
+		Message:    MsgAPDeleted,
+		Type:       "success",
+	}
+
+	SuccessAPEnableRequestSent = ResponseCode{
+		Code:       "SUCCESS_AP_ENABLE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgAPEnableRequestSent,
+		Type:       "success",
+	}
+
+	SuccessAPEnabled = ResponseCode{
+		Code:       "SUCCESS_AP_ENABLED",
+		StatusCode: StatusOK,
+		Message:    MsgAPEnabled,
+		Type:       "success",
+	}
+
+	SuccessAPDisableRequestSent = ResponseCode{
+		Code:       "SUCCESS_AP_DISABLE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgAPDisableRequestSent,
+		Type:       "success",
+	}
+
+	SuccessAPDisabled = ResponseCode{
+		Code:       "SUCCESS_AP_DISABLED",
+		StatusCode: StatusOK,
+		Message:    MsgAPDisabled,
+		Type:       "success",
+	}
+
+	SuccessAPsRetrieved = ResponseCode{
+		Code:       "SUCCESS_APS_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgAPsRetrieved,
+		Type:       "success",
+	}
+
+	SuccessAPRetrieved = ResponseCode{
+		Code:       "SUCCESS_AP_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgAPRetrieved,
+		Type:       "success",
+	}
+
+	// Account Product error codes
+	ErrorAPNotFound = ResponseCode{
+		Code:       "ERROR_AP_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgAPNotFound,
+		Type:       "error",
+	}
+
+	ErrorAPAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_AP_ALREADY_ENABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgAPAlreadyEnabled,
+		Type:       "error",
+	}
+
+	ErrorAPAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_AP_ALREADY_DISABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgAPAlreadyDisabled,
+		Type:       "error",
+	}
+
+	ErrorAPAlreadyExists = ResponseCode{
+		Code:       "ERROR_AP_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgAPAlreadyExists,
+		Type:       "error",
+	}
+
+	ErrorAPHasActiveTerms = ResponseCode{
+		Code:       "ERROR_AP_HAS_ACTIVE_TERMS",
+		StatusCode: StatusConflict,
+		Message:    MsgAPHasActiveTerms,
+		Type:       "error",
+	}
+
+	// Term and Condition success codes
+	SuccessTACUploadRequestSent = ResponseCode{
+		Code:       "SUCCESS_TAC_UPLOAD_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgTACUploadRequestSent,
+		Type:       "success",
+	}
+
+	SuccessTACUploaded = ResponseCode{
+		Code:       "SUCCESS_TAC_UPLOADED",
+		StatusCode: StatusOK,
+		Message:    MsgTACUploaded,
+		Type:       "success",
+	}
+
+	
+	SuccessTACUpdateRequestSent = ResponseCode{
+		Code:       "SUCCESS_TAC_UPDATE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgTACUpdateRequestSent,
+		Type:       "success",
+	}
+
+	
+	SuccessTACUpdated = ResponseCode{
+		Code:       "SUCCESS_TAC_UPDATED",
+		StatusCode: StatusOK,
+		Message:    MsgTACUpdated,
+		Type:       "success",
+	}
+
+	
+	SuccessTACDeleteRequestSent = ResponseCode{
+		Code:       "SUCCESS_TAC_DELETE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgTACDeleteRequestSent,
+		Type:       "success",
+	}
+
+	
+	SuccessTACDeleted = ResponseCode{
+		Code:       "SUCCESS_TAC_DELETED",
+		StatusCode: StatusOK,
+		Message:    MsgTACDeleted,
+		Type:       "success",
+	}
+
+	
+	SuccessTACsRetrieved = ResponseCode{
+		Code:       "SUCCESS_TACS_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgTACsRetrieved,
+		Type:       "success",
+	}
+
+	SuccessTACRetrieved = ResponseCode{
+		Code:       "SUCCESS_TAC_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgTACRetrieved,
+		Type:       "success",
+	}
+
+	
+	// Term and Condition error codes
+	ErrorTACNotFound = ResponseCode{
+		Code:       "ERROR_TAC_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgTACNotFound,
+		Type:       "error",
+	}
+
+	ErrorTACAlreadyExists = ResponseCode{
+		Code:       "ERROR_TAC_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgTACAlreadyExists,
 		Type:       "error",
 	}
 )

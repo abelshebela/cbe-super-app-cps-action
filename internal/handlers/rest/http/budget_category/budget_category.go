@@ -5,7 +5,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	core "cbe-super-app-cps-action/internal/handlers/rest/http/budget_category/core"
 	"cbe-super-app-cps-action/internal/service"
-	common_util "cbe-super-app-cps-action/pkgs/utils"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"net/http"
 	"strings"
@@ -47,9 +47,9 @@ func InitBudgetCategoryAdapter(budgetCategoryApplication service.BudgetCategoryS
 //	@Security		BearerAuth
 //	@Router			/budget-category [post]
 func (b *budgetCategoryAdapter) CreateBudgetCategory(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_util.TraceLogger(r.Context(), "handler", "createBudgetCategory", "handler", "budgetCategory")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createBudgetCategory", "handler", "budgetCategory")
 	defer span.End()
-	log := common_util.LoggerFromCtx(ctx, b.logger)
+	log := local_util.LoggerFromCtx(ctx, b.logger)
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
@@ -70,8 +70,8 @@ func (b *budgetCategoryAdapter) CreateBudgetCategory(w http.ResponseWriter, r *h
 		return
 	}
 
-	userContext := common_util.ExtractUserContext(r)
-	if common_util.IsIncomplete(userContext) {
+	userContext := local_util.ExtractUserContext(r)
+	if local_util.IsIncomplete(userContext) {
 		log.Errorf("[BudgetCatH] incomplete user info")
 		localization.SendErrorResponse(w, localization.ErrorIncompleteUserInfo, nil, nil)
 		return
@@ -79,6 +79,7 @@ func (b *budgetCategoryAdapter) CreateBudgetCategory(w http.ResponseWriter, r *h
 	req.Name = strings.TrimSpace(req.Name)
 	err = b.budgetCategoryApplication.CreateBudgetCategory(ctx, req)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[CreateBudgetCategory] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -113,9 +114,9 @@ func (b *budgetCategoryAdapter) CreateBudgetCategory(w http.ResponseWriter, r *h
 //	@Security		BearerAuth
 //	@Router			/budget-category/{id} [patch]
 func (b *budgetCategoryAdapter) UpdateBudgetCategory(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_util.TraceLogger(r.Context(), "handler", "updateBudgetCategory", "handler", "budgetCategory")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateBudgetCategory", "handler", "budgetCategory")
 	defer span.End()
-	log := common_util.LoggerFromCtx(ctx, b.logger)
+	log := local_util.LoggerFromCtx(ctx, b.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	localization.UpdateWriterContext(w, ctx)
@@ -142,8 +143,8 @@ func (b *budgetCategoryAdapter) UpdateBudgetCategory(w http.ResponseWriter, r *h
 		return
 	}
 
-	userContext := common_util.ExtractUserContext(r)
-	if common_util.IsIncomplete(userContext) {
+	userContext := local_util.ExtractUserContext(r)
+	if local_util.IsIncomplete(userContext) {
 		log.Errorf("[BudgetCatH] incomplete user info")
 		localization.SendErrorResponse(w, localization.ErrorIncompleteUserInfo, nil, nil)
 		return
@@ -153,6 +154,7 @@ func (b *budgetCategoryAdapter) UpdateBudgetCategory(w http.ResponseWriter, r *h
 	req.Name = strings.TrimSpace(req.Name)
 	err = b.budgetCategoryApplication.UpdateBudgetCategory(ctx, id, req)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[UpdateBudgetCategory] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -184,10 +186,10 @@ func (b *budgetCategoryAdapter) UpdateBudgetCategory(w http.ResponseWriter, r *h
 //	@Security		BearerAuth
 //	@Router			/budget-category/{id} [get]
 func (b *budgetCategoryAdapter) GetBudgetCategoryByID(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_util.TraceLogger(r.Context(), "handler", "getBudgetCategoryById", "handler", "budgetCategory")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getBudgetCategoryById", "handler", "budgetCategory")
 	defer span.End()
-	log := common_util.LoggerFromCtx(ctx, b.logger)
-	id, ok := common_util.GetParam(r, "id")
+	log := local_util.LoggerFromCtx(ctx, b.logger)
+	id, ok := local_util.GetParam(r, "id")
 	if !ok {
 		log.Errorf("[BudgetCatH] missing id param")
 		localization.SendErrorResponse(w, localization.ErrorInvalidInputParameter, nil, nil)
@@ -227,20 +229,20 @@ func (b *budgetCategoryAdapter) GetBudgetCategoryByID(w http.ResponseWriter, r *
 //	@Security		BearerAuth
 //	@Router			/budget-category [get]
 func (b *budgetCategoryAdapter) GetAllBudgetCategories(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_util.TraceLogger(r.Context(), "handler", "getAllBudgetCategories", "handler", "budgetCategory")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllBudgetCategories", "handler", "budgetCategory")
 	defer span.End()
-	log := common_util.LoggerFromCtx(ctx, b.logger)
-	filterParams := common_util.ExtractFilterParams(r)
+	log := local_util.LoggerFromCtx(ctx, b.logger)
+	filterParams := local_util.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
 
-	if err := common_util.NoSpecialChars(search); err != nil {
+	if err := local_util.NoSpecialChars(search); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	if err := common_util.NoSpecialChars(filter); err != nil {
+	if err := local_util.NoSpecialChars(filter); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -272,22 +274,22 @@ func (b *budgetCategoryAdapter) GetAllBudgetCategories(w http.ResponseWriter, r 
 //	@Security		BearerAuth
 //	@Router			/budget-category/{id} [delete]
 func (b *budgetCategoryAdapter) DeleteBudgetCategory(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_util.TraceLogger(r.Context(), "handler", "deleteBudgetCategory", "handler", "budgetCategory")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "deleteBudgetCategory", "handler", "budgetCategory")
 	defer span.End()
-	log := common_util.LoggerFromCtx(ctx, b.logger)
+	log := local_util.LoggerFromCtx(ctx, b.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	localization.UpdateWriterContext(w, ctx)
 
-	id, ok := common_util.GetParam(r, "id")
+	id, ok := local_util.GetParam(r, "id")
 	if !ok {
 		log.Errorf("[BudgetCatH] missing id param")
 		localization.SendErrorResponse(w, localization.ErrorInvalidInputParameter, nil, nil)
 		return
 	}
 
-	userContext := common_util.ExtractUserContext(r)
-	if common_util.IsIncomplete(userContext) {
+	userContext := local_util.ExtractUserContext(r)
+	if local_util.IsIncomplete(userContext) {
 		log.Errorf("[BudgetCatH] incomplete user info")
 		localization.SendErrorResponse(w, localization.ErrorIncompleteUserInfo, nil, nil)
 		return
@@ -297,6 +299,7 @@ func (b *budgetCategoryAdapter) DeleteBudgetCategory(w http.ResponseWriter, r *h
 
 	err := b.budgetCategoryApplication.DeleteBudgetCategory(ctx, id)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[DeleteBudgetCategory] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -328,22 +331,22 @@ func (b *budgetCategoryAdapter) DeleteBudgetCategory(w http.ResponseWriter, r *h
 //	@Security		BearerAuth
 //	@Router			/budget-category/enable/{id} [patch]
 func (b *budgetCategoryAdapter) EnableBudgetCategory(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_util.TraceLogger(r.Context(), "handler", "enableBudgetCategory", "handler", "budgetCategory")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableBudgetCategory", "handler", "budgetCategory")
 	defer span.End()
-	log := common_util.LoggerFromCtx(ctx, b.logger)
+	log := local_util.LoggerFromCtx(ctx, b.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	localization.UpdateWriterContext(w, ctx)
 
-	id, ok := common_util.GetParam(r, "id")
+	id, ok := local_util.GetParam(r, "id")
 	if !ok {
 		log.Errorf("[BudgetCatH] missing id param")
 		localization.SendErrorResponse(w, localization.ErrorInvalidInputParameter, nil, nil)
 		return
 	}
 
-	userContext := common_util.ExtractUserContext(r)
-	if common_util.IsIncomplete(userContext) {
+	userContext := local_util.ExtractUserContext(r)
+	if local_util.IsIncomplete(userContext) {
 		log.Errorf("[BudgetCatH] incomplete user info")
 		localization.SendErrorResponse(w, localization.ErrorIncompleteUserInfo, nil, nil)
 		return
@@ -353,6 +356,7 @@ func (b *budgetCategoryAdapter) EnableBudgetCategory(w http.ResponseWriter, r *h
 
 	err := b.budgetCategoryApplication.EnableOrDisableBudgetCategory(ctx, id, true)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[EnableBudgetCategory] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -384,22 +388,22 @@ func (b *budgetCategoryAdapter) EnableBudgetCategory(w http.ResponseWriter, r *h
 //	@Security		BearerAuth
 //	@Router			/budget-category/disable/{id} [patch]
 func (b *budgetCategoryAdapter) DisableBudgetCategory(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_util.TraceLogger(r.Context(), "handler", "disableBudgetCategory", "handler", "budgetCategory")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableBudgetCategory", "handler", "budgetCategory")
 	defer span.End()
-	log := common_util.LoggerFromCtx(ctx, b.logger)
+	log := local_util.LoggerFromCtx(ctx, b.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	localization.UpdateWriterContext(w, ctx)
 
-	id, ok := common_util.GetParam(r, "id")
+	id, ok := local_util.GetParam(r, "id")
 	if !ok {
 		log.Errorf("[BudgetCatH] missing id param")
 		localization.SendErrorResponse(w, localization.ErrorInvalidInputParameter, nil, nil)
 		return
 	}
 
-	userContext := common_util.ExtractUserContext(r)
-	if common_util.IsIncomplete(userContext) {
+	userContext := local_util.ExtractUserContext(r)
+	if local_util.IsIncomplete(userContext) {
 		log.Errorf("[BudgetCatH] incomplete user info")
 		localization.SendErrorResponse(w, localization.ErrorIncompleteUserInfo, nil, nil)
 		return
@@ -409,6 +413,7 @@ func (b *budgetCategoryAdapter) DisableBudgetCategory(w http.ResponseWriter, r *
 
 	err := b.budgetCategoryApplication.EnableOrDisableBudgetCategory(ctx, id, false)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[DisableBudgetCategory] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())

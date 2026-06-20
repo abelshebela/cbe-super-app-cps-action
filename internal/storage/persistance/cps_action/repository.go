@@ -9,6 +9,7 @@ import (
 	cps_action_core "cbe-super-app-cps-action/internal/storage/persistance/cps_action/core"
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -75,18 +76,25 @@ func (s *CPSActionStorage) FindAllWithPagination(ctx context.Context, filterPara
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		searchKeys["$or"] = []bson.M{
+		orConds := []bson.M{
 			{"unique_id": searchRegex},
 			{"current_action": searchRegex},
 			{"previous_action": searchRegex},
+			{"maker_name": searchRegex},
 			{"maker_phone_number": searchRegex},
-			{"checker_name": searchRegex},
-			{"checker_phone_number": searchRegex},
+			{"maker_id": searchRegex},
+			{"checker_users.checker_name": searchRegex},
+			{"checker_users.checker_phone_number": searchRegex},
+			{"checker_users.checker_id": searchRegex},
+			{"auditor_users.auditor_name": searchRegex},
+			{"auditor_users.auditor_phone_number": searchRegex},
+			{"auditor_users.auditor_id": searchRegex},
 			{"action_type": searchRegex},
 			{"request_action": searchRegex},
 			{"action_status": searchRegex},
 			{"action_code": searchRegex},
 		}
+		searchKeys["$or"] = appendUserLogCodes(orConds, filterParam.Filters)
 	}
 
 	filter, _, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
@@ -253,11 +261,37 @@ func (r *CPSActionStorage) SanitizedFindAllWithPagination(ctx context.Context, f
 	from, okFrom := filterParam.Filters["created_at_from"].(string)
 	to, okTo := filterParam.Filters["created_at_to"].(string)
 
-	if okFrom && okTo && from != "" && to != "" {
-		fromTime, err1 := time.Parse(time.RFC3339, from)
-		toTime, err2 := time.Parse(time.RFC3339, to)
+	parseFlexible := func(s string) (time.Time, bool) {
+		if s == "" {
+			return time.Time{}, false
+		}
+		// try RFC3339 first
+		if t, err := time.Parse(time.RFC3339, s); err == nil {
+			return t, true
+		}
+		// try date-only YYYY-MM-DD
+		if t, err := time.Parse("2006-01-02", s); err == nil {
+			return t, true
+		}
+		// try without timezone
+		if t, err := time.Parse("2006-01-02T15:04:05", s); err == nil {
+			return t, true
+		}
+		return time.Time{}, false
+	}
 
-		if err1 == nil && err2 == nil {
+	if okFrom && okTo && from != "" && to != "" {
+		fromTime, ok1 := parseFlexible(from)
+		toTime, ok2 := parseFlexible(to)
+
+		if ok1 && ok2 {
+			// If inputs were date-only (length 10), expand to full-day bounds.
+			if len(from) == 10 {
+				fromTime = time.Date(fromTime.Year(), fromTime.Month(), fromTime.Day(), 0, 0, 0, 0, time.UTC)
+			}
+			if len(to) == 10 {
+				toTime = time.Date(toTime.Year(), toTime.Month(), toTime.Day(), 23, 59, 59, int(time.Millisecond*999), time.UTC)
+			}
 			baseFilter["created_at"] = bson.M{
 				"$gte": fromTime,
 				"$lte": toTime,
@@ -274,15 +308,23 @@ func (r *CPSActionStorage) SanitizedFindAllWithPagination(ctx context.Context, f
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		baseFilter["$or"] = []bson.M{
+		orConds := []bson.M{
 			{"maker_name": searchRegex},
 			{"unique_id": searchRegex},
 			{"maker_phone_number": searchRegex},
+			{"maker_id": searchRegex},
+			{"checker_users.checker_name": searchRegex},
+			{"checker_users.checker_phone_number": searchRegex},
+			{"checker_users.checker_id": searchRegex},
+			{"auditor_users.auditor_name": searchRegex},
+			{"auditor_users.auditor_phone_number": searchRegex},
+			{"auditor_users.auditor_id": searchRegex},
 			{"action_status": searchRegex},
 			{"action_type": searchRegex},
 			{"action_code": searchRegex},
 			{"request_action": searchRegex},
 		}
+		baseFilter["$or"] = appendUserLogCodes(orConds, filterParam.Filters)
 	}
 
 	dynamicFilter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
@@ -291,7 +333,7 @@ func (r *CPSActionStorage) SanitizedFindAllWithPagination(ctx context.Context, f
 	for k, v := range baseFilter {
 		dynamicFilter[k] = v
 	}
-	delete(dynamicFilter, "created_at")
+	// keep created_at from baseFilter so date range filtering is applied
 	filter := dynamicFilter
 
 	// Filter by action codes resolved from user_action_log (set by service).
@@ -365,11 +407,33 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForApprover(ctx context
 	from, okFrom := filterParam.Filters["created_at_from"].(string)
 	to, okTo := filterParam.Filters["created_at_to"].(string)
 
-	if okFrom && okTo && from != "" && to != "" {
-		fromTime, err1 := time.Parse(time.RFC3339, from)
-		toTime, err2 := time.Parse(time.RFC3339, to)
+	// Flexible parsing: accept RFC3339, date-only (YYYY-MM-DD), or datetime without TZ.
+	parseFlexible := func(s string) (time.Time, bool) {
+		if s == "" {
+			return time.Time{}, false
+		}
+		if t, err := time.Parse(time.RFC3339, s); err == nil {
+			return t, true
+		}
+		if t, err := time.Parse("2006-01-02", s); err == nil {
+			return t, true
+		}
+		if t, err := time.Parse("2006-01-02T15:04:05", s); err == nil {
+			return t, true
+		}
+		return time.Time{}, false
+	}
 
-		if err1 == nil && err2 == nil {
+	if okFrom && okTo && from != "" && to != "" {
+		fromTime, ok1 := parseFlexible(from)
+		toTime, ok2 := parseFlexible(to)
+		if ok1 && ok2 {
+			if len(from) == 10 {
+				fromTime = time.Date(fromTime.Year(), fromTime.Month(), fromTime.Day(), 0, 0, 0, 0, time.UTC)
+			}
+			if len(to) == 10 {
+				toTime = time.Date(toTime.Year(), toTime.Month(), toTime.Day(), 23, 59, 59, int(time.Millisecond*999), time.UTC)
+			}
 			baseFilter["created_at"] = bson.M{
 				"$gte": fromTime,
 				"$lte": toTime,
@@ -385,15 +449,23 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForApprover(ctx context
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		baseFilter["$or"] = []bson.M{
+		orConds := []bson.M{
 			{"unique_id": searchRegex},
 			{"maker_name": searchRegex},
 			{"maker_phone_number": searchRegex},
+			{"maker_id": searchRegex},
+			{"checker_users.checker_name": searchRegex},
+			{"checker_users.checker_phone_number": searchRegex},
+			{"checker_users.checker_id": searchRegex},
+			{"auditor_users.auditor_name": searchRegex},
+			{"auditor_users.auditor_phone_number": searchRegex},
+			{"auditor_users.auditor_id": searchRegex},
 			{"action_status": searchRegex},
 			{"action_type": searchRegex},
 			{"action_code": searchRegex},
 			{"request_action": searchRegex},
 		}
+		baseFilter["$or"] = appendUserLogCodes(orConds, filterParam.Filters)
 	}
 
 	dynamicFilter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
@@ -402,7 +474,7 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForApprover(ctx context
 	for k, v := range baseFilter {
 		dynamicFilter[k] = v
 	}
-	delete(dynamicFilter, "created_at")
+	// keep created_at from baseFilter so date range filtering is applied
 	filter := dynamicFilter
 	filter["request_action"] = bson.M{"$in": RAList}
 
@@ -413,15 +485,7 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForApprover(ctx context
 		},
 	}
 
-	isPendingOnly := func() bool {
-		switch v := filterParam.Filters["action_status"].(type) {
-		case string:
-			return v == "PENDING"
-		case []string:
-			return len(v) == 1 && v[0] == "PENDING"
-		}
-		return false
-	}()
+	isPendingOnly := local_util.IsPendingOnlyActionStatus(filterParam.Filters["action_status"])
 
 	var finalMatch bson.M
 	if isPendingOnly {
@@ -496,7 +560,6 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForAuditor(ctx context.
 			delete(filterParam.Filters, "__inbox_or")
 		}
 	}
-	// 1. Base filter (only active records)
 	baseFilter := bson.M{
 		"is_deleted": false,
 	}
@@ -504,11 +567,33 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForAuditor(ctx context.
 	from, okFrom := filterParam.Filters["created_at_from"].(string)
 	to, okTo := filterParam.Filters["created_at_to"].(string)
 
-	if okFrom && okTo && from != "" && to != "" {
-		fromTime, err1 := time.Parse(time.RFC3339, from)
-		toTime, err2 := time.Parse(time.RFC3339, to)
+	parseFlexible := func(s string) (time.Time, bool) {
+		if s == "" {
+			return time.Time{}, false
+		}
+		if t, err := time.Parse(time.RFC3339, s); err == nil {
+			return t, true
+		}
+		if t, err := time.Parse("2006-01-02", s); err == nil {
+			return t, true
+		}
+		if t, err := time.Parse("2006-01-02T15:04:05", s); err == nil {
+			return t, true
+		}
+		return time.Time{}, false
+	}
 
-		if err1 == nil && err2 == nil {
+	if okFrom && okTo && from != "" && to != "" {
+		fromTime, ok1 := parseFlexible(from)
+		toTime, ok2 := parseFlexible(to)
+
+		if ok1 && ok2 {
+			if len(from) == 10 {
+				fromTime = time.Date(fromTime.Year(), fromTime.Month(), fromTime.Day(), 0, 0, 0, 0, time.UTC)
+			}
+			if len(to) == 10 {
+				toTime = time.Date(toTime.Year(), toTime.Month(), toTime.Day(), 23, 59, 59, int(time.Millisecond*999), time.UTC)
+			}
 			baseFilter["created_at"] = bson.M{
 				"$gte": fromTime,
 				"$lte": toTime,
@@ -525,17 +610,24 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForAuditor(ctx context.
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		baseFilter["$or"] = []bson.M{
+		orConds := []bson.M{
 			{"action_code": searchRegex},
 			{"unique_id": searchRegex},
 			{"maker_name": searchRegex},
 			{"maker_phone_number": searchRegex},
+			{"maker_id": searchRegex},
+			{"checker_users.checker_name": searchRegex},
+			{"checker_users.checker_phone_number": searchRegex},
+			{"checker_users.checker_id": searchRegex},
+			{"auditor_users.auditor_name": searchRegex},
+			{"auditor_users.auditor_phone_number": searchRegex},
+			{"auditor_users.auditor_id": searchRegex},
 			{"action_status": searchRegex},
 			{"auditor_status": searchRegex},
 			{"action_type": searchRegex},
 			{"request_action": searchRegex},
 		}
-
+		baseFilter["$or"] = appendUserLogCodes(orConds, filterParam.Filters)
 	}
 
 	dynamicFilter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
@@ -588,9 +680,11 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForAuditor(ctx context.
 		filter = bson.M{"$and": and}
 	}
 
-	as := filter["action_status"]
-	if as == nil || as == "" || as == constants.Pending {
-		filter["action_status"] = bson.M{"$in": []string{string(constants.Approved), string(constants.Rejected)}}
+	// Default auditor inbox to approved/rejected only when the caller did not specify action_status.
+	if _, requested := filterParam.Filters["action_status"]; !requested {
+		if as := filter["action_status"]; as == nil || as == "" {
+			filter["action_status"] = bson.M{"$in": []string{string(constants.Approved), string(constants.Rejected)}}
+		}
 	}
 
 	applyActionStatusFilter(filterParam.Filters, filter)
@@ -667,16 +761,24 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationCPSActions(ctx context.
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		baseFilter["$or"] = []bson.M{
+		orConds := []bson.M{
 			{"maker_name": searchRegex},
 			{"unique_id": searchRegex},
 			{"action_code": searchRegex},
 			{"maker_phone_number": searchRegex},
+			{"maker_id": searchRegex},
+			{"checker_users.checker_name": searchRegex},
+			{"checker_users.checker_phone_number": searchRegex},
+			{"checker_users.checker_id": searchRegex},
+			{"auditor_users.auditor_name": searchRegex},
+			{"auditor_users.auditor_phone_number": searchRegex},
+			{"auditor_users.auditor_id": searchRegex},
 			{"action_status": searchRegex},
 			{"auditor_status": searchRegex},
 			{"action_type": searchRegex},
 			{"request_action": searchRegex},
 		}
+		baseFilter["$or"] = appendUserLogCodes(orConds, filterParam.Filters)
 	}
 
 	dynamicFilter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
@@ -865,16 +967,24 @@ func (r *CPSActionStorage) FindByDateRange(ctx context.Context, filterParam *typ
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		baseFilter["$or"] = []bson.M{
+		orConds := []bson.M{
 			{"maker_name": searchRegex},
 			{"unique_id": searchRegex},
 			{"action_code": searchRegex},
 			{"maker_phone_number": searchRegex},
+			{"maker_id": searchRegex},
+			{"checker_users.checker_name": searchRegex},
+			{"checker_users.checker_phone_number": searchRegex},
+			{"checker_users.checker_id": searchRegex},
+			{"auditor_users.auditor_name": searchRegex},
+			{"auditor_users.auditor_phone_number": searchRegex},
+			{"auditor_users.auditor_id": searchRegex},
 			{"action_status": searchRegex},
 			{"auditor_status": searchRegex},
 			{"action_type": searchRegex},
 			{"request_action": searchRegex},
 		}
+		baseFilter["$or"] = appendUserLogCodes(orConds, filterParam.Filters)
 	}
 
 	dynamicFilter, skip, limit := lib.FilterBuilder(*filterParam, searchKeys, allowedKeys)
@@ -927,16 +1037,24 @@ func (r *CPSActionStorage) StreamByDateRange(
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		baseFilter["$or"] = []bson.M{
+		orConds := []bson.M{
 			{"maker_name": searchRegex},
 			{"unique_id": searchRegex},
 			{"action_code": searchRegex},
 			{"maker_phone_number": searchRegex},
+			{"maker_id": searchRegex},
+			{"checker_users.checker_name": searchRegex},
+			{"checker_users.checker_phone_number": searchRegex},
+			{"checker_users.checker_id": searchRegex},
+			{"auditor_users.auditor_name": searchRegex},
+			{"auditor_users.auditor_phone_number": searchRegex},
+			{"auditor_users.auditor_id": searchRegex},
 			{"action_status": searchRegex},
 			{"auditor_status": searchRegex},
 			{"action_type": searchRegex},
 			{"request_action": searchRegex},
 		}
+		baseFilter["$or"] = appendUserLogCodes(orConds, filterParam.Filters)
 	}
 
 	fieldProjection := filterParam.Filters["fields"]
@@ -993,15 +1111,23 @@ func (r *CPSActionStorage) ActionByDateRange(ctx context.Context, filterParam ty
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		baseFilter["$or"] = []bson.M{
+		orConds := []bson.M{
 			{"unique_id": searchRegex},
 			{"maker_name": searchRegex},
 			{"maker_phone_number": searchRegex},
+			{"maker_id": searchRegex},
+			{"checker_users.checker_name": searchRegex},
+			{"checker_users.checker_phone_number": searchRegex},
+			{"checker_users.checker_id": searchRegex},
+			{"auditor_users.auditor_name": searchRegex},
+			{"auditor_users.auditor_phone_number": searchRegex},
+			{"auditor_users.auditor_id": searchRegex},
 			{"action_status": searchRegex},
 			{"action_type": searchRegex},
 			{"action_code": searchRegex},
 			{"request_action": searchRegex},
 		}
+		baseFilter["$or"] = appendUserLogCodes(orConds, filterParam.Filters)
 	}
 
 	dynamicFilter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
@@ -1021,7 +1147,7 @@ func (r *CPSActionStorage) ActionByDateRange(ctx context.Context, filterParam ty
 	}
 
 	var finalMatch bson.M
-	if filterParam.Filters["action_status"] == "PENDING" {
+	if local_util.IsPendingOnlyActionStatus(filterParam.Filters["action_status"]) {
 		finalMatch = filter
 	} else {
 		finalMatch = bson.M{
@@ -1031,6 +1157,9 @@ func (r *CPSActionStorage) ActionByDateRange(ctx context.Context, filterParam ty
 			},
 		}
 	}
+
+	applyActionStatusFilter(filterParam.Filters, finalMatch)
+	applyActionCodeFilter(filterParam.Filters, finalMatch)
 
 	pipeline := mongo.Pipeline{
 		{{Key: "$match", Value: finalMatch}},
@@ -1095,23 +1224,35 @@ func applyActionCodeFilter(filters map[string]interface{}, filter bson.M) {
 	switch v := raw.(type) {
 	case string:
 		if v != "" {
-			filter["action_code"] = bson.M{"$in": []string{v}}
+			filter["action_code"] = bson.M{"$regex": v, "$options": "i"}
 		}
+	case int64:
+		filter["action_code"] = bson.M{"$regex": fmt.Sprintf("%d", v), "$options": "i"}
 	case []string:
 		if len(v) > 0 {
 			filter["action_code"] = bson.M{"$in": v}
 		}
 	case []interface{}:
-		statuses := make([]string, 0, len(v))
+		codes := make([]string, 0, len(v))
 		for _, item := range v {
 			if s, ok := item.(string); ok && s != "" {
-				statuses = append(statuses, s)
+				codes = append(codes, s)
 			}
 		}
-		if len(statuses) > 0 {
-			filter["action_code"] = bson.M{"$in": statuses}
+		if len(codes) > 0 {
+			filter["action_code"] = bson.M{"$in": codes}
 		}
 	}
+}
+
+// appendUserLogCodes adds an {action_code: {$in: codes}} condition to orConditions
+// when the caller resolved matching codes from user_action_log (e.g. by username / phone).
+// This lets username/phone search work even though those fields are not stored in cps_action.
+func appendUserLogCodes(orConditions []bson.M, filters map[string]interface{}) []bson.M {
+	if codes, ok := filters["search_action_codes"].([]string); ok && len(codes) > 0 {
+		orConditions = append(orConditions, bson.M{"action_code": bson.M{"$in": codes}})
+	}
+	return orConditions
 }
 
 func buildCPSActionDateRangeFilter(startDate, endDate time.Time) bson.M {

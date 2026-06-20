@@ -11,6 +11,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"regexp"
 
 	"time"
 
@@ -43,6 +44,159 @@ func NewCPSUserRepository(client *mongo.Client, redisRepository storage.RedisRep
 		relatedCollection: relatedCollection,
 		logger:            logger,
 	}
+}
+
+func (r *CPSUserStorage) FindForExport(ctx context.Context, startDate, endDate time.Time, userName string) ([]imodel.ExportCPSUser, error) {
+	matchFilter := bson.M{
+		"created_at": bson.M{"$gte": startDate, "$lte": endDate},
+		"is_deleted": bson.M{"$ne": true},
+	}
+	if userName != "" {
+		matchFilter["username"] = bson.M{"$regex": "^" + regexp.QuoteMeta(userName) + "$", "$options": "i"}
+	}
+
+	pipeline := mongo.Pipeline{
+		// Stage 1: Match users by date range
+		bson.D{{Key: "$match", Value: matchFilter}},
+
+		// Stage 2: Lookup department name
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from": "department",
+			"let":  bson.M{"dept_id": "$department"},
+			"pipeline": mongo.Pipeline{
+				bson.D{{Key: "$match", Value: bson.M{
+					"$expr": bson.M{"$eq": []interface{}{"$_id", "$$dept_id"}},
+				}}},
+				bson.D{{Key: "$project", Value: bson.M{"department": 1}}},
+			},
+			"as": "department_info",
+		}}},
+		bson.D{{Key: "$unwind", Value: bson.M{
+			"path":                       "$department_info",
+			"preserveNullAndEmptyArrays": true,
+		}}},
+
+		// Stage 3: Lookup active delegation (enable==true and not yet expired)
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from": "role_delegations",
+			"let":  bson.M{"uid": "$username"},
+			"pipeline": mongo.Pipeline{
+				bson.D{{Key: "$match", Value: bson.M{
+					"$expr": bson.M{
+						"$and": bson.A{
+							bson.M{"$eq": []interface{}{bson.M{"$toLower": "$delegated_user_id"}, bson.M{"$toLower": "$$uid"}}},
+							bson.M{"$eq": []interface{}{"$enable", true}},
+							bson.M{"$lte": []interface{}{"$start_at", "$$NOW"}},
+							bson.M{"$gt": []interface{}{"$end_at", "$$NOW"}},
+						},
+					},
+				}}},
+				bson.D{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},
+				bson.D{{Key: "$limit", Value: 1}},
+				bson.D{{Key: "$project", Value: bson.M{"end_at": 1}}},
+			},
+			"as": "delegation_info",
+		}}},
+		bson.D{{Key: "$unwind", Value: bson.M{
+			"path":                       "$delegation_info",
+			"preserveNullAndEmptyArrays": true,
+		}}},
+
+		// Stage 4: Lookup last modification action (UPDATE/DELETE/ENABLE/DISABLE after CREATE)
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from": "cps_actions",
+			"let":  bson.M{"ucode": "$user_code"},
+			"pipeline": mongo.Pipeline{
+				bson.D{{Key: "$match", Value: bson.M{
+					"$expr": bson.M{
+						"$and": bson.A{
+							bson.M{"$in": []interface{}{"$request_action", bson.A{
+								"CREATE_CPS_USER", "UPDATE_CPS_USER", "DELETE_CPS_USER",
+								"ENABLE_CPS_USER", "DISABLE_CPS_USER",
+							}}},
+							bson.M{"$eq": []interface{}{"$previous_action.user_code", "$$ucode"}},
+						},
+					},
+				}}},
+				bson.D{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},
+				bson.D{{Key: "$limit", Value: 1}},
+				bson.D{{Key: "$project", Value: bson.M{"request_action": 1, "created_at": 1}}},
+			},
+			"as": "last_modification_info",
+		}}},
+		bson.D{{Key: "$unwind", Value: bson.M{
+			"path":                       "$last_modification_info",
+			"preserveNullAndEmptyArrays": true,
+		}}},
+
+		// Stage 5: Lookup the original CREATE action for created_by and approved_by
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from": "cps_actions",
+			"let":  bson.M{"ucode": "$user_code"},
+			"pipeline": mongo.Pipeline{
+				bson.D{{Key: "$match", Value: bson.M{
+					"$expr": bson.M{
+						"$and": bson.A{
+							bson.M{"$eq": []interface{}{"$request_action", "CREATE_CPS_USER"}},
+							bson.M{"$eq": []interface{}{"$action_status", "APPROVED"}},
+							bson.M{"$eq": []interface{}{"$current_action.user_code", "$$ucode"}},
+						},
+					},
+				}}},
+				bson.D{{Key: "$limit", Value: 1}},
+				bson.D{{Key: "$project", Value: bson.M{"maker_id": 1, "checker_users": 1}}},
+			},
+			"as": "create_action_info",
+		}}},
+		bson.D{{Key: "$unwind", Value: bson.M{
+			"path":                       "$create_action_info",
+			"preserveNullAndEmptyArrays": true,
+		}}},
+
+		// Stage 6: Project into ExportCPSUser shape
+		bson.D{{Key: "$project", Value: bson.M{
+			"_id":                        0,
+			"first_name":                 "$full_name",
+			"phone_number":               1,
+			"email":                      1,
+			"department":                 "$department_info.department",
+			"job_title":                  1,
+			"role":                       1,
+			"username":                   1,
+			"created_at":                 1,
+			"enabled":                    1,
+			"last_login":                 1,
+			"expiry_date_for_delegation": "$delegation_info.end_at",
+			"last_modification_action":   "$last_modification_info.request_action",
+			"last_modified":              "$last_modification_info.created_at",
+			"created_by": bson.M{
+				"$cond": bson.M{
+					"if":   bson.M{"$ne": bson.A{"$create_action_info.maker_id", ""}},
+					"then": "$create_action_info.maker_id",
+					"else": "SSO",
+				},
+			},
+			"approved_by": bson.M{
+				"$ifNull": []interface{}{
+					bson.M{"$arrayElemAt": []interface{}{"$create_action_info.checker_users.checker_id", 0}},
+					"",
+				},
+			},
+		}}},
+	}
+
+	cursor, err := r.collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, local_util.HandleDBError(err)
+	}
+	defer cursor.Close(ctx)
+
+	var users []imodel.ExportCPSUser
+	if err := cursor.All(ctx, &users); err != nil {
+		return nil, local_util.HandleDBError(err)
+	}
+
+	return users, nil
 }
 
 // Implement actual repository methods for CPS action authorization
@@ -127,7 +281,14 @@ func (r *CPSUserStorage) FindByUsername(ctx context.Context, username string) (*
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
 	log.Infof("[CPSUserStorage][FindByUsername] searching for CPS user by username")
-	filter := bson.M{"username": username}
+
+	filter := bson.M{
+		"username": bson.M{
+			"$regex":   "^" + regexp.QuoteMeta(username) + "$",
+			"$options": "i",
+		},
+	}
+
 	result, err := r.dal.FindOne(ctx, filter, nil)
 	if err != nil {
 		log.Errorf("[CPSUserStorage][FindByUsername] failed to find CPS user: %v", err)
@@ -187,12 +348,33 @@ func (r *CPSUserStorage) FindByID(ctx context.Context, id string) (*imodel.CPSUs
 	return result, nil
 }
 
+// FindByID supports both ObjectID and user_code lookups
+func (r *CPSUserStorage) FindByUserID(ctx context.Context, id string) (*imodel.CPSUser, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+	log.Infof("[CPSUserStorage][FindByID] fetching CPS user by id")
+	log.Infof("[CPSUserStorage][FindByID] fetching CPS user by id")
+	obj, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		log.Errorf("[CPSUserStorage][FindByID] failed to convert user id to object id")
+		return nil, localization.ErrorUnexpectedError
+	}
+	filter := bson.M{"_id": obj, "is_deleted": false}
+
+	result, err := r.dal.FindOne(ctx, filter, nil)
+	if err != nil {
+		log.Errorf("[CPSUserStorage][FindByID] failed to find CPS user: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+	log.Infof("[CPSUserStorage][FindByID] CPS user retrieved successfully")
+	return result, nil
+}
+
 func (r *CPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*cpsuser.CPSUserWithDepartment], error) {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
 	searchKeys := bson.M{}
 
-	allowedKeys := []string{"enabled", "department", "role"}
+	allowedKeys := []string{"enabled", "department", "role", "created_at"}
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		searchKeys["$or"] = []bson.M{
@@ -403,7 +585,7 @@ func (r *CPSUserStorage) GetPopulatedWithRole(ctx context.Context, userCode stri
 
 	if !cursor.Next(ctx) {
 		log.Errorf("[CPSUserStorage][GetPopulatedWithRole] CPS user not found")
-		return nil, errors.New(localization.ErrorFileNotFound.Code)
+		return nil, localization.ErrorUserNotFound
 	}
 
 	var resp cpsuser.CpsUserPopulatedResponse
@@ -413,6 +595,36 @@ func (r *CPSUserStorage) GetPopulatedWithRole(ctx context.Context, userCode stri
 	}
 
 	log.Infof("[CPSUserStorage][GetPopulatedWithRole] populated CPS user retrieved successfully")
+	return &resp, nil
+}
+
+func (r *CPSUserStorage) GetPopulatedWithRoleByUserName(ctx context.Context, userName string) (*cpsuser.CpsUserPopulatedResponse, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("[CPSUserStorage][GetPopulatedWithRoleByUserName] fetching populated CPS user")
+	// relatedCollection: [DepartmentsCollection, PermissionCollection, PermissionCategoryCollection, PermissionGroupsCollection, RolesCollection, JobRolesCollection]
+	pipeline := PipelineBuilderWithRoleByUserName(userName, r.relatedCollection[0], r.relatedCollection[4], r.relatedCollection[5])
+
+	cursor, err := r.collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		log.Errorf("[CPSUserStorage][GetPopulatedWithRoleByUserName] failed to aggregate CPS user: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	defer cursor.Close(ctx)
+
+	if !cursor.Next(ctx) {
+		log.Errorf("[CPSUserStorage][GetPopulatedWithRoleByUserName] CPS user not found")
+		return nil, errors.New(localization.ErrorUserNotFound.Code)
+	}
+
+	var resp cpsuser.CpsUserPopulatedResponse
+	if err := cursor.Decode(&resp); err != nil {
+		log.Errorf("[CPSUserStorage][GetPopulatedWithRoleByUserName] failed to decode CPS user response: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	log.Infof("[CPSUserStorage][GetPopulatedWithRoleByUserName] populated CPS user retrieved successfully")
 	return &resp, nil
 }
 

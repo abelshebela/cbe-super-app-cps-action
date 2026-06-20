@@ -114,11 +114,11 @@ type RoleResponse struct {
 }
 
 type CpsUserPopulatedResponse struct {
-	ID                    bson.ObjectID             `json:"id" bson:"_id"` // use primitive.ObjectID instead of bson.ObjectID
-	UserCode              string                    `json:"user_code" bson:"user_code"`
-	FullName              string                    `json:"full_name" bson:"full_name"`
-	Role                  RoleResponse              `json:"role,omitempty" bson:"role"` // optional, can keep empty
-	RoleCode              string                    `json:"role_code" bson:"role_code"`
+	ID       bson.ObjectID `json:"id" bson:"_id"` // use primitive.ObjectID instead of bson.ObjectID
+	UserCode string        `json:"user_code" bson:"user_code"`
+	FullName string        `json:"full_name" bson:"full_name"`
+	Role     RoleResponse  `json:"role,omitempty" bson:"role"` // optional, can keep empty
+	// RoleCode              string                    `json:"role_code" bson:"role_code"`
 	Department            *DepartmentResponse       `json:"department" bson:"department"` // populated via $lookup
 	JobTitle              string                    `json:"job_title" bson:"job_title"`
 	Gender                string                    `json:"gender" bson:"gender"`
@@ -143,6 +143,8 @@ type CpsUserPopulatedResponse struct {
 	PasswordDisable       bool                      `json:"password_disable" bson:"password_disable"`
 	IsFirstTimeLogin      bool                      `json:"is_first_time_login" bson:"is_first_time_login"`
 	CreatedAt             time.Time                 `json:"created_at" bson:"created_at"`
+	IsDelegationActive    bool                      `json:"is_delegation_active" bson:"is_delegation_active"`
+	DelegatedRole         string                    `json:"delegated_role,omitempty" bson:"delegated_role,omitempty"`
 }
 
 type Department struct {

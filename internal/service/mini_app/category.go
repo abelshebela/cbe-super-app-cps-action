@@ -14,6 +14,8 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
+	local_model "cbe-super-app-cps-action/internal/constants/model"
+
 )
 
 type mediaCategoryService struct {
@@ -36,7 +38,7 @@ func (m *mediaCategoryService) Authorize(ctx context.Context, cpsAction *model.C
 
 	log.Infof("[MiniCatSvc][Authorize] action: %s", cpsAction.ActionCode)
 
-	category, err := local_util.JsonUnmarshal[model.MiniAppCategory](cpsAction.CurrentAction)
+	category, err := local_util.JsonUnmarshal[local_model.MiniAppCategory](cpsAction.CurrentAction)
 	if err != nil {
 		span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(
 			attribute.String("error", err.Error()),
@@ -45,6 +47,9 @@ func (m *mediaCategoryService) Authorize(ctx context.Context, cpsAction *model.C
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
 	}
 
+
+
+	
 	switch cpsAction.RequestAction {
 	case string(constants.RequestCreateMiniAppCategory):
 		err = m.repo.Create(ctx, category)

@@ -80,8 +80,10 @@ type PersonalInfo struct {
 	DateOfBirth         string `json:"date_of_birth" bson:"date_of_birth"`                 // customer_kyc.kyc_data
 	MaritalStatus       string `json:"marital_status" bson:"marital_status"`               // customer_kyc.kyc_data
 	Nationality         string `json:"nationality" bson:"nationality"`                     // customer_kyc.kyc_data
-	Branch              string `json:"branch_code" bson:"branch_code"`                     // members
-	BranchName          string `json:"branch_name" bson:"branch_name"`
+	Branch                   string `json:"branch_code" bson:"branch_code"`                                 // members
+	BranchName               string `json:"branch_name" bson:"branch_name"`
+	SupperAppActivatedBranch string `json:"supper_app_activated_branch" bson:"supper_app_activated_branch"` // account_block via branch_code
+	IsBlocked                bool   `json:"is_blocked" bson:"is_blocked"`                                   // members
 	Industry            string `json:"industry" bson:"industry"`                   // core response
 	Ownership           string `json:"ownership" bson:"ownership"`                 // core response
 	Restriction         string `json:"restriction" bson:"restriction"`             // core response

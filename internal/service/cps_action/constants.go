@@ -387,6 +387,14 @@ const (
 	RequestDisableActionRole constants.RequestAction = "DISABLE_ACTION_ROLE"
 	RequestDeleteActionRole  constants.RequestAction = "DELETE_ACTION_ROLE"
 
+	// Action Role Delegation Mapper
+	RequestCreateRoleDelegationWithNewUser      constants.RequestAction = "CREATE_ROLE_DELEGATION_WITH_NEW_USER"
+	RequestCreateRoleDelegationWithExistingUser constants.RequestAction = "CREATE_ROLE_DELEGATION_WITH_EXISTING_USER"
+	RequestUpdateRoleDelegation                 constants.RequestAction = "UPDATE_ROLE_DELEGATION"
+	RequestEnableRoleDelegation                 constants.RequestAction = "ENABLE_ROLE_DELEGATION"
+	RequestDisableRoleDelegation                constants.RequestAction = "DISABLE_ROLE_DELEGATION"
+	RequestDeleteRoleDelegation                 constants.RequestAction = "DELETE_ROLE_DELEGATION"
+
 	RequestCreateCpsActionRole  constants.RequestAction = "CREATE_CPS_ACTION_ROLE"
 	RequestUpdateCpsActionRole  constants.RequestAction = "UPDATE_CPS_ACTION_ROLE"
 	RequestEnableCpsActionRole  constants.RequestAction = "ENABLE_CPS_ACTION_ROLE"
@@ -427,6 +435,28 @@ const (
 	RequestEnableAccessListSegmentation        constants.RequestAction = "ENABLE_ACCESS_LIST_SEGMENTATION_BY_GEOGRAPHIC_LOCATION"
 	RequestDisableAccessListSegmentation       constants.RequestAction = "DISABLE_ACCESS_LIST_SEGMENTATION_BY_GEOGRAPHIC_LOCATION"
 	RequestDeleteServiceKey                    constants.RequestAction = "DELETE_SERVICE_KEY"
+
+	RequestCreateAccountSubType  constants.RequestAction = "CREATE_ACCOUNT_SUB_TYPE"
+	RequestUpdateAccountSubType  constants.RequestAction = "UPDATE_ACCOUNT_SUB_TYPE"
+	RequestDeleteAccountSubType  constants.RequestAction = "DELETE_ACCOUNT_SUB_TYPE"
+	RequestEnableAccountSubType  constants.RequestAction = "ENABLE_ACCOUNT_SUB_TYPE"
+	RequestDisableAccountSubType constants.RequestAction = "DISABLE_ACCOUNT_SUB_TYPE"
+
+	RequestCreateAccountProductCategory  constants.RequestAction = "CREATE_ACCOUNT_PRODUCT_CATEGORY"
+	RequestUpdateAccountProductCategory  constants.RequestAction = "UPDATE_ACCOUNT_PRODUCT_CATEGORY"
+	RequestDeleteAccountProductCategory  constants.RequestAction = "DELETE_ACCOUNT_PRODUCT_CATEGORY"
+	RequestEnableAccountProductCategory  constants.RequestAction = "ENABLE_ACCOUNT_PRODUCT_CATEGORY"
+	RequestDisableAccountProductCategory constants.RequestAction = "DISABLE_ACCOUNT_PRODUCT_CATEGORY"
+
+	RequestCreateAccountProduct  constants.RequestAction = "CREATE_ACCOUNT_PRODUCT"
+	RequestUpdateAccountProduct  constants.RequestAction = "UPDATE_ACCOUNT_PRODUCT"
+	RequestDeleteAccountProduct  constants.RequestAction = "DELETE_ACCOUNT_PRODUCT"
+	RequestEnableAccountProduct  constants.RequestAction = "ENABLE_ACCOUNT_PRODUCT"
+	RequestDisableAccountProduct constants.RequestAction = "DISABLE_ACCOUNT_PRODUCT"
+
+	RequestCreateTermAndCondition constants.RequestAction = "CREATE_TERM_AND_CONDITION"
+	RequestUpdateTermAndCondition constants.RequestAction = "UPDATE_TERM_AND_CONDITION"
+	RequestDeleteTermAndCondition constants.RequestAction = "DELETE_TERM_AND_CONDITION"
 )
 
 var validRequestActions = map[constants.RequestAction]struct{}{
@@ -725,6 +755,14 @@ var validRequestActions = map[constants.RequestAction]struct{}{
 	RequestDisableCpsActionRole: {},
 	RequestDeleteCpsActionRole:  {},
 
+	// Action Role Delegation Mapper
+	RequestCreateRoleDelegationWithExistingUser: {},
+	RequestCreateRoleDelegationWithNewUser:      {},
+	RequestUpdateRoleDelegation:                 {},
+	RequestEnableRoleDelegation:                 {},
+	RequestDisableRoleDelegation:                {},
+	RequestDeleteRoleDelegation:                 {},
+
 	RequestCreateDeviceVersion:        {},
 	RequestUpdateDeviceVersion:        {},
 	RequestEnableDeviceVersion:        {},
@@ -763,6 +801,28 @@ var validRequestActions = map[constants.RequestAction]struct{}{
 	// RequestDeleteCustomerKYC: {},
 
 	RequestEnableDisableBank: {},
+
+	RequestCreateAccountSubType:  {},
+	RequestUpdateAccountSubType:  {},
+	RequestDeleteAccountSubType:  {},
+	RequestEnableAccountSubType:  {},
+	RequestDisableAccountSubType: {},
+
+	RequestCreateAccountProductCategory:  {},
+	RequestUpdateAccountProductCategory:  {},
+	RequestDeleteAccountProductCategory:  {},
+	RequestEnableAccountProductCategory:  {},
+	RequestDisableAccountProductCategory: {},
+
+	RequestCreateAccountProduct:  {},
+	RequestUpdateAccountProduct:  {},
+	RequestDeleteAccountProduct:  {},
+	RequestEnableAccountProduct:  {},
+	RequestDisableAccountProduct: {},
+
+	RequestCreateTermAndCondition: {},
+	RequestUpdateTermAndCondition: {},
+	RequestDeleteTermAndCondition: {},
 }
 
 func IsValidRequestAction(requestAction string) bool {
@@ -989,6 +1049,32 @@ var RequestActionGroups = map[string][]constants.RequestAction{
 		RequestEnableBank,
 		RequestDisableBank,
 	},
+	"ACCOUNTSUBTYPE": {
+		RequestCreateAccountSubType,
+		RequestUpdateAccountSubType,
+		RequestDeleteAccountSubType,
+		RequestEnableAccountSubType,
+		RequestDisableAccountSubType,
+	},
+	"ACCOUNTPRODUCTCATEGORY": {
+		RequestCreateAccountProductCategory,
+		RequestUpdateAccountProductCategory,
+		RequestDeleteAccountProductCategory,
+		RequestEnableAccountProductCategory,
+		RequestDisableAccountProductCategory,
+	},
+	"ACCOUNTPRODUCT": {
+		RequestCreateAccountProduct,
+		RequestUpdateAccountProduct,
+		RequestDeleteAccountProduct,
+		RequestEnableAccountProduct,
+		RequestDisableAccountProduct,
+	},
+	"TERMANDCONDITION": {
+		RequestCreateTermAndCondition,
+		RequestUpdateTermAndCondition,
+		RequestDeleteTermAndCondition,
+	},
 	"WALLET": {
 		RequestCreateWallet,
 		RequestUpdateWallet,
@@ -1024,21 +1110,6 @@ var RequestActionGroups = map[string][]constants.RequestAction{
 		RequestEnableRole,
 		RequestDisableRole,
 	},
-	// "BLOCK": {
-	// 	RequestBlockUser,
-	// 	RequestDisableSingleBranch,
-	// 	RequestEnableSingleBranch,
-	// 	RequestDisableMultiBranches,
-	// 	RequestEnableMultiBranches,
-	// 	RequestEnableBranches,
-	// 	RequestDisableBranches,
-	// 	RequestEnableRegions,
-	// 	RequestDisableRegions,
-	// 	RequestEnableDistricts,
-	// 	RequestDisableDistricts,
-	// 	RequestEnableCities,
-	// 	RequestDisableCities,
-	// },
 	"BUDGETCATEGORY": {
 		RequestCreateBudgetCategory,
 		RequestUpdateBudgetCategory,
@@ -1166,6 +1237,16 @@ var RequestActionGroups = map[string][]constants.RequestAction{
 	// 	RequestEnableActionRole,
 	// 	RequestDisableActionRole,
 	// },
+
+	"ROLEDELEGATION": {
+		RequestCreateRoleDelegationWithNewUser,
+		RequestCreateRoleDelegationWithExistingUser,
+		RequestUpdateRoleDelegation,
+		RequestEnableRoleDelegation,
+		RequestDisableRoleDelegation,
+		RequestDeleteRoleDelegation,
+	},
+
 	"CPSACTIONROLE": {
 		RequestCreateCpsActionRole,
 		RequestUpdateCpsActionRole,
@@ -1173,6 +1254,7 @@ var RequestActionGroups = map[string][]constants.RequestAction{
 		RequestDisableCpsActionRole,
 		RequestDeleteCpsActionRole,
 	},
+
 	"DEVICEVERSION": {
 		RequestCreateDeviceVersion,
 		RequestUpdateDeviceVersion,

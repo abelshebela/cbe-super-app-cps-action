@@ -11,7 +11,7 @@ import (
 	"encoding/json"
 
 	"cbe-super-app-cps-action/internal/service"
-	util "cbe-super-app-cps-action/pkgs/utils"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"net/http"
 
 	member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
@@ -45,16 +45,16 @@ type customerAdapter struct {
 //	@Security		BearerAuth
 //	@Router			/customers/action_log/{id} [get]
 func (c *customerAdapter) GetCustomerActionLogByID(w http.ResponseWriter, r *http.Request) {
-	ctx, span := util.TraceLogger(r.Context(), "handler", "getCustomerActionLogByID", "handler", "customer")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getCustomerActionLogByID", "handler", "customer")
 	defer span.End()
-	log := util.LoggerFromCtx(ctx, c.logger)
+	log := local_util.LoggerFromCtx(ctx, c.logger)
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		log.Errorf("[CustomerH] id not set")
 		localization.SendBadRequestResponse(w, localization.ErrorIdNotSetOnQueryParam.Code)
 		return
 	}
-	filterParams := util.ExtractFilterParams(r)
+	filterParams := local_util.ExtractFilterParams(r)
 
 	span.SetAttributes(attribute.String("customer.id", id))
 	actionLogs, err := c.customerService.GetCustomerActionLogByID(ctx, id, *filterParams)
@@ -88,9 +88,9 @@ func InitCustomerAdapter(customer service.CustomerService, logger utils.Logger) 
 //	@Security		BearerAuth
 //	@Router			/customers/enable/{id} [patch]
 func (c *customerAdapter) SetEnableCustomerSession(w http.ResponseWriter, r *http.Request) {
-	ctx, span := util.TraceLogger(r.Context(), "handler", "setEnableCustomerSession", "handler", "customer")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "setEnableCustomerSession", "handler", "customer")
 	defer span.End()
-	log := util.LoggerFromCtx(ctx, c.logger)
+	log := local_util.LoggerFromCtx(ctx, c.logger)
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		log.Errorf("[CustomerH] id not set")
@@ -101,6 +101,7 @@ func (c *customerAdapter) SetEnableCustomerSession(w http.ResponseWriter, r *htt
 	span.SetAttributes(attribute.String("customer.id", id))
 	otp, err := c.customerService.CreateEnableCustomerSession(ctx, id)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[SetEnableCustomerSession] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -130,9 +131,9 @@ func (c *customerAdapter) SetEnableCustomerSession(w http.ResponseWriter, r *htt
 //	@Security		BearerAuth
 //	@Router			/customers/disable/{id} [patch]
 func (c *customerAdapter) DisableCustomer(w http.ResponseWriter, r *http.Request) {
-	ctx, span := util.TraceLogger(r.Context(), "handler", "disableCustomer", "handler", "customer")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableCustomer", "handler", "customer")
 	defer span.End()
-	log := util.LoggerFromCtx(ctx, c.logger)
+	log := local_util.LoggerFromCtx(ctx, c.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	localization.UpdateWriterContext(w, ctx)
@@ -164,6 +165,7 @@ func (c *customerAdapter) DisableCustomer(w http.ResponseWriter, r *http.Request
 	span.SetAttributes(attribute.String("customer.id", id))
 	err := c.customerService.DisableCustomerByID(ctx, id, payload)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[DisableCustomer] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -189,9 +191,9 @@ func (c *customerAdapter) DisableCustomer(w http.ResponseWriter, r *http.Request
 //	@Security		BearerAuth
 //	@Router			/customers/enable_otp_verify/{id} [patch]
 func (c *customerAdapter) EnableCustomer(w http.ResponseWriter, r *http.Request) {
-	ctx, span := util.TraceLogger(r.Context(), "handler", "enableCustomer", "handler", "customer")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableCustomer", "handler", "customer")
 	defer span.End()
-	log := util.LoggerFromCtx(ctx, c.logger)
+	log := local_util.LoggerFromCtx(ctx, c.logger)
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		log.Errorf("[CustomerH] id not set")
@@ -209,6 +211,7 @@ func (c *customerAdapter) EnableCustomer(w http.ResponseWriter, r *http.Request)
 	span.SetAttributes(attribute.String("customer.id", id))
 	err := c.customerService.EnableCustomerByID(ctx, id, payload.UserOTP)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[EnableCustomer] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -241,21 +244,21 @@ func (c *customerAdapter) EnableCustomer(w http.ResponseWriter, r *http.Request)
 //	@Security		BearerAuth
 //	@Router			/customers [get]
 func (c customerAdapter) GetCustomerDetail(w http.ResponseWriter, r *http.Request) {
-	ctx, span := util.TraceLogger(r.Context(), "handler", "getCustomerDetail", "handler", "customer")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getCustomerDetail", "handler", "customer")
 	defer span.End()
-	log := util.LoggerFromCtx(ctx, c.logger)
-	filterParams := util.ExtractFilterParams(r)
+	log := local_util.LoggerFromCtx(ctx, c.logger)
+	filterParams := local_util.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
 
-	if err := util.NoSpecialChars(search); err != nil {
+	if err := local_util.NoSpecialChars(search); err != nil {
 		log.Errorf("[GetCustomerDetail] invalid search query: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	if err := util.NoSpecialChars(filter); err != nil {
+	if err := local_util.NoSpecialChars(filter); err != nil {
 		log.Errorf("[GetCustomerDetail] invalid filter query: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -289,9 +292,9 @@ func (c customerAdapter) GetCustomerDetail(w http.ResponseWriter, r *http.Reques
 //	@Security		BearerAuth
 //	@Router			/customers/{id} [get]
 func (c customerAdapter) GetCustomerByID(w http.ResponseWriter, r *http.Request) {
-	ctx, span := util.TraceLogger(r.Context(), "handler", "getCustomerById", "handler", "customer")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getCustomerById", "handler", "customer")
 	defer span.End()
-	log := util.LoggerFromCtx(ctx, c.logger)
+	log := local_util.LoggerFromCtx(ctx, c.logger)
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		log.Errorf("[CustomerH] id not set")
@@ -333,21 +336,21 @@ func (c customerAdapter) GetCustomerByID(w http.ResponseWriter, r *http.Request)
 //	@Security		BearerAuth
 //	@Router			/customers/blocked [get]
 func (c customerAdapter) GetBlockedCustomer(w http.ResponseWriter, r *http.Request) {
-	ctx, span := util.TraceLogger(r.Context(), "handler", "getBlockedCustomer", "handler", "customer")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getBlockedCustomer", "handler", "customer")
 	defer span.End()
-	log := util.LoggerFromCtx(ctx, c.logger)
-	filterParams := util.ExtractFilterParams(r)
+	log := local_util.LoggerFromCtx(ctx, c.logger)
+	filterParams := local_util.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
 
-	if err := util.NoSpecialChars(search); err != nil {
+	if err := local_util.NoSpecialChars(search); err != nil {
 		log.Errorf("[GetBlockedCustomer] invalid search query: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	if err := util.NoSpecialChars(filter); err != nil {
+	if err := local_util.NoSpecialChars(filter); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -378,9 +381,9 @@ func (c customerAdapter) GetBlockedCustomer(w http.ResponseWriter, r *http.Reque
 //	@Security		BearerAuth
 //	@Router			/customers/linked_account/{user_id} [get]
 func (c customerAdapter) GetLinkedAccount(w http.ResponseWriter, r *http.Request) {
-	ctx, span := util.TraceLogger(r.Context(), "handler", "getLinkedAccount", "handler", "customer")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getLinkedAccount", "handler", "customer")
 	defer span.End()
-	log := util.LoggerFromCtx(ctx, c.logger)
+	log := local_util.LoggerFromCtx(ctx, c.logger)
 	id := chi.URLParam(r, "user_id")
 	if id == "" {
 		log.Errorf("[CustomerH][GetByUserId] user_id not set")
@@ -415,9 +418,9 @@ func (c customerAdapter) GetLinkedAccount(w http.ResponseWriter, r *http.Request
 //	@Security		BearerAuth
 //	@Router			/customers/fayda/enable/{id} [patch]
 func (c customerAdapter) ApproveFaydaCustomer(w http.ResponseWriter, r *http.Request) {
-	ctx, span := util.TraceLogger(r.Context(), "handler", "approveFaydaCustomer", "handler", "customer")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "approveFaydaCustomer", "handler", "customer")
 	defer span.End()
-	log := util.LoggerFromCtx(ctx, c.logger)
+	log := local_util.LoggerFromCtx(ctx, c.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	localization.UpdateWriterContext(w, ctx)
@@ -441,6 +444,7 @@ func (c customerAdapter) ApproveFaydaCustomer(w http.ResponseWriter, r *http.Req
 	}
 	span.SetAttributes(attribute.String("customer.id", id))
 	if err := c.customerService.ApproveFaydaCustomer(ctx, id, req); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[ApproveFaydaCustomer] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -466,9 +470,9 @@ func (c customerAdapter) ApproveFaydaCustomer(w http.ResponseWriter, r *http.Req
 //	@Security		BearerAuth
 //	@Router			/customers/account_lookup/{number} [get]
 func (c customerAdapter) SearchCustomerByCIForAccountNumber(w http.ResponseWriter, r *http.Request) {
-	ctx, span := util.TraceLogger(r.Context(), "handler", "searchCustomerByCIForAccountNumber", "handler", "customer")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "searchCustomerByCIForAccountNumber", "handler", "customer")
 	defer span.End()
-	log := util.LoggerFromCtx(ctx, c.logger)
+	log := local_util.LoggerFromCtx(ctx, c.logger)
 
 	number := chi.URLParam(r, "number")
 	if number == "" {
@@ -507,7 +511,7 @@ func (c customerAdapter) SearchCustomerByCIForAccountNumber(w http.ResponseWrite
 //	@Security		BearerAuth
 //	@Router			/customers/detail/{id} [get]
 func (c *customerAdapter) GetCustomerDetailByID(w http.ResponseWriter, r *http.Request) {
-	log := util.LoggerFromCtx(r.Context(), c.logger)
+	log := local_util.LoggerFromCtx(r.Context(), c.logger)
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		log.Errorf("[CustomerH] id not set")

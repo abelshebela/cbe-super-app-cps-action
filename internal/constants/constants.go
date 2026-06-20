@@ -195,6 +195,13 @@ const (
 	Ios     Platform = "IOS"
 )
 
+type AccountCategory string
+
+const (
+	SavingsAccountCategory AccountCategory = "SAVINGS"
+	CurrentAccountCategory AccountCategory = "CURRENT"
+)
+
 // ---------------------------------------------------------------------------
 // Vault Status
 // ---------------------------------------------------------------------------
@@ -669,6 +676,14 @@ const (
 	RequestEnableRole  string = "ENABLE_ROLE"
 	RequestDisableRole string = "DISABLE_ROLE"
 
+	// Role Delegation
+	RequestCreateRoleDelegationForExistingUser string = "CREATE_ROLE_DELEGATION_WITH_EXISTING_USER"
+	RequestCreateRoleDelegationForNewUser      string = "CREATE_ROLE_DELEGATION_WITH_NEW_USER"
+	RequestUpdateRoleDelegation                string = "UPDATE_ROLE_DELEGATION"
+	RequestDeleteRoleDelegation                string = "DELETE_ROLE_DELEGATION"
+	RequestEnableRoleDelegation                string = "ENABLE_ROLE_DELEGATION"
+	RequestDisableRoleDelegation               string = "DISABLE_ROLE_DELEGATION"
+
 	// USSD Merchant
 	RequestCreateUssdMerchant  string = "CREATE_USSD_MERCHANT"
 	RequestUpdateUssdMerchant  string = "UPDATE_USSD_MERCHANT"
@@ -764,6 +779,13 @@ const (
 	RequestDisableAdvert RequestAction = "DISABLE_ADVERT"
 	RequestDeleteAdvert  RequestAction = "DELETE_ADVERT"
 
+	// Account Sub Type
+	RequestCreateAccountSubType  RequestAction = "CREATE_ACCOUNT_SUB_TYPE"
+	RequestUpdateAccountSubType  RequestAction = "UPDATE_ACCOUNT_SUB_TYPE"
+	RequestDeleteAccountSubType  RequestAction = "DELETE_ACCOUNT_SUB_TYPE"
+	RequestEnableAccountSubType  RequestAction = "ENABLE_ACCOUNT_SUB_TYPE"
+	RequestDisableAccountSubType RequestAction = "DISABLE_ACCOUNT_SUB_TYPE"
+
 	// Bank
 	RequestCreateBank     RequestAction = "CREATE_BANK"
 	RequestUpdateBank     RequestAction = "UPDATE_BANK"
@@ -778,7 +800,8 @@ const (
 	RequestEnableDeviceVersion        RequestAction = "ENABLE_DEVICE_VERSION"
 	RequestDisableDeviceVersion       RequestAction = "DISABLE_DEVICE_VERSION"
 	RequestDeleteDeviceVersion        RequestAction = "DELETE_DEVICE_VERSION"
-	RequestEnableDisableDeviceVersion RequestAction = "ENABLE_DISABLE_DEVICE_VERSION"
+	RequestEnableDisableDeviceVersion  RequestAction = "ENABLE_DISABLE_DEVICE_VERSION"
+	RequestSetDeviceStateDeviceVersion RequestAction = "SET_DEVICE_STATE_DEVICE_VERSION"
 
 	// Customer
 	RequestEnableDisableCustomer RequestAction = "ENABLE_DISABLE_CUSTOMER"
@@ -935,6 +958,25 @@ const (
 	RequestDeleteBankVault  RequestAction = "DELETE_VAULT_BANK"
 	RequestEnableBankVault  RequestAction = "ENABLE_VAULT_BANK"
 	RequestDisAbleBankVault RequestAction = "DISABLE_VAULT_BANK"
+
+	// Account Product Category
+	RequestCreateAccountProductCategory  RequestAction = "CREATE_ACCOUNT_PRODUCT_CATEGORY"
+	RequestUpdateAccountProductCategory  RequestAction = "UPDATE_ACCOUNT_PRODUCT_CATEGORY"
+	RequestDeleteAccountProductCategory  RequestAction = "DELETE_ACCOUNT_PRODUCT_CATEGORY"
+	RequestEnableAccountProductCategory  RequestAction = "ENABLE_ACCOUNT_PRODUCT_CATEGORY"
+	RequestDisableAccountProductCategory RequestAction = "DISABLE_ACCOUNT_PRODUCT_CATEGORY"
+
+	// Account Product
+	RequestCreateAccountProduct  RequestAction = "CREATE_ACCOUNT_PRODUCT"
+	RequestUpdateAccountProduct  RequestAction = "UPDATE_ACCOUNT_PRODUCT"
+	RequestDeleteAccountProduct  RequestAction = "DELETE_ACCOUNT_PRODUCT"
+	RequestEnableAccountProduct  RequestAction = "ENABLE_ACCOUNT_PRODUCT"
+	RequestDisableAccountProduct RequestAction = "DISABLE_ACCOUNT_PRODUCT"
+
+	// Term and Condition
+	RequestCreateTermAndCondition RequestAction = "CREATE_TERM_AND_CONDITION"
+	RequestUpdateTermAndCondition RequestAction = "UPDATE_TERM_AND_CONDITION"
+	RequestDeleteTermAndCondition RequestAction = "DELETE_TERM_AND_CONDITION"
 
 	// Vault Amount Tier
 	RequestCreateVaultAmountTier  RequestAction = "CREATE_VAULT_AMOUNT_TIER"
@@ -1248,6 +1290,8 @@ const (
 	TopupFolderName            ImageFolderName = "topups"
 	VaultCategoryFolderName    ImageFolderName = "vault_categories"
 	CustomerKYCFolderName      ImageFolderName = "customer_kyc"
+	AccountProductFolderName   ImageFolderName = "account_products"
+	TermAndConditionFolderName ImageFolderName = "term_and_conditions"
 )
 
 // ---------------------------------------------------------------------------

@@ -94,15 +94,7 @@ func (c *customerKYCAdapter) GetAllKYCRequests(w http.ResponseWriter, r *http.Re
 
 	filterParam := util.ExtractFilterParams(r)
 
-	search := r.URL.Query().Get("search")
-	filter := r.URL.Query().Get("filter")
-
-	if err := util.NoSpecialChars(search); err != nil {
-		localization.SendErrorByCodeResponse(w, err.Error())
-		return
-	}
-
-	if err := util.NoSpecialChars(filter); err != nil {
+	if err := util.NoSpecialChars(filterParam.Search); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -168,6 +160,7 @@ func (c *customerKYCAdapter) ApproveKycRequest(w http.ResponseWriter, r *http.Re
 	}
 
 	if err := c.svc.EnableOrDisable(ctx, id, "", true); err != nil {
+		w = util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[ApproveKycRequest] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -214,6 +207,7 @@ func (c *customerKYCAdapter) RejectKycRequest(w http.ResponseWriter, r *http.Req
 	}
 
 	if err := c.svc.EnableOrDisable(ctx, id, req.Reason, false); err != nil {
+		w = util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[RejectKycRequest] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -331,6 +325,7 @@ func (c *customerKYCAdapter) StartKycReview(w http.ResponseWriter, r *http.Reque
 
 	newReview, err := c.svc.StartKycReview(ctx, id)
 	if err != nil {
+		w = util.HandlePendingResponseError(ctx, w, err)
 		log.Errorf("[StartKycReview] failed to start KYC review: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -359,6 +354,7 @@ func (c *customerKYCAdapter) PickKycReview(w http.ResponseWriter, r *http.Reques
 
 	err := c.svc.PickKycReview(ctx, id, req.Reason)
 	if err != nil {
+		w = util.HandlePendingResponseError(ctx, w, err)
 		log.Errorf("[PickKycReview] failed to pick KYC review: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return

@@ -96,8 +96,8 @@ func ConvertToResponseDTO(portalCard []string, user *cpsuser.CpsUserPopulatedRes
 			Code: user.Role.Code,
 			Name: user.Role.Name,
 		},
-		Department:            user.Department,
-		RoleCode:              user.RoleCode,
+		Department: user.Department,
+		// RoleCode:              user.RoleCode,
 		Gender:                user.Gender,
 		PhoneNumber:           user.PhoneNumber,
 		Email:                 user.Email,
@@ -227,11 +227,11 @@ func MapForActionWithDepartment(user imodel.CPSUser, department *model.Departmen
 	}
 
 	return cpsuser.CpsUserPopulatedResponse{
-		ID:               user.ID,
-		UserCode:         user.UserCode,
-		FullName:         user.FullName,
-		Role:             cpsuser.RoleResponse{Name: user.Role},
-		RoleCode:         user.Role,
+		ID:       user.ID,
+		UserCode: user.UserCode,
+		FullName: user.FullName,
+		Role:     cpsuser.RoleResponse{Name: user.Role},
+		// RoleCode:         user.Role,
 		Department:       deptResp,
 		JobTitle:         user.JobTitle,
 		Gender:           user.Gender,

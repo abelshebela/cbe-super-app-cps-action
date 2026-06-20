@@ -39,6 +39,10 @@ type CoreAccountLookupAdapter struct {
 }
 
 func NewCoreAccountLookupAdapter(coreAPI core.CBECoreAPIInterface, baseUrl string, timeout time.Duration, logger utils.Logger) Account {
+	if timeout <= 0 {
+		timeout = 30 * time.Second
+	}
+
 	return &CoreAccountLookupAdapter{
 		coreAPI:        coreAPI,
 		BaseUrl:        baseUrl,
@@ -76,7 +80,7 @@ func (a *CoreAccountLookupAdapter) LookupAccountByAccountNumber(ctx context.Cont
 
 	}()
 
-	response, err := a.coreAPI.NameLookup(core.NameLookupParam{
+	response, err := a.coreAPI.NameLookup(ctx, core.NameLookupParam{
 		AccountNumber: account.AccountNumber,
 	})
 
@@ -122,7 +126,11 @@ func (a *CoreAccountLookupAdapter) LookupAccountByAccountNumberFromBps(ctx conte
 }
 
 func (a *CoreAccountLookupAdapter) CreateAccountWithFayda(ctx context.Context, account accountLookup.AccountCreateParams) (types.Account, error) {
-	res, _, err := BPSBankingClient(ctx, a.Client, constants.WithFayda, account, a.BaseUrl+a.FaydaUrlPath)
+	url := a.BaseUrl + a.FaydaUrlPath
+
+	a.Logger.Infof("[AccountLookup][CreateAccountWithFayda] creating account through core URL: %s", url)
+
+	res, _, err := BPSBankingClient(ctx, a.Client, constants.WithFayda, account, url)
 	if err != nil {
 		a.Logger.Errorf("Failed to create account with Fayda: %v", err)
 		return types.Account{}, err
@@ -141,10 +149,11 @@ func (a *CoreAccountLookupAdapter) CreateAccountWithFayda(ctx context.Context, a
 
 func (s *CoreAccountLookupAdapter) CifSearch(ctx context.Context, cif string) ([]imodel.AccountData, error) {
 
-	search, err := s.coreAPI.AccountList(core.AccountListParam{
+	search, err := s.coreAPI.AccountList(ctx, core.AccountListParam{
 		ColumnName:    "CUS.ID",
 		CriteriaValue: cif,
 	})
+
 	if err != nil {
 		s.Logger.Errorf("[AccountLookup][CifSearch] failed to search CIF: %v", err)
 		return nil, err
