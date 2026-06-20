@@ -139,6 +139,7 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 				Name:     actionData.BankName,
 				BICCode:  actionData.BICCode,
 				ImageURL: actionData.Logo,
+				IsCBE:    actionData.IS_CBE == 1,
 			})
 			if err := b.catch.SetAll(ctx, banks); err != nil {
 				log.Errorf("[BankSvc][Authorize] cache set all err: %v", err)
@@ -273,6 +274,7 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 						Name:     actionData.BankName,
 						BICCode:  actionData.BICCode,
 						ImageURL: actionData.Logo,
+						IsCBE:    actionData.IS_CBE == 1,
 					})
 				} else {
 					newBanks = append(newBanks, bank)
