@@ -440,6 +440,9 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 		userAccount, err := core.CreateAccountToCore(ctx, data, s.accountService, s.coreio, s.cfg, s.logger)
 		if err != nil {
 			log.Errorf("[CustKycSvc][Authorize] core account creation failed: %v", err)
+			if strings.Contains(err.Error(), "customer creation failed") {
+				return nil, errors.New(localization.ErrorCustomerCreationOnCoreFailed.Code)
+			}
 			return nil, err
 		}
 
