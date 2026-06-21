@@ -444,6 +444,8 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 		}
 
 		log.Infof("[CustKycSvc][Authorize] core account created for customer: %+v", userAccount)
+		log.Infof("[CustKycSvc][Authorize] saving user account to database for customer: %+v", userAccount.AccountCreationDetail.Detail)
+		log.Infof("[CustKycSvc][Authorize] saving user account to database for customer: %+v", userAccount.CustomerCreationDetail.Detail)
 
 		if err = s.repo.CreateUser(ctx, userAccount.CustomerCreationDetail, *userData); err != nil {
 			return nil, err
