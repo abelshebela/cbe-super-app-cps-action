@@ -443,7 +443,7 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 			return nil, err
 		}
 
-		log.Infof("[CustKycSvc][Authorize] core account created for customer: %s", userAccount)
+		log.Infof("[CustKycSvc][Authorize] core account created for customer: %+v", userAccount)
 
 		if err = s.repo.CreateUser(ctx, userAccount.CustomerCreationDetail, *userData); err != nil {
 			return nil, err
