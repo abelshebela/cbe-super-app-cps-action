@@ -31,7 +31,7 @@ func TestIntegration_Authorize_RealAccountCreation(t *testing.T) {
 
 	cfg, err := config.Load()
 	if err != nil {
-		t.Fatalf("config.Load: %v", err)
+		t.Skipf("config.Load failed (Vault unreachable or misconfigured): %v", err)
 	}
 
 	logger := noopLogger{}
