@@ -119,11 +119,13 @@ func (r *customerKYCRepository) FindByID(ctx context.Context, id string) (*imode
 
 	return result, nil
 }
-func (r *customerKYCRepository) CreateUser(ctx context.Context, userAccount *coreio.CreateCustomerResult, userData imodel.CustomerKYC) error {
+func (r *customerKYCRepository) CreateUser(ctx context.Context, userAccount *coreio.CusteomerAccountCreationResponse, userData imodel.CustomerKYC) error {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
-	detail := userAccount.Detail
-	userCode := "SA" + detail.Customer
+	detail := userAccount.CustomerCreationDetail.Detail
+	accountDetail := userAccount.AccountCreationDetail.Detail
+	customerNumber := detail.CustomerNumber
+	userCode := "SA" + customerNumber
 
 	var firstName, middleName, lastName string
 	nameParts := strings.Fields(detail.FullName)
@@ -190,11 +192,11 @@ INSERT INTO USERS (
 	}
 
 	_, err = tx.ExecContext(ctx, insertUserQ,
-		userCode,           // :1  USER_CODE
-		username,           // :2  USERNAME
-		detail.Email,       // :3  CONTACT_EMAIL
+		userCode,          // :1  USER_CODE
+		username,          // :2  USERNAME
+		detail.Email,      // :3  CONTACT_EMAIL
 		detail.PhoneNumber, // :4  CONTACT_PHONE
-		detail.Customer,    // :5  CUSTOMER_NUMBER
+		customerNumber,    // :5  CUSTOMER_NUMBER
 
 		detail.Industry,  // :6  SECTOR
 		detail.Ownership, // :7  OWNERSHIP
@@ -246,18 +248,18 @@ INSERT INTO ACCOUNTS (
 	_, err = tx.ExecContext(ctx, insertAccountQ,
 		sql.Named("bank_id", bankID),
 		sql.Named("holder_name", detail.FullName),
-		sql.Named("account_number", detail.Customer),
+		sql.Named("account_number", accountDetail.AccountNumber),
 		sql.Named("currency", currency),
 		sql.Named("account_type", userData.KYCData.AccountType),
 		sql.Named("branch", detail.AccountOfficer),
-		sql.Named("customer_number", detail.Customer),
+		sql.Named("customer_number", customerNumber),
 		sql.Named("id", sql.Out{Dest: &accountID}),
 	)
 	if err != nil {
 		log.Errorf("[customerKYCRepository][CreateUser] account insert: %v", err)
 		return local_util.HandleDBError(err)
 	}
-	log.Infof("[customerKYCRepository][CreateUser] account created: id=%s number=%s", accountID, detail.Customer)
+	log.Infof("[customerKYCRepository][CreateUser] account created: id=%s number=%s", accountID, accountDetail.AccountNumber)
 
 	// ── 4. INSERT into LINKED_ACCOUNTS ────────────────────────────────────
 	const insertLinkedQ = `
