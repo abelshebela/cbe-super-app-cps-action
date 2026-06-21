@@ -134,7 +134,7 @@ func (m *mockKYCRepo) FindAllWithPagination(_ context.Context, _ types.Filter) (
 func (m *mockKYCRepo) FindByID(_ context.Context, _ string) (*imodel.CustomerKYC, error) {
 	return m.kyc, m.findByIDErr
 }
-func (m *mockKYCRepo) CreateUser(_ context.Context, _ *coreio.CreateCustomerResult, _ imodel.CustomerKYC) error {
+func (m *mockKYCRepo) CreateUser(_ context.Context, _ *coreio.CusteomerAccountCreationResponse, _ imodel.CustomerKYC) error {
 	return m.createUserErr
 }
 func (m *mockKYCRepo) UpdateKYCStatus(_ context.Context, _, _, _ string, _ bool) error {
