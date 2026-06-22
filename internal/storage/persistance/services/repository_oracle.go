@@ -1360,8 +1360,8 @@ WHERE id = HEXTORAW(:6) AND service_key = :7`
 		serviceList.ServiceName,
 		serviceList.ServiceKey,
 		serviceList.AccountType,
-		serviceList.IsUSSDEnabled,
-		serviceList.IsSuperAppEnabled,
+		boolToOracleNumber(serviceList.IsUSSDEnabled),
+		boolToOracleNumber(serviceList.IsSuperAppEnabled),
 		id,
 		serviceKey,
 	)
