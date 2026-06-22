@@ -36,7 +36,7 @@ type roleDelegation struct {
 	cpsService   service.CPSActionService
 	branchRepo   storage.AccountBlockRepository
 	minioClient  *s3.Client
-	kafkaClient  kafka.NotificationProducer
+	kafkaClient  *kafka.NotificationProducer
 	bucketName   string
 	cfg          config.VaultConfig
 	logger       utils.Logger
@@ -661,7 +661,7 @@ func roleDelegationEmailBody(roleDelegation imodel.RoleDelegation) string {
 	)
 }
 
-func NewRoleDelegationService(repo storage.RoleDelegationRepository, jobTitleRepo storage.JobRoleRepository, cpsUserRepo storage.CpsUserRepository, bpsUserRepo storage.BPSUserRepository, department storage.DepartmentRepository, roleRepo storage.RoleRepository, branchRepo storage.AccountBlockRepository, cpsService service.CPSActionService, minioClient *s3.Client, bucketName string, cfg config.VaultConfig, logger utils.Logger) service.RoleDelegationService {
+func NewRoleDelegationService(repo storage.RoleDelegationRepository, jobTitleRepo storage.JobRoleRepository, cpsUserRepo storage.CpsUserRepository, bpsUserRepo storage.BPSUserRepository, department storage.DepartmentRepository, roleRepo storage.RoleRepository, branchRepo storage.AccountBlockRepository, cpsService service.CPSActionService, minioClient *s3.Client, bucketName string, cfg config.VaultConfig, kafkaProducer *kafka.NotificationProducer, logger utils.Logger) service.RoleDelegationService {
 	return &roleDelegation{
 		cpsService:   cpsService,
 		repo:         repo,
@@ -670,6 +670,7 @@ func NewRoleDelegationService(repo storage.RoleDelegationRepository, jobTitleRep
 		cpsUserRepo:  cpsUserRepo,
 		bpsUserRepo:  bpsUserRepo,
 		branchRepo:   branchRepo,
+		kafkaClient:  kafkaProducer,
 		department:   department,
 		minioClient:  minioClient,
 		bucketName:   bucketName,

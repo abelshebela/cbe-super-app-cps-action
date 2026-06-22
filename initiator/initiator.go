@@ -27,7 +27,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/go-chi/chi/v5"
 	"github.com/hugokessem/coreio/core"
-	
 )
 
 func Init(ctx context.Context) {
@@ -169,7 +168,7 @@ func Init(ctx context.Context) {
 
 	logger.Infof("initialize service layer")
 
-	serviceLayer := InitServiceLayer(mongoClient, persistence, OraclePersistence, coreInterface, logger, sitotagRPCClient, cfg, minioClient, redisRepository, smsService, clientOrchestrationProducer, presignClient, queueInfra.Manager, sharedRedis, zapLogger)
+	serviceLayer := InitServiceLayer(mongoClient, persistence, OraclePersistence, coreInterface, logger, sitotagRPCClient, cfg, minioClient, redisRepository, smsService, notificationProducer, clientOrchestrationProducer, presignClient, queueInfra.Manager, sharedRedis, zapLogger)
 
 	go func() {
 		if err := InitFeedbackConsumer(serviceLayer.Feedback, cfg, logger); err != nil {
