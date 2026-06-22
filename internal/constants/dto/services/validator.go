@@ -326,6 +326,8 @@ func (r CreateServiceList) Validate() error {
 		validation.Field(&r.ServiceKey, validation.Required, validation.By(utils.NoSpecialChars)),
 		validation.Field(&r.ServiceName, validation.Required, validation.By(utils.NoSpecialChars)),
 		validation.Field(&r.AccountType, validation.Required, validation.By(utils.NoSpecialChars)),
+		validation.Field(&r.IsSuperAppEnabled, validation.Required),
+		validation.Field(&r.IsUSSDEnabled, validation.Required),
 	)
 }
 
