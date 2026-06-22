@@ -55,7 +55,7 @@ func (n *NotificationStorage) Create(ctx context.Context, notification *model.No
 	}
 
 	inAppMessage := shared_notification.BroadcastInAppNotification{
-		BroadcastType:     shared_constants.BOTH,
+		BroadcastType:     shared_constants.BroadcastType(newNotification.For),
 		BroadcastCategory: shared_constants.BroadcastCategoryOther,
 		Title:             newNotification.Title,
 		Message:           newNotification.NotificationBody,
