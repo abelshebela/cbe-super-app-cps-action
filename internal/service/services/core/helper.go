@@ -10,6 +10,7 @@ import (
 	"context"
 	"log"
 	"strconv"
+	"strings"
 	"time"
 	// shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -168,17 +169,33 @@ func MapToServiceUpdateModel(req service_dto.UpdateServiceRequest, existing serv
 
 func MapServiceListDtoToModel(req *service_dto.CreateServiceList) imodel.ServiceKey {
 	return imodel.ServiceKey{
-		ServiceName: req.ServiceName,
-		ServiceKey:  req.ServiceKey,
-		AccountType: req.AccountType,
+		ServiceName:       req.ServiceName,
+		ServiceKey:        req.ServiceKey,
+		AccountType:       req.AccountType,
+		IsSuperAppEnabled: *req.IsSuperAppEnabled,
+		IsUSSDEnabled:     *req.IsUSSDEnabled,
 	}
 }
 
-func MapServiceListDtoUpdateToModel(req *service_dto.UpdateServiceList) imodel.ServiceKey {
+func MapServiceListDtoUpdateToModel(existing imodel.ServiceKey, req *service_dto.UpdateServiceList) imodel.ServiceKey {
+	var name, key, aType string
+
+	if strings.TrimSpace(req.ServiceName) == "" {
+		name = existing.ServiceName
+	}
+	if strings.TrimSpace(req.ServiceKey) == "" {
+		key = existing.ServiceKey
+	}
+	if strings.TrimSpace(req.AccountType) == "" {
+		aType = existing.AccountType
+	}
+
 	return imodel.ServiceKey{
-		ServiceName: req.ServiceName,
-		ServiceKey:  req.ServiceKey,
-		AccountType: req.AccountType,
+		ServiceName:       name,
+		ServiceKey:        key,
+		AccountType:       aType,
+		IsSuperAppEnabled: *req.IsSuperAppEnabled,
+		IsUSSDEnabled:     *req.IsUSSDEnabled,
 	}
 }
 

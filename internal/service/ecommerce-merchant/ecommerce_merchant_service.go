@@ -204,12 +204,15 @@ func (m *ecommerceMerchantService) Update(ctx context.Context, id string, req *m
 	if check.BankAccountNumber != "" || check.Email != "" || check.PhoneNumber != "" {
 		exist, err := core.CheckMerchantExists(ctx, m.repo, &check, &types.MiniAppMerchantExistOptions{ExcludeID: id})
 		if err != nil {
+			if err.Error() == localization.ErrorAccountNumberAlreadyExists.Code {
+				return nil, nil, err
+			}
 			log.Errorf("[EcomMerchSvc][Update] exist check err: %v", err)
 			span.AddEvent("Failed to check merchant existence", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("id", id),
 			))
-			return nil, nil, errors.New(localization.ErrorMiniAppMerchantExistsCheckFailed.Code)
+			return nil, nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 		if exist {
 			log.Warnf("[EcomMerchSvc][Update] already exists id: %s", id)

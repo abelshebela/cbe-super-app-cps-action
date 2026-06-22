@@ -312,7 +312,7 @@ func (s *servicesService) UpdateServiceList(ctx context.Context, id string, req 
 	// 	return errors.New(localization.ErrorNoChangesDetected.Code)
 	// }
 
-	mapped := core.MapServiceListDtoUpdateToModel(req)
+	mapped := core.MapServiceListDtoUpdateToModel(*existing, req)
 	return core.HandleCPSAction(ctx, s.cps, id, constants.RequestUpdateServiceList, mapped, existing, constants.ActionUpdate)
 }
 
@@ -465,10 +465,19 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 			return nil, localization.ErrorInvalidActionData
 		}
 
+		var source accessList_cache.Source
+		if listDoc.IsSuperAppEnabled && listDoc.IsUSSDEnabled {
+			source = accessList_cache.SourceBoth
+		} else if listDoc.IsSuperAppEnabled {
+			source = accessList_cache.SourceAPP
+		} else if listDoc.IsUSSDEnabled {
+			source = accessList_cache.SourceUSSD
+		}
+
 		// Delete from cache
 		s.accessListCache.Delete(ctx, accessList_cache.AccessListKey{
-			ServiceName: listDoc.ServiceName,
-			ServiceKey:  listDoc.ServiceKey,
+			Source:     source,
+			ServiceKey: listDoc.ServiceKey,
 		})
 
 	case string(constants.RequestCreateService):
@@ -495,10 +504,10 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 			minimumTransferCaps = append(minimumTransferCaps, c.MinimumTransferCap)
 		}
 
-		sourceJoined := strings.Join(sources, ",")
-		currencyJoined := strings.Join(currencies, ",")
-		singleTransferCap := strings.Join(singleTransferCaps, ",")
-		minimumTransferCap := strings.Join(minimumTransferCaps, ",")
+		sourceJoined := strings.Join(sources, ":")
+		currencyJoined := strings.Join(currencies, ":")
+		singleTransferCap := strings.Join(singleTransferCaps, ":")
+		minimumTransferCap := strings.Join(minimumTransferCaps, ":")
 
 		s.serviceCache.Set(ctx, service_cache.ServiceData{
 			AccessListID:       serviceDoc.ServiceKeyId,
@@ -518,6 +527,10 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 		if unmarshalErr != nil {
 			return nil, localization.ErrorInvalidActionData
 		}
+		prevServiceDoc, unmarshalErr := local_util.JsonUnmarshal[imodel.Service](action.PreviousAction)
+		if unmarshalErr != nil {
+			return nil, localization.ErrorInvalidActionData
+		}
 		s.logger.Infof("[servicesService][Authorize] Authorizing update service with data: %+v", serviceDoc)
 		err = s.repo.Update(ctx, action.UniqueId, serviceDoc, serviceDoc.ProductGlAccount)
 		if err == nil {
@@ -529,6 +542,12 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 		var currencies []string
 		var singleTransferCaps []string
 		var minimumTransferCaps []string
+		var prevSource []string
+
+		for _, c := range serviceDoc.Cap {
+			prevSource = append(sources, string(c.Source))
+		}
+		prevSourceJoined := strings.Join(prevSource, ":")
 
 		for _, c := range serviceDoc.Cap {
 			sources = append(sources, string(c.Source))
@@ -537,23 +556,29 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 			minimumTransferCaps = append(minimumTransferCaps, c.MinimumTransferCap)
 		}
 
-		sourceJoined := strings.Join(sources, ",")
-		currencyJoined := strings.Join(currencies, ",")
-		singleTransferCap := strings.Join(singleTransferCaps, ",")
-		minimumTransferCap := strings.Join(minimumTransferCaps, ",")
+		sourceJoined := strings.Join(sources, ":")
+		currencyJoined := strings.Join(currencies, ":")
+		singleTransferCap := strings.Join(singleTransferCaps, ":")
+		minimumTransferCap := strings.Join(minimumTransferCaps, ":")
 
-		s.serviceCache.Set(ctx, service_cache.ServiceData{
-			AccessListID:       serviceDoc.ServiceKeyId,
-			ServiceKey:         serviceDoc.ServiceKey,
-			ServiceCode:        serviceDoc.ServiceCode,
-			MinimumFraudAmount: serviceDoc.MinimumFraudAmount,
-			ProductGlAccount:   serviceDoc.ProductGlAccount,
-			ServiceName:        serviceDoc.ServiceName,
-			Source:             service_cache.Source(sourceJoined),
-			Currency:           currencyJoined,
-			SingleTransferCap:  singleTransferCap,
-			MinimumTransferCap: minimumTransferCap,
-		})
+		s.serviceCache.Update(ctx,
+			service_cache.ServiceKey{
+				Source:      service_cache.Source(prevSourceJoined),
+				ServiceKey:  prevServiceDoc.ServiceKey,
+				ServiceCode: prevServiceDoc.ServiceCode,
+			},
+			service_cache.ServiceData{
+				AccessListID:       serviceDoc.ServiceKeyId,
+				ServiceKey:         serviceDoc.ServiceKey,
+				ServiceCode:        serviceDoc.ServiceCode,
+				MinimumFraudAmount: serviceDoc.MinimumFraudAmount,
+				ProductGlAccount:   serviceDoc.ProductGlAccount,
+				ServiceName:        serviceDoc.ServiceName,
+				Source:             service_cache.Source(sourceJoined),
+				Currency:           currencyJoined,
+				SingleTransferCap:  singleTransferCap,
+				MinimumTransferCap: minimumTransferCap,
+			})
 
 	case string(constants.RequestEnableService):
 		err = s.repo.EnableOrDisableServiceList(ctx, action.UniqueId, true)
@@ -590,12 +615,27 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 			action.CurrentAction = listDoc
 		}
 
+		var source accessList_cache.Source
+
+		if listDoc.IsSuperAppEnabled && listDoc.IsUSSDEnabled {
+			source = accessList_cache.SourceBoth
+		} else if listDoc.IsSuperAppEnabled {
+			source = accessList_cache.SourceAPP
+		} else if listDoc.IsUSSDEnabled {
+			source = accessList_cache.SourceUSSD
+		}
+
 		// Set to cache
-		s.accessListCache.Set(ctx, accessList_cache.AccessListData{
-			ServiceName: listDoc.ServiceName,
-			ServiceKey:  listDoc.ServiceKey,
-			AccountType: accessList_cache.AccountType(listDoc.AccountType),
-		})
+		s.accessListCache.Update(ctx,
+			accessList_cache.AccessListKey{
+				Source:     source,
+				ServiceKey: prevListDoc.ServiceKey,
+			},
+			accessList_cache.AccessListData{
+				ServiceName: listDoc.ServiceName,
+				ServiceKey:  listDoc.ServiceKey,
+				AccountType: accessList_cache.AccountType(listDoc.AccountType),
+			})
 
 	case string(constants.RequestEnableServiceList):
 		err = s.repo.EnableOrDisableServiceList(ctx, action.UniqueId, true)
