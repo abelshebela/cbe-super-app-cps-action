@@ -72,8 +72,8 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	var actionMap interface{}
-	marshaled, err := json.Marshal(cpsAction.CurrentAction)
+	var actionMapCurrent interface{}
+	marshaledCurrent, err := json.Marshal(cpsAction.CurrentAction)
 	if err != nil {
 		span.AddEvent("failed to marshal CurrentAction", trace.WithAttributes(
 			attribute.String("error", err.Error()),
@@ -83,7 +83,27 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	err = json.Unmarshal(marshaled, &actionMap)
+	err = json.Unmarshal(marshaledCurrent, &actionMapCurrent)
+	if err != nil {
+		span.AddEvent("failed to unmarshal CurrentAction", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("unique_id", cpsAction.UniqueId),
+		))
+		log.Errorf("[BankSvc][Authorize] unmarshal err: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	var actionMapPrev interface{}
+	marshaledPrev, err := json.Marshal(cpsAction.PreviousAction)
+	if err != nil {
+		span.AddEvent("failed to marshal CurrentAction", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("unique_id", cpsAction.UniqueId),
+		))
+		log.Errorf("[BankSvc][Authorize] marshal err: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	err = json.Unmarshal(marshaledPrev, &actionMapPrev)
 	if err != nil {
 		span.AddEvent("failed to unmarshal CurrentAction", trace.WithAttributes(
 			attribute.String("error", err.Error()),
@@ -101,7 +121,8 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 	// 	}
 	// 	actionData.ID = objID
 	// }
-	actionData := bank_core.Bank_oracle_mapper(actionMap.(map[string]interface{}))
+	actionData := bank_core.Bank_oracle_mapper(actionMapCurrent.(map[string]interface{}))
+	previousData := bank_core.Bank_oracle_mapper(actionMapPrev.(map[string]interface{}))
 
 	switch string(cpsAction.RequestAction) {
 	case string(constants.RequestCreateBank):
@@ -191,7 +212,7 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 			return nil, err
 		}
 		// create cache
-		err = b.catch.Set(ctx, bank_catch.BankData{
+		_, err = b.catch.Update(ctx, actionData.BICCode, bank_catch.BankData{
 			Name:            actionData.BankName,
 			BICCode:         actionData.BICCode,
 			AccountLength:   actionData.AccountLength,
@@ -247,7 +268,7 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 			return nil, err
 		}
 		// create cache
-		err = b.catch.Set(ctx, bank_catch.BankData{
+		_, err = b.catch.Update(ctx, previousData.BICCode, bank_catch.BankData{
 			Name:            actionData.BankName,
 			BICCode:         actionData.BICCode,
 			AccountLength:   actionData.AccountLength,
