@@ -178,24 +178,35 @@ func MapServiceListDtoToModel(req *service_dto.CreateServiceList) imodel.Service
 }
 
 func MapServiceListDtoUpdateToModel(existing imodel.ServiceKey, req *service_dto.UpdateServiceList) imodel.ServiceKey {
-	var name, key, aType string
+	name := existing.ServiceName
+	key := existing.ServiceKey
+	aType := existing.AccountType
 
-	if strings.TrimSpace(req.ServiceName) == "" {
-		name = existing.ServiceName
+	if strings.TrimSpace(req.ServiceName) != "" {
+		name = req.ServiceName
 	}
-	if strings.TrimSpace(req.ServiceKey) == "" {
-		key = existing.ServiceKey
+	if strings.TrimSpace(req.ServiceKey) != "" {
+		key = req.ServiceKey
 	}
-	if strings.TrimSpace(req.AccountType) == "" {
-		aType = existing.AccountType
+	if strings.TrimSpace(req.AccountType) != "" {
+		aType = req.AccountType
+	}
+
+	isSuperAppEnabled := existing.IsSuperAppEnabled
+	if req.IsSuperAppEnabled != nil {
+		isSuperAppEnabled = *req.IsSuperAppEnabled
+	}
+	isUSSDEnabled := existing.IsUSSDEnabled
+	if req.IsUSSDEnabled != nil {
+		isUSSDEnabled = *req.IsUSSDEnabled
 	}
 
 	return imodel.ServiceKey{
 		ServiceName:       name,
 		ServiceKey:        key,
 		AccountType:       aType,
-		IsSuperAppEnabled: *req.IsSuperAppEnabled,
-		IsUSSDEnabled:     *req.IsUSSDEnabled,
+		IsSuperAppEnabled: isSuperAppEnabled,
+		IsUSSDEnabled:     isUSSDEnabled,
 	}
 }
 
