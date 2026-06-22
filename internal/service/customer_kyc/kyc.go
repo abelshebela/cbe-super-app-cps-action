@@ -259,6 +259,9 @@ func (s *customerKYCService) PickKycReview(ctx context.Context, id string, reaso
 
 	kycInReview, err := s.repo.FindKycInReview(ctx, id)
 	if err != nil {
+		if err.Error() == localization.ErrorResourceNotFound.Code {
+			return errors.New("No started  KYC review found.")
+		}
 		log.Errorf("[CustKycSvc][StartKycReview] find err: %v", err)
 		return err
 	}
