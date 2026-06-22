@@ -15,22 +15,22 @@ import (
 	"time"
 
 	coreio "github.com/hugokessem/coreio/core"
-	member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
-	sharedconst "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
+	sharedconst "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
+	member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type customerKYCRepository struct {
-	oracleDB        *sql.DB
-	dal             dal.MongoDal[imodel.CustomerKYC, imodel.CustomerKYC]
-	kycDal          dal.MongoDal[imodel.StartedKycReview, imodel.StartedKycReview]
-	logger          utils.Logger
-	coll            *mongo.Collection
-	membersCol      *mongo.Collection
+	oracleDB         *sql.DB
+	dal              dal.MongoDal[imodel.CustomerKYC, imodel.CustomerKYC]
+	kycDal           dal.MongoDal[imodel.StartedKycReview, imodel.StartedKycReview]
+	logger           utils.Logger
+	coll             *mongo.Collection
+	membersCol       *mongo.Collection
 	linkedAccountCol *mongo.Collection
 }
 
@@ -198,11 +198,11 @@ INSERT INTO USERS (
 	}
 
 	_, err = tx.ExecContext(ctx, insertUserQ,
-		userCode,          // :1  USER_CODE
-		username,          // :2  USERNAME
-		detail.Email,      // :3  CONTACT_EMAIL
+		userCode,           // :1  USER_CODE
+		username,           // :2  USERNAME
+		detail.Email,       // :3  CONTACT_EMAIL
 		detail.PhoneNumber, // :4  CONTACT_PHONE
-		customerNumber,    // :5  CUSTOMER_NUMBER
+		customerNumber,     // :5  CUSTOMER_NUMBER
 
 		detail.Industry,  // :6  SECTOR
 		detail.Ownership, // :7  OWNERSHIP
