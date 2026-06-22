@@ -1140,7 +1140,7 @@ WHERE id = HEXTORAW(:1) AND is_deleted = 0`
 		&item.ServiceKey,
 		&item.AccountType,
 		&item.IsSuperAppEnabled,
-		item.IsUSSDEnabled,
+		&item.IsUSSDEnabled,
 		&item.IsEnabled,
 		&item.CreatedAt,
 		&item.LastModifiedAt,
@@ -1351,8 +1351,8 @@ SET
   name = :1,
   service_key = :2,
   account_type = :3,
-  is_ussd_enabled = :4
-  is_superapp_enabled = :5
+  is_ussd_enabled = :4,
+  is_superapp_enabled = :5,
   last_modified_at = SYSTIMESTAMP
 WHERE id = :6 AND service_key = :7`
 

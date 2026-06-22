@@ -312,7 +312,7 @@ func (s *servicesService) UpdateServiceList(ctx context.Context, id string, req 
 	// 	return errors.New(localization.ErrorNoChangesDetected.Code)
 	// }
 
-	mapped := core.MapServiceListDtoUpdateToModel(req)
+	mapped := core.MapServiceListDtoUpdateToModel(*existing, req)
 	return core.HandleCPSAction(ctx, s.cps, id, constants.RequestUpdateServiceList, mapped, existing, constants.ActionUpdate)
 }
 
@@ -465,8 +465,18 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 			return nil, localization.ErrorInvalidActionData
 		}
 
+		var source accessList_cache.Source
+		if listDoc.IsSuperAppEnabled && listDoc.IsUSSDEnabled {
+			source = accessList_cache.SourceBoth
+		} else if listDoc.IsSuperAppEnabled {
+			source = accessList_cache.SourceAPP
+		} else if listDoc.IsUSSDEnabled {
+			source = accessList_cache.SourceUSSD
+		}
+
 		// Delete from cache
 		s.accessListCache.Delete(ctx, accessList_cache.AccessListKey{
+			Source:     source,
 			ServiceKey: listDoc.ServiceKey,
 		})
 
@@ -605,9 +615,20 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 			action.CurrentAction = listDoc
 		}
 
+		var source accessList_cache.Source
+
+		if listDoc.IsSuperAppEnabled && listDoc.IsUSSDEnabled {
+			source = accessList_cache.SourceBoth
+		} else if listDoc.IsSuperAppEnabled {
+			source = accessList_cache.SourceAPP
+		} else if listDoc.IsUSSDEnabled {
+			source = accessList_cache.SourceUSSD
+		}
+
 		// Set to cache
 		s.accessListCache.Update(ctx,
 			accessList_cache.AccessListKey{
+				Source:     source,
 				ServiceKey: prevListDoc.ServiceKey,
 			},
 			accessList_cache.AccessListData{
