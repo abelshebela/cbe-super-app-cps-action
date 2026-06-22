@@ -367,6 +367,8 @@ func (s *walletService) Authorize(ctx context.Context, action *model.CPSAction) 
 	}
 	wallet := core.MapToModel(w, s.logger)
 
+	
+
 	switch action.RequestAction {
 	case string(constants.RequestCreateWallet):
 		span.AddEvent("Creating wallet", trace.WithAttributes(attribute.String("unique_code", wallet.UniqueCode)))
@@ -394,6 +396,7 @@ func (s *walletService) Authorize(ctx context.Context, action *model.CPSAction) 
 		err := s.walletCatch.Set(ctx,walletCatch.WalletData{
 				Name: wallet.Name,
 				UniqueCode: wallet.UniqueCode,
+				ServiceID: wallet.ID,
 				Logo: wallet.Avatar,
 				IsWalletEnabled: wallet.Enabled,
 				ServicesType:enabledWallerService, 
@@ -410,10 +413,14 @@ func (s *walletService) Authorize(ctx context.Context, action *model.CPSAction) 
 				s.logger.Errorf("[wallet service authorizor update] error:%v",err)
 				return  nil,err
 		}
-
+		privUniqueCode,err:= s.getActionCodeFromPrivAction(action)
+		if err != nil{
+			return nil,err
+		}
 		enabledWallerService := buildEnableWalletServices(wallet)
-		err := s.walletCatch.Set(ctx,walletCatch.WalletData{
+		_,err = s.walletCatch.Update(ctx,privUniqueCode,walletCatch.WalletData{
 				Name: wallet.Name,
+				ServiceID: wallet.ID,
 				UniqueCode: wallet.UniqueCode,
 				Logo: wallet.Avatar,
 				IsWalletEnabled: wallet.Enabled,
@@ -433,6 +440,7 @@ func (s *walletService) Authorize(ctx context.Context, action *model.CPSAction) 
 			s.logger.Errorf("[wallet service authorizor update] error:%v",err)
 
 		}
+		
 		err := s.walletCatch.Delete(ctx,wallet.UniqueCode)
 		if err != nil{
 			s.logger.Errorf("[wallet service Authorizor update] unable to set on redis err:%v",err)
@@ -450,6 +458,7 @@ func (s *walletService) Authorize(ctx context.Context, action *model.CPSAction) 
       enabledWallerService := buildEnableWalletServices(wallet)
 		err := s.walletCatch.Set(ctx,walletCatch.WalletData{
 				Name: wallet.Name,
+				ServiceID: wallet.ID,
 				UniqueCode: wallet.UniqueCode,
 				Logo: wallet.Avatar,
 				IsWalletEnabled: true,
@@ -469,6 +478,7 @@ func (s *walletService) Authorize(ctx context.Context, action *model.CPSAction) 
 		}
 		enabledWallerService := buildEnableWalletServices(wallet)
 		err := s.walletCatch.Set(ctx,walletCatch.WalletData{
+				ServiceID: wallet.ID,
 				Name: wallet.Name,
 				UniqueCode: wallet.UniqueCode,
 				Logo: wallet.Avatar,
@@ -488,20 +498,21 @@ func (s *walletService) Authorize(ctx context.Context, action *model.CPSAction) 
 				return  nil,err
 		}
 		enabledWalletService := buildEnableWalletServices(wallet)
-		err := s.walletCatch.Set(ctx,walletCatch.WalletData{
+		_,err := s.walletCatch.Update(ctx,wallet.UniqueCode,walletCatch.WalletData{
+				ServiceID: wallet.ID,
 				Name: wallet.Name,
 				UniqueCode: wallet.UniqueCode,
 				Logo: wallet.Avatar,
 				IsWalletEnabled:wallet.Enabled,
 				ServicesType: enabledWalletService,
-				
-				
+					
 			})
 
 			if err != nil{
 			s.logger.Errorf("[wallet service Authorizor update] unable to set on redis err:%v",err)
 			return nil,err
 		}
+
 	case string(constants.RequestDisableWalletService):
 		span.AddEvent("Disabling wallet service", trace.WithAttributes(attribute.String("unique_code", wallet.UniqueCode)))
 		err = s.repo.EnableOrDisableService(ctx, action.UniqueId, false)
@@ -512,7 +523,8 @@ func (s *walletService) Authorize(ctx context.Context, action *model.CPSAction) 
 		}
 
 		enabledWalletService := buildEnableWalletServices(wallet)
-		err := s.walletCatch.Set(ctx,walletCatch.WalletData{
+		_,err := s.walletCatch.Update(ctx,wallet.UniqueCode,walletCatch.WalletData{
+				ServiceID: wallet.ID,
 				Name: wallet.Name,
 				UniqueCode: wallet.UniqueCode,
 				Logo: wallet.Avatar,
@@ -564,4 +576,21 @@ var walletServices = []walletCatch.WalletServiceData{}
 			})
 		}
 		return  walletServices
+}
+
+
+func (s *walletService)getActionCodeFromPrivAction(action *model.CPSAction) (string,error) {
+		b, err := json.Marshal(action.PreviousAction)
+		if err != nil {
+			return "", err
+		}
+
+		var w map[string]interface{}
+		err = json.Unmarshal(b, &w)
+		if err != nil {
+			return "", errors.New(localization.ErrorInvalidActionData.Code)
+		}
+
+		privWallet := core.MapToModel(w, s.logger)
+		return  privWallet.UniqueCode,nil
 	}
