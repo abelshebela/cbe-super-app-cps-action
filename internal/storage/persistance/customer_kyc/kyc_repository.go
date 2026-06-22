@@ -15,6 +15,8 @@ import (
 	"time"
 
 	coreio "github.com/hugokessem/coreio/core"
+	member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
+	sharedconst "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -23,20 +25,24 @@ import (
 )
 
 type customerKYCRepository struct {
-	oracleDB *sql.DB
-	dal      dal.MongoDal[imodel.CustomerKYC, imodel.CustomerKYC]
-	kycDal   dal.MongoDal[imodel.StartedKycReview, imodel.StartedKycReview]
-	logger   utils.Logger
-	coll     *mongo.Collection
+	oracleDB        *sql.DB
+	dal             dal.MongoDal[imodel.CustomerKYC, imodel.CustomerKYC]
+	kycDal          dal.MongoDal[imodel.StartedKycReview, imodel.StartedKycReview]
+	logger          utils.Logger
+	coll            *mongo.Collection
+	membersCol      *mongo.Collection
+	linkedAccountCol *mongo.Collection
 }
 
 func NewCustomerKYCRepository(client *mongo.Client, oracleDB *sql.DB, cfg *config.VaultConfig, dbName string, custKycCollection string, logger utils.Logger) storage.CustomerKYCRepository {
 	return &customerKYCRepository{
-		oracleDB: oracleDB,
-		dal:      dal.NewMongoDal[imodel.CustomerKYC, imodel.CustomerKYC](client, cfg, dbName, custKycCollection),
-		kycDal:   dal.NewMongoDal[imodel.StartedKycReview, imodel.StartedKycReview](client, cfg, dbName, "started_kyc_reviews"),
-		logger:   logger,
-		coll:     client.Database(dbName).Collection(custKycCollection),
+		oracleDB:         oracleDB,
+		dal:              dal.NewMongoDal[imodel.CustomerKYC, imodel.CustomerKYC](client, cfg, dbName, custKycCollection),
+		kycDal:           dal.NewMongoDal[imodel.StartedKycReview, imodel.StartedKycReview](client, cfg, dbName, "started_kyc_reviews"),
+		logger:           logger,
+		coll:             client.Database(dbName).Collection(custKycCollection),
+		membersCol:       client.Database(dbName).Collection("members"),
+		linkedAccountCol: client.Database(dbName).Collection("linked_account"),
 	}
 }
 
@@ -119,11 +125,13 @@ func (r *customerKYCRepository) FindByID(ctx context.Context, id string) (*imode
 
 	return result, nil
 }
-func (r *customerKYCRepository) CreateUser(ctx context.Context, userAccount *coreio.CreateCustomerResult, userData imodel.CustomerKYC) error {
+func (r *customerKYCRepository) CreateUser(ctx context.Context, userAccount *coreio.CusteomerAccountCreationResponse, userData imodel.CustomerKYC) error {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
-	detail := userAccount.Detail
-	userCode := "SA" + detail.Customer
+	detail := userAccount.CustomerCreationDetail.Detail
+	accountDetail := userAccount.AccountCreationDetail.Detail
+	customerNumber := detail.CustomerNumber
+	userCode := "SA" + customerNumber
 
 	var firstName, middleName, lastName string
 	nameParts := strings.Fields(detail.FullName)
@@ -190,11 +198,11 @@ INSERT INTO USERS (
 	}
 
 	_, err = tx.ExecContext(ctx, insertUserQ,
-		userCode,           // :1  USER_CODE
-		username,           // :2  USERNAME
-		detail.Email,       // :3  CONTACT_EMAIL
+		userCode,          // :1  USER_CODE
+		username,          // :2  USERNAME
+		detail.Email,      // :3  CONTACT_EMAIL
 		detail.PhoneNumber, // :4  CONTACT_PHONE
-		detail.Customer,    // :5  CUSTOMER_NUMBER
+		customerNumber,    // :5  CUSTOMER_NUMBER
 
 		detail.Industry,  // :6  SECTOR
 		detail.Ownership, // :7  OWNERSHIP
@@ -213,11 +221,11 @@ INSERT INTO USERS (
 		0,       // :17 FAILED_LOGIN_ATTEMPT
 		0,       // :18 IS_LOCKED
 
-		0, // :19 IS_SUPERAPP_ENABLED
+		1, // :19 IS_SUPERAPP_ENABLED
 		0, // :20 IS_USSD_ENABLED
 		0, // :21 IS_USSD_ACTIVE
 		0, // :22 IS_BLOCKED
-		0, // :23 IS_SUPERAPP_ACTIVE
+		1, // :23 IS_SUPERAPP_ACTIVE
 
 		"EN", // :24 LANGUAGE
 		"",   // :25 PUSH_TOKEN
@@ -246,18 +254,18 @@ INSERT INTO ACCOUNTS (
 	_, err = tx.ExecContext(ctx, insertAccountQ,
 		sql.Named("bank_id", bankID),
 		sql.Named("holder_name", detail.FullName),
-		sql.Named("account_number", detail.Customer),
+		sql.Named("account_number", accountDetail.AccountNumber),
 		sql.Named("currency", currency),
 		sql.Named("account_type", userData.KYCData.AccountType),
 		sql.Named("branch", detail.AccountOfficer),
-		sql.Named("customer_number", detail.Customer),
+		sql.Named("customer_number", customerNumber),
 		sql.Named("id", sql.Out{Dest: &accountID}),
 	)
 	if err != nil {
 		log.Errorf("[customerKYCRepository][CreateUser] account insert: %v", err)
 		return local_util.HandleDBError(err)
 	}
-	log.Infof("[customerKYCRepository][CreateUser] account created: id=%s number=%s", accountID, detail.Customer)
+	log.Infof("[customerKYCRepository][CreateUser] account created: id=%s number=%s", accountID, accountDetail.AccountNumber)
 
 	// ── 4. INSERT into LINKED_ACCOUNTS ────────────────────────────────────
 	const insertLinkedQ = `
@@ -281,6 +289,64 @@ INSERT INTO LINKED_ACCOUNTS (
 		log.Errorf("[customerKYCRepository][CreateUser] commit: %v", err)
 		return local_util.HandleDBError(err)
 	}
+
+	// ── 5. INSERT member into MongoDB (members collection) ────────────────
+	// Required so SearchCustomerByCIForAccountNumber can find this customer.
+	memberID := bson.NewObjectID()
+	now := time.Now()
+
+	newMember := member.User{
+		ID:               memberID,
+		UserCode:         userCode,
+		FullName:         detail.FullName,
+		PhoneNumber:      detail.PhoneNumber,
+		Email:            detail.Email,
+		CustomerNumber:   customerNumber,
+		BranchCode:       detail.AccountOfficer,
+		Gender:           t24Gender(detail.Gender),
+		BirthOfDate:      t24Date(detail.DateOfBirth),
+		Industry:         detail.Industry,
+		Sector:           detail.Industry,
+		Ownership:        detail.Ownership,
+		Language:         "EN",
+		ISuperappEnabled: true,
+		IsBlocked:        false,
+		IsLocked:         false,
+		Enabled:          true,
+		IsActivated:      true,
+		CreatedAt:        now,
+		LastModifiedAt:   now,
+	}
+
+	if _, err := r.membersCol.InsertOne(ctx, newMember); err != nil {
+		log.Errorf("[customerKYCRepository][CreateUser] members insert: %v", err)
+		return local_util.HandleDBError(err)
+	}
+	log.Infof("[customerKYCRepository][CreateUser] member created in MongoDB: userCode=%s customerNumber=%s", userCode, customerNumber)
+
+	// ── 6. INSERT linked_account into MongoDB ─────────────────────────────
+	linkedAccount := member.LinkedAccount{
+		ID:                bson.NewObjectID(),
+		UserID:            memberID,
+		AccountNumber:     accountDetail.AccountNumber,
+		AccountHolderName: detail.FullName,
+		AccountBranchCode: detail.AccountOfficer,
+		AccountType:       userData.KYCData.SubAccountType,
+		CustomerNumber:    customerNumber,
+		Currency:          currency,
+		ISuperappEnabled:  true,
+		IsUSSDEnabled:     false,
+		LinkedStatus:      true,
+		IsMain:            true,
+		CreatedAt:         now,
+		LastModifiedAt:    now,
+	}
+
+	if _, err := r.linkedAccountCol.InsertOne(ctx, linkedAccount); err != nil {
+		log.Errorf("[customerKYCRepository][CreateUser] linked_account insert: %v", err)
+		return local_util.HandleDBError(err)
+	}
+	log.Infof("[customerKYCRepository][CreateUser] linked_account created: accountNumber=%s", accountDetail.AccountNumber)
 
 	return nil
 }
@@ -397,4 +463,16 @@ func (r *customerKYCRepository) UpdateKycReview(ctx context.Context, kycID strin
 	}
 
 	return &result, nil
+}
+
+func t24Gender(g string) sharedconst.Gender {
+	if strings.ToUpper(strings.TrimSpace(g)) == "FEMALE" {
+		return sharedconst.Female
+	}
+	return sharedconst.Male
+}
+
+func t24Date(yyyymmdd string) time.Time {
+	t, _ := time.Parse("20060102", yyyymmdd)
+	return t
 }
