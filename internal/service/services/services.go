@@ -467,7 +467,7 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 
 		// Delete from cache
 		s.accessListCache.Delete(ctx, accessList_cache.AccessListKey{
-			ServiceName: listDoc.ServiceName,
+			// ServiceName: listDoc.ServiceName,
 			ServiceKey:  listDoc.ServiceKey,
 		})
 
