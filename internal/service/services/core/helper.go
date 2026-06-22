@@ -168,17 +168,21 @@ func MapToServiceUpdateModel(req service_dto.UpdateServiceRequest, existing serv
 
 func MapServiceListDtoToModel(req *service_dto.CreateServiceList) imodel.ServiceKey {
 	return imodel.ServiceKey{
-		ServiceName: req.ServiceName,
-		ServiceKey:  req.ServiceKey,
-		AccountType: req.AccountType,
+		ServiceName:       req.ServiceName,
+		ServiceKey:        req.ServiceKey,
+		AccountType:       req.AccountType,
+		IsSuperAppEnabled: *req.IsSuperAppEnabled,
+		IsUSSDEnabled:     *req.IsUSSDEnabled,
 	}
 }
 
 func MapServiceListDtoUpdateToModel(req *service_dto.UpdateServiceList) imodel.ServiceKey {
 	return imodel.ServiceKey{
-		ServiceName: req.ServiceName,
-		ServiceKey:  req.ServiceKey,
-		AccountType: req.AccountType,
+		ServiceName:       req.ServiceName,
+		ServiceKey:        req.ServiceKey,
+		AccountType:       req.AccountType,
+		IsSuperAppEnabled: *req.IsSuperAppEnabled,
+		IsUSSDEnabled:     *req.IsUSSDEnabled,
 	}
 }
 
