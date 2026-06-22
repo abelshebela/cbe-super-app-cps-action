@@ -29,15 +29,16 @@ type Cap struct {
 }
 
 type ServiceKey struct {
-	ID             string     `json:"id,omitempty" bson:"_id,omitempty"`
-	ServiceName    string     `json:"service_name" bson:"service_name"`
-	ServiceKey     string     `json:"service_key" bson:"service_key"`
-	AccountType    string     `json:"account_type" bson:"account_type"`
-	IsUSSDEnabled  bool       `json:"is_ussd_enabled" bson:"is_ussd_enabled"`
-	IsEnabled      bool       `json:"is_enabled" bson:"is_enabled"`
-	CreatedAt      time.Time  `json:"created_at" bson:"created_at"`
-	LastModifiedAt time.Time  `json:"last_modified_at" bson:"last_modified_at"`
-	DeletedAt      *time.Time `json:"deleted_at,omitempty" bson:"deleted_at,omitempty"`
+	ID                string     `json:"id,omitempty" bson:"_id,omitempty"`
+	ServiceName       string     `json:"service_name" bson:"service_name"`
+	ServiceKey        string     `json:"service_key" bson:"service_key"`
+	AccountType       string     `json:"account_type" bson:"account_type"`
+	IsSuperAppEnabled bool       `json:"is_superapp_enabled" bson:"is_superapp_enabled"`
+	IsUSSDEnabled     bool       `json:"is_ussd_enabled" bson:"is_ussd_enabled"`
+	IsEnabled         bool       `json:"is_enabled" bson:"is_enabled"`
+	CreatedAt         time.Time  `json:"created_at" bson:"created_at"`
+	LastModifiedAt    time.Time  `json:"last_modified_at" bson:"last_modified_at"`
+	DeletedAt         *time.Time `json:"deleted_at,omitempty" bson:"deleted_at,omitempty"`
 }
 
 type Service struct {

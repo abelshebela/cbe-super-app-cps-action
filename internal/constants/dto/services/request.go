@@ -68,13 +68,17 @@ type UpdateServiceRequest struct {
 }
 
 type CreateServiceList struct {
-	ServiceName string `json:"service_name" example:"Transfer To Other bank"`
-	ServiceKey  string `json:"service_key" example:"CBE"`
-	AccountType string `json:"account_type" example:"BOTH"`
+	ServiceName       string `json:"service_name" example:"Transfer To Other bank"`
+	ServiceKey        string `json:"service_key" example:"CBE"`
+	AccountType       string `json:"account_type" example:"BOTH"`
+	IsSuperAppEnabled *bool  `json:"is_superapp_enabled" bson:"is_superapp_enabled"`
+	IsUSSDEnabled     *bool  `json:"is_ussd_enabled" bson:"is_ussd_enabled"`
 }
 
 type UpdateServiceList struct {
-	ServiceName string `json:"service_name" example:"Transfer To Other bank"`
-	ServiceKey  string `json:"service_key" example:"CBE"`
-	AccountType string `json:"account_type" example:"CBE"`
+	ServiceName       string `json:"service_name" example:"Transfer To Other bank"`
+	ServiceKey        string `json:"service_key" example:"CBE"`
+	AccountType       string `json:"account_type" example:"CBE"`
+	IsSuperAppEnabled *bool  `json:"is_superapp_enabled" bson:"is_superapp_enabled"`
+	IsUSSDEnabled     *bool  `json:"is_ussd_enabled" bson:"is_ussd_enabled"`
 }
