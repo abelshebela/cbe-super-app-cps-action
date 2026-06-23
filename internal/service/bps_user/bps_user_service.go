@@ -615,16 +615,19 @@ func (b *bpsUserService) UpdateBPSUser(ctx context.Context, userID string, updat
 		updatedUser.BranchName = branch_detail.Name
 	}
 
-	roles, err := b.Job_roles_repo.FindByFilterKey(ctx, "job_title", updatedUser.JobTitle)
-	if err != nil {
-		b.logger.Errorf("[BpsUserSvc][Create] role lookup err for job_title: %s, err: %v", updatedUser.JobTitle, err)
-		return errors.New(localization.ErrorRoleNotFound.Code)
+	var roles *imodel.JobRole
+	if updatedUser.JobTitle != "" {
+		roles, err = b.Job_roles_repo.FindByFilterKey(ctx, "job_title", updatedUser.JobTitle)
+		if err != nil {
+			b.logger.Errorf("[BpsUserSvc][Create] role lookup err for job_title: %s, err: %v", updatedUser.JobTitle, err)
+			return errors.New(localization.ErrorRoleNotFound.Code)
+		}
+		if roles == nil || roles.Role == "" {
+			b.logger.Errorf("[BpsUserSvc][Create] role not found for job_title: %s", updatedUser.JobTitle)
+			return errors.New(localization.ErrorRoleNotFound.Code)
+		}
+		updatedUser.Role = roles.Role
 	}
-	if roles == nil || roles.Role == "" {
-		b.logger.Errorf("[BpsUserSvc][Create] role not found for job_title: %s", updatedUser.JobTitle)
-		return errors.New(localization.ErrorRoleNotFound.Code)
-	}
-	updatedUser.Role = roles.Role
 
 	updatedUser = bps_user_core.BuildUpdatedBPSUser(*curUser, updatedUser)
 	// updatedUser.Role = roles.Role
