@@ -19,7 +19,7 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 )
 
-// EcommerceMerchantRequest mirrors miniappmerchant.EcommerceMerchant for Swagger @Param only
+// EcommerceMerchantRequest mirrors ecommerce_merchant.EcommerceMerchant for Swagger @Param only
 type EcommerceMerchantRequest struct {
 	MerchantName     string `json:"merchant_name"`
 	MerchantCode     string `json:"merchant_code"`
@@ -44,12 +44,12 @@ func NewEcommerceMerchantdapter(srv service.EcommerceMerchantService, logger sha
 //	@Security		BearerAuth
 //	@Accept			json
 //	@Produce		json
-//	@Param			body			body		ecommercemerchant.EcommerceMerchantRequest	true	"Mini App Merchant (see miniappmerchant.EcommerceMerchant)"
+//	@Param			body			body		ecommercemerchant.EcommerceMerchantRequest	true	"ecommerce Merchant (see ecommerce_merchant.EcommerceMerchant)"
 //	@Success		201				{object}	localization.StandardResponse{data=nil}
 //	@Failure		400,401,422,500	{object}	localization.StandardResponse{data=nil}
 //	@Router			/ecommerce-merchant [post]
 func (h *ecommerceMerchantAdapter) Create(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "createMiniAppMerchant", "handler", "miniAppMerchant")
+	ctx, span := local_util.TraceLogger(r.Context(), "", "createEcommerceMerchant", "handler", "ecommerceMerchant")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, h.logger)
 
@@ -62,7 +62,7 @@ func (h *ecommerceMerchantAdapter) Create(w http.ResponseWriter, r *http.Request
 	if err := json.NewDecoder(r.Body).Decode(&reqDTO); err != nil {
 		span.RecordError(err)
 		log.Errorf("[EcomMerchH][Create] decode body err: %v", err)
-		localization.SendErrorResponse(w, localization.ErrorMiniAppMerchantMarshalFailed, nil, nil)
+		localization.SendErrorResponse(w, localization.ErrorInvalidInputParameter, nil, nil)
 		return
 	}
 
@@ -119,7 +119,7 @@ func (h *ecommerceMerchantAdapter) Create(w http.ResponseWriter, r *http.Request
 //	@Accept			json
 //	@Produce		json
 //	@Param			id					path		string								true	"Merchant ID"
-//	@Param			body				body		ecommercemerchant.EcommerceMerchantRequest	true	"Mini App Merchant (see miniappmerchant.EcommerceMerchant)"
+//	@Param			body				body		ecommercemerchant.EcommerceMerchantRequest	true	"ecommerce Merchant (see ecommerce_merchant.EcommerceMerchant)"
 //	@Success		200					{object}	localization.StandardResponse
 //	@Failure		400,401,404,422,500	{object}	localization.StandardResponse{data=nil}
 //	@Router			/ecommerce-merchant/{id} [patch]
@@ -141,7 +141,7 @@ func (h *ecommerceMerchantAdapter) Update(w http.ResponseWriter, r *http.Request
 	var reqDTO ecomerceDto.UpdateEcommerceMerchant
 	if err := json.NewDecoder(r.Body).Decode(&reqDTO); err != nil {
 		span.RecordError(err)
-		localization.SendErrorResponse(w, localization.ErrorMiniAppMerchantMarshalFailed, nil, nil)
+		localization.SendErrorResponse(w, localization.ErrorInvalidInputParameter, nil, nil)
 		return
 	}
 
@@ -190,7 +190,7 @@ func (h *ecommerceMerchantAdapter) Update(w http.ResponseWriter, r *http.Request
 // Delete  Ecommerce Merchant
 //
 //	@Summary		Delete  Ecommerce Merchant
-//	@Description	Deletes a mini app merchant by ID
+//	@Description	Deletes a ecommerce merchant by ID
 //	@Tags			ecommerce-merchant
 //	@Security		BearerAuth
 //	@Produce		json
@@ -199,7 +199,7 @@ func (h *ecommerceMerchantAdapter) Update(w http.ResponseWriter, r *http.Request
 //	@Failure		400,401,404,500	{object}	localization.StandardResponse{data=nil}
 //	@Router			/ecommerce-merchant/{id} [delete]
 func (h *ecommerceMerchantAdapter) Delete(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "deleteMiniAppMerchant", "handler", "miniAppMerchant")
+	ctx, span := local_util.TraceLogger(r.Context(), "", "deleteEcommerceMerchant", "handler", "ecommerceMerchant")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, h.logger)
 
@@ -246,7 +246,7 @@ func (h *ecommerceMerchantAdapter) Delete(w http.ResponseWriter, r *http.Request
 // Enable  Ecommerce Merchant
 //
 //	@Summary		Enable  Ecommerce Merchant
-//	@Description	Enables a mini app merchant by ID
+//	@Description	Enables a ecommerce merchant by ID
 //	@Tags			ecommerce-merchant
 //	@Security		BearerAuth
 //	@Accept			json
@@ -256,7 +256,7 @@ func (h *ecommerceMerchantAdapter) Delete(w http.ResponseWriter, r *http.Request
 //	@Failure		400,401,404,500	{object}	localization.StandardResponse{data=nil}
 //	@Router			/ecommerce-merchant/enable [patch]
 func (h *ecommerceMerchantAdapter) Enable(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "enableMiniAppMerchant", "handler", "miniAppMerchant")
+	ctx, span := local_util.TraceLogger(r.Context(), "", "enableEcommerceMerchant", "handler", "ecommerceMerchant")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, h.logger)
 
@@ -267,7 +267,7 @@ func (h *ecommerceMerchantAdapter) Enable(w http.ResponseWriter, r *http.Request
 	var reqDTO ecomerceDto.EnableOrDisableMerchantsRequest
 	if err := json.NewDecoder(r.Body).Decode(&reqDTO); err != nil {
 		span.RecordError(err)
-		localization.SendErrorResponse(w, localization.ErrorMiniAppMerchantMarshalFailed, nil, nil)
+		localization.SendErrorResponse(w, localization.ErrorInvalidInputParameter, nil, nil)
 		return
 	}
 
@@ -304,7 +304,7 @@ func (h *ecommerceMerchantAdapter) Enable(w http.ResponseWriter, r *http.Request
 // Disable  Ecommerce Merchant
 //
 //	@Summary		Disable  Ecommerce Merchant
-//	@Description	Disables a mini app merchant by ID
+//	@Description	Disables a ecommerce merchant by ID
 //	@Tags			ecommerce-merchant
 //	@Security		BearerAuth
 //	@Accept			json
@@ -314,7 +314,7 @@ func (h *ecommerceMerchantAdapter) Enable(w http.ResponseWriter, r *http.Request
 //	@Failure		400,401,404,500	{object}	localization.StandardResponse{data=nil}
 //	@Router			/ecommerce-merchant/disable [patch]
 func (h *ecommerceMerchantAdapter) Disable(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "disableMiniAppMerchant", "handler", "miniAppMerchant")
+	ctx, span := local_util.TraceLogger(r.Context(), "", "disableEcommerceMerchant", "handler", "ecommerceMerchant")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, h.logger)
 
@@ -325,7 +325,7 @@ func (h *ecommerceMerchantAdapter) Disable(w http.ResponseWriter, r *http.Reques
 	var reqDTO ecomerceDto.EnableOrDisableMerchantsRequest
 	if err := json.NewDecoder(r.Body).Decode(&reqDTO); err != nil {
 		span.RecordError(err)
-		localization.SendErrorResponse(w, localization.ErrorMiniAppMerchantMarshalFailed, nil, nil)
+		localization.SendErrorResponse(w, localization.ErrorInvalidInputParameter, nil, nil)
 		return
 	}
 
@@ -370,7 +370,7 @@ func (h *ecommerceMerchantAdapter) Disable(w http.ResponseWriter, r *http.Reques
 // Get  Ecommerce Merchant by ID
 //
 //	@Summary		Get  Ecommerce Merchant by ID
-//	@Description	Retrieves a mini app merchant by ID
+//	@Description	Retrieves a ecommerce merchant by ID
 //	@Tags			ecommerce-merchant
 //	@Security		BearerAuth
 //	@Produce		json
@@ -379,7 +379,7 @@ func (h *ecommerceMerchantAdapter) Disable(w http.ResponseWriter, r *http.Reques
 //	@Failure		400,401,404,500	{object}	localization.StandardResponse{data=nil}
 //	@Router			/ecommerce-merchant/{id} [get]
 func (h *ecommerceMerchantAdapter) FindByID(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "findMiniAppMerchantById", "handler", "miniAppMerchant")
+	ctx, span := local_util.TraceLogger(r.Context(), "", "findEcommerceMerchantByID", "handler", "ecommerceMerchant")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, h.logger)
 	_ = log
@@ -414,7 +414,7 @@ func (h *ecommerceMerchantAdapter) FindByID(w http.ResponseWriter, r *http.Reque
 //	@Failure		400,401,500	{object}	localization.StandardResponse{data=nil}
 //	@Router			/ecommerce-merchant [get]
 func (h *ecommerceMerchantAdapter) FindAllWithPagination(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "findAllMiniAppMerchants", "handler", "miniAppMerchant")
+	ctx, span := local_util.TraceLogger(r.Context(), "", "findAllEcommerceMerchants", "handler", "ecommerceMerchant")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, h.logger)
 	_ = log
@@ -444,14 +444,14 @@ func (h *ecommerceMerchantAdapter) FindAllWithPagination(w http.ResponseWriter, 
 		filterParams.Filters["phone_number"] = formattedPhone
 	}
 
-	miniAppMerchant, err := h.srv.FindAllWithPagination(ctx, filterParams)
+	ecommerceMerchants, err := h.srv.FindAllWithPagination(ctx, filterParams)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantsFetchedSuccessfully, miniAppMerchant)
+	localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantsFetchedSuccessfully, ecommerceMerchants)
 }
 
 // Merchant Lookup
@@ -465,7 +465,7 @@ func (h *ecommerceMerchantAdapter) FindAllWithPagination(w http.ResponseWriter, 
 // @Failure 400,401,404,500 {object} localization.StandardResponse{data=nil}
 // @Router /ecommerce-merchant/merchant-lookup/{merchant_id} [get]
 func (h *ecommerceMerchantAdapter) MerchantLookup(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "miniAppMerchantLookup", "handler", "miniAppMerchant")
+	ctx, span := local_util.TraceLogger(r.Context(), "", "ecommerceMerchantLookup", "handler", "ecommerceMerchant")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, h.logger)
 	_ = log

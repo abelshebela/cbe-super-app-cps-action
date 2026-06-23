@@ -574,7 +574,7 @@ type EcommerceMerchantRepository interface {
 	FindByID(ctx context.Context, id string) (*model.EcommerceMerchant, error)
 	FindBranchByID(ctx context.Context, id string) (*model.BranchInformation, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.EcommerceMerchant], error)
-	FindOneO(ctx context.Context, data *types.CheckMerchant, opts *types.MiniAppMerchantExistOptions) (*model.EcommerceMerchant, error)
+	FindOneO(ctx context.Context, data *types.CheckMerchant, opts *types.MerchantExistOptions) (*model.EcommerceMerchant, error)
 }
 
 type NotificationRepository interface {
