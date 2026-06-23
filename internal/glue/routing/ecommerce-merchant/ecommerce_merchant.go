@@ -1,7 +1,7 @@
 package ecommercemerchant
 
 import (
-	miniappmerchat "cbe-super-app-cps-action/internal/constants/interfaces/ecommerce_merchant"
+	ecommerce_merchant "cbe-super-app-cps-action/internal/constants/interfaces/ecommerce_merchant"
 	"cbe-super-app-cps-action/internal/glue"
 	"cbe-super-app-cps-action/internal/handlers/middleware"
 	"net/http"
@@ -9,7 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func Init(router chi.Router, handler miniappmerchat.EcommerceMerchant, authMiddleware middleware.AuthMiddleware) {
+func Init(router chi.Router, handler ecommerce_merchant.EcommerceMerchant, authMiddleware middleware.AuthMiddleware) {
 	routes := []glue.Route{
 		{
 			Method:  http.MethodPost,

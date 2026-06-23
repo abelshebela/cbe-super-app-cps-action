@@ -436,7 +436,7 @@ func (e *LogisticsMerchantService) Update(ctx context.Context, id string, Logist
 	}
 
 	if check.BankAccountNumber != "" {
-		exist, err := core.CheckMerchantExists(ctx, e.repo, &check, &types.MiniAppMerchantExistOptions{ExcludeID: id})
+		exist, err := core.CheckMerchantExists(ctx, e.repo, &check, &types.MerchantExistOptions{ExcludeID: id})
 		if err != nil {
 			log.Errorf("[LogisMerchSvc][Update] exist check err: %v", err)
 			span.AddEvent("Failed to check merchant existence", trace.WithAttributes(
