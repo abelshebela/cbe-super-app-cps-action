@@ -19,7 +19,7 @@ func MapNotificationRequestToDomain(req *NotificationRequest) *NotificationReque
 	}
 
 	return &NotificationRequest{
-		NotificationType: req.NotificationType,
+		NotificationType: req.For,
 		NotificationBody: req.NotificationBody,
 		IsPublic:         req.IsPublic,
 		For:              req.For,

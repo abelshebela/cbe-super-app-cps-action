@@ -61,12 +61,6 @@ func (r NotificationRequest) Validate(isCreate bool) error {
 
 	if isCreate {
 		fieldRules = []*validation.FieldRules{
-			validation.Field(&r.NotificationType, validation.Required.Error("notification_type is required"), validation.By(noDangerousChars)),
-			validation.Field(&r.NotificationBody,
-				validation.Required.Error("notification_body is required"),
-				validation.By(noDangerousChars),
-				validation.Length(1, 200),
-			),
 			validation.Field(&r.Title, validation.Required.Error("title is required"), validation.By(noDangerousChars)),
 			validation.Field(&r.For,
 				validation.Required.Error("for is required"),
