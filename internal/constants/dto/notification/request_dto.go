@@ -1,6 +1,7 @@
 package notification
 
 type NotificationRequest struct {
+	ID               string `json:"id"`
 	NotificationType string `json:"notification_type"`
 	NotificationBody string `json:"notification_body"`
 	IsPublic         bool   `json:"is_public"`

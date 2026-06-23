@@ -57,6 +57,7 @@ import (
 	event_model "cbe-super-app-cps-action/internal/constants/model"
 
 	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/notification/dto"
 	// mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
@@ -180,7 +181,7 @@ type NotificationService interface {
 	EnableNotification(ctx context.Context, id string) error
 	DisableNotification(ctx context.Context, id string) error
 	FetchNotificationByID(ctx context.Context, id string) (*notify.NotificationResponse, error)
-	FetchNotifications(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]model.Notification], error)
+	FetchNotifications(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]dto.BroadcastInAppNotificationMessage], error)
 }
 
 type CustomerService interface {

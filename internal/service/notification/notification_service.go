@@ -17,9 +17,9 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/notification/dto"
 
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -175,16 +175,8 @@ func (s *notificationService) EnableNotification(ctx context.Context, id string)
 		))
 		return err
 	}
-	if prev.Enabled {
-		log.Errorf("[NotifSvc][Enable] already enabled: %s", id)
-		span.AddEvent("Notification already enabled", trace.WithAttributes(
-			attribute.String("error", localization.ErrorUserAlreadyEnabled.Code),
-			attribute.String("id", id),
-		))
-		return errors.New(localization.ErrorUserAlreadyEnabled.Code)
-	}
+
 	updated := prev
-	updated.Enabled = true
 
 	maker := local_util.ExtractUserFromContext(ctx)
 	cpsActionModel := lib.CpsModelBuilder(id, maker, prev, &updated, string(constants.RequestEnableNotification), string(constants.UPDATE))
@@ -224,16 +216,7 @@ func (s *notificationService) DisableNotification(ctx context.Context, id string
 		return err
 	}
 
-	if !prev.Enabled {
-		log.Errorf("[NotifSvc][Disable] already disabled: %s", id)
-		span.AddEvent("Notification already disabled", trace.WithAttributes(
-			attribute.String("error", localization.ErrorUserAlreadyDisabled.Code),
-			attribute.String("id", id),
-		))
-		return errors.New(localization.ErrorUserAlreadyDisabled.Code)
-	}
 	updated := prev
-	updated.Enabled = false
 
 	maker := local_util.ExtractUserFromContext(ctx)
 	cpsActionModel := lib.CpsModelBuilder(id, maker, prev, &updated, string(constants.RequestDisableNotification), string(constants.UPDATE))
@@ -268,7 +251,7 @@ func (s *notificationService) FetchNotificationByID(ctx context.Context, id stri
 	return notify.MapNotificationToResponse(entity), nil
 }
 
-func (s *notificationService) FetchNotifications(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]model.Notification], error) {
+func (s *notificationService) FetchNotifications(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]dto.BroadcastInAppNotificationMessage], error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "FetchNotifications", "Notification", "FetchNotifications")
@@ -307,10 +290,8 @@ func (s *notificationService) Authorize(ctx context.Context, action *model.CPSAc
 			))
 			return nil, errors.New(localization.ErrorInvalidRequest.Code)
 		}
-		if notif.ID.IsZero() {
-			notif.ID = bson.NewObjectID()
-		}
-		if notif.Title == "" || notif.NotificationType == "" || string(notif.For) == "" {
+
+		if notif.Title == "" || notif.Category == "" || string(notif.BroadcastType) == "" {
 			log.Errorf("[NotifSvc][Authorize] invalid data")
 			span.AddEvent("Invalid notification data", trace.WithAttributes(
 				attribute.String("error", localization.ErrorInvalidRequest.Code),
@@ -329,22 +310,6 @@ func (s *notificationService) Authorize(ctx context.Context, action *model.CPSAc
 		}
 		log.Infof("[NotifSvc][Authorize] created")
 
-		// Publish in-app broadcast to Kafka when a public notification is approved
-		if s.store != nil && notif.IsPublic {
-			// default 30-day expiry; adjust as needed or extend DTO to accept expiry
-			exp := time.Now().Add(30 * 24 * time.Hour)
-			payload := types.InAppBroadcastMessage{
-				Title:     notif.Title,
-				Message:   notif.NotificationBody,
-				Type:      "inapp",
-				ExpiresAt: exp,
-			}
-			if err := s.store.PublishInAppBroadcast(ctx, payload); err != nil {
-				log.Errorf("[NotifSvc][Authorize] broadcast err: %v", err)
-			} else {
-				log.Infof("[NotifSvc][Authorize] broadcast published")
-			}
-		}
 		return action, nil
 
 	case string(constants.RequestUpdatePublicNotification):
@@ -358,9 +323,7 @@ func (s *notificationService) Authorize(ctx context.Context, action *model.CPSAc
 			return nil, errors.New(localization.ErrorInvalidRequest.Code)
 		}
 		id := action.UniqueId
-		if !notif.ID.IsZero() {
-			id = notif.ID.Hex()
-		}
+
 		if err := s.repo.Update(ctx, id, &notif); err != nil {
 			log.Errorf("[NotifSvc][Authorize] update err: %v", err)
 			span.AddEvent("Failed to update notification", trace.WithAttributes(
