@@ -89,7 +89,7 @@ type CheckMerchant struct {
 	PhoneNumber       string `json:"phone_number"`
 	MerchantCode      string `json:"merchant_code"`
 }
-type MiniAppMerchantExistOptions struct {
+type MerchantExistOptions struct {
 	ExcludeID string
 }
 type Auditor struct {

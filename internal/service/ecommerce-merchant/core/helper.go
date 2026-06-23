@@ -115,7 +115,7 @@ func MapToEcommerceUpdate(old, data *model.EcommerceMerchant) *model.EcommerceMe
 	return &updated
 }
 
-func HandleCPSActionForMiniAppMerchant(ctx context.Context, cpsService service.CPSActionService, uniqueID string, requestAction constants.RequestAction, curData, prevData interface{}, actionType constants.ActionType) error {
+func HandleCPSActionForEcommerceMerchant(ctx context.Context, cpsService service.CPSActionService, uniqueID string, requestAction constants.RequestAction, curData, prevData interface{}, actionType constants.ActionType) error {
 	maker := local_util.ExtractUserFromContext(ctx)
 
 	if local_util.IsIncomplete(maker) && !maker.IsErp {
@@ -152,7 +152,7 @@ func CheckMerchantExists(
 	ctx context.Context,
 	merchantRepo storage.EcommerceMerchantRepository,
 	data *types.CheckMerchant,
-	opts *types.MiniAppMerchantExistOptions,
+	opts *types.MerchantExistOptions,
 ) (bool, error) {
 	if data == nil || (strings.TrimSpace(data.MerchantCode) == "" && strings.TrimSpace(data.BankAccountNumber) == "") {
 		return false, nil
@@ -180,7 +180,7 @@ func CheckMerchantExists(
 	return true, nil
 }
 
-func ToMiniAppMerchantResponseDTO(domain *model.EcommerceMerchant) *merchantDto.EcommerceMerchantResponseDTO {
+func ToEcommerceMerchantResponseDTO(domain *model.EcommerceMerchant) *merchantDto.EcommerceMerchantResponseDTO {
 	return &merchantDto.EcommerceMerchantResponseDTO{
 		ID:            domain.ID,
 		Code:          domain.Code,

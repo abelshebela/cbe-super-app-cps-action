@@ -781,7 +781,7 @@ OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, merchantsTable, where)
 	}, nil
 }
 
-func (m *EcommerceMerchantStorage) FindOneO(ctx context.Context, data *types.CheckMerchant, opts *types.MiniAppMerchantExistOptions) (*model.EcommerceMerchant, error) {
+func (m *EcommerceMerchantStorage) FindOneO(ctx context.Context, data *types.CheckMerchant, opts *types.MerchantExistOptions) (*model.EcommerceMerchant, error) {
 	log := local_util.LoggerFromCtx(ctx, m.logger)
 
 	clauses := []string{"IS_DELETED = 0", "MERCHANT_TYPE = 'ECOMMERCE'"}

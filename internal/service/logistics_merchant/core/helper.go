@@ -22,7 +22,6 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	"errors"
-
 )
 
 func HandleCPSActionForLogisticsMerchant(ctx context.Context, cpsService service.CPSActionService, uniqueID string, requestAction constants.RequestAction, curData, prevData interface{}, actionType constants.ActionType) error {
@@ -63,7 +62,7 @@ func CheckMerchantExists(
 	ctx context.Context,
 	merchantRepo storage.LogisticsMerchantOracleRepository,
 	data *types.CheckMerchant,
-	opts *types.MiniAppMerchantExistOptions,
+	opts *types.MerchantExistOptions,
 ) (bool, error) {
 	if data == nil || (data.BankAccountNumber == "" && data.MerchantCode == "") {
 		return false, nil
