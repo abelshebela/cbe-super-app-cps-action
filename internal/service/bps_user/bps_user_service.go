@@ -243,7 +243,7 @@ func (b *bpsUserService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 		return nil, nil
 	case string(constants.RequestEnableBPSUser):
 		b.logger.Infof("[BpsUserSvc][Authorize] enabling id: %s", cpsAction.UniqueId)
-		err := b.repo.EnableDisableBPSUser(ctx, actionData.ID.Hex(), true)
+		err := b.repo.EnableDisableBPSUser(ctx, actionData.UserCode, true)
 		if err != nil {
 			span.AddEvent("[Authorize] failed to enable BPS user", trace.WithAttributes(
 				attribute.String("error", err.Error()),
@@ -255,7 +255,7 @@ func (b *bpsUserService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 		return nil, nil
 	case string(constants.RequestDisableBPSUser):
 		b.logger.Infof("[BpsUserSvc][Authorize] disabling id: %s", cpsAction.UniqueId)
-		err := b.repo.EnableDisableBPSUser(ctx, actionData.ID.Hex(), false)
+		err := b.repo.EnableDisableBPSUser(ctx, actionData.UserCode, false)
 		if err != nil {
 			span.AddEvent("[Authorize] failed to disable BPS user", trace.WithAttributes(
 				attribute.String("error", err.Error()),
@@ -418,7 +418,7 @@ func (b *bpsUserService) UpdateStatusBpsUser(ctx context.Context, userCode strin
 		requestAction = string(constants.RequestDisableBPSUser)
 	}
 
-	cpsActionData := lib.CpsModelBuilder(user.ID.Hex(), makerData, user, updatedUser, requestAction, constants.UPDATE)
+	cpsActionData := lib.CpsModelBuilder(user.UserCode, makerData, user, updatedUser, requestAction, constants.UPDATE)
 
 	if err := b.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
 		span.AddEvent("[UpdateBpsUser] failed to create CPS action", trace.WithAttributes(
@@ -519,7 +519,7 @@ func (b *bpsUserService) CreateBPSUser(ctx context.Context, req bps_model.BPSUse
 
 	// Build CPS action model for create
 	cpsActionModel := lib.CpsModelBuilder(
-		"",                                     // unique id
+		req.UserCode,                           // unique id
 		makerData,                              // maker data
 		nil,                                    // old data (nil for create)
 		req,                                    // new data
@@ -632,7 +632,7 @@ func (b *bpsUserService) UpdateBPSUser(ctx context.Context, userID string, updat
 	updatedUser = bps_user_core.BuildUpdatedBPSUser(*curUser, updatedUser)
 	// updatedUser.Role = roles.Role
 	cpsActionModel := lib.CpsModelBuilder(
-		curUser.ID.Hex(),                       // unique id
+		curUser.UserCode,                       // unique id
 		makerData,                              // maker data
 		curUser,                                // old data
 		updatedUser,                            // new data
@@ -695,7 +695,7 @@ func (b *bpsUserService) DeleteBPSUser(ctx context.Context, userID string) error
 	updatedUser.IsDeleted = true
 	updatedUser.LastModifiedAt = time.Now()
 	// fmt.Println("LOLOLOLO IN FUNCTION DELETE")
-	cpsActionData := lib.CpsModelBuilder(existingUser.ID.Hex(), makerData, existingUser, updatedUser, string(constants.RequestBpsUserDelete), constants.DELETE)
+	cpsActionData := lib.CpsModelBuilder(existingUser.UserCode, makerData, existingUser, updatedUser, string(constants.RequestBpsUserDelete), constants.DELETE)
 	if err := b.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
 		span.AddEvent("[DeleteBPSUser] failed to create CPS action", trace.WithAttributes(
 			attribute.String("error", err.Error()),
