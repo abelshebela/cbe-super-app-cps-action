@@ -2,6 +2,7 @@ package notification
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -32,6 +33,17 @@ type notificationService struct {
 	store      *lib.NotificationStore
 }
 
+type BroadcastInAppNotificationMessage struct {
+	Title         string                 `json:"title" validate:"required"`
+	Message       string                 `json:"message" validate:"required"`
+	Category      string                 `json:"category" validate:"required"`
+	BroadcastType string                 `json:"broadcast_type" validate:"required"`
+	ImageURL      string                 `json:"image_url,omitempty"`
+	ActionURL     string                 `json:"action_url,omitempty"`
+	Data          map[string]interface{} `json:"data,omitempty"`
+	ExpiresAt     *time.Time             `json:"expires_at,omitempty"`
+}
+
 func InitNotificationService(repo storage.NotificationRepository, logger shared_utils.Logger, cpsService service.CPSActionService, store *lib.NotificationStore) service.NotificationService {
 	return &notificationService{
 		repo:       repo,
@@ -59,7 +71,35 @@ func (s *notificationService) CreateNotification(ctx context.Context, req notify
 
 	entity := helper.BuildCreateNotification(req)
 
-	cpsAction := lib.CpsModelBuilder("", maker, nil, entity, string(constants.RequestCreatePublicNotification), constants.CREATE)
+	var ent map[string]interface{}
+	data, err := json.Marshal(entity)
+	if err != nil {
+		log.Errorf("[NotifSvc][Create] marshal err: %v", err)
+		span.AddEvent("Failed to marshal notification entity", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+		))
+		return nil, err
+	}
+
+	if json.Unmarshal(data, &ent) != nil {
+		log.Errorf("[NotifSvc][Create] unmarshal err: %v", err)
+		span.AddEvent("Failed to unmarshal notification entity", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+		))
+		return nil, err
+	}
+
+	title, _ := ent["title"].(string)
+	message, _ := ent["message"].(string)
+	category, _ := ent["category"].(string)
+	broadcastType, _ := ent["type"].(string)
+
+	cpsAction := lib.CpsModelBuilder("", maker, nil, BroadcastInAppNotificationMessage{
+		Title:         title,
+		Message:       message,
+		Category:      category,
+		BroadcastType: broadcastType,
+	}, string(constants.RequestCreatePublicNotification), constants.CREATE)
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
 		log.Errorf("[NotifSvc][Create] cps action err: %v", err)
 		span.AddEvent("Failed to create CPS action", trace.WithAttributes(
