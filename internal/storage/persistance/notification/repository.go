@@ -54,12 +54,12 @@ func (n *NotificationStorage) Create(ctx context.Context, notification *model.No
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	inAppMessage := shared_notification.BroadcastInAppNotification{
-		BroadcastType:     shared_constants.BroadcastType(newNotification.For),
-		BroadcastCategory: shared_constants.BroadcastCategoryOther,
-		Title:             newNotification.Title,
-		Message:           newNotification.NotificationBody,
-		Data:              NotificationMapper(newNotification),
+	inAppMessage := shared_notification.BroadcastInAppNotificationMessage{
+		BroadcastType: string(newNotification.For),
+		Category:      string(shared_constants.BroadcastCategoryOther),
+		Title:         newNotification.Title,
+		Message:       newNotification.NotificationBody,
+		Data:          NotificationMapper(newNotification),
 	}
 
 	// err = n.kafkaProducer.PublishMessage(ctx, inAppMessage)
