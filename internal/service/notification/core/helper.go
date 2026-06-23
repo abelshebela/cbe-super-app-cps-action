@@ -2,13 +2,14 @@ package core
 
 import (
 	"encoding/json"
-	"time"
 
 	// "cbe-super-app-cps-action/internal/constants"
 	notify "cbe-super-app-cps-action/internal/constants/dto/notification"
-	local_utils "cbe-super-app-cps-action/pkgs/utils"
 
-	shared_constants "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
+	shared_notification "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/notification/dto"
+
+	notification_constants "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/notification/constants"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
@@ -30,59 +31,42 @@ func GenerateNotification(notification model.Notification) *model.Notification {
 	}
 }
 
-func BuildCreateNotification(req notify.NotificationRequest) model.Notification {
-	return model.Notification{
-		Title:            req.Title,
-		NotificationCode: local_utils.NewNotificationID(),
-		NotificationType: req.NotificationType,
-		NotificationBody: req.NotificationBody,
-		IsPublic:         req.IsPublic,
-		For:              shared_constants.NotificationFor(req.For),
-		CreatedBy:        req.CreatedBy,
-		Status:           shared_constants.StatusPending,
-		Seen:             false,
-		Enabled:          true,
-		IsDeleted:        false,
-		CreatedAt:        time.Now(),
-		LastModified:     time.Now(),
+func BuildCreateNotification(req notify.NotificationRequest) shared_notification.BroadcastInAppNotificationMessage {
+	return shared_notification.BroadcastInAppNotificationMessage{
+		Title:         req.Title,
+		Message:       req.NotificationBody,
+		Category:      notification_constants.BroadcastCategoryOther.String(),
+		BroadcastType: notification_constants.BroadcastType(req.NotificationType).String(),
 	}
 }
 
-func BuildUpdateNotification(prev *model.Notification, req notify.NotificationRequest) model.Notification {
+func BuildUpdateNotification(prev *shared_notification.BroadcastInAppNotificationMessage, req notify.NotificationRequest) shared_notification.BroadcastInAppNotificationMessage {
 	cur := *prev
 	if req.Title != "" {
 		cur.Title = req.Title
 	}
 	if req.NotificationType != "" {
-		cur.NotificationType = req.NotificationType
+		cur.BroadcastType = req.NotificationType
 	}
 	if req.NotificationBody != "" {
-		cur.NotificationBody = req.NotificationBody
+		cur.Message = req.NotificationBody
 	}
 	if req.For != "" {
-		cur.For = shared_constants.NotificationFor(req.For)
+		cur.BroadcastType = notification_constants.BroadcastType(req.For).String()
 	}
-	if req.CreatedBy != "" {
-		cur.CreatedBy = req.CreatedBy
-	}
-	// IsPublic only set to true explicitly; do not force false on partial updates
-	if req.IsPublic {
-		cur.IsPublic = true
-	}
-	cur.LastModified = time.Now()
 	return cur
 }
 
-func BindNotificationFromAction(current any) (model.Notification, error) {
-	var out model.Notification
+func BindNotificationFromAction(current any) (shared_notification.BroadcastInAppNotificationMessage, error) {
+	var out shared_notification.BroadcastInAppNotificationMessage
 	if current == nil {
 		return out, nil
 	}
 
 	switch v := current.(type) {
-	case model.Notification:
+	case shared_notification.BroadcastInAppNotificationMessage:
 		return v, nil
-	case *model.Notification:
+	case *shared_notification.BroadcastInAppNotificationMessage:
 		if v == nil {
 			return out, nil
 		}
