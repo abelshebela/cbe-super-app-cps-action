@@ -450,7 +450,7 @@ func (b *BPSUserStorage) Update(ctx context.Context, BpsUser *bps_model.BPSUser)
 	log := local_util.LoggerFromCtx(ctx, b.logger)
 
 	log.Infof("[BPSUserStorage][Update] updating BPS user")
-	filter := bson.M{"_id": BpsUser.ID, "is_deleted": bson.M{"$ne": true}}
+	filter := bson.M{"user_code": BpsUser.UserCode, "is_deleted": bson.M{"$ne": true}}
 	_, err := b.dal.UpdateOne(ctx, filter, BPSUserMapper(*BpsUser))
 	if err != nil {
 		log.Errorf("[BPSUserStorage][Update] failed to update BPS user: %v", err)
@@ -461,16 +461,16 @@ func (b *BPSUserStorage) Update(ctx context.Context, BpsUser *bps_model.BPSUser)
 
 }
 
-func (b *BPSUserStorage) EnableDisableBPSUser(ctx context.Context, id string, enable bool) error {
+func (b *BPSUserStorage) EnableDisableBPSUser(ctx context.Context, userCode string, enable bool) error {
 	log := local_util.LoggerFromCtx(ctx, b.logger)
 	log.Infof("[BPSUserStorage][Update] updating BPS user")
-	objID, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		log.Errorf("[BPSUserStorage][Update] invalid ObjectID: %v", err)
-		return errors.New(localization.ErrorInvalidID.Code)
-	}
+	// objID, err := bson.ObjectIDFromHex(id)
+	// if err != nil {
+	// 	log.Errorf("[BPSUserStorage][Update] invalid ObjectID: %v", err)
+	// 	return errors.New(localization.ErrorInvalidID.Code)
+	// }
 
-	filter := bson.M{"_id": objID, "is_deleted": bson.M{"$ne": true}}
+	filter := bson.M{"user_code": userCode, "is_deleted": bson.M{"$ne": true}}
 	var update bson.M
 	if enable {
 		update = bson.M{
@@ -483,7 +483,7 @@ func (b *BPSUserStorage) EnableDisableBPSUser(ctx context.Context, id string, en
 	} else {
 		update = bson.M{"enabled": false, "last_modified_at": time.Now()}
 	}
-	_, err = b.dal.UpdateOne(ctx, filter, update)
+	_, err := b.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		log.Errorf("[BPSUserStorage][Update] failed to update BPS user: %v", err)
 		return local_util.HandleDBError(err)
@@ -507,10 +507,6 @@ func (b *BPSUserStorage) Create(ctx context.Context, req bps_model.BPSUser) erro
 	// Save the new user
 	_, err := b.dal.InsertOne(ctx, req)
 	if err != nil {
-		// span.AddEvent("[CreateBPSUser] failed to create BPS user", trace.WithAttributes(
-		//     attribute.String("error", err.Error()),
-		//     attribute.String("user_code", req.UserCode),
-		// ))
 		log.Errorf("[BPSUserStorage][Create] failed to create BPS user: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
