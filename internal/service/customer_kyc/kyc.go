@@ -38,6 +38,7 @@ type customerKYCService struct {
 	bucketName     string
 	cfg            *config.VaultConfig
 	minioEndPoint  string
+	smsService     *lib.NotificationStore
 }
 
 func NewCustomerKYCService(repo storage.CustomerKYCRepository,
@@ -51,6 +52,7 @@ func NewCustomerKYCService(repo storage.CustomerKYCRepository,
 	bucketName string,
 	cfg *config.VaultConfig,
 	minioEndPoint string,
+	smsService *lib.NotificationStore,
 ) service.CustomerKYCService {
 	return &customerKYCService{
 		repo:           repo,
@@ -64,6 +66,7 @@ func NewCustomerKYCService(repo storage.CustomerKYCRepository,
 		bucketName:     bucketName,
 		cfg:            cfg,
 		minioEndPoint:  minioEndPoint,
+		smsService:     smsService,
 	}
 }
 
@@ -469,6 +472,25 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 		if err != nil {
 			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
+
+		if s.smsService != nil {
+			phone := userData.KYCData.PhoneNumber
+			name := userData.KYCData.FullName
+			accountNumber := userAccount.AccountCreationDetail.Detail.AccountNumber
+			go func() {
+				msg := fmt.Sprintf(
+					"Dear %s, Congratulations! Your application for opening a new account and superapp activation is successful, Your new account number is %s. Welcome to CBE Super App!",
+					name, accountNumber,
+				)
+				if err := s.smsService.PublishSMSMessage(context.Background(), types.SMSKafkaMessage{
+					Recipient:   phone,
+					MessageBody: msg,
+				}); err != nil {
+					s.logger.Errorf("[CustKycSvc][Authorize] SMS send failed for phone %s: %v", phone, err)
+				}
+			}()
+		}
+
 	case string(constants.RequestRejectCustomerKYC):
 		userData, err := local_util.JsonUnmarshal[imodel.CustomerKYC](cpsAction.CurrentAction)
 		if err != nil {
@@ -495,6 +517,25 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 			log.Errorf("[CustKycSvc][Authorize] failed to update review status: %v", err)
 			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
+
+		if s.smsService != nil {
+			phone := userData.KYCData.PhoneNumber
+			name := userData.KYCData.FullName
+			reason := rejectionReason
+			go func() {
+				msg := fmt.Sprintf(
+					"Dear %s, Your application for opening a new account and CBE superapp activation is Rejected Due to %s, please correct and apply again. Thank You",
+					name, reason,
+				)
+				if err := s.smsService.PublishSMSMessage(context.Background(), types.SMSKafkaMessage{
+					Recipient:   phone,
+					MessageBody: msg,
+				}); err != nil {
+					s.logger.Errorf("[CustKycSvc][Authorize] SMS send failed for phone %s: %v", phone, err)
+				}
+			}()
+		}
+
 	case string(constants.RequestPickKycReview):
 		reviewData, err := local_util.JsonUnmarshal[imodel.StartedKycReview](cpsAction.CurrentAction)
 		if err != nil {

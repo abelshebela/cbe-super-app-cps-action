@@ -74,32 +74,11 @@ func MapCustomerKYCToResponsePaginated(c *types.PaginatedResponse[[]imodel.Custo
 	responses := make([]dto.CustomerKYCResponse, 0, len(c.Data))
 
 	for _, item := range c.Data {
-
-		// Split full name into first/middle/last
-		var firstName, middleName, lastName string
-
-		nameParts := strings.Fields(item.KYCData.FullName)
-
-		if len(nameParts) > 0 {
-			firstName = nameParts[0]
-		}
-
-		if len(nameParts) == 2 {
-			lastName = nameParts[1]
-		}
-
-		if len(nameParts) >= 3 {
-			middleName = strings.Join(nameParts[1:len(nameParts)-1], " ")
-			lastName = nameParts[len(nameParts)-1]
-		}
-
 		response := dto.CustomerKYCResponse{
 			ID: item.ID.Hex(),
 
 			PersonalInformation: dto.PersonalInformation{
-				FirstName:     firstName,
-				MiddleName:    middleName,
-				LastName:      lastName,
+				FullName:      item.KYCData.FullName,
 				MotherName:    item.KYCData.MothersName,
 				PhoneNumber:   item.KYCData.PhoneNumber,
 				Gender:        item.KYCData.Gender,
@@ -162,31 +141,11 @@ func MapCustomerKYCToResponse(c *model.CustomerKYC) *dto.CustomerKYCResponse {
 		return nil
 	}
 
-	// Split full name into first/middle/last
-	var firstName, middleName, lastName string
-
-	nameParts := strings.Fields(c.KYCData.FullName)
-
-	if len(nameParts) > 0 {
-		firstName = nameParts[0]
-	}
-
-	if len(nameParts) == 2 {
-		lastName = nameParts[1]
-	}
-
-	if len(nameParts) >= 3 {
-		middleName = strings.Join(nameParts[1:len(nameParts)-1], " ")
-		lastName = nameParts[len(nameParts)-1]
-	}
-
 	response := dto.CustomerKYCResponse{
 		ID: c.ID.Hex(),
 
 		PersonalInformation: dto.PersonalInformation{
-			FirstName:     firstName,
-			MiddleName:    middleName,
-			LastName:      lastName,
+			FullName:      c.KYCData.FullName,
 			MotherName:    c.KYCData.MothersName,
 			PhoneNumber:   c.KYCData.PhoneNumber,
 			Gender:        c.KYCData.Gender,

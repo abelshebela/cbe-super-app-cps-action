@@ -1354,14 +1354,14 @@ SET
   is_ussd_enabled = :4,
   is_superapp_enabled = :5,
   last_modified_at = SYSTIMESTAMP
-WHERE id = :6 AND service_key = :7`
+WHERE id = HEXTORAW(:6) AND service_key = :7`
 
 	res, err := tx.ExecContext(ctx, q,
 		serviceList.ServiceName,
 		serviceList.ServiceKey,
 		serviceList.AccountType,
-		serviceList.IsUSSDEnabled,
-		serviceList.IsSuperAppEnabled,
+		boolToOracleNumber(serviceList.IsUSSDEnabled),
+		boolToOracleNumber(serviceList.IsSuperAppEnabled),
 		id,
 		serviceKey,
 	)
