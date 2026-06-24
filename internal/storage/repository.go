@@ -1,6 +1,8 @@
 package storage
 
 import (
+	shared_notification "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/notification/dto"
+
 	ussd_merchant_dto "cbe-super-app-cps-action/internal/constants/dto/ussd_merchant"
 	"context"
 	"time"
@@ -574,16 +576,16 @@ type EcommerceMerchantRepository interface {
 	FindByID(ctx context.Context, id string) (*model.EcommerceMerchant, error)
 	FindBranchByID(ctx context.Context, id string) (*model.BranchInformation, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.EcommerceMerchant], error)
-	FindOneO(ctx context.Context, data *types.CheckMerchant, opts *types.MiniAppMerchantExistOptions) (*model.EcommerceMerchant, error)
+	FindOneO(ctx context.Context, data *types.CheckMerchant, opts *types.MerchantExistOptions) (*model.EcommerceMerchant, error)
 }
 
 type NotificationRepository interface {
-	Create(ctx context.Context, notification *model.Notification) error
-	Update(ctx context.Context, id string, notification *model.Notification) error
+	Create(ctx context.Context, notification *shared_notification.BroadcastInAppNotificationMessage) error
+	Update(ctx context.Context, id string, notification *shared_notification.BroadcastInAppNotificationMessage) error
 	Delete(ctx context.Context, id string) error
-	FindByID(ctx context.Context, id string) (*model.Notification, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Notification], error)
-	EnableDisableNotification(ctx context.Context, id string, enable bool) (*model.Notification, error)
+	FindByID(ctx context.Context, id string) (*shared_notification.BroadcastInAppNotificationMessage, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.NotificationDocument], error)
+	EnableDisableNotification(ctx context.Context, id string, enable bool) (*shared_notification.BroadcastInAppNotificationMessage, error)
 	NotificationExists(ctx context.Context, notificationType string, forValue constants.NotificationFor, id *string) (bool, error)
 }
 
@@ -940,7 +942,7 @@ type CustomerKYCRepository interface {
 	// Create(ctx context.Context, req *imodel.CustomerKYC) error
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.CustomerKYC], error)
 	FindByID(ctx context.Context, id string) (*imodel.CustomerKYC, error)
-	CreateUser(ctx context.Context, userAccount *coreio.CreateCustomerResult, userData imodel.CustomerKYC) error
+	CreateUser(ctx context.Context, userAccount *coreio.CusteomerAccountCreationResponse, userData imodel.CustomerKYC) error
 	UpdateKYCStatus(ctx context.Context, id, status, rejectionReason string, approved bool) error
 	FindKycInReview(ctx context.Context, kycID string) (*imodel.StartedKycReview, error)
 	StartKycReview(ctx context.Context, reviewData *imodel.StartedKycReview) (*imodel.StartedKycReview, error)

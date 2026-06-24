@@ -31,9 +31,10 @@ type CustomerKYCResponse struct {
 }
 
 type PersonalInformation struct {
-	FirstName     string `json:"first_name" validate:"required"`
-	MiddleName    string `json:"middle_name,omitempty"`
-	LastName      string `json:"last_name" validate:"required"`
+	// FirstName     string `json:"first_name" validate:"required"`
+	// MiddleName    string `json:"middle_name,omitempty"`
+	// LastName      string `json:"last_name" validate:"required"`
+	FullName      string `json:"full_name" bson:"full_name"`
 	MotherName    string `json:"mother_name" validate:"required"`
 	PhoneNumber   string `json:"phone_number" validate:"required"`
 	Email         string `json:"email,omitempty"`

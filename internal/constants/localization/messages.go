@@ -471,13 +471,13 @@ const (
 	MsgDeviceVersionUpdateRequestSubmittedSuccess  = "Device version update request submitted"
 	MsgDeviceVersionCreateRequestSubmittedSuccess  = "Device version create request submitted"
 
-	MsgDeviceVersionCreatedSuccessfullySP        = "Device version created successfully"
-	MsgDeviceVersionUpdatedSuccessfullySP        = "Device version updated successfully "
-	MsgDeviceVersionEnabledSuccessfullySP        = "Device version enabled successfully"
-	MsgDeviceVersionDisabledSuccessfullySP       = "Device version disabled successfully"
-	MsgDeviceVersionStateSetSuccessfullySP       = "Device version state updated successfully"
-	MsgDeviceVersionStateSetRequestSubmitted     = "Device version state update request submitted"
-	MsgDeviceVersionAlreadyInState               = "Device version is already in the requested state"
+	MsgDeviceVersionCreatedSuccessfullySP    = "Device version created successfully"
+	MsgDeviceVersionUpdatedSuccessfullySP    = "Device version updated successfully "
+	MsgDeviceVersionEnabledSuccessfullySP    = "Device version enabled successfully"
+	MsgDeviceVersionDisabledSuccessfullySP   = "Device version disabled successfully"
+	MsgDeviceVersionStateSetSuccessfullySP   = "Device version state updated successfully"
+	MsgDeviceVersionStateSetRequestSubmitted = "Device version state update request submitted"
+	MsgDeviceVersionAlreadyInState           = "Device version is already in the requested state"
 
 	// Notification related success messages
 	MsgNotificationEnableRequestSubmitted  = "Notification enable request submitted successfully"
@@ -986,6 +986,7 @@ const (
 	MsgInvalidInput                     = "Invalid input provided"
 	MsgMissingRequiredFields            = "Missing required fields"
 	MsgResourceNotFound                 = "Resource not found"
+	MsgCustomerCreationOnCoreFailed     = "Failed To approve and create customer on core"
 	MsgAccessListNotFound               = "One or more access list not found"
 	MsgAccessListAlreadyDisabled        = "One or more access list already disabled"
 	MsgAccessListAlreadyEnabled         = "One or more access list already enabled"

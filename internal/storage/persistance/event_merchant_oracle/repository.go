@@ -74,7 +74,7 @@ func (m *EventMerchantOracleRepository) Create(ctx context.Context, merchant mod
 		sql.Out{Dest: &insertedID},    // :13 (output parameter for inserted ID)
 	)
 	if err != nil {
- 			m.logger.Errorf("[persistance oracle create] got error while creating event merchant: %v", err)
+		m.logger.Errorf("[persistance oracle create] got error while creating event merchant: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	types.SetMerchant(ctx, &types.Merchant{ID: insertedID})
@@ -85,8 +85,9 @@ func (m *EventMerchantOracleRepository) Create(ctx context.Context, merchant mod
 }
 
 func (m *EventMerchantOracleRepository) Update(ctx context.Context, id string, merchant model.EventMerchant) error {
+	m.logger.Infof("[EVENT MERCHANT persistance UPDATE] id: %s, merchant: %+v", id, merchant)
 	query, args := buildUpdateQuery(id, merchant)
-
+	m.logger.Infof("[EVENT MERCHANT persistance UPDATE] query: %s, args: %v", query, args)
 	rows, err := m.OracleCliant.ExecContext(ctx, query, args...)
 	if err != nil {
 		m.logger.Errorf("[EVENT MERCHANT persistance UPDATE] got error while updated event merchant error : %v", err)

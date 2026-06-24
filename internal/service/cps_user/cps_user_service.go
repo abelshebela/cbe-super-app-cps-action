@@ -257,7 +257,7 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 	cpsUser.Role = jobTitle.Role
 
 	userForAction := core.MapForActionWithDepartment(cpsUser, department)
-	cpsActionModel := lib.CpsModelBuilder("", makerData, nil, userForAction, string(constants.RequestCpsUserCreate), constants.CREATE)
+	cpsActionModel := lib.CpsModelBuilder(cpsUser.UserCode, makerData, nil, userForAction, string(constants.RequestCpsUserCreate), constants.CREATE)
 
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionModel); err != nil {
 		span.AddEvent("failed to create CPS action", trace.WithAttributes(attribute.String("error", err.Error())))

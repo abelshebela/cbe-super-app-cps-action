@@ -36,7 +36,7 @@ type roleDelegation struct {
 	cpsService   service.CPSActionService
 	branchRepo   storage.AccountBlockRepository
 	minioClient  *s3.Client
-	kafkaClient  kafka.NotificationProducer
+	kafkaClient  *kafka.NotificationProducer
 	bucketName   string
 	cfg          config.VaultConfig
 	logger       utils.Logger
@@ -134,9 +134,6 @@ func (r *roleDelegation) CreateWithExistingUser(ctx context.Context, roleDelegat
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
 	log.Infof("[RoleDelegation/Create] Creating role delegation for user %s with job title %s", roleDelegation.DelegatedUserID, roleDelegation.DelegatedUserJobTitle)
-
-	log.Debugf("[RoleDelegation/Create] incoming role delegation data: %+v", roleDelegation)
-
 	maker := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(maker) {
 		log.Errorf("[Role Service][Create] maker data is incomplete")
@@ -204,7 +201,7 @@ func (r *roleDelegation) CreateWithExistingUser(ctx context.Context, roleDelegat
 		}
 	}
 	roleDelegation.Enable = true
-	cpsModel := lib.CpsModelBuilder(constants.Empty, maker, nil, roleDelegation, constants.RequestCreateRoleDelegationForExistingUser, constants.CREATE)
+	cpsModel := lib.CpsModelBuilder(roleDelegation.DelegatedUserID, maker, nil, roleDelegation, constants.RequestCreateRoleDelegationForExistingUser, constants.CREATE)
 	return r.cpsService.CreateCPSAction(ctx, &cpsModel)
 
 }
@@ -308,7 +305,7 @@ func (r *roleDelegation) CreateWithNewUser(ctx context.Context, roleDelegation i
 
 	roleDelegation.Enable = true
 
-	cpsModel := lib.CpsModelBuilder(constants.Empty, maker, nil, roleDelegation, constants.RequestCreateRoleDelegationForNewUser, constants.CREATE)
+	cpsModel := lib.CpsModelBuilder(roleDelegation.DelegatedUserID, maker, nil, roleDelegation, constants.RequestCreateRoleDelegationForNewUser, constants.CREATE)
 	return r.cpsService.CreateCPSAction(ctx, &cpsModel)
 
 }
@@ -329,7 +326,7 @@ func (r *roleDelegation) Delete(ctx context.Context, id string) error {
 		return err
 	}
 
-	cpsActionData := lib.CpsModelBuilder(id, maker, existing, nil, constants.RequestDeleteRoleDelegation, constants.DELETE)
+	cpsActionData := lib.CpsModelBuilder(existing.DelegatedUserUserCode, maker, existing, nil, constants.RequestDeleteRoleDelegation, constants.DELETE)
 	return r.cpsService.CreateCPSAction(ctx, &cpsActionData)
 }
 
@@ -369,7 +366,7 @@ func (r *roleDelegation) EnableOrDisable(ctx context.Context, id string, enable 
 		requestType = constants.RequestDisableRoleDelegation
 	}
 
-	cpsActionData := lib.CpsModelBuilder(id, maker, existing, updated, requestType, constants.UPDATE)
+	cpsActionData := lib.CpsModelBuilder(existing.DelegatedUserUserCode, maker, existing, updated, requestType, constants.UPDATE)
 	if err := r.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
 		log.Errorf("[RoleDelegation/EnableOrDisable] failed to create CPS action: %v", err)
 		return err
@@ -661,7 +658,7 @@ func roleDelegationEmailBody(roleDelegation imodel.RoleDelegation) string {
 	)
 }
 
-func NewRoleDelegationService(repo storage.RoleDelegationRepository, jobTitleRepo storage.JobRoleRepository, cpsUserRepo storage.CpsUserRepository, bpsUserRepo storage.BPSUserRepository, department storage.DepartmentRepository, roleRepo storage.RoleRepository, branchRepo storage.AccountBlockRepository, cpsService service.CPSActionService, minioClient *s3.Client, bucketName string, cfg config.VaultConfig, logger utils.Logger) service.RoleDelegationService {
+func NewRoleDelegationService(repo storage.RoleDelegationRepository, jobTitleRepo storage.JobRoleRepository, cpsUserRepo storage.CpsUserRepository, bpsUserRepo storage.BPSUserRepository, department storage.DepartmentRepository, roleRepo storage.RoleRepository, branchRepo storage.AccountBlockRepository, cpsService service.CPSActionService, minioClient *s3.Client, bucketName string, cfg config.VaultConfig, kafkaProducer *kafka.NotificationProducer, logger utils.Logger) service.RoleDelegationService {
 	return &roleDelegation{
 		cpsService:   cpsService,
 		repo:         repo,
@@ -670,6 +667,7 @@ func NewRoleDelegationService(repo storage.RoleDelegationRepository, jobTitleRep
 		cpsUserRepo:  cpsUserRepo,
 		bpsUserRepo:  bpsUserRepo,
 		branchRepo:   branchRepo,
+		kafkaClient:  kafkaProducer,
 		department:   department,
 		minioClient:  minioClient,
 		bucketName:   bucketName,

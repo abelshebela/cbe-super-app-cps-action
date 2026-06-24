@@ -7,6 +7,7 @@ import (
 	erp_merchant_update_dto "cbe-super-app-cps-action/internal/constants/dto/erp_merchant_update"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	event_merchant_model "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/service/event_merchant/core"
@@ -19,13 +20,8 @@ import (
 	"strings"
 	"time"
 
-	event_merchant_model "cbe-super-app-cps-action/internal/constants/model"
-
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-
-	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"

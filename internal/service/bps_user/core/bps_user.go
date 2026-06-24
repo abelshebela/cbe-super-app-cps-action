@@ -312,5 +312,8 @@ func BuildUpdatedBPSUser(existing bps_model.BPSUser, req bps_model.BPSUser) bps_
 	if req.JobTitle == "" {
 		req.JobTitle = existing.JobTitle
 	}
+	if req.Role == "" {
+		req.Role = existing.Role
+	}
 	return req
 }
