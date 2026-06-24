@@ -37,19 +37,6 @@ func decodeJSONBody(w http.ResponseWriter, r *http.Request, dst interface{}, log
 	return true
 }
 
-// Create godoc
-//
-//	@Summary		Create Service
-//	@Description	Create a new service
-//	@Tags			Services
-//	@Accept			json
-//	@Produce		json
-//	@Param			request	body		services.CreateServiceRequest	true	"Service payload"
-//	@Success		201		{object}	localization.StandardResponse{data=nil}	"Service creation request submitted successfully"
-//	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request"
-//	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
-//	@Security		BearerAuth
-//	@Router			/services [post]
 func (a *servicesAdapter) Create(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "", "createService", "handler", "services")
 	defer span.End()
@@ -126,21 +113,6 @@ func (a *servicesAdapter) ServicesDelete(w http.ResponseWriter, r *http.Request)
 
 }
 
-// Update godoc
-//
-//	@Summary		Update Service
-//	@Description	Update an existing service
-//	@Tags			Services
-//	@Accept			json
-//	@Produce		json
-//	@Param			id			path		string									true	"Service ID"
-//	@Param			request		body		services.UpdateServiceRequest	true	"Service update payload"
-//	@Success		200			{object}	localization.StandardResponse{data=nil}	"Service update request submitted successfully"
-//	@Failure		400			{object}	localization.StandardResponse{data=nil}	"Bad request"
-//	@Failure		404			{object}	localization.StandardResponse{data=nil}	"Service not found"
-//	@Failure		500			{object}	localization.StandardResponse{data=nil}	"Internal server error"
-//	@Security		BearerAuth
-//	@Router			/services/{id} [patch]
 func (a *servicesAdapter) Update(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "", "updateService", "handler", "services")
 	defer span.End()
@@ -160,11 +132,6 @@ func (a *servicesAdapter) Update(w http.ResponseWriter, r *http.Request) {
 		span.RecordError(errors.New("invalid payload"))
 		return
 	}
-
-	// if err := local_util.ValidateMongoID(id); err != nil {
-	// 	localization.SendBadRequestResponse(w, "invalid object id")
-	// 	return
-	// }
 
 	req.Normalize()
 	if err := req.Validate(); err != nil {
@@ -194,21 +161,6 @@ func (a *servicesAdapter) Update(w http.ResponseWriter, r *http.Request) {
 	localization.SendSuccessResponse(w, localization.SuccessServiceUpdateRequestSubmitted, nil)
 }
 
-// Enable godoc
-//
-//	@Summary		Enable Service
-//	@Description	Enable a service by ID
-//	@Tags			Services
-//	@Accept			json
-//	@Produce		json
-//	@Param			id				path		string									true	"Service ID"
-//	@Success		200				{object}	localization.StandardResponse{data=nil}	"Service enabled successfully"
-//	@Failure		400				{object}	localization.StandardResponse{data=nil}	"Bad request"
-//	@Failure		404				{object}	localization.StandardResponse{data=nil}	"Service not found"
-//	@Failure		409				{object}	localization.StandardResponse{data=nil}	"Service already enabled"
-//	@Failure		500				{object}	localization.StandardResponse{data=nil}	"Internal server error"
-//	@Security		BearerAuth
-//	@Router			/services/{id}/enable [patch]
 func (a *servicesAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "", "enableService", "handler", "services")
 	defer span.End()
@@ -222,11 +174,6 @@ func (a *servicesAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorResponse(w, localization.ErrorInvalidID, nil, nil)
 		return
 	}
-	// if err := local_util.ValidateMongoID(id); err != nil {
-	// 	localization.SendBadRequestResponse(w, "invalid object id")
-	// 	return
-	// }
-
 	if r.Header.Get("Authorization") == "" {
 		span.RecordError(errors.New("missing Authorization header"))
 		localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
@@ -253,21 +200,6 @@ func (a *servicesAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 	localization.SendSuccessResponse(w, localization.SuccessServiceEnableRequestSubmitted, nil)
 }
 
-// Disable godoc
-//
-//	@Summary		Disable Service
-//	@Description	Disable a service by ID
-//	@Tags			Services
-//	@Accept			json
-//	@Produce		json
-//	@Param			id				path		string									true	"Service ID"
-//	@Success		200				{object}	localization.StandardResponse{data=nil}	"Service enabled successfully"
-//	@Failure		400				{object}	localization.StandardResponse{data=nil}	"Bad request"
-//	@Failure		404				{object}	localization.StandardResponse{data=nil}	"Service not found"
-//	@Failure		409				{object}	localization.StandardResponse{data=nil}	"Service already enabled"
-//	@Failure		500				{object}	localization.StandardResponse{data=nil}	"Internal server error"
-//	@Security		BearerAuth
-//	@Router			/services/{id}/disable [patch]
 func (a *servicesAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "", "disableService", "handler", "services")
 	defer span.End()
@@ -281,11 +213,6 @@ func (a *servicesAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorResponse(w, localization.ErrorInvalidID, nil, nil)
 		return
 	}
-	// if err := local_util.ValidateMongoID(id); err != nil {
-	// 	localization.SendBadRequestResponse(w, "invalid object id")
-	// 	return
-	// }
-
 	if r.Header.Get("Authorization") == "" {
 		span.RecordError(errors.New("missing Authorization header"))
 		localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
@@ -312,25 +239,6 @@ func (a *servicesAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	localization.SendSuccessResponse(w, localization.SuccessServiceDisableRequestSubmitted, nil)
 }
 
-// GetAll godoc
-//
-//	@Summary		List Services
-//	@Description	Retrieve services with pagination, filtering, and search.
-//	@Tags			Services
-//	@Accept			json
-//	@Produce		json
-//	@Param			page			query		int		false	"Page number"		default(1)
-//	@Param			per_page		query		int		false	"Items per page"	default(10)
-//	@Param			service_name	query		string	false	"Filter by service_name"
-//	@Param			service_code	query		string	false	"Filter by service_code"
-//	@Param			service_type	query		string	false	"Filter by service_type"
-//	@Param			enabled			query		bool	false	"Filter by enabled status"
-//	@Param			search			query		string	false	"Search term (service_name, service_code, service_type)"
-//	@Success		200				{object}	localization.StandardResponse{data=object}	"Services retrieved successfully"
-//	@Failure		400				{object}	localization.StandardResponse{data=nil}		"Bad request"
-//	@Failure		500				{object}	localization.StandardResponse{data=nil}		"Internal server error"
-//	@Security		BearerAuth
-//	@Router			/services [get]
 func (a *servicesAdapter) GetAll(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "", "getAllServices", "handler", "services")
 	defer span.End()
@@ -424,10 +332,6 @@ func (a *servicesAdapter) UpdateServiceList(w http.ResponseWriter, r *http.Reque
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
-	// if err := local_util.ValidateMongoID(id); err != nil {
-	// 	localization.SendBadRequestResponse(w, "invalid object id")
-	// 	return
-	// }
 
 	if err := a.app.UpdateServiceList(ctx, id, &req); err != nil {
 		w = local_util.HandlePendingResponseError(ctx, w, err)
@@ -448,26 +352,6 @@ func (a *servicesAdapter) UpdateServiceList(w http.ResponseWriter, r *http.Reque
 	localization.SendSuccessResponse(w, localization.SuccessServiceListUpdateRequestSubmitted, nil)
 }
 
-// GetAllServiceList godoc
-//
-//	@Summary		List Service List
-//	@Description	Retrieve service list with pagination, filtering, and search.
-//	@Tags			Services
-//	@Accept			json
-//	@Produce		json
-//	@Param			page			query		int		false	"Page number"		default(1)
-//	@Param			per_page		query		int		false	"Items per page"	default(10)
-//	@Param			param			query		string	false	"Use 'all' to return all records without pagination"
-//	@Param			service_name	query		string	false	"Filter by service_name"
-//	@Param			service_code	query		string	false	"Filter by service_code"
-//	@Param			service_type	query		string	false	"Filter by service_type"
-//	@Param			enabled			query		bool	false	"Filter by enabled status"
-//	@Param			search			query		string	false	"Search term (service_name, service_code, service_type)"
-//	@Success		200				{object}	localization.StandardResponse{data=object}	"Services retrieved successfully"
-//	@Failure		400				{object}	localization.StandardResponse{data=nil}		"Bad request"
-//	@Failure		500				{object}	localization.StandardResponse{data=nil}		"Internal server error"
-//	@Security		BearerAuth
-//	@Router			/services_list [get]
 func (a *servicesAdapter) GetAllServiceList(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "", "getAllServicesList", "handler", "servicesList")
 	defer span.End()
@@ -498,20 +382,6 @@ func (a *servicesAdapter) GetAllServiceList(w http.ResponseWriter, r *http.Reque
 	localization.SendSuccessResponse(w, localization.SuccessDataRetrieved, list)
 }
 
-// GetByID godoc
-//
-//	@Summary		Get Service by ID
-//	@Description	Retrieve a service by its ID
-//	@Tags			Services
-//	@Accept			json
-//	@Produce		json
-//	@Param			id			path		string	true	"Service ID"
-//	@Success		200			{object}	localization.StandardResponse{data=object}	"Service retrieved successfully"
-//	@Failure		400			{object}	localization.StandardResponse{data=nil}		"Bad request"
-//	@Failure		404			{object}	localization.StandardResponse{data=nil}		"Service not found"
-//	@Failure		500			{object}	localization.StandardResponse{data=nil}		"Internal server error"
-//	@Security		BearerAuth
-//	@Router			/services/{id} [get]
 func (a *servicesAdapter) GetByID(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "", "getServiceById", "handler", "services")
 	defer span.End()
@@ -523,10 +393,6 @@ func (a *servicesAdapter) GetByID(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorResponse(w, localization.ErrorInvalidID, nil, nil)
 		return
 	}
-	// if err := local_util.ValidateMongoID(id); err != nil {
-	// 	localization.SendBadRequestResponse(w, "invalid object id")
-	// 	return
-	// }
 
 	span.SetAttributes(attribute.String("service.id", id))
 	item, err := a.app.GetByID(ctx, id)
@@ -548,10 +414,6 @@ func (a *servicesAdapter) EnableServiceList(w http.ResponseWriter, r *http.Reque
 	localization.UpdateWriterContext(w, ctx)
 
 	id := chi.URLParam(r, "id")
-	// if err := local_util.ValidateMongoID(id); err != nil {
-	// 	localization.SendBadRequestResponse(w, "invalid object id")
-	// 	return
-	// }
 
 	span.SetAttributes(attribute.String("service.id", id))
 	if err := a.app.EnableOrDisableServiceList(ctx, id, true); err != nil {
@@ -583,10 +445,6 @@ func (a *servicesAdapter) DisableServiceList(w http.ResponseWriter, r *http.Requ
 	localization.UpdateWriterContext(w, ctx)
 
 	id := chi.URLParam(r, "id")
-	// if err := local_util.ValidateMongoID(id); err != nil {
-	// 	localization.SendBadRequestResponse(w, "invalid object id")
-	// 	return
-	// }
 
 	span.SetAttributes(attribute.String("service.id", id))
 	if err := a.app.EnableOrDisableServiceList(ctx, id, false); err != nil {

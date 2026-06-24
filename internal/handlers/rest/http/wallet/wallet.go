@@ -35,25 +35,6 @@ func InitWalletAdapter(walletApp service.WalletService, logger utils.Logger) wal
 	}
 }
 
-// CreateWallet godoc
-//
-//	@Summary		Create a new wallet
-//	@Description	Create a new wallet with the provided information
-//	@Tags			Wallet
-//	@Accept			multipart/form-data
-//	@Produce		json
-//	@Param			name	formData	string									false	"name"
-//	@Param			code	formData	string									false	"code"
-//	@Param			type	formData	string									false	"type"
-//	@Param			self	formData	bool									false	"self"
-//	@Param			other	formData	bool									false	"other"
-//	@Param			agent	formData	bool									false	"agent"
-//	@Param			avatar	formData	file									false	"Avatar image file"
-//	@Success		200		{object}	localization.StandardResponse{data=nil}	"Wallet creation request sent successfully"
-//	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request"
-//	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
-//	@Security		BearerAuth
-//	@Router			/wallets [post]
 func (a *walletAdapter) CreateWallet(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createWallet", "handler", "wallet")
 	defer span.End()
@@ -102,26 +83,6 @@ func (a *walletAdapter) CreateWallet(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// UpdateWallet godoc
-//
-//	@Summary		Update a wallet
-//	@Description	Update a wallet with the provided information
-//	@Tags			Wallet
-//	@Accept			multipart/form-data
-//	@Produce		json
-//	@Param			id		path		string									true	"Wallet ID"
-//	@Param			name	formData	string									false	"name"
-//	@Param			code	formData	string									false	"code"
-//	@Param			type	formData	string									false	"type"
-//	@Param			self	formData	bool									false	"self"
-//	@Param			other	formData	bool									false	"other"
-//	@Param			agent	formData	bool									false	"agent"
-//	@Param			avatar	formData	file									false	"Avatar image file"
-//	@Success		200		{object}	localization.StandardResponse{data=nil}	"Wallet update request sent successfully"
-//	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request"
-//	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
-//	@Security		BearerAuth
-//	@Router			/wallets/{id} [patch]
 func (a *walletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateWallet", "handler", "wallet")
 	defer span.End()
@@ -181,20 +142,6 @@ func (a *walletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// DeleteWallet godoc
-//
-//	@Summary		Delete a wallet
-//	@Description	Permanently delete a wallet by ID
-//	@Tags			Wallet
-//	@Accept			json
-//	@Produce		json
-//	@Param			id	path		string									true	"Wallet ID"
-//	@Success		200	{object}	localization.StandardResponse{data=nil}	"Wallet deleted successfully"
-//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
-//	@Failure		404	{object}	localization.StandardResponse{data=nil}	"Wallet not found"
-//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
-//	@Security		BearerAuth
-//	@Router			/wallets/{id} [delete]
 func (a *walletAdapter) DeleteWallet(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "deleteWallet", "handler", "wallet")
 	defer span.End()
@@ -221,20 +168,6 @@ func (a *walletAdapter) DeleteWallet(w http.ResponseWriter, r *http.Request) {
 	localization.SendSuccessResponse(w, localization.SuccessWalletDeleted, nil)
 }
 
-// EnableWallet godoc
-//
-//	@Summary		Enable a wallet
-//	@Description	Enable a wallet by ID
-//	@Tags			Wallet
-//	@Accept			json
-//	@Produce		json
-//	@Param			id	path		string									true	"Wallet ID"
-//	@Success		200	{object}	localization.StandardResponse{data=nil}	"Wallet enable request submitted"
-//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
-//	@Failure		404	{object}	localization.StandardResponse{data=nil}	"Wallet not found"
-//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
-//	@Security		BearerAuth
-//	@Router			/wallets/{id}/enable [patch]
 func (a *walletAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableWallet", "handler", "wallet")
 	defer span.End()
@@ -268,20 +201,6 @@ func (a *walletAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// DisableWallet godoc
-//
-//	@Summary		Disable a wallet
-//	@Description	Disable a wallet by ID
-//	@Tags			Wallet
-//	@Accept			json
-//	@Produce		json
-//	@Param			id	path		string									true	"Wallet ID"
-//	@Success		200	{object}	localization.StandardResponse{data=nil}	"Wallet disable request submitted"
-//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
-//	@Failure		404	{object}	localization.StandardResponse{data=nil}	"Wallet not found"
-//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
-//	@Security		BearerAuth
-//	@Router			/wallets/{id}/disable [patch]
 func (a *walletAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableWallet", "handler", "wallet")
 	defer span.End()
@@ -314,20 +233,6 @@ func (a *walletAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// EnableWallet godoc
-//
-//	@Summary		Enable a wallet
-//	@Description	Enable a wallet by ID
-//	@Tags			Wallet
-//	@Accept			json
-//	@Produce		json
-//	@Param			id	path		string									true	"Wallet ID"
-//	@Success		200	{object}	localization.StandardResponse{data=nil}	"Wallet enable request submitted"
-//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
-//	@Failure		404	{object}	localization.StandardResponse{data=nil}	"Wallet not found"
-//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
-//	@Security		BearerAuth
-//	@Router			/wallets/{id}/enable [patch]
 func (a *walletAdapter) EnableWalletService(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableWalletService", "handler", "wallet")
 	defer span.End()
@@ -360,20 +265,6 @@ func (a *walletAdapter) EnableWalletService(w http.ResponseWriter, r *http.Reque
 	}
 }
 
-// DisableWalletService godoc
-//
-//	@Summary		Disable a wallet
-//	@Description	Disable a wallet by ID
-//	@Tags			Wallet
-//	@Accept			json
-//	@Produce		json
-//	@Param			id	path		string									true	"Wallet ID"
-//	@Success		200	{object}	localization.StandardResponse{data=nil}	"Wallet disable request submitted"
-//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
-//	@Failure		404	{object}	localization.StandardResponse{data=nil}	"Wallet not found"
-//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
-//	@Security		BearerAuth
-//	@Router			/wallets/{id}/disable [patch]
 func (a *walletAdapter) DisableWalletService(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableWallet", "handler", "wallet")
 	defer span.End()
@@ -405,20 +296,6 @@ func (a *walletAdapter) DisableWalletService(w http.ResponseWriter, r *http.Requ
 	}
 }
 
-// GetWallet godoc
-//
-//	@Summary		Get wallet by ID
-//	@Description	Retrieve a wallet's details by ID
-//	@Tags			Wallet
-//	@Accept			json
-//	@Produce		json
-//	@Param			id	path		string												true	"Wallet ID"
-//	@Success		200	{object}	localization.StandardResponse{data=model.Wallet}	"Wallet retrieved successfully"
-//	@Failure		400	{object}	localization.StandardResponse{data=nil}				"Bad request"
-//	@Failure		404	{object}	localization.StandardResponse{data=nil}				"Wallet not found"
-//	@Failure		500	{object}	localization.StandardResponse{data=nil}				"Internal server error"
-//	@Security		BearerAuth
-//	@Router			/wallets/{id} [get]
 func (a *walletAdapter) GetWallet(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getWallet", "handler", "wallet")
 	defer span.End()
@@ -441,23 +318,6 @@ func (a *walletAdapter) GetWallet(w http.ResponseWriter, r *http.Request) {
 	localization.SendSuccessResponse(w, localization.SuccessWalletRetrieved, wallet)
 }
 
-// GetWallets godoc
-//
-//	@Summary		List wallets
-//	@Description	Retrieve wallets with pagination, filtering, and search. Filterable fields: name, code, enabled. Searchable fields: name, code.
-//	@Tags			Wallet
-//	@Accept			json
-//	@Produce		json
-//	@Param			page		query	int		false	"Page number"		default(1)
-//	@Param			per_page	query	int		false	"Items per page"	default(10)
-//	@Param			name		query	string	false	"Filter by wallet name"
-//	@Param			code		query	string	false	"Filter by wallet code"
-//	@Param			enabled		query	bool	false	"Filter by enabled status"
-//	@Param			search		query	string	false	"Search term (searches name, code)"
-//	@Success		200	{object}	localization.StandardResponse{data=PaginatedWalletResponse}	"Wallets retrieved successfully"
-//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
-//	@Security		BearerAuth
-//	@Router			/wallets [get]
 func (a *walletAdapter) GetAllWallet(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllWallets", "handler", "wallet")
 	defer span.End()
