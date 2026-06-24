@@ -19,8 +19,9 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
+	local_model "cbe-super-app-cps-action/internal/constants/model"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/notification/dto"
 
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.opentelemetry.io/otel/attribute"
@@ -295,7 +296,7 @@ func (s *notificationService) FetchNotificationByID(ctx context.Context, id stri
 	return notify.MapNotificationToResponse(entity), nil
 }
 
-func (s *notificationService) FetchNotifications(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]dto.BroadcastInAppNotificationMessage], error) {
+func (s *notificationService) FetchNotifications(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]local_model.NotificationDocument], error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "FetchNotifications", "Notification", "FetchNotifications")
