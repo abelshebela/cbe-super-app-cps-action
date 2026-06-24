@@ -115,7 +115,6 @@ var ResponseCodesList = []ResponseCode{
 	SuccessTACUpdateRequestSent,
 	SuccessTACUploaded,
 	SuccessTACUploadRequestSent,
-	
 
 	SuccessDonationImageUploaded,
 	SuccessDonationImagesUpdated,
@@ -471,6 +470,7 @@ var ResponseCodesList = []ResponseCode{
 
 	ErrorFileParseFailed,
 	ErrorResourceNotFound,
+	ErrorCustomerCreationOnCoreFailed,
 	ErrorSomeAccesslistNotFound,
 	ErrorSomeAccesslistAlreadyDisabled,
 	ErrorSomeAccesslistAlreadyEnabled,
@@ -6924,6 +6924,13 @@ var (
 		Type:       "error",
 	}
 
+	ErrorCustomerCreationOnCoreFailed = ResponseCode{
+		Code:       "ERROR_CUSTOMER_CREATION_FAILED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCustomerCreationOnCoreFailed,
+		Type:       "error",
+	}
+
 	ErrorSomeAccesslistNotFound = ResponseCode{
 		Code:       "ERROR_SOME_ACCESSLIST_NOT_FOUND",
 		StatusCode: StatusNotFound,
@@ -10208,7 +10215,6 @@ var (
 		Type:       "success",
 	}
 
-	
 	SuccessTACUpdateRequestSent = ResponseCode{
 		Code:       "SUCCESS_TAC_UPDATE_REQUEST_SENT",
 		StatusCode: StatusOK,
@@ -10216,7 +10222,6 @@ var (
 		Type:       "success",
 	}
 
-	
 	SuccessTACUpdated = ResponseCode{
 		Code:       "SUCCESS_TAC_UPDATED",
 		StatusCode: StatusOK,
@@ -10224,7 +10229,6 @@ var (
 		Type:       "success",
 	}
 
-	
 	SuccessTACDeleteRequestSent = ResponseCode{
 		Code:       "SUCCESS_TAC_DELETE_REQUEST_SENT",
 		StatusCode: StatusOK,
@@ -10232,7 +10236,6 @@ var (
 		Type:       "success",
 	}
 
-	
 	SuccessTACDeleted = ResponseCode{
 		Code:       "SUCCESS_TAC_DELETED",
 		StatusCode: StatusOK,
@@ -10240,7 +10243,6 @@ var (
 		Type:       "success",
 	}
 
-	
 	SuccessTACsRetrieved = ResponseCode{
 		Code:       "SUCCESS_TACS_RETRIEVED",
 		StatusCode: StatusOK,
@@ -10255,7 +10257,6 @@ var (
 		Type:       "success",
 	}
 
-	
 	// Term and Condition error codes
 	ErrorTACNotFound = ResponseCode{
 		Code:       "ERROR_TAC_NOT_FOUND",

@@ -51,10 +51,8 @@ import (
 	vaultcategory "cbe-super-app-cps-action/internal/glue/routing/vault"
 	"cbe-super-app-cps-action/internal/glue/routing/wallet"
 
-	cps_roles "cbe-super-app-cps-action/internal/glue/routing/cps_roles"
 	cps_user_det "cbe-super-app-cps-action/internal/glue/routing/cps_user"
 	customer_group_routing "cbe-super-app-cps-action/internal/glue/routing/customer_group"
-	customer_seg "cbe-super-app-cps-action/internal/glue/routing/customer_segmentation"
 	donation "cbe-super-app-cps-action/internal/glue/routing/donation"
 	donation_category "cbe-super-app-cps-action/internal/glue/routing/donation_category"
 	donation_company "cbe-super-app-cps-action/internal/glue/routing/donation_company"
@@ -197,10 +195,10 @@ func InitRoute(ctx context.Context, router *chi.Mux, encryptionMiddleware shared
 	event_merchant_routing.Init(r, handlerLayer.EventMerchantHandler, authMiddleware)
 	access_list_segmentation.Init(r, handlerLayer.AccessLostSegmentationHandler, authMiddleware)
 	ecommerce_merchant.Init(r, handlerLayer.EcommerceMerchantHandler, authMiddleware)
-	customer_seg.Init(r, handlerLayer.CustomerSegmentationHandler, authMiddleware)
+	// customer_seg.Init(r, handlerLayer.CustomerSegmentationHandler, authMiddleware)
 	customer_group_routing.Init(r, handlerLayer.CustomerGroupHandler, authMiddleware)
 	superapp_role_routing.Init(r, handlerLayer.SuperAppRoleHandler, authMiddleware)
-	cps_roles.Init(r, handlerLayer.CPSRolesHandler, authMiddleware)
+	// cps_roles.Init(r, handlerLayer.CPSRolesHandler, authMiddleware)
 	logistic_merchant_router.Init(r, handlerLayer.LogisticsMerchantHandler, authMiddleware)
 	customerkyc.Init(r, handlerLayer.CustomerKYCHandler, authMiddleware)
 

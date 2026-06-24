@@ -2,9 +2,12 @@ package notification
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
+
+	shared_notification "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/notification/dto"
 
 	"cbe-super-app-cps-action/internal/constants"
 	notify "cbe-super-app-cps-action/internal/constants/dto/notification"
@@ -16,10 +19,11 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
+	local_model "cbe-super-app-cps-action/internal/constants/model"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -30,6 +34,17 @@ type notificationService struct {
 	logger     shared_utils.Logger
 	cpsService service.CPSActionService
 	store      *lib.NotificationStore
+}
+
+type BroadcastInAppNotificationMessage struct {
+	Title         string                 `json:"title" validate:"required"`
+	Message       string                 `json:"message" validate:"required"`
+	Category      string                 `json:"category" validate:"required"`
+	BroadcastType string                 `json:"broadcasttype" validate:"required"`
+	ImageURL      string                 `json:"image_url,omitempty"`
+	ActionURL     string                 `json:"action_url,omitempty"`
+	Data          map[string]interface{} `json:"data,omitempty"`
+	ExpiresAt     *time.Time             `json:"expires_at,omitempty"`
 }
 
 func InitNotificationService(repo storage.NotificationRepository, logger shared_utils.Logger, cpsService service.CPSActionService, store *lib.NotificationStore) service.NotificationService {
@@ -58,6 +73,36 @@ func (s *notificationService) CreateNotification(ctx context.Context, req notify
 	}
 
 	entity := helper.BuildCreateNotification(req)
+
+	// var ent map[string]interface{}
+	// data, err := json.Marshal(entity)
+	// if err != nil {
+	// 	log.Errorf("[NotifSvc][Create] marshal err: %v", err)
+	// 	span.AddEvent("Failed to marshal notification entity", trace.WithAttributes(
+	// 		attribute.String("error", err.Error()),
+	// 	))
+	// 	return nil, err
+	// }
+
+	// if json.Unmarshal(data, &ent) != nil {
+	// 	log.Errorf("[NotifSvc][Create] unmarshal err: %v", err)
+	// 	span.AddEvent("Failed to unmarshal notification entity", trace.WithAttributes(
+	// 		attribute.String("error", err.Error()),
+	// 	))
+	// 	return nil, err
+	// }
+
+	// title, _ := ent["title"].(string)
+	// message, _ := ent["message"].(string)
+	// category, _ := ent["category"].(string)
+	// broadcastType, _ := ent["type"].(string)
+
+	// cpsAction := lib.CpsModelBuilder("", maker, nil, BroadcastInAppNotificationMessage{
+	// 	Title:         title,
+	// 	Message:       message,
+	// 	Category:      category,
+	// 	BroadcastType: broadcastType,
+	// }, string(constants.RequestCreatePublicNotification), constants.CREATE)
 
 	cpsAction := lib.CpsModelBuilder("", maker, nil, entity, string(constants.RequestCreatePublicNotification), constants.CREATE)
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
@@ -175,16 +220,8 @@ func (s *notificationService) EnableNotification(ctx context.Context, id string)
 		))
 		return err
 	}
-	if prev.Enabled {
-		log.Errorf("[NotifSvc][Enable] already enabled: %s", id)
-		span.AddEvent("Notification already enabled", trace.WithAttributes(
-			attribute.String("error", localization.ErrorUserAlreadyEnabled.Code),
-			attribute.String("id", id),
-		))
-		return errors.New(localization.ErrorUserAlreadyEnabled.Code)
-	}
+
 	updated := prev
-	updated.Enabled = true
 
 	maker := local_util.ExtractUserFromContext(ctx)
 	cpsActionModel := lib.CpsModelBuilder(id, maker, prev, &updated, string(constants.RequestEnableNotification), string(constants.UPDATE))
@@ -224,16 +261,7 @@ func (s *notificationService) DisableNotification(ctx context.Context, id string
 		return err
 	}
 
-	if !prev.Enabled {
-		log.Errorf("[NotifSvc][Disable] already disabled: %s", id)
-		span.AddEvent("Notification already disabled", trace.WithAttributes(
-			attribute.String("error", localization.ErrorUserAlreadyDisabled.Code),
-			attribute.String("id", id),
-		))
-		return errors.New(localization.ErrorUserAlreadyDisabled.Code)
-	}
 	updated := prev
-	updated.Enabled = false
 
 	maker := local_util.ExtractUserFromContext(ctx)
 	cpsActionModel := lib.CpsModelBuilder(id, maker, prev, &updated, string(constants.RequestDisableNotification), string(constants.UPDATE))
@@ -268,7 +296,7 @@ func (s *notificationService) FetchNotificationByID(ctx context.Context, id stri
 	return notify.MapNotificationToResponse(entity), nil
 }
 
-func (s *notificationService) FetchNotifications(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]model.Notification], error) {
+func (s *notificationService) FetchNotifications(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]local_model.NotificationDocument], error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "FetchNotifications", "Notification", "FetchNotifications")
@@ -295,22 +323,43 @@ func (s *notificationService) Authorize(ctx context.Context, action *model.CPSAc
 	log.Infof("[NotifSvc][Authorize] action: %s", action.RequestAction)
 	action.MakerActionTime = time.Now()
 	action.LastModifiedAt = action.MakerActionTime
-
+	data, err := json.Marshal(action.CurrentAction)
+	if err != nil {
+		log.Errorf("[NotifSvc][Authorize] marshal err: %v", err)
+		span.AddEvent("Failed to marshal current action", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("unique_id", action.UniqueId),
+		))
+		return nil, localization.ErrorUnexpectedError
+	}
+	var transit BroadcastInAppNotificationMessage
+	if err := json.Unmarshal(data, &transit); err != nil {
+		log.Errorf("[NotifSvc][Authorize] unmarshal err: %v", err)
+		span.AddEvent("Failed to unmarshal current action", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("unique_id", action.UniqueId),
+		))
+		return nil, localization.ErrorUnexpectedError
+	}
+	notif := shared_notification.BroadcastInAppNotificationMessage{
+		Title:         transit.Title,
+		Message:       transit.Message,
+		Category:      transit.Category,
+		BroadcastType: transit.BroadcastType,
+	}
 	switch action.RequestAction {
 	case string(constants.RequestCreatePublicNotification):
-		notif, err := helper.BindNotificationFromAction(action.CurrentAction)
-		if err != nil {
-			log.Errorf("[NotifSvc][Authorize] bind err: %v", err)
-			span.AddEvent("Failed to bind notification from action", trace.WithAttributes(
-				attribute.String("error", err.Error()),
-				attribute.String("unique_id", action.UniqueId),
-			))
-			return nil, errors.New(localization.ErrorInvalidRequest.Code)
-		}
-		if notif.ID.IsZero() {
-			notif.ID = bson.NewObjectID()
-		}
-		if notif.Title == "" || notif.NotificationType == "" || string(notif.For) == "" {
+		// notif, err := helper.BindNotificationFromAction(action.CurrentAction)
+		// if err != nil {
+		// 	log.Errorf("[NotifSvc][Authorize] bind err: %v", err)
+		// 	span.AddEvent("Failed to bind notification from action", trace.WithAttributes(
+		// 		attribute.String("error", err.Error()),
+		// 		attribute.String("unique_id", action.UniqueId),
+		// 	))
+		// 	return nil, errors.New(localization.ErrorInvalidRequest.Code)
+		// }
+
+		if notif.Title == "" || notif.Category == "" || string(notif.BroadcastType) == "" {
 			log.Errorf("[NotifSvc][Authorize] invalid data")
 			span.AddEvent("Invalid notification data", trace.WithAttributes(
 				attribute.String("error", localization.ErrorInvalidRequest.Code),
@@ -329,38 +378,20 @@ func (s *notificationService) Authorize(ctx context.Context, action *model.CPSAc
 		}
 		log.Infof("[NotifSvc][Authorize] created")
 
-		// Publish in-app broadcast to Kafka when a public notification is approved
-		if s.store != nil && notif.IsPublic {
-			// default 30-day expiry; adjust as needed or extend DTO to accept expiry
-			exp := time.Now().Add(30 * 24 * time.Hour)
-			payload := types.InAppBroadcastMessage{
-				Title:     notif.Title,
-				Message:   notif.NotificationBody,
-				Type:      "inapp",
-				ExpiresAt: exp,
-			}
-			if err := s.store.PublishInAppBroadcast(ctx, payload); err != nil {
-				log.Errorf("[NotifSvc][Authorize] broadcast err: %v", err)
-			} else {
-				log.Infof("[NotifSvc][Authorize] broadcast published")
-			}
-		}
 		return action, nil
 
 	case string(constants.RequestUpdatePublicNotification):
-		notif, err := helper.BindNotificationFromAction(action.CurrentAction)
-		if err != nil {
-			log.Errorf("[NotifSvc][Authorize] bind err: %v", err)
-			span.AddEvent("Failed to bind notification from action", trace.WithAttributes(
-				attribute.String("error", err.Error()),
-				attribute.String("unique_id", action.UniqueId),
-			))
-			return nil, errors.New(localization.ErrorInvalidRequest.Code)
-		}
+		// notif, err := helper.BindNotificationFromAction(action.CurrentAction)
+		// if err != nil {
+		// 	log.Errorf("[NotifSvc][Authorize] bind err: %v", err)
+		// 	span.AddEvent("Failed to bind notification from action", trace.WithAttributes(
+		// 		attribute.String("error", err.Error()),
+		// 		attribute.String("unique_id", action.UniqueId),
+		// 	))
+		// 	return nil, errors.New(localization.ErrorInvalidRequest.Code)
+		// }
 		id := action.UniqueId
-		if !notif.ID.IsZero() {
-			id = notif.ID.Hex()
-		}
+
 		if err := s.repo.Update(ctx, id, &notif); err != nil {
 			log.Errorf("[NotifSvc][Authorize] update err: %v", err)
 			span.AddEvent("Failed to update notification", trace.WithAttributes(
@@ -373,15 +404,15 @@ func (s *notificationService) Authorize(ctx context.Context, action *model.CPSAc
 		return action, nil
 
 	case string(constants.RequestDeleteNotification):
-		_, err := helper.BindNotificationFromAction(action.CurrentAction)
-		if err != nil {
-			log.Errorf("[NotifSvc][Authorize] bind err: %v", err)
-			span.AddEvent("Failed to bind notification from action", trace.WithAttributes(
-				attribute.String("error", err.Error()),
-				attribute.String("unique_id", action.UniqueId),
-			))
-			return nil, errors.New(localization.ErrorInvalidRequest.Code)
-		}
+		// _, err := helper.BindNotificationFromAction(action.CurrentAction)
+		// if err != nil {
+		// 	log.Errorf("[NotifSvc][Authorize] bind err: %v", err)
+		// 	span.AddEvent("Failed to bind notification from action", trace.WithAttributes(
+		// 		attribute.String("error", err.Error()),
+		// 		attribute.String("unique_id", action.UniqueId),
+		// 	))
+		// 	return nil, errors.New(localization.ErrorInvalidRequest.Code)
+		// }
 		if err := s.repo.Delete(ctx, action.UniqueId); err != nil {
 			log.Errorf("[NotifSvc][Authorize] delete err: %v", err)
 			span.AddEvent("Failed to delete notification", trace.WithAttributes(
@@ -394,15 +425,15 @@ func (s *notificationService) Authorize(ctx context.Context, action *model.CPSAc
 		return action, nil
 
 	case string(constants.RequestEnableNotification):
-		_, err := helper.BindNotificationFromAction(action.CurrentAction)
-		if err != nil {
-			log.Errorf("[NotifSvc][Authorize] bind err: %v", err)
-			span.AddEvent("Failed to bind notification from action", trace.WithAttributes(
-				attribute.String("error", err.Error()),
-				attribute.String("unique_id", action.UniqueId),
-			))
-			return nil, errors.New(localization.ErrorInvalidRequest.Code)
-		}
+		// _, err := helper.BindNotificationFromAction(action.CurrentAction)
+		// if err != nil {
+		// 	log.Errorf("[NotifSvc][Authorize] bind err: %v", err)
+		// 	span.AddEvent("Failed to bind notification from action", trace.WithAttributes(
+		// 		attribute.String("error", err.Error()),
+		// 		attribute.String("unique_id", action.UniqueId),
+		// 	))
+		// 	return nil, errors.New(localization.ErrorInvalidRequest.Code)
+		// }
 		if _, err := s.repo.EnableDisableNotification(ctx, action.UniqueId, true); err != nil {
 			log.Errorf("[NotifSvc][Authorize] enable err: %v", err)
 			span.AddEvent("Failed to enable notification", trace.WithAttributes(
@@ -415,15 +446,15 @@ func (s *notificationService) Authorize(ctx context.Context, action *model.CPSAc
 		return action, nil
 
 	case string(constants.RequestDisableNotification):
-		_, err := helper.BindNotificationFromAction(action.CurrentAction)
-		if err != nil {
-			log.Errorf("[NotifSvc][Authorize] bind err: %v", err)
-			span.AddEvent("Failed to bind notification from action", trace.WithAttributes(
-				attribute.String("error", err.Error()),
-				attribute.String("unique_id", action.UniqueId),
-			))
-			return nil, errors.New(localization.ErrorInvalidRequest.Code)
-		}
+		// _, err := helper.BindNotificationFromAction(action.CurrentAction)
+		// if err != nil {
+		// 	log.Errorf("[NotifSvc][Authorize] bind err: %v", err)
+		// 	span.AddEvent("Failed to bind notification from action", trace.WithAttributes(
+		// 		attribute.String("error", err.Error()),
+		// 		attribute.String("unique_id", action.UniqueId),
+		// 	))
+		// 	return nil, errors.New(localization.ErrorInvalidRequest.Code)
+		// }
 		if _, err := s.repo.EnableDisableNotification(ctx, action.UniqueId, false); err != nil {
 			log.Errorf("[NotifSvc][Authorize] disable err: %v", err)
 			span.AddEvent("Failed to disable notification", trace.WithAttributes(

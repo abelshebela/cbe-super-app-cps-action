@@ -16,9 +16,10 @@ import (
 	"net/http"
 	"time"
 
+	event_merchant_model "cbe-super-app-cps-action/internal/constants/model"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-		event_merchant_model "cbe-super-app-cps-action/internal/constants/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
@@ -60,30 +61,30 @@ func ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber str
 
 	return accountDetail, nil
 }
-func CheckEventMercahntExist(ctx context.Context,EventMerchantRepo storage.EventMerchantRepository,data *types.CheckMerchant)(bool,error) {
-	if data ==nil {
-		return false ,nil
+func CheckEventMercahntExist(ctx context.Context, EventMerchantRepo storage.EventMerchantRepository, data *types.CheckMerchant) (bool, error) {
+	if data == nil {
+		return false, nil
 	}
-	exist,err := EventMerchantRepo.FindOneO(ctx,data)
+	exist, err := EventMerchantRepo.FindOneO(ctx, data)
 	if err != nil {
 		// if err != nil {
-			if err.Error() == localization.ErrorResourceNotFound.Code{
-				return false,nil
-			}
+		if err.Error() == localization.ErrorResourceNotFound.Code {
+			return false, nil
+		}
 		// }
-		return false,err
+		return false, err
 	}
-	
+
 	if exist == nil {
-		return false ,nil
+		return false, nil
 	}
-	return true,nil
+	return true, nil
 }
 func CheckMerchantExists(
 	ctx context.Context,
 	merchantRepo storage.EventMerchantRepository,
 	data *types.CheckMerchant,
-	opts *types.MiniAppMerchantExistOptions,
+	opts *types.MerchantExistOptions,
 ) (bool, error) {
 	if data == nil {
 		return false, nil

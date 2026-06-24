@@ -411,7 +411,7 @@ func (r *userActionLogRepository) buildActionCodeFilterPipeline(filter imodel.Us
 	if filter.AuditorCustomerBared != nil {
 		log.Infof("[CPSAction][buildActionCodeFilterPipeline] applying auditor_customer_bared filter: %v", *filter.AuditorCustomerBared)
 		groupStage = append(groupStage, bson.E{
-			Key: "auditor_customer_bared_match_count",
+			Key:   "auditor_customer_bared_match_count",
 			Value: sumWhen(bson.D{{Key: "$eq", Value: bson.A{"$auditor_customer_bared", *filter.AuditorCustomerBared}}}),
 		})
 		matchStage = append(matchStage, bson.E{Key: "auditor_customer_bared_match_count", Value: bson.M{"$gt": 0}})

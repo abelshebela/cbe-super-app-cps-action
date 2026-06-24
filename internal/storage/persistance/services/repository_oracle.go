@@ -1071,6 +1071,8 @@ SELECT
   name,
   service_key,
   account_type,
+  is_superapp_enabled,
+  is_ussd_enabled,
   is_enabled,
   created_at,
   last_modified_at
@@ -1106,6 +1108,8 @@ OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`
 			&item.ServiceName,
 			&item.ServiceKey,
 			&item.AccountType,
+			&item.IsSuperAppEnabled,
+			&item.IsUSSDEnabled,
 			&item.IsEnabled,
 			&item.CreatedAt,
 			&item.LastModifiedAt,
@@ -1123,7 +1127,7 @@ OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`
 
 func (s *ServicesStorage) FindServiceListByID(ctx context.Context, id string) (*imodel.ServiceKey, error) {
 	const q = `
-SELECT RAWTOHEX(id), name, service_key, account_type, is_enabled, created_at, last_modified_at, deleted_at
+SELECT RAWTOHEX(id), name, service_key, account_type, is_superapp_enabled, is_ussd_enabled, is_enabled, created_at, last_modified_at, deleted_at
 FROM access_lists
 WHERE id = HEXTORAW(:1) AND is_deleted = 0`
 
@@ -1135,6 +1139,8 @@ WHERE id = HEXTORAW(:1) AND is_deleted = 0`
 		&item.ServiceName,
 		&item.ServiceKey,
 		&item.AccountType,
+		&item.IsSuperAppEnabled,
+		&item.IsUSSDEnabled,
 		&item.IsEnabled,
 		&item.CreatedAt,
 		&item.LastModifiedAt,
@@ -1174,7 +1180,7 @@ func (s *ServicesStorage) FindServiceListByNameOrKey(ctx context.Context, name, 
 
 	where := strings.Join(conds, " OR ")
 	query := fmt.Sprintf(`
-SELECT RAWTOHEX(id), name, service_key, is_enabled, created_at, last_modified_at
+SELECT RAWTOHEX(id), name, service_key, is_superapp_enabled, is_ussd_enabled, is_enabled, created_at, last_modified_at
 FROM %s
 WHERE (%s)
 FETCH FIRST 1 ROWS ONLY`, accessListTable, where)
@@ -1185,6 +1191,8 @@ FETCH FIRST 1 ROWS ONLY`, accessListTable, where)
 		&listID,
 		&item.ServiceName,
 		&item.ServiceKey,
+		&item.IsSuperAppEnabled,
+		&item.IsUSSDEnabled,
 		&item.IsEnabled,
 		&item.CreatedAt,
 		&item.LastModifiedAt,
@@ -1221,7 +1229,7 @@ func (s *ServicesStorage) FindServiceListByExactNameOrKey(ctx context.Context, n
 
 	where := strings.Join(conds, " OR ")
 	query := fmt.Sprintf(`
-SELECT RAWTOHEX(id), name, service_key, is_enabled, created_at, last_modified_at
+SELECT RAWTOHEX(id), name, service_key, is_superapp_enabled, is_ussd_enabled, is_enabled, created_at, last_modified_at
 FROM %s
 WHERE is_deleted = 0 AND (%s)
 FETCH FIRST 1 ROWS ONLY`, accessListTable, where)
@@ -1232,6 +1240,8 @@ FETCH FIRST 1 ROWS ONLY`, accessListTable, where)
 		&listID,
 		&item.ServiceName,
 		&item.ServiceKey,
+		&item.IsSuperAppEnabled,
+		&item.IsUSSDEnabled,
 		&item.IsEnabled,
 		&item.CreatedAt,
 		&item.LastModifiedAt,
@@ -1264,16 +1274,20 @@ INSERT INTO access_lists (
   name,
   service_key,
   account_type,
+  is_ussd_enabled,
+  is_superapp_enabled,
   is_enabled
 )
 VALUES (
-  :1,:2,:3,:4
+  :1,:2,:3,:4,:5,:6
 )`
 
 	if _, err := tx.ExecContext(ctx, q,
 		serviceList.ServiceName,
 		serviceList.ServiceKey,
 		serviceList.AccountType,
+		boolToOracleNumber(serviceList.IsUSSDEnabled),
+		boolToOracleNumber(serviceList.IsSuperAppEnabled),
 		boolToOracleNumber(serviceList.IsEnabled),
 	); err != nil {
 		log.Errorf("[ServicesRepo][CreateServiceKey] insert failed: %v", err)
@@ -1337,13 +1351,17 @@ SET
   name = :1,
   service_key = :2,
   account_type = :3,
+  is_ussd_enabled = :4,
+  is_superapp_enabled = :5,
   last_modified_at = SYSTIMESTAMP
-WHERE id = :4 AND service_key = :5`
+WHERE id = HEXTORAW(:6) AND service_key = :7`
 
 	res, err := tx.ExecContext(ctx, q,
 		serviceList.ServiceName,
 		serviceList.ServiceKey,
 		serviceList.AccountType,
+		boolToOracleNumber(serviceList.IsUSSDEnabled),
+		boolToOracleNumber(serviceList.IsSuperAppEnabled),
 		id,
 		serviceKey,
 	)
@@ -1355,22 +1373,6 @@ WHERE id = :4 AND service_key = :5`
 	if rows == 0 {
 		return errors.New(localization.ErrorAccessListNotFound.Code)
 	}
-
-	// 	const accessUpdateQ = `
-	// UPDATE access_list
-	// SET
-	//   key = :1,
-	//   access_list_name = :2,
-	//   last_modified_at = SYSTIMESTAMP
-	// WHERE key = :3`
-	// 	if _, err := tx.ExecContext(ctx, accessUpdateQ,
-	// 		serviceList.ServiceKey,
-	// 		serviceList.ServiceName,
-	// 		serviceKey,
-	// 	); err != nil {
-	// 		log.Errorf("[ServicesRepo][UpdateServiceKey] update access_list failed: %v", err)
-	// 		return local_util.HandleDBError(err)
-	// 	}
 
 	if err := tx.Commit(); err != nil {
 		log.Errorf("[ServicesRepo][UpdateServiceKey] commit failed: %v", err)

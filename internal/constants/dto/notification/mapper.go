@@ -1,26 +1,15 @@
 package notification
 
 import (
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	shared_notification "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/notification/dto"
 )
 
-func MapNotificationToResponse(entity *model.Notification) *NotificationResponse {
+func MapNotificationToResponse(entity *shared_notification.BroadcastInAppNotificationMessage) *NotificationResponse {
 	return &NotificationResponse{
-		ID:                entity.ID.Hex(),
-		Title:             entity.Title,
-		NotificationCode:  entity.NotificationCode,
-		NotificationType:  entity.NotificationType,
-		NotificationBody:  entity.NotificationBody,
-		IsPublic:          entity.IsPublic,
-		For:               string(entity.For),
-		CreatedBy:         entity.CreatedBy,
-		NotificationParts: entity.NotificationParts,
-		Seen:              entity.Seen,
-		Status:            string(entity.Status),
-		Enabled:           entity.Enabled,
-		IsDeleted:         entity.IsDeleted,
-		CreatedAt:         entity.CreatedAt,
-		LastModified:      entity.LastModified,
+		Title:            entity.Title,
+		NotificationType: entity.BroadcastType,
+		NotificationBody: entity.Message,
+		For:              string(entity.BroadcastType),
 	}
 }
 
@@ -30,7 +19,7 @@ func MapNotificationRequestToDomain(req *NotificationRequest) *NotificationReque
 	}
 
 	return &NotificationRequest{
-		NotificationType: req.NotificationType,
+		NotificationType: req.For,
 		NotificationBody: req.NotificationBody,
 		IsPublic:         req.IsPublic,
 		For:              req.For,

@@ -93,6 +93,7 @@ func (s *CPSActionStorage) FindAllWithPagination(ctx context.Context, filterPara
 			{"request_action": searchRegex},
 			{"action_status": searchRegex},
 			{"action_code": searchRegex},
+			{"unique_tokens": bson.M{"$elemMatch": bson.M{"$regex": filterParam.Search, "$options": "i"}}},
 		}
 		searchKeys["$or"] = appendUserLogCodes(orConds, filterParam.Filters)
 	}
@@ -323,6 +324,7 @@ func (r *CPSActionStorage) SanitizedFindAllWithPagination(ctx context.Context, f
 			{"action_type": searchRegex},
 			{"action_code": searchRegex},
 			{"request_action": searchRegex},
+			{"unique_tokens": bson.M{"$elemMatch": bson.M{"$regex": filterParam.Search, "$options": "i"}}},
 		}
 		baseFilter["$or"] = appendUserLogCodes(orConds, filterParam.Filters)
 	}
@@ -464,6 +466,7 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForApprover(ctx context
 			{"action_type": searchRegex},
 			{"action_code": searchRegex},
 			{"request_action": searchRegex},
+			{"unique_tokens": bson.M{"$elemMatch": bson.M{"$regex": filterParam.Search, "$options": "i"}}},
 		}
 		baseFilter["$or"] = appendUserLogCodes(orConds, filterParam.Filters)
 	}
@@ -626,6 +629,7 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForAuditor(ctx context.
 			{"auditor_status": searchRegex},
 			{"action_type": searchRegex},
 			{"request_action": searchRegex},
+			{"unique_tokens": bson.M{"$elemMatch": bson.M{"$regex": filterParam.Search, "$options": "i"}}},
 		}
 		baseFilter["$or"] = appendUserLogCodes(orConds, filterParam.Filters)
 	}
@@ -777,6 +781,7 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationCPSActions(ctx context.
 			{"auditor_status": searchRegex},
 			{"action_type": searchRegex},
 			{"request_action": searchRegex},
+			{"unique_tokens": bson.M{"$elemMatch": bson.M{"$regex": filterParam.Search, "$options": "i"}}},
 		}
 		baseFilter["$or"] = appendUserLogCodes(orConds, filterParam.Filters)
 	}
@@ -983,6 +988,7 @@ func (r *CPSActionStorage) FindByDateRange(ctx context.Context, filterParam *typ
 			{"auditor_status": searchRegex},
 			{"action_type": searchRegex},
 			{"request_action": searchRegex},
+			{"unique_tokens": bson.M{"$elemMatch": bson.M{"$regex": filterParam.Search, "$options": "i"}}},
 		}
 		baseFilter["$or"] = appendUserLogCodes(orConds, filterParam.Filters)
 	}
@@ -1053,6 +1059,7 @@ func (r *CPSActionStorage) StreamByDateRange(
 			{"auditor_status": searchRegex},
 			{"action_type": searchRegex},
 			{"request_action": searchRegex},
+			{"unique_tokens": bson.M{"$elemMatch": bson.M{"$regex": filterParam.Search, "$options": "i"}}},
 		}
 		baseFilter["$or"] = appendUserLogCodes(orConds, filterParam.Filters)
 	}
@@ -1126,6 +1133,7 @@ func (r *CPSActionStorage) ActionByDateRange(ctx context.Context, filterParam ty
 			{"action_type": searchRegex},
 			{"action_code": searchRegex},
 			{"request_action": searchRegex},
+			{"unique_tokens": bson.M{"$elemMatch": bson.M{"$regex": filterParam.Search, "$options": "i"}}},
 		}
 		baseFilter["$or"] = appendUserLogCodes(orConds, filterParam.Filters)
 	}

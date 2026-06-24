@@ -180,7 +180,7 @@ type NotificationService interface {
 	EnableNotification(ctx context.Context, id string) error
 	DisableNotification(ctx context.Context, id string) error
 	FetchNotificationByID(ctx context.Context, id string) (*notify.NotificationResponse, error)
-	FetchNotifications(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]model.Notification], error)
+	FetchNotifications(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]local_model.NotificationDocument], error)
 }
 
 type CustomerService interface {
