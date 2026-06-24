@@ -505,7 +505,7 @@ func (b *bpsUserService) CreateBPSUser(ctx context.Context, req bps_model.BPSUse
 	}
 
 	req.BranchName = branch_detail.Name
-	req.UserCode = local_util.UniqueIdGenerator()
+	req.UserCode = local_util.GenerateCPSUserCode() // the library only just to create the user code not portal specific
 
 	// Build CPS action model for create
 	cpsActionModel := lib.CpsModelBuilder(

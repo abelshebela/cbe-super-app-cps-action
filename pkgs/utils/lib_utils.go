@@ -630,11 +630,30 @@ func GenerateCPSUserCode() string {
 	return fmt.Sprintf("%s_%s_%s", timePart, randomPart, shortUUID)
 }
 func GenerateBPSUserCode() string {
-	const prefix = "BANKBPSUSER_"
+	// Time part (last 6 digits for shorter length)
+	now := time.Now().UnixNano()
+	timePart := fmt.Sprintf("%06d", now%1e6)
 
-	timestamp := time.Now().Format("20060102150405")
+	// Random part (4 chars instead of 6)
+	const length = 4
+	bytes := make([]byte, length)
+	_, err := rand.Read(bytes)
+	if err != nil {
+		panic(err)
+	}
 
-	return prefix + timestamp
+	const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	for i := range bytes {
+		bytes[i] = charset[int(bytes[i])%len(charset)]
+	}
+	randomPart := string(bytes)
+
+	// Short UUID (base32 encoded, trimmed)
+	u := uuid.New()
+	encoded := base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(u[:])
+	shortUUID := strings.ToLower(encoded[:6]) // take first 6 chars
+
+	return fmt.Sprintf("%s_%s_%s", timePart, randomPart, shortUUID)
 }
 
 func GenerateCustomerCode() string {
