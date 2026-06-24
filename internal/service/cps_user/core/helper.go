@@ -121,10 +121,7 @@ func ConvertToResponseDTO(portalCard []string, user *cpsuser.CpsUserPopulatedRes
 }
 
 func CPSUModel(req cpsuser.CreateUserRequest) imodel.CPSUser {
-	depID, err := bson.ObjectIDFromHex(req.Department)
-	if err != nil {
-		// Handle error appropriately
-	}
+	depID, _ := bson.ObjectIDFromHex(req.Department)
 	return imodel.CPSUser{
 		UserCode:         local_util.GenerateCPSUserCode(),
 		UserName:         strings.ToUpper(req.UserName),
