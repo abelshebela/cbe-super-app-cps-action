@@ -430,7 +430,7 @@ func (s *walletService) Authorize(ctx context.Context, action *model.CPSAction) 
 
 			if err != nil{
 			s.logger.Errorf("[wallet service Authorizor update] unable to set on redis err:%v",err)
-			return nil,err
+			return nil,nil
 		}
 
 	case string(constants.RequestDeleteWallet):
