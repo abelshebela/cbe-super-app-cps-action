@@ -504,9 +504,20 @@ func (b *BPSUserStorage) Create(ctx context.Context, req bps_model.BPSUser) erro
 	req.LastModifiedAt = time.Now()
 	req.IsFirstTimeLogin = true
 	req.IsDeleted = false
-	// Save the new user
-	_, err := b.dal.InsertOne(ctx, req)
+
+	raw, err := bson.Marshal(req)
 	if err != nil {
+		log.Errorf("[BPSUserStorage][Create] failed to marshal BPS user: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	var doc bson.M
+	if err := bson.Unmarshal(raw, &doc); err != nil {
+		log.Errorf("[BPSUserStorage][Create] failed to unmarshal BPS user: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	doc["created_by"] = "CPS Portal"
+
+	if _, err := b.collection.InsertOne(ctx, doc); err != nil {
 		log.Errorf("[BPSUserStorage][Create] failed to create BPS user: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
