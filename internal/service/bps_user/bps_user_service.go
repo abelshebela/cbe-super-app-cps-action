@@ -28,7 +28,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -190,18 +189,9 @@ func (b *bpsUserService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 	}
 
 	actionData := bps_user_core.BPSUser_mapper(actionMap.(map[string]interface{}))
-	if cpsAction.UniqueId != "" {
-		objID, err := bson.ObjectIDFromHex(cpsAction.UniqueId)
-		if err != nil {
-			span.AddEvent("[Authorize] failed to parse unique id", trace.WithAttributes(
-				attribute.String("error", err.Error()),
-				attribute.String("unique_id", cpsAction.UniqueId),
-			))
-			b.logger.Errorf("[BpsUserSvc][Authorize] parse unique id err: %v", err)
-			return nil, errors.New(localization.ErrorUnexpectedError.Code)
-		}
-		actionData.ID = objID
-	}
+	// if cpsAction.UniqueId != "" {
+	// 	actionData.ID = cpsAction.UniqueId
+	// }
 
 	actionData.LastModifiedAt = time.Now()
 	// local_actionData := bps_user_core.MapBPSUserToWithJobTitle(actionData)
