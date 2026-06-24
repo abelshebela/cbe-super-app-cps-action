@@ -430,7 +430,7 @@ func (s *walletService) Authorize(ctx context.Context, action *model.CPSAction) 
 
 			if err != nil{
 				if err.Error() == walletCatch.ErrKeyNotFoundInCatch.Error(){
-					_,walErr := s.walletCatch.Update(ctx,wallet.UniqueCode,walletCatch.WalletData{
+					walErr := s.walletCatch.Set(ctx,walletCatch.WalletData{
 							Name: wallet.Name,
 							ServiceID: wallet.ID,
 							UniqueCode: wallet.UniqueCode,
