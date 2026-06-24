@@ -44,7 +44,11 @@ func NewNotificationRepository(client *mongo.Client, cfg *config.VaultConfig, db
 
 func (n *NotificationStorage) Create(ctx context.Context, notification *shared_notification.BroadcastInAppNotificationMessage) error {
 	log := local_util.LoggerFromCtx(ctx, n.logger)
-
+	notification.Data = map[string]interface{}{
+		"title":             notification.Title,
+		"notification_body": notification.Message,
+		"for":               notification.BroadcastType,
+	}
 	// notification.IsFromCPS = true
 	newNotification, err := n.dal.InsertOne(ctx, *notification)
 	if err != nil {
@@ -52,7 +56,7 @@ func (n *NotificationStorage) Create(ctx context.Context, notification *shared_n
 	}
 
 	// err = n.kafkaProducer.PublishMessage(ctx, inAppMessage)
-	err = n.kafkaProducer.PublishMessage(ctx, notification, newNotification.BroadcastType, n.cfg.KafkaInAppTopic, "inapp-notifications")
+	err = n.kafkaProducer.PublishMessage(ctx, notification, newNotification.BroadcastType, n.cfg.KafkaInAppBordcastTopic, "inapp-notifications")
 	if err != nil {
 		log.Errorf("[NotificationStorage][Create] failed to send in app notification %v", err)
 	}
