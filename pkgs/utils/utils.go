@@ -801,7 +801,10 @@ func FormatDateRangeToUTCStrings(fromStr, toStr string) (time.Time, time.Time, e
 	if len(fromStr) == len("2006-01-02") {
 		from = time.Date(from.Year(), from.Month(), from.Day(), 0, 0, 0, 0, time.UTC)
 	}
-	if len(toStr) == len("2006-01-02") {
+	// Extend the To date to end of day when it lands at exactly midnight —
+	// whether passed as a date-only string or as T00:00:00Z — both signal intent
+	// to include the full day rather than a single instant.
+	if len(toStr) == len("2006-01-02") || (to.Hour() == 0 && to.Minute() == 0 && to.Second() == 0 && to.Nanosecond() == 0) {
 		to = time.Date(to.Year(), to.Month(), to.Day(), 23, 59, 59, int(time.Second-time.Nanosecond), time.UTC)
 	}
 
