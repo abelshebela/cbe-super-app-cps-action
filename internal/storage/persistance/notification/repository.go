@@ -52,7 +52,7 @@ func (n *NotificationStorage) Create(ctx context.Context, notification *shared_n
 	}
 
 	// err = n.kafkaProducer.PublishMessage(ctx, inAppMessage)
-	err = n.kafkaProducer.PublishMessage(ctx, notification, newNotification.BroadcastType, n.cfg.KafkaInAppTopic, "inapp-notifications")
+	err = n.kafkaProducer.PublishMessage(ctx, notification, newNotification.BroadcastType, n.cfg.KafkaInAppBordcastTopic, "inapp-notifications")
 	if err != nil {
 		log.Errorf("[NotificationStorage][Create] failed to send in app notification %v", err)
 	}
