@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"time"
 
+	local_model "cbe-super-app-cps-action/internal/constants/model"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
@@ -25,20 +26,22 @@ import (
 )
 
 type NotificationStorage struct {
-	dal           dal.MongoDal[shared_notification.BroadcastInAppNotificationMessage, shared_notification.BroadcastInAppNotificationMessage]
-	client        *mongo.Client
-	kafkaProducer kafka.NotificationProducer
-	cfg           *config.VaultConfig
-	logger        utils.Logger
+	dal             dal.MongoDal[shared_notification.BroadcastInAppNotificationMessage, shared_notification.BroadcastInAppNotificationMessage]
+	notificationDal dal.MongoDal[local_model.NotificationDocument, local_model.NotificationDocument]
+	client          *mongo.Client
+	kafkaProducer   kafka.NotificationProducer
+	cfg             *config.VaultConfig
+	logger          utils.Logger
 }
 
 func NewNotificationRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, kafkaProducer kafka.NotificationProducer, logger utils.Logger) storage.NotificationRepository {
 	return &NotificationStorage{
-		dal:           dal.NewMongoDal[shared_notification.BroadcastInAppNotificationMessage, shared_notification.BroadcastInAppNotificationMessage](client, cfg, dbName, collection),
-		client:        client,
-		kafkaProducer: kafkaProducer,
-		cfg:           cfg,
-		logger:        logger,
+		dal:             dal.NewMongoDal[shared_notification.BroadcastInAppNotificationMessage, shared_notification.BroadcastInAppNotificationMessage](client, cfg, dbName, collection),
+		notificationDal: dal.NewMongoDal[local_model.NotificationDocument, local_model.NotificationDocument](client, cfg, dbName, collection),
+		client:          client,
+		kafkaProducer:   kafkaProducer,
+		cfg:             cfg,
+		logger:          logger,
 	}
 }
 
@@ -130,11 +133,11 @@ func (n *NotificationStorage) FindByID(ctx context.Context, id string) (*shared_
 	return result, nil
 }
 
-func (n *NotificationStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]shared_notification.BroadcastInAppNotificationMessage], error) {
+func (n *NotificationStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.NotificationDocument], error) {
 	log := local_util.LoggerFromCtx(ctx, n.logger)
 
 	searchKeys := bson.M{}
-	allowedKeys := []string{"search", "is_public", "notification_type", "notification_code", "for", "seen", "enabled", "title"}
+	allowedKeys := []string{"search", "title", "message", "for", "type"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
@@ -148,13 +151,13 @@ func (n *NotificationStorage) FindAllWithPagination(ctx context.Context, filterP
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 	filter["is_deleted"] = false
 
-	data, err := n.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
+	data, err := n.notificationDal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		log.Errorf("[NotificationStorage][FindAllWithPagination] failed to fetch notifications: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	total, err := n.dal.TotalCount(ctx, filter)
+	total, err := n.notificationDal.TotalCount(ctx, filter)
 	if err != nil {
 		log.Errorf("[NotificationStorage][FindAllWithPagination] failed to count notifications: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
@@ -163,7 +166,7 @@ func (n *NotificationStorage) FindAllWithPagination(ctx context.Context, filterP
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 	log.Infof("[NotificationStorage][FindAllWithPagination] retrieved %d notifications", len(data))
 
-	return &types.PaginatedResponse[[]shared_notification.BroadcastInAppNotificationMessage]{
+	return &types.PaginatedResponse[[]local_model.NotificationDocument]{
 		Data: data,
 		Meta: meta,
 	}, nil
