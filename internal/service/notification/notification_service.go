@@ -344,7 +344,7 @@ func (s *notificationService) Authorize(ctx context.Context, action *model.CPSAc
 		Title:         transit.Title,
 		Message:       transit.Message,
 		Category:      transit.Category,
-		BroadcastType: "other",
+		BroadcastType: transit.BroadcastType,
 	}
 	switch action.RequestAction {
 	case string(constants.RequestCreatePublicNotification):
