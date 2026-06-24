@@ -47,7 +47,7 @@ func CORS(cfg *config.VaultConfig) func(http.Handler) http.Handler {
 
 	switch cfg.GoEnv {
 	case "production":
-		allowedOrigins = []string{"http://superappcps.cbe.com.et/"}
+		allowedOrigins = []string{"https://superappcps.cbe.com.et/"}
 	case "uat":
 		allowedOrigins = []string{"localhost:3000", "http://localhost:3000", "https://uat-cbe-super-app-central-portal.vercel.app", "https://dev-cbe-super-app-central-portal.vercel.app", "https://cpsportal-uat.cbe.com.et"}
 	case "staging":
