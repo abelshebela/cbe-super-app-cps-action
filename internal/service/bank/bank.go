@@ -274,6 +274,7 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 		}
 		// create cache
 		_, err = b.catch.Update(ctx, previousData.BICCode, bank_catch.BankData{
+			BankID:          actionData.ID,
 			Name:            actionData.BankName,
 			BICCode:         actionData.BICCode,
 			AccountLength:   actionData.AccountLength,
@@ -291,7 +292,7 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 		}
 
 		if banks, _, err := b.catch.GetAll(ctx); err == nil {
-			log.Infof("[BankSvc][Authorize] get All cache after delete: %+v", banks)
+			log.Infof("[BankSvc][Authorize] get All cache after update: %+v", banks)
 			var newBanks = make([]bank_catch.AllBankData, 0)
 			for _, bank := range banks {
 				if bank.BankID == actionData.ID {
