@@ -44,7 +44,11 @@ func NewNotificationRepository(client *mongo.Client, cfg *config.VaultConfig, db
 
 func (n *NotificationStorage) Create(ctx context.Context, notification *shared_notification.BroadcastInAppNotificationMessage) error {
 	log := local_util.LoggerFromCtx(ctx, n.logger)
-
+	notification.Data = map[string]interface{}{
+		"title":             notification.Title,
+		"notification_body": notification.Message,
+		"for":               notification.BroadcastType,
+	}
 	// notification.IsFromCPS = true
 	newNotification, err := n.dal.InsertOne(ctx, *notification)
 	if err != nil {
