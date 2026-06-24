@@ -429,8 +429,21 @@ func (s *walletService) Authorize(ctx context.Context, action *model.CPSAction) 
 			})
 
 			if err != nil{
-			s.logger.Errorf("[wallet service Authorizor update] unable to set on redis err:%v",err)
-			return nil,nil
+				if err.Error() == walletCatch.ErrKeyNotFound.Error(){
+					_,err := s.walletCatch.Update(ctx,wallet.UniqueCode,walletCatch.WalletData{
+							Name: wallet.Name,
+							ServiceID: wallet.ID,
+							UniqueCode: wallet.UniqueCode,
+							Logo: wallet.Avatar,
+							IsWalletEnabled: wallet.Enabled,
+							ServicesType:enabledWallerService,
+						})
+					s.logger.Errorf("[wallet service Authorizor update] unable to set on redis err:%v",err)
+					return nil,err
+					}
+					
+			s.logger.Errorf("[wallet service Authorizor update] unable to update on redis err:%v",err)
+			return nil,err
 		}
 
 	case string(constants.RequestDeleteWallet):
