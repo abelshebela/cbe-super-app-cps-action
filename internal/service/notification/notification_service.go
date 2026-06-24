@@ -329,7 +329,7 @@ func (s *notificationService) Authorize(ctx context.Context, action *model.CPSAc
 			attribute.String("error", err.Error()),
 			attribute.String("unique_id", action.UniqueId),
 		))
-		return nil, err
+		return nil, localization.ErrorUnexpectedError
 	}
 	var transit BroadcastInAppNotificationMessage
 	if err := json.Unmarshal(data, &transit); err != nil {
@@ -338,7 +338,7 @@ func (s *notificationService) Authorize(ctx context.Context, action *model.CPSAc
 			attribute.String("error", err.Error()),
 			attribute.String("unique_id", action.UniqueId),
 		))
-		return nil, err
+		return nil, localization.ErrorUnexpectedError
 	}
 	notif := shared_notification.BroadcastInAppNotificationMessage{
 		Title:         transit.Title,
