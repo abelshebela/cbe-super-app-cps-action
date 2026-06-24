@@ -204,7 +204,7 @@ func (r *roleDelegation) CreateWithExistingUser(ctx context.Context, roleDelegat
 		}
 	}
 	roleDelegation.Enable = true
-	cpsModel := lib.CpsModelBuilder(roleDelegation.DelegatedUserUserCode, maker, nil, roleDelegation, constants.RequestCreateRoleDelegationForExistingUser, constants.CREATE)
+	cpsModel := lib.CpsModelBuilder(roleDelegation.DelegatedUserID, maker, nil, roleDelegation, constants.RequestCreateRoleDelegationForExistingUser, constants.CREATE)
 	return r.cpsService.CreateCPSAction(ctx, &cpsModel)
 
 }
@@ -308,7 +308,7 @@ func (r *roleDelegation) CreateWithNewUser(ctx context.Context, roleDelegation i
 
 	roleDelegation.Enable = true
 
-	cpsModel := lib.CpsModelBuilder(roleDelegation.DelegatedUserUserCode, maker, nil, roleDelegation, constants.RequestCreateRoleDelegationForNewUser, constants.CREATE)
+	cpsModel := lib.CpsModelBuilder(roleDelegation.DelegatedUserID, maker, nil, roleDelegation, constants.RequestCreateRoleDelegationForNewUser, constants.CREATE)
 	return r.cpsService.CreateCPSAction(ctx, &cpsModel)
 
 }
