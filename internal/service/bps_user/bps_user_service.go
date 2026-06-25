@@ -620,6 +620,8 @@ func (b *bpsUserService) UpdateBPSUser(ctx context.Context, userID string, updat
 	}
 
 	updatedUser = bps_user_core.BuildUpdatedBPSUser(*curUser, updatedUser)
+	updatedUser.ID = curUser.ID
+	updatedUser.UserCode = curUser.UserCode
 	// updatedUser.Role = roles.Role
 	cpsActionModel := lib.CpsModelBuilder(
 		curUser.UserCode,                       // unique id
