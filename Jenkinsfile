@@ -137,7 +137,7 @@ pipeline {
             steps {
                 script {
                     def sha = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim() 
-                    env.IMAGE_TAG = sha
+                        env.IMAGE_TAG = "sa${sha}"
                     echo "Image tag set to ${env.IMAGE_TAG}"
                 }
             }
