@@ -152,14 +152,6 @@ func (u *UssdMerchantHandler) UpdateUssdMerchant(w http.ResponseWriter, r *http.
 		}
 	}
 	req.Logo = fileHeader
-	// file, fileHeader, err = core.ParseMultipartFormFile(r, "logo", 10<<20, string(constants.CREATE), u.Logger)
-	// if err != nil {
-	// 	span.RecordError(err)
-	// 	log.Errorf("[CreateUssdMerchantRequestHandler] error parsing file: %v", err)
-	// 	localization.SendErrorResponse(w, localization.ErrorBankImageMissingOrInvalid, nil, nil)
-	// 	return
-	// }
-	// defer file.Close()
 
 	req.SettlementMethod = r.FormValue("settlement_method")
 	req.Name = r.FormValue("name")
@@ -170,8 +162,6 @@ func (u *UssdMerchantHandler) UpdateUssdMerchant(w http.ResponseWriter, r *http.
 	if fileHeader != nil {
 		req.Logo = fileHeader
 	}
-
-	// Handle optional logo via multipart if present and validate
 
 	if err := req.Validate(); err != nil {
 		log.Errorf("[UpdateUssdMerchantHandler] validation failed: %v", err)

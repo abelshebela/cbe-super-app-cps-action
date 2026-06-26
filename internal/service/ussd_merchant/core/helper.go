@@ -47,10 +47,6 @@ func ExistingIdentifier(existing *imodel.UssdMerchant, req ussd_merchant_dto.Cre
 }
 
 func ExistingIdentifierForUpdate(existing imodel.UssdMerchant, id string, req ussd_merchant_dto.UpdateUssdMerchantRequest) error {
-	if &existing == nil {
-		return nil
-	}
-
 	normalizedEmail := strings.TrimSpace(strings.ToLower(req.Email))
 	normalizedPhone := local_util.FormatPhoneNumber(req.PhoneNumber)
 	normalizedAcct := strings.TrimSpace(req.AccountNumber)
@@ -127,13 +123,12 @@ func ModelToBson(data *imodel.UssdMerchant) bson.M {
 	return update
 }
 
-func CreateCredentials(ussd_marchant *imodel.UssdMerchant, cfg config.VaultConfig) error {
-
-	cred, _, err := local_util.LocalEncryptPassword(ussd_marchant.PhoneNumber+local_util.UniqueIdGenerator(), constants.Cred, constants.Empty, constants.Empty, &cfg)
+func CreateCredentials(merchant *imodel.UssdMerchant, cfg config.VaultConfig) error {
+	cred, _, err := local_util.LocalEncryptPassword(merchant.PhoneNumber+local_util.UniqueIdGenerator(), constants.Cred, constants.Empty, constants.Empty, &cfg)
 	if err != nil {
 		return err
 	}
 
-	ussd_marchant.Credential = cred
+	merchant.Credential = cred
 	return nil
 }
