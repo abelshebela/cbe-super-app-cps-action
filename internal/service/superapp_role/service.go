@@ -285,14 +285,14 @@ func (s *superAppRoleService) GetAccessListsByRole(ctx context.Context, superapp
 		return nil, nil, err
 	}
 
-	log.Infof("[SUPPERAPPROLE] here is the no of globaly enabled %s", len(globallyEnabled))
+	log.Infof("[SUPPERAPPROLE] here is the no of globaly enabled %d", len(globallyEnabled))
 	globallyDisabled, err := s.repo.FindGloballyDisabledAccessLists(ctx)
 	if err != nil {
 		log.Errorf("[SuperAppRole][GetAccessListsByRole] global disabled fetch err: %v", err)
 		return nil, nil, err
 	}
 
-	log.Infof("[SUPPERAPPROLE] here is the no of globaly disabled %s", len(globallyDisabled))
+	log.Infof("[SUPPERAPPROLE] here is the no of globaly disabled %d", len(globallyDisabled))
 
 	roleBlocked, err := s.repo.FindRoleBlockedAccessLists(ctx, superappRole)
 	if err != nil {
@@ -300,7 +300,7 @@ func (s *superAppRoleService) GetAccessListsByRole(ctx context.Context, superapp
 		return nil, nil, err
 	}
 
-	log.Infof("[SUPPERAPPROLE] here is the no of roleblocked %s", len(roleBlocked))
+	log.Infof("[SUPPERAPPROLE] here is the no of roleblocked %d", len(roleBlocked))
 
 	relations, err := s.repo.FindAccessListRelations(ctx)
 	if err != nil {
@@ -398,8 +398,8 @@ func (s *superAppRoleService) GetAccessListsByRole(ctx context.Context, superapp
 		enabled = append(enabled, al)
 	}
 
-	log.Infof("[SUPPERAPPROLE] here is the no of response enabled %s", len(enabled))
-	log.Infof("[SUPPERAPPROLE] here is the no of response disabled %s", len(disabled))
+	log.Infof("[SUPPERAPPROLE] here is the no of response enabled %d", len(enabled))
+	log.Infof("[SUPPERAPPROLE] here is the no of response disabled %d", len(disabled))
 
 	return enabled, disabled, nil
 }
