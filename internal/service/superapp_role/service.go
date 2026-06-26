@@ -285,17 +285,22 @@ func (s *superAppRoleService) GetAccessListsByRole(ctx context.Context, superapp
 		return nil, nil, err
 	}
 
+	log.Infof("[SUPPERAPPROLE] here is the no of globaly enabled %s", len(globallyEnabled))
 	globallyDisabled, err := s.repo.FindGloballyDisabledAccessLists(ctx)
 	if err != nil {
 		log.Errorf("[SuperAppRole][GetAccessListsByRole] global disabled fetch err: %v", err)
 		return nil, nil, err
 	}
 
+	log.Infof("[SUPPERAPPROLE] here is the no of globaly disabled %s", len(globallyDisabled))
+
 	roleBlocked, err := s.repo.FindRoleBlockedAccessLists(ctx, superappRole)
 	if err != nil {
 		log.Errorf("[SuperAppRole][GetAccessListsByRole] role blocked fetch err: %v", err)
 		return nil, nil, err
 	}
+
+	log.Infof("[SUPPERAPPROLE] here is the no of roleblocked %s", len(roleBlocked))
 
 	relations, err := s.repo.FindAccessListRelations(ctx)
 	if err != nil {

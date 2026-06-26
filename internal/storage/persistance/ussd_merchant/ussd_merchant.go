@@ -125,7 +125,7 @@ func (u *UssdMerchantRepository) Find(ctx context.Context, filter bson.M) (ussd_
 	return res, nil
 }
 
-func (u *UssdMerchantRepository) FindByOr(ctx context.Context, phone, email, account_number string) (imodel.UssdMerchant, error) {
+func (u *UssdMerchantRepository) FindByOr(ctx context.Context, phone, email, accountNumber string) (imodel.UssdMerchant, error) {
 	log := local_util.LoggerFromCtx(ctx, u.logger)
 
 	// Build conditions dynamically, only for non-empty parameters
@@ -137,9 +137,9 @@ func (u *UssdMerchantRepository) FindByOr(ctx context.Context, phone, email, acc
 		})
 	}
 
-	if account_number != "" {
+	if accountNumber != "" {
 		conditions = append(conditions, bson.M{
-			"account_number": account_number,
+			"accountNumber": accountNumber,
 		})
 	}
 
@@ -165,7 +165,7 @@ func (u *UssdMerchantRepository) FindAllWithPagination(ctx context.Context, filt
 	filter := bson.M{"is_deleted": bson.M{"$ne": true}}
 	searchKeys := bson.M{}
 
-	allowedKeys := []string{"enabled", "merchant_code", "name", "settlement_method", "phone_number", "service", "account_number"}
+	allowedKeys := []string{"enabled", "merchant_code", "name", "settlement_method", "phone_number", "service", "accountNumber"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
@@ -175,7 +175,7 @@ func (u *UssdMerchantRepository) FindAllWithPagination(ctx context.Context, filt
 			{"settlement_method": searchRegex},
 			{"phone_number": searchRegex},
 			{"service": searchRegex},
-			{"account_number": searchRegex},
+			{"accountNumber": searchRegex},
 		}
 	}
 
@@ -195,7 +195,7 @@ func (u *UssdMerchantRepository) FindAllWithPagination(ctx context.Context, filt
 			"email":             1,
 			"enabled":           1,
 			"credential":        1,
-			"account_number":    1,
+			"accountNumber":    1,
 			"logo":              1,
 			"is_deleted":        1,
 			"updated_at":        1,
@@ -297,21 +297,3 @@ func (u *UssdMerchantRepository) FindAllWithPagination(ctx context.Context, filt
 
 }
 
-// func (w *UssdMerchantRepository) Delete(ctx context.Context, id string) error {
-
-// 	objID, err := bson.ObjectIDFromHex(id)
-// 	if err != nil {
-// 		log.Errorf("[UssdMerchantStorage][Delete] invalid object id: %v", err)
-// 		return errors.New(localization.ErrorInvalidID.Code)
-// 	}
-
-// 	filter := bson.M{"_id": objID, "deleted": false}
-// 	update := bson.M{"deleted": true, "deleted_at": time.Now()}
-
-// 	_, err = w.dal.UpdateOne(ctx, filter, update)
-// 	if err != nil {
-// 		log.Errorf("[UssdMerchantStorage][Delete] failed to delete USSD Merchant: %v", err)
-// 		return local_util.HandleDBError(err)
-// 	}
-// 	return nil
-// }
