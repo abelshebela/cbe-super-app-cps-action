@@ -216,47 +216,11 @@ func (s *ussdMerchantService) DisableUssdMerchant(ctx context.Context, id string
 	return nil
 }
 
-// func (s *ussdMerchantService) DeleteUssdMerchant(ctx context.Context, id string) error {
-
-// 	ctx, span := local_util.TraceLogger(ctx, "service", "DeleteUssdMerchant", "UssdMerchant", "Delete")
-// 	defer span.End()
-
-// 	makerData := local_util.ExtractUserFromContext(ctx)
-// 	if local_util.IsIncomplete(makerData) {
-// 		log.Errorf("[UssdMerchSvc][Delete] incomplete user")
-// 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
-// 	}
-
-// 	prevData, err := s.repo.FindById(ctx, id)
-// 	if err != nil {
-// 		log.Errorf("[UssdMerchSvc][Delete] find err: %v", err)
-// 		return err
-// 	}
-
-// 	if prevData.IsDeleted {
-// 		log.Errorf("[UssdMerchSvc][Delete] already deleted")
-// 		return errors.New(localization.ErrorAlreadyDeleted.Code)
-// 	}
-
-// 	currentData := prevData
-// 	currentData.IsDeleted = true
-// 	currentData.DeletedAt = time.Now()
-
-// 	cpsActionModel := lib.CpsModelBuilder(id, makerData, prevData, currentData, constants.RequestDeleteUssdMerchant, constants.DELETE)
-// 	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionModel); err != nil {
-// 		log.Errorf("[UssdMerchSvc][Delete] cps action err: %v", err)
-// 		return err
-// 	}
-
-//		return nil
-//	}
 func (s *ussdMerchantService) UpdateUssdMerchant(ctx context.Context, id string, req ussd_merchant_dto.UpdateUssdMerchantRequest) error {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateUssdMerchantService", "UssdMerchant", "Update")
 	defer span.End()
-	var URL string
-	var existing imodel.UssdMerchant
 
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
@@ -270,50 +234,28 @@ func (s *ussdMerchantService) UpdateUssdMerchant(ctx context.Context, id string,
 		return err
 	}
 
-	if req.PhoneNumber != "" || req.Email != "" || req.AccountNumber != "" {
-		existing, err := s.repo.FindByOr(ctx, req.PhoneNumber, req.Email, req.AccountNumber)
-		if err != nil {
-			log.Errorf("[UssdMerchSvc][Update] exist check err: %v", err)
-			return err
-		}
-		if err := core.ExistingIdentifierForUpdate(existing, id, req); err != nil {
-			log.Infof("[UssdMerchSvc][Update] data exists: %v", err)
-			return err
-		}
-	}
-
-	if req.Service != "" && !strings.EqualFold(req.Service, prevMerchant.Service) {
-		log.Infof("[UssdMerchSvc][Update] validating service")
-		_, err := s.serviceRepo.FindByID(ctx, req.Service)
-		if err != nil {
-			log.Errorf("[UssdMerchSvc][Update] invalid service: %v", err)
-			return errors.New(localization.ErrorServiceNotFound.Code)
-		}
-		log.Infof("[UssdMerchSvc][Update] service valid")
-	}
-
-	if err := core.ExistingIdentifierForUpdate(existing, id, req); err != nil {
-		log.Infof("[UssdMerchSvc][Update] data exists: %v", err)
+	if err := s.checkIdentifierConflict(ctx, id, req); err != nil {
+		log.Infof("[UssdMerchSvc][Update] identifier conflict: %v", err)
 		return err
 	}
 
-	if req.Logo != nil {
-		URL, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Logo, string(constants.BankFolderName), s.cfg, "", s.logger)
-		if err != nil {
-			log.Errorf("[UssdMerchSvc][Update] upload logo err: %v", err)
-			return errors.New(localization.ErrorUnhandledServer.Code)
-		}
+	if err := s.validateServiceChange(ctx, req.Service, prevMerchant.Service); err != nil {
+		log.Errorf("[UssdMerchSvc][Update] service validation err: %v", err)
+		return err
 	}
 
-	prevData := prevMerchant
-	currData := prevMerchant
-
-	ussdMerchant := core.UssdMerchantUpdate(req, &currData)
-	if URL != "" {
-		ussdMerchant.Logo = URL
+	logoURL, err := s.uploadLogoIfPresent(ctx, req)
+	if err != nil {
+		log.Errorf("[UssdMerchSvc][Update] upload logo err: %v", err)
+		return err
 	}
 
-	cspActionModel := lib.CpsModelBuilder(id, makerData, prevData, ussdMerchant, constants.RequestUpdateUssdMerchant, constants.UPDATE)
+	ussdMerchant := core.UssdMerchantUpdate(req, &prevMerchant)
+	if logoURL != "" {
+		ussdMerchant.Logo = logoURL
+	}
+
+	cspActionModel := lib.CpsModelBuilder(id, makerData, prevMerchant, ussdMerchant, constants.RequestUpdateUssdMerchant, constants.UPDATE)
 	if err := s.cpsService.CreateCPSAction(ctx, &cspActionModel); err != nil {
 		log.Errorf("[UssdMerchSvc][Update] cps action err: %v", err)
 		return err
@@ -321,6 +263,42 @@ func (s *ussdMerchantService) UpdateUssdMerchant(ctx context.Context, id string,
 
 	log.Infof("[UssdMerchSvc][Update] done")
 	return nil
+}
+
+func (s *ussdMerchantService) checkIdentifierConflict(ctx context.Context, id string, req ussd_merchant_dto.UpdateUssdMerchantRequest) error {
+	if req.PhoneNumber == "" && req.Email == "" && req.AccountNumber == "" {
+		return nil
+	}
+	existing, err := s.repo.FindByOr(ctx, req.PhoneNumber, req.Email, req.AccountNumber)
+	if err != nil {
+		if err.Error() == localization.ErrorResourceNotFound.Code {
+			return nil
+		}
+		return err
+	}
+	return core.ExistingIdentifierForUpdate(existing, id, req)
+}
+
+func (s *ussdMerchantService) validateServiceChange(ctx context.Context, newService, currentService string) error {
+	if newService == "" || strings.EqualFold(newService, currentService) {
+		return nil
+	}
+	_, err := s.serviceRepo.FindByID(ctx, newService)
+	if err != nil {
+		return errors.New(localization.ErrorServiceNotFound.Code)
+	}
+	return nil
+}
+
+func (s *ussdMerchantService) uploadLogoIfPresent(ctx context.Context, req ussd_merchant_dto.UpdateUssdMerchantRequest) (string, error) {
+	if req.Logo == nil {
+		return "", nil
+	}
+	url, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Logo, string(constants.BankFolderName), s.cfg, "", s.logger)
+	if err != nil {
+		return "", errors.New(localization.ErrorUnhandledServer.Code)
+	}
+	return url, nil
 }
 
 func (s *ussdMerchantService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
