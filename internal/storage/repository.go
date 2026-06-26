@@ -870,7 +870,7 @@ type UssdMerchantRepository interface {
 	Update(ctx context.Context, id string, update bson.M) error
 	Delete(ctx context.Context, id string) error
 	FindById(ctx context.Context, id string) (ussd_merchant_dto.UssdMerchantResponse, error)
-	FindByOr(ctx context.Context, phone, email, account_number string) (imodel.UssdMerchant, error)
+	FindByOr(ctx context.Context, phone, email, accountNumber string) (imodel.UssdMerchant, error)
 	Find(ctx context.Context, filter bson.M) (ussd_merchant_dto.UssdMerchantResponse, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (types.PaginatedResponse[[]ussd_merchant_dto.UssdMerchantResponse], error)
 	// Delete(ctx context.Context, id string) error
