@@ -141,7 +141,6 @@ func SplitEnabledDisabledTree(accessList []model.APPAccessList) (
 			enabled = append(enabled, node)
 		} else {
 			disabled = append(disabled, node)
-			continue
 		}
 	}
 	return
