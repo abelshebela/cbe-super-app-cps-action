@@ -323,6 +323,11 @@ func (s *superAppRoleService) GetAccessListsByRole(ctx context.Context, superapp
 	for _, rel := range relations {
 		parentID := strings.ToUpper(rel.ParentKey)
 		childID := strings.ToUpper(rel.ChildKey)
+		// Self-links mark the node as a parent/root in the data model, but they
+		// should not be treated as parent->child edges.
+		if parentID == childID {
+			continue
+		}
 		childSet[childID] = struct{}{}
 		relMap[parentID] = append(relMap[parentID], childID)
 	}
