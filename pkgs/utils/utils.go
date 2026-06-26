@@ -81,56 +81,6 @@ func ParseObjectID(id interface{}) (bson.ObjectID, error) {
 	}
 }
 
-// func IsValidImage(fileHeader *multipart.FileHeader) bool {
-// 	var allowedMIMETypes = map[string]bool{
-// 		"image/jpg":  true,
-// 		"image/jpeg": true,
-// 		"image/png":  true,
-// 		"image/gif":  true,
-// 		"image/webp": true,
-// 	}
-
-// 	if fileHeader == nil {
-// 		return false
-// 	}
-
-// 	ext := strings.ToLower(filepath.Ext(fileHeader.Filename))
-// 	switch ext {
-// 	case ".jpg", ".jpeg", ".png", ".gif", ".webp":
-// 		// extension ok; continue to name and content checks
-// 	default:
-// 		return false
-// 	}
-
-// 	// optional: reject names with additional dots (foo.jpg.exe, foo..jpg, etc.)
-// 	name := strings.TrimSuffix(fileHeader.Filename, ext)
-// 	if strings.Contains(name, ".") {
-// 		return false
-// 	}
-
-// 	file, err := fileHeader.Open()
-// 	if err != nil {
-// 		return false
-// 	}
-// 	defer file.Close()
-
-// 	buffer := make([]byte, 512)
-// 	_, err = file.Read(buffer)
-// 	if err != nil && err != io.EOF {
-// 		return false
-// 	}
-
-// 	contentType := http.DetectContentType(buffer)
-// 	if allowedMIMETypes[contentType] {
-// 		return true
-// 	}
-// 	// Many clients (mobile, WebView, some browsers) send images as octet-stream; extension already vetted above.
-// 	if contentType == "application/octet-stream" || contentType == "binary/octet-stream" {
-// 		return true
-// 	}
-// 	return false
-// }
-
 func IsValidImage(fileHeader *multipart.FileHeader) bool {
 	allowedMIMETypes := map[string]bool{
 		"image/jpeg": true,
@@ -801,7 +751,10 @@ func FormatDateRangeToUTCStrings(fromStr, toStr string) (time.Time, time.Time, e
 	if len(fromStr) == len("2006-01-02") {
 		from = time.Date(from.Year(), from.Month(), from.Day(), 0, 0, 0, 0, time.UTC)
 	}
-	if len(toStr) == len("2006-01-02") {
+	// Extend the To date to end of day when it lands at exactly midnight —
+	// whether passed as a date-only string or as T00:00:00Z — both signal intent
+	// to include the full day rather than a single instant.
+	if len(toStr) == len("2006-01-02") || (to.Hour() == 0 && to.Minute() == 0 && to.Second() == 0 && to.Nanosecond() == 0) {
 		to = time.Date(to.Year(), to.Month(), to.Day(), 23, 59, 59, int(time.Second-time.Nanosecond), time.UTC)
 	}
 

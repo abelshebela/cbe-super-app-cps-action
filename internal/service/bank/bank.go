@@ -61,6 +61,7 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "Bank", "Authorize")
 	defer span.End()
+
 	if cpsAction == nil {
 		span.AddEvent("[Authorize] nil CPS action")
 		log.Errorf("[BankSvc][Authorize] nil CPS action")
@@ -122,7 +123,11 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 	// 	actionData.ID = objID
 	// }
 	actionData := bank_core.Bank_oracle_mapper(actionMapCurrent.(map[string]interface{}))
-	previousData := bank_core.Bank_oracle_mapper(actionMapPrev.(map[string]interface{}))
+
+	var previousData imodel.BankOracle
+	if actionMapPrev != nil {
+		previousData = bank_core.Bank_oracle_mapper(actionMapPrev.(map[string]interface{}))
+	}
 
 	switch string(cpsAction.RequestAction) {
 	case string(constants.RequestCreateBank):

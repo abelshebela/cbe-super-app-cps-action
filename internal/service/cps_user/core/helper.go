@@ -121,10 +121,7 @@ func ConvertToResponseDTO(portalCard []string, user *cpsuser.CpsUserPopulatedRes
 }
 
 func CPSUModel(req cpsuser.CreateUserRequest) imodel.CPSUser {
-	depID, err := bson.ObjectIDFromHex(req.Department)
-	if err != nil {
-		// Handle error appropriately
-	}
+	depID, _ := bson.ObjectIDFromHex(req.Department)
 	return imodel.CPSUser{
 		UserCode:         local_util.GenerateCPSUserCode(),
 		UserName:         strings.ToUpper(req.UserName),
@@ -138,6 +135,7 @@ func CPSUModel(req cpsuser.CreateUserRequest) imodel.CPSUser {
 		IsFirstTimeLogin: true,
 		Enabled:          true,
 		CreatedAt:        time.Now(),
+		CreatedBy:        "CPS Portal",
 	}
 }
 
@@ -227,11 +225,10 @@ func MapForActionWithDepartment(user imodel.CPSUser, department *model.Departmen
 	}
 
 	return cpsuser.CpsUserPopulatedResponse{
-		ID:       user.ID,
-		UserCode: user.UserCode,
-		FullName: user.FullName,
-		Role:     cpsuser.RoleResponse{Name: user.Role},
-		// RoleCode:         user.Role,
+		ID:               user.ID,
+		UserCode:         user.UserCode,
+		FullName:         user.FullName,
+		Role:             cpsuser.RoleResponse{Name: user.Role},
 		Department:       deptResp,
 		JobTitle:         user.JobTitle,
 		Gender:           user.Gender,
@@ -248,6 +245,7 @@ func MapForActionWithDepartment(user imodel.CPSUser, department *model.Departmen
 		PasswordDisable:  false,
 		IsFirstTimeLogin: true,
 		CreatedAt:        time.Now(),
+		CreatedBy:        user.CreatedBy,
 	}
 }
 
@@ -286,5 +284,6 @@ func MapFromPopulatedResponse(resp *cpsuser.CpsUserPopulatedResponse) *imodel.CP
 		PasswordDisable:  resp.PasswordDisable,
 		IsFirstTimeLogin: resp.IsFirstTimeLogin,
 		CreatedAt:        resp.CreatedAt,
+		CreatedBy:        resp.CreatedBy,
 	}
 }

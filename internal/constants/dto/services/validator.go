@@ -269,7 +269,7 @@ func (r UpdateServiceRequest) Validate() error {
 	err := validation.ValidateStruct(&r,
 		validation.Field(&r.ServiceKeyId, validation.By(utils.NoSpecialChars)),
 		validation.Field(&r.ServiceKey, validation.By(utils.NoSpecialChars)),
-		validation.Field(&r.ServiceCode, validation.By(utils.NoSpecialChars), validation.Length(3, 16).Error("service code length must be between 3 - 16 characters")),
+		validation.Field(&r.ServiceCode, validation.By(utils.NoSpecialChars), validation.Length(3, 20).Error("service code length must be between 3 - 20 characters")),
 		validation.Field(&r.MinimumFraudAmount, validation.Min(0.0).Error("Minimum fraud amount must be greater or equal to zero")),
 		validation.Field(&r.ProductGlAccount,
 			validation.By(utils.NoSpecialChars),
@@ -326,8 +326,8 @@ func (r CreateServiceList) Validate() error {
 		validation.Field(&r.ServiceKey, validation.Required, validation.By(utils.NoSpecialChars)),
 		validation.Field(&r.ServiceName, validation.Required, validation.By(utils.NoSpecialChars)),
 		validation.Field(&r.AccountType, validation.Required, validation.By(utils.NoSpecialChars)),
-		validation.Field(&r.IsSuperAppEnabled, validation.Required),
-		validation.Field(&r.IsUSSDEnabled, validation.Required),
+		validation.Field(&r.IsSuperAppEnabled),
+		validation.Field(&r.IsUSSDEnabled),
 	)
 }
 

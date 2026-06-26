@@ -35,6 +35,7 @@ func CPSUserUpdateMapper(u *imodel.CPSUser) bson.M {
 	}
 
 	set["last_modified"] = time.Now()
+	set["changed_by"] = "CPS Portal"
 	return set
 }
 

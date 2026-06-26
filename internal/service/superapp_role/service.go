@@ -285,17 +285,22 @@ func (s *superAppRoleService) GetAccessListsByRole(ctx context.Context, superapp
 		return nil, nil, err
 	}
 
+	log.Infof("[SUPPERAPPROLE] here is the no of globaly enabled %s", len(globallyEnabled))
 	globallyDisabled, err := s.repo.FindGloballyDisabledAccessLists(ctx)
 	if err != nil {
 		log.Errorf("[SuperAppRole][GetAccessListsByRole] global disabled fetch err: %v", err)
 		return nil, nil, err
 	}
 
+	log.Infof("[SUPPERAPPROLE] here is the no of globaly disabled %s", len(globallyDisabled))
+
 	roleBlocked, err := s.repo.FindRoleBlockedAccessLists(ctx, superappRole)
 	if err != nil {
 		log.Errorf("[SuperAppRole][GetAccessListsByRole] role blocked fetch err: %v", err)
 		return nil, nil, err
 	}
+
+	log.Infof("[SUPPERAPPROLE] here is the no of roleblocked %s", len(roleBlocked))
 
 	relations, err := s.repo.FindAccessListRelations(ctx)
 	if err != nil {
@@ -360,9 +365,15 @@ func (s *superAppRoleService) GetAccessListsByRole(ctx context.Context, superapp
 	for _, al := range roleBlocked {
 		disabledMap[strings.ToUpper(al.ID)] = al
 	}
+
 	for _, al := range globallyDisabled {
+		// if itsn't exist first
+		// if disabledMap[strings.ToUpper(al.ID)] == imodel.APPAccessList{}{} {
+		// 	continue
+		// }
 		disabledMap[strings.ToUpper(al.ID)] = al
 	}
+
 	disabled := make([]imodel.APPAccessList, 0, len(disabledMap))
 	for id, al := range disabledMap {
 		if _, isChild := childSet[id]; isChild {
@@ -386,6 +397,9 @@ func (s *superAppRoleService) GetAccessListsByRole(ctx context.Context, superapp
 		al.SubAccessList = collectDescendants(id)
 		enabled = append(enabled, al)
 	}
+
+	log.Infof("[SUPPERAPPROLE] here is the no of response enabled %s", len(enabled))
+	log.Infof("[SUPPERAPPROLE] here is the no of response disabled %s", len(disabled))
 
 	return enabled, disabled, nil
 }

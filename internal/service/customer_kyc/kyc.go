@@ -349,46 +349,6 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 			return nil, err
 		}
 
-		// data := coreio.CreateCustomerParam{
-		// 	FirstName:          "DAWIT",
-		// 	MiddleName:         "GIRMA",
-		// 	LastName:           "BEKELE",
-		// 	PhoneNumber:        "+251911234567",
-		// 	Address:            "BOLE, ADDIS ABABA",
-		// 	PostalCode:         "1000",
-		// 	ISOCountryCode:     "ET",
-		// 	AccountOffice:      "7020",
-		// 	Industry:           "1201",
-		// 	ISONationalityCode: "ET",
-		// 	ISOResidentCode:    "ET",
-		// 	UniqueID:           "9988776655443322",
-		// 	IssuesBy:           "FAYDA",
-		// 	IssuedDate:         "20230315",
-		// 	ExpiryDate:         "20330315",
-		// 	Gender:             "MALE",
-		// 	DateOfBirth:        "19950520",
-		// 	MaritalStatus:      "MARRIED",
-		// 	Email:              "dawit.bekele@example.com",
-		// 	EmploymentStatus:   "EMPLOYED",
-		// 	Occupation:         "SOFTWARE ENGINEER",
-		// 	EmployerName:       "ETHIO TECH SOLUTIONS",
-		// 	EmployerAddress:    "ADDIS ABABA",
-		// 	EmployerBusiness:   "INFORMATION TECHNOLOGY",
-		// 	CustomerCurrency:   "ETB",
-		// 	Salary:             "120000",
-		// 	AnnualBonus:        "75000",
-		// 	NetMonthlyIncome:   "95000",
-		// 	NetMonthlyExpence:  "40000",
-		// 	TinNumber:          "1234567890123456",
-		// 	MotherName:         "MESERET KASSA",
-		// 	CustomerGroup:      "RETAIL",
-		// 	NationalId:         "9988776655443322",
-		// 	Url:                s.cfg.CustomerCreateURL,
-		// 	Header: map[string]string{
-		// 		"Authorization": "Bearer " + token,
-		// 	},
-		// }
-
 		data := coreio.CreateCustomerParam{
 			FirstName:  strings.ToUpper(strings.TrimSpace(firstName)),
 			MiddleName: strings.ToUpper(strings.TrimSpace(middleName)),
@@ -451,10 +411,6 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 			}
 			return nil, err
 		}
-
-		log.Infof("[CustKycSvc][Authorize] core account created for customer: %+v", userAccount)
-		log.Infof("[CustKycSvc][Authorize] saving user account to database for customer: %+v", userAccount.AccountCreationDetail.Detail)
-		log.Infof("[CustKycSvc][Authorize] saving user account to database for customer: %+v", userAccount.CustomerCreationDetail.Detail)
 
 		if err = s.repo.CreateUser(ctx, userAccount, *userData); err != nil {
 			return nil, err

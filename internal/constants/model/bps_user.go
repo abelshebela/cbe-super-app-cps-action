@@ -36,6 +36,7 @@ type BPSUser struct {
 	LastLogin         time.Time       `json:"-" bson:"last_login"`
 	CreatedAt         time.Time       `json:"created_at" bson:"created_at,omitempty"`
 	LastModifiedAt    time.Time       `json:"-" bson:"last_modifed_at,omitempty"`
+	ChangedBy         string          `json:"changed_by,omitempty" bson:"changed_by,omitempty"`
 }
 
 type Password struct {
