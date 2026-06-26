@@ -1,9 +1,11 @@
 package bulk_service
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	dto "cbe-super-app-cps-action/internal/constants/dto/bulk_service"
 	"cbe-super-app-cps-action/internal/constants/interfaces/bulk_service"
 	"cbe-super-app-cps-action/internal/constants/types"
+	"context"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
@@ -103,6 +105,11 @@ func (h *bulk_serviceAdapter) GetAllBulkServices(w http.ResponseWriter, r *http.
 func (h *bulk_serviceAdapter) EnableBulkService(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableBulkService", "handler", "bulkService")
 	defer span.End()
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
+
 	log := local_util.LoggerFromCtx(ctx, h.logger)
 	var req dto.BulkServiceDTO
 
@@ -144,6 +151,11 @@ func (h *bulk_serviceAdapter) EnableBulkService(w http.ResponseWriter, r *http.R
 func (h *bulk_serviceAdapter) DisableBulkService(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableBulkService", "handler", "bulkService")
 	defer span.End()
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
+
 	log := local_util.LoggerFromCtx(ctx, h.logger)
 	var req dto.BulkServiceDTO
 

@@ -9081,7 +9081,7 @@ var (
 	ErrorBulkServiceAlreadyDisabled = ResponseCode{
 		Code:       "ERROR_BULK_SERVICE_ALREADY_DISABLED",
 		StatusCode: StatusBadRequest,
-		Message:    "One or more bulk services are already enabled",
+		Message:    "One or more bulk services are already disabled",
 		Type:       "error",
 	}
 
