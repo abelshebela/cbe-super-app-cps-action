@@ -81,56 +81,6 @@ func ParseObjectID(id interface{}) (bson.ObjectID, error) {
 	}
 }
 
-// func IsValidImage(fileHeader *multipart.FileHeader) bool {
-// 	var allowedMIMETypes = map[string]bool{
-// 		"image/jpg":  true,
-// 		"image/jpeg": true,
-// 		"image/png":  true,
-// 		"image/gif":  true,
-// 		"image/webp": true,
-// 	}
-
-// 	if fileHeader == nil {
-// 		return false
-// 	}
-
-// 	ext := strings.ToLower(filepath.Ext(fileHeader.Filename))
-// 	switch ext {
-// 	case ".jpg", ".jpeg", ".png", ".gif", ".webp":
-// 		// extension ok; continue to name and content checks
-// 	default:
-// 		return false
-// 	}
-
-// 	// optional: reject names with additional dots (foo.jpg.exe, foo..jpg, etc.)
-// 	name := strings.TrimSuffix(fileHeader.Filename, ext)
-// 	if strings.Contains(name, ".") {
-// 		return false
-// 	}
-
-// 	file, err := fileHeader.Open()
-// 	if err != nil {
-// 		return false
-// 	}
-// 	defer file.Close()
-
-// 	buffer := make([]byte, 512)
-// 	_, err = file.Read(buffer)
-// 	if err != nil && err != io.EOF {
-// 		return false
-// 	}
-
-// 	contentType := http.DetectContentType(buffer)
-// 	if allowedMIMETypes[contentType] {
-// 		return true
-// 	}
-// 	// Many clients (mobile, WebView, some browsers) send images as octet-stream; extension already vetted above.
-// 	if contentType == "application/octet-stream" || contentType == "binary/octet-stream" {
-// 		return true
-// 	}
-// 	return false
-// }
-
 func IsValidImage(fileHeader *multipart.FileHeader) bool {
 	allowedMIMETypes := map[string]bool{
 		"image/jpeg": true,
