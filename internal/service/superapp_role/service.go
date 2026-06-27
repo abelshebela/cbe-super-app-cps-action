@@ -285,17 +285,22 @@ func (s *superAppRoleService) GetAccessListsByRole(ctx context.Context, superapp
 		return nil, nil, err
 	}
 
+	log.Infof("[SUPPERAPPROLE] here is the no of globaly enabled %d", len(globallyEnabled))
 	globallyDisabled, err := s.repo.FindGloballyDisabledAccessLists(ctx)
 	if err != nil {
 		log.Errorf("[SuperAppRole][GetAccessListsByRole] global disabled fetch err: %v", err)
 		return nil, nil, err
 	}
 
+	log.Infof("[SUPPERAPPROLE] here is the no of globaly disabled %d", len(globallyDisabled))
+
 	roleBlocked, err := s.repo.FindRoleBlockedAccessLists(ctx, superappRole)
 	if err != nil {
 		log.Errorf("[SuperAppRole][GetAccessListsByRole] role blocked fetch err: %v", err)
 		return nil, nil, err
 	}
+
+	log.Infof("[SUPPERAPPROLE] here is the no of roleblocked %d", len(roleBlocked))
 
 	relations, err := s.repo.FindAccessListRelations(ctx)
 	if err != nil {
@@ -318,6 +323,11 @@ func (s *superAppRoleService) GetAccessListsByRole(ctx context.Context, superapp
 	for _, rel := range relations {
 		parentID := strings.ToUpper(rel.ParentKey)
 		childID := strings.ToUpper(rel.ChildKey)
+		// Self-links mark the node as a parent/root in the data model, but they
+		// should not be treated as parent->child edges.
+		if parentID == childID {
+			continue
+		}
 		childSet[childID] = struct{}{}
 		relMap[parentID] = append(relMap[parentID], childID)
 	}
@@ -329,8 +339,7 @@ func (s *superAppRoleService) GetAccessListsByRole(ctx context.Context, superapp
 
 	// collectDescendants BFS-walks relMap from parentID and returns ALL descendants
 	// flattened into one slice, handling any depth of nesting.
-	// When excludeBlocked is true, role-blocked descendants are omitted.
-	collectDescendants := func(parentID string, excludeBlocked bool) []types.SubAccessList {
+	collectDescendants := func(parentID string) []types.SubAccessList {
 		var result []types.SubAccessList
 		visited := make(map[string]struct{})
 		queue := []string{parentID}
@@ -343,11 +352,6 @@ func (s *superAppRoleService) GetAccessListsByRole(ctx context.Context, superapp
 				}
 				visited[childID] = struct{}{}
 				queue = append(queue, childID)
-				if excludeBlocked {
-					if _, blocked := blockedSet[childID]; blocked {
-						continue
-					}
-				}
 				if child, ok := allMap[childID]; ok {
 					result = append(result, types.SubAccessList{
 						ID:             child.ID,
@@ -366,20 +370,26 @@ func (s *superAppRoleService) GetAccessListsByRole(ctx context.Context, superapp
 	for _, al := range roleBlocked {
 		disabledMap[strings.ToUpper(al.ID)] = al
 	}
+
 	for _, al := range globallyDisabled {
+		// if itsn't exist first
+		// if disabledMap[strings.ToUpper(al.ID)] == imodel.APPAccessList{}{} {
+		// 	continue
+		// }
 		disabledMap[strings.ToUpper(al.ID)] = al
 	}
+
 	disabled := make([]imodel.APPAccessList, 0, len(disabledMap))
 	for id, al := range disabledMap {
 		if _, isChild := childSet[id]; isChild {
 			continue
 		}
-		al.SubAccessList = collectDescendants(id, false)
+		al.SubAccessList = collectDescendants(id)
 		disabled = append(disabled, al)
 	}
 
 	// enabled = globally enabled − role-blocked, top-level parents only.
-	// SubAccessList excludes role-blocked descendants.
+	// Descendants are kept so the tree structure stays intact.
 	enabled := make([]imodel.APPAccessList, 0, len(globallyEnabled))
 	for _, al := range globallyEnabled {
 		id := strings.ToUpper(al.ID)
@@ -389,9 +399,12 @@ func (s *superAppRoleService) GetAccessListsByRole(ctx context.Context, superapp
 		if _, isChild := childSet[id]; isChild {
 			continue
 		}
-		al.SubAccessList = collectDescendants(id, true)
+		al.SubAccessList = collectDescendants(id)
 		enabled = append(enabled, al)
 	}
+
+	log.Infof("[SUPPERAPPROLE] here is the no of response enabled %d", len(enabled))
+	log.Infof("[SUPPERAPPROLE] here is the no of response disabled %d", len(disabled))
 
 	return enabled, disabled, nil
 }
