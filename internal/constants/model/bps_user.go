@@ -52,7 +52,8 @@ type ExportBPSUser struct {
 	LastName                string    `json:"last_name,omitempty" bson:"last_name"`
 	PhoneNumber             string    `json:"phone_number,omitempty" bson:"phone_number"`
 	Email                   string    `json:"email,omitempty" bson:"email"`
-	Branch                  string    `json:"department,omitempty" bson:"department"`
+	BranchCode              string    `json:"branch_code,omitempty" bson:"branch_code"`
+	BranchName              string    `json:"branch_name,omitempty" bson:"branch_name"`
 	JobTitle                string    `json:"job_title" bson:"job_title"`
 	Role                    string    `json:"role,omitempty" bson:"role"`
 	UserName                string    `json:"username,omitempty" bson:"username"`
