@@ -84,8 +84,8 @@ func bpsUserExportRow(user imodel.ExportBPSUser) []string {
 		user.FirstName,
 		user.PhoneNumber,
 		user.Email,
-		user.Branch,
-		user.Branch,
+		user.BranchCode,
+		user.BranchName,
 		user.JobTitle,
 		user.Role,
 		user.UserName,
@@ -124,7 +124,7 @@ func (b *bpsUserService) ExportUsers(ctx context.Context, startDate, endDate tim
 		return "", errors.New(localization.BpsUserDataNotFoundInDateRange.Code)
 	}
 
-	headers := []string{"Full Name", "Phone Number", "Email", "Branch", "Branch Code", "Job Title", "Role", "Username", "Created At", "Last Login", "Enabled", "User Type", "Expiry Date (Delegation)", "Last Modification Action", "Last Modified", "Created By", "Approved By"}
+	headers := []string{"Full Name", "Phone Number", "Email", "Branch Code", "Branch Name", "Job Title", "Role", "Username", "Created At", "Last Login", "Enabled", "User Type", "Expiry Date (Delegation)", "Last Modification Action", "Last Modified", "Created By", "Approved By"}
 
 	ext := "csv"
 	if fileType == string(lib.FileTypePDF) {
