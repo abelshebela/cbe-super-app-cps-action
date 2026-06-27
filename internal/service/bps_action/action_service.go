@@ -4,6 +4,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	"time"
 
+	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 
 	imodel "cbe-super-app-cps-action/internal/constants/model"
@@ -367,10 +368,10 @@ func (ba *bpsActionService) GetBPSActionsByDepartment(ctx context.Context, depar
 }
 
 func (ba *bpsActionService) GetBPSActionsForApprover(ctx context.Context, userID string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*bps_model.BPSAction], error) {
+	log := local_util.LoggerFromCtx(ctx, ba.logger)
 
 	ctx, span := lobal_util.TraceLogger(ctx, "service", "GetCPSActionsForApprover", "CPSAction", "GetCPSActionsForApprover")
 	defer span.End()
-	log := local_util.LoggerFromCtx(ctx, ba.logger)
 
 	log.Infof("[BpsActionSvc][GetBPSActionsForApprover] Retrieving BPS actions for user %s with filter %+v", userID, filterParams.Filters)
 	if filterParams == nil {
@@ -439,6 +440,7 @@ func (ba *bpsActionService) GetBPSActionsForApprover(ctx context.Context, userID
 }
 
 func (ba *bpsActionService) GetBPSActionsForAuditor(ctx context.Context, userID string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*bps_model.BPSAction], error) {
+	log := local_util.LoggerFromCtx(ctx, ba.logger)
 
 	ctx, span := lobal_util.TraceLogger(ctx, "service", "GetBPSActionsForAuditor", "BPSAction", "GetBPSActionsForAuditor")
 
@@ -528,6 +530,17 @@ func (ba *bpsActionService) GetBPSActionsForAuditor(ctx context.Context, userID 
 				action.ServiceName = mod
 			}
 		}
+	}
+	if filterParams.Filters["action"] == "export" {
+		_, err := lib.FileExporterForBPSAction(ctx, ba.cfg, nil, "", filterParams, result.Data, func(fields []string) []string {
+			return fields
+		}, ba.logger)
+		if err != nil {
+			span.AddEvent("failed to export BPS actions", trace.WithAttributes(attribute.String("error", err.Error())))
+			log.Errorf("[BpsActionSvc][Export] export BPS actions err: %v", err)
+			return nil, err
+		}
+
 	}
 
 	return result, nil
