@@ -6,7 +6,7 @@ import (
 
 	"cbe-super-app-cps-action/internal/constants/localization"
 
-	imodel "cbe-super-app-cps-action/internal/constants/model"
+	lib "cbe-super-app-cps-action/internal/constants/lib"
 
 	"cbe-super-app-cps-action/internal/constants/types"
 
@@ -42,6 +42,8 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	"go.opentelemetry.io/otel/trace"
+
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
 type bpsActionPublishPayload struct {
@@ -65,12 +67,13 @@ type bpsActionService struct {
 	bpsUserRepo               storage.BPSUserRepository
 	cpsUserRepo               storage.CpsUserRepository
 	logger                    utils.Logger
-
+	minioClient               *s3.Client
+	buckerName                string
 	dispatcher Dispatcher
 	cfg        config.VaultConfig
 }
 
-func NewBPSActionService(roles storage.BPSActionRoleRepository, repo storage.BPSActionRepository, customerRepo storage.CustomerRepository, archivedLinkedAccountRepo storage.ArchivedLinkedAccountRepository, bpsUserRepo storage.BPSUserRepository, cpsUserRepo storage.CpsUserRepository, actionLogRepo storage.UserActionLogRepository, logger utils.Logger, dispatcher Dispatcher, cfg config.VaultConfig) service.BPSActionService {
+func NewBPSActionService(roles storage.BPSActionRoleRepository, repo storage.BPSActionRepository, customerRepo storage.CustomerRepository, archivedLinkedAccountRepo storage.ArchivedLinkedAccountRepository, bpsUserRepo storage.BPSUserRepository, cpsUserRepo storage.CpsUserRepository, actionLogRepo storage.UserActionLogRepository, logger utils.Logger, dispatcher Dispatcher, cfg config.VaultConfig, minioClient *s3.Client, buckerName string) service.BPSActionService {
 
 	return &bpsActionService{
 
@@ -90,8 +93,10 @@ func NewBPSActionService(roles storage.BPSActionRoleRepository, repo storage.BPS
 
 		actionLogRepo: actionLogRepo,
 
-		dispatcher: dispatcher,
-		cfg:        cfg,
+		dispatcher:  dispatcher,
+		cfg:         cfg,
+		minioClient: minioClient,
+		buckerName:  buckerName,
 	}
 
 }
@@ -205,9 +210,9 @@ func (ba *bpsActionService) AuditorMark(ctx context.Context, actionCode string, 
 	auditorApproval := false
 	isCustomerBarred := false
 	markStr := string(auditor.AuditorMark)
-	if markStr == string(imodel.MARKEDASRIGHT) {
+	if markStr == string(bps_model.MARKEDASRIGHT) {
 		auditorApproval = true
-	} else if markStr == string(imodel.MARKEDASWRONG) && customerBar {
+	} else if markStr == string(bps_model.MARKEDASWRONG) && customerBar {
 		// Block customer when marked as wrong with customer_bar=true
 		userCode := action.UserInformation.UserCode
 		if userCode != "" && ba.customerRepo != nil {
@@ -228,7 +233,7 @@ func (ba *bpsActionService) AuditorMark(ctx context.Context, actionCode string, 
 
 	// BPS has a single auditor — once marked, the audit is complete (CHECKED).
 	// Log user action with customer barred flag if applicable
-	ba.logUserActionWithCustomerBar(ctx, action, imodel.AUDITOR, action.Status, imodel.AuditorMark(auditor.AuditorMark), "", "", isCustomerBarred)
+	ba.logUserActionWithCustomerBar(ctx, action, bps_model.AUDITOR, action.Status, bps_model.AuditorMark(auditor.AuditorMark), "", "", isCustomerBarred)
 	if ba.actionLogRepo != nil {
 		if logErr := ba.actionLogRepo.AuditorMarkLogsByActionCode(ctx, actionCode, string(auditor.AuditorMark), string(constants.AUDITORCHECKED), isCustomerBarred); logErr != nil {
 			span.AddEvent("failed to propagate auditor mark to logs", trace.WithAttributes(attribute.String("error", logErr.Error())))
@@ -284,7 +289,7 @@ func (ba *bpsActionService) ApproveBPSAction(ctx context.Context, action *bps_mo
 
 	}
 
-	ba.logUserAction(ctx, action, imodel.CHECKER, action.Status, "", checkerLevel, "")
+	ba.logUserAction(ctx, action, bps_model.CHECKER, action.Status, "", checkerLevel, "")
 	if ba.actionLogRepo != nil {
 		if logErr := ba.actionLogRepo.ApproveUserActionsByActionCode(ctx, action.ActionCode); logErr != nil {
 			span.AddEvent("failed to bulk-update action log on approve", trace.WithAttributes(attribute.String("error", logErr.Error())))
@@ -336,7 +341,7 @@ func (ba *bpsActionService) RejectBPSAction(ctx context.Context, action_code str
 
 	}
 
-	ba.logUserAction(ctx, action, imodel.CHECKER, action.Status, "", "", "")
+	ba.logUserAction(ctx, action, bps_model.CHECKER, action.Status, "", "", "")
 	if ba.actionLogRepo != nil {
 		if logErr := ba.actionLogRepo.RejectUserActionsByActionCode(ctx, action.ActionCode); logErr != nil {
 			span.AddEvent("failed to bulk-update action log on reject", trace.WithAttributes(attribute.String("error", logErr.Error())))
@@ -366,9 +371,9 @@ func (ba *bpsActionService) GetBPSActionsByDepartment(ctx context.Context, depar
 
 }
 
-func (ba *bpsActionService) GetBPSActionsForApprover(ctx context.Context, userID string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*bps_model.BPSAction], error) {
+func (ba *bpsActionService) GetBPSActionsForApprover(ctx context.Context, userID string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*bps_model.BPSAction], string, error) {
 
-	ctx, span := lobal_util.TraceLogger(ctx, "service", "GetCPSActionsForApprover", "CPSAction", "GetCPSActionsForApprover")
+	ctx, span := lobal_util.TraceLogger(ctx, "service", "GetBPSActionsForApprover", "BPSAction", "GetBPSActionsForApprover")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, ba.logger)
 
@@ -388,18 +393,20 @@ func (ba *bpsActionService) GetBPSActionsForApprover(ctx context.Context, userID
 		}
 	}
 
+	createdAtFrom, _ := filterParams.Filters["created_at_from"].(string)
+	createdAtTo, _ := filterParams.Filters["created_at_to"].(string)
+
 	if (statusFilter == "APPROVED" || statusFilter == "REJECTED") && ba.actionLogRepo != nil {
 		logFilter := map[string]interface{}{
 			"action_type":         string(bps_model.BPSActions),
 			"given_action_status": statusFilter,
-			// "user_action_responsibilities": string(bps_model.CHECKER),
-			"username": userID,
+			"username":            userID,
 		}
 
 		actionCodes, err := ba.actionLogRepo.GetActionCodesByFilter(ctx, logFilter)
 		if err != nil {
 			span.AddEvent("failed to get action codes from log", trace.WithAttributes(attribute.String("error", err.Error())))
-			return nil, err
+			return nil, "", err
 		}
 
 		delete(filterParams.Filters, "status")
@@ -408,7 +415,7 @@ func (ba *bpsActionService) GetBPSActionsForApprover(ctx context.Context, userID
 			return &types.PaginatedResponse[[]*bps_model.BPSAction]{
 				Data: []*bps_model.BPSAction{},
 				Meta: lobal_util.BuildPaginationMeta(0, filterParams.Page, filterParams.PerPage),
-			}, nil
+			}, "", nil
 		}
 		filterParams.Filters["action_code"] = bson.M{"$in": actionCodes}
 	}
@@ -421,7 +428,7 @@ func (ba *bpsActionService) GetBPSActionsForApprover(ctx context.Context, userID
 
 		span.AddEvent("failed to find all with pagination", trace.WithAttributes(attribute.String("error", err.Error())))
 
-		return nil, err
+		return nil, "", err
 
 	}
 
@@ -433,12 +440,30 @@ func (ba *bpsActionService) GetBPSActionsForApprover(ctx context.Context, userID
 		}
 	}
 
-	log.Infof("[BpsActionSvc][GetBPSActionsForApprover] ----------------found %d actions for user %s with filter %+v", len(result.Data), userID, filterParams.Filters)
-	return result, nil
+	if filterParams.Filters["action"] == "export" {
+		if createdAtFrom == "" || createdAtTo == "" {
+			span.AddEvent("missing date filters for export")
+			log.Errorf("[BPSAction][Export] missing required date filters: from=%q, to=%q", createdAtFrom, createdAtTo)
+			return nil, "", errors.New(localization.ErrorRequiredFieldMissing.Code)
+		}
+		filterParams.Filters["created_at_to"] = createdAtTo
+		filterParams.Filters["created_at_from"] = createdAtFrom
+		url, exportErr := lib.FileExporterForBPSAction(ctx, ba.cfg, ba.minioClient, ba.buckerName, filterParams, result.Data, ba.logger)
+		if exportErr != nil {
+			span.AddEvent("failed to export BPS actions", trace.WithAttributes(attribute.String("error", exportErr.Error())))
+			log.Errorf("[BPSAction][Export] export err: %v", exportErr)
+			return nil, "", exportErr
+		}
+		log.Infof("[BpsActionSvc][GetBPSActionsForApprover] exported %d actions to %s", len(result.Data), url)
+		return result, url, nil
+	}
+
+	log.Infof("[BpsActionSvc][GetBPSActionsForApprover] found %d actions for user %s with filter %+v", len(result.Data), userID, filterParams.Filters)
+	return result, "", nil
 
 }
 
-func (ba *bpsActionService) GetBPSActionsForAuditor(ctx context.Context, userID string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*bps_model.BPSAction], error) {
+func (ba *bpsActionService) GetBPSActionsForAuditor(ctx context.Context, userID string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*bps_model.BPSAction], string, error) {
 
 	ctx, span := lobal_util.TraceLogger(ctx, "service", "GetBPSActionsForAuditor", "BPSAction", "GetBPSActionsForAuditor")
 
@@ -473,7 +498,7 @@ func (ba *bpsActionService) GetBPSActionsForAuditor(ctx context.Context, userID 
 		result, err := ba.repo.SanitizedFindAllWithPaginationForAuditor(ctx, userID, *filterParams, RAList)
 		if err != nil {
 			span.AddEvent("failed to find all with pagination for auditor (NOTCHECKED)", trace.WithAttributes(attribute.String("error", err.Error())))
-			return nil, err
+			return nil, "", err
 		}
 		for _, action := range result.Data {
 			if action.ServiceName == "" {
@@ -482,7 +507,7 @@ func (ba *bpsActionService) GetBPSActionsForAuditor(ctx context.Context, userID 
 				}
 			}
 		}
-		return result, nil
+		return result, "", nil
 	}
 
 	// Build log filter
@@ -504,13 +529,13 @@ func (ba *bpsActionService) GetBPSActionsForAuditor(ctx context.Context, userID 
 		actionCodes, err := ba.actionLogRepo.GetActionCodesByActionLogFilter(ctx, logFilter)
 		if err != nil {
 			span.AddEvent("failed to get action codes by action log filter", trace.WithAttributes(attribute.String("error", err.Error())))
-			return nil, err
+			return nil, "", err
 		}
 		if len(actionCodes) == 0 {
 			return &types.PaginatedResponse[[]*bps_model.BPSAction]{
 				Data: []*bps_model.BPSAction{},
 				Meta: lobal_util.BuildPaginationMeta(0, filterParams.Page, filterParams.PerPage),
-			}, nil
+			}, "", nil
 		}
 		filterParams.Filters["action_code"] = bson.M{"$in": actionCodes}
 	}
@@ -519,7 +544,7 @@ func (ba *bpsActionService) GetBPSActionsForAuditor(ctx context.Context, userID 
 
 	if err != nil {
 		span.AddEvent("failed to find all with pagination", trace.WithAttributes(attribute.String("error", err.Error())))
-		return nil, err
+		return nil, "", err
 	}
 
 	for _, action := range result.Data {
@@ -530,7 +555,22 @@ func (ba *bpsActionService) GetBPSActionsForAuditor(ctx context.Context, userID 
 		}
 	}
 
-	return result, nil
+	if filterParams.Filters["action"] == "export" {
+		createdAtFrom, _ := filterParams.Filters["created_at_from"].(string)
+		createdAtTo, _ := filterParams.Filters["created_at_to"].(string)
+		if createdAtFrom == "" || createdAtTo == "" {
+			span.AddEvent("missing date filters for export")
+			return nil, "", errors.New(localization.ErrorRequiredFieldMissing.Code)
+		}
+		url, exportErr := lib.FileExporterForBPSAction(ctx, ba.cfg, ba.minioClient, ba.buckerName, filterParams, result.Data, ba.logger)
+		if exportErr != nil {
+			span.AddEvent("failed to export BPS actions", trace.WithAttributes(attribute.String("error", exportErr.Error())))
+			return nil, "", exportErr
+		}
+		return result, url, nil
+	}
+
+	return result, "", nil
 }
 
 func bpsExtractLevelClaimPairs(filters map[string]interface{}) []bps_model.LevelClaimPair {
@@ -966,11 +1006,11 @@ func (ba *bpsActionService) GetActionCountsByDepartemnt(ctx context.Context, dep
 
 }
 
-func (ba *bpsActionService) GetUserAuthorizerIndex(ctx context.Context, requestAction constants.RequestAction) (imodel.BPSActionApproveIndex, error) {
+func (ba *bpsActionService) GetUserAuthorizerIndex(ctx context.Context, requestAction constants.RequestAction) (bps_model.BPSActionApproveIndex, error) {
 
 	roleCode, _ := ctx.Value(constants.ContextKey("role_code")).(string)
 
-	var approverData imodel.BPSActionApproveIndex
+	var approverData bps_model.BPSActionApproveIndex
 
 	if mod, ok := ResolveModuleForRA(RequestAction(requestAction)); ok && ba.roles != nil {
 
@@ -982,7 +1022,7 @@ func (ba *bpsActionService) GetUserAuthorizerIndex(ctx context.Context, requestA
 
 	} else {
 
-		return imodel.BPSActionApproveIndex{}, errors.New(localization.ErrorOperationNotAllowed.Message)
+		return bps_model.BPSActionApproveIndex{}, errors.New(localization.ErrorOperationNotAllowed.Message)
 
 	}
 
@@ -1058,7 +1098,7 @@ func (ba *bpsActionService) GetUserCheckedActions(ctx context.Context, userID st
 
 }
 
-func (ba *bpsActionService) logUserAction(ctx context.Context, action *bps_model.BPSAction, responsibility imodel.UserActionResponsibility, givenStatus string, auditorMark imodel.AuditorMark, checkerLevel, auditorLevel string) {
+func (ba *bpsActionService) logUserAction(ctx context.Context, action *bps_model.BPSAction, responsibility bps_model.UserActionResponsibility, givenStatus string, auditorMark bps_model.AuditorMark, checkerLevel, auditorLevel string) {
 	reqLog := local_util.LoggerFromCtx(ctx, ba.logger)
 	roleCode, _ := ctx.Value(constants.ContextKey("role_code")).(string)
 
@@ -1077,7 +1117,7 @@ func (ba *bpsActionService) logUserAction(ctx context.Context, action *bps_model
 		serviceName = mod
 	}
 
-	actionLog := &imodel.UserActionLog{
+	actionLog := &bps_model.UserActionLog{
 		ID:                         bson.NewObjectID(),
 		ActionID:                   actionOID,
 		ActionCode:                 action.ActionCode,
@@ -1091,7 +1131,7 @@ func (ba *bpsActionService) logUserAction(ctx context.Context, action *bps_model
 		UserID:                     userOID,
 		Username:                   userData.UserName,
 		UserPhone:                  userData.PhoneNumber,
-		ActionType:                 imodel.BPSActions,
+		ActionType:                 bps_model.BPSActions,
 		UserActionResponsibilities: responsibility,
 		CreatedAt:                  time.Now(),
 	}
@@ -1101,7 +1141,7 @@ func (ba *bpsActionService) logUserAction(ctx context.Context, action *bps_model
 	}
 }
 
-func (ba *bpsActionService) logUserActionWithCustomerBar(ctx context.Context, action *bps_model.BPSAction, responsibility imodel.UserActionResponsibility, givenStatus string, auditorMark imodel.AuditorMark, checkerLevel, auditorLevel string, auditorCustomerBared bool) {
+func (ba *bpsActionService) logUserActionWithCustomerBar(ctx context.Context, action *bps_model.BPSAction, responsibility bps_model.UserActionResponsibility, givenStatus string, auditorMark bps_model.AuditorMark, checkerLevel, auditorLevel string, auditorCustomerBared bool) {
 	reqLog := local_util.LoggerFromCtx(ctx, ba.logger)
 	roleCode, _ := ctx.Value(constants.ContextKey("role_code")).(string)
 
@@ -1118,7 +1158,7 @@ func (ba *bpsActionService) logUserActionWithCustomerBar(ctx context.Context, ac
 		serviceName = mod
 	}
 
-	actionLog := &imodel.UserActionLog{
+	actionLog := &bps_model.UserActionLog{
 		ID:                         bson.NewObjectID(),
 		ActionID:                   actionOID,
 		ActionCode:                 action.ActionCode,
@@ -1132,7 +1172,7 @@ func (ba *bpsActionService) logUserActionWithCustomerBar(ctx context.Context, ac
 		UserID:                     userOID,
 		Username:                   userData.UserName,
 		UserPhone:                  userData.PhoneNumber,
-		ActionType:                 imodel.BPSActions,
+		ActionType:                 bps_model.BPSActions,
 		UserActionResponsibilities: responsibility,
 		AuditorCustomerBared:       auditorCustomerBared,
 		CreatedAt:                  time.Now(),
