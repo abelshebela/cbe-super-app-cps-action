@@ -236,6 +236,20 @@ func (s *bulkService) EnableBulkService(ctx context.Context, keys []string) erro
 		allKeys[access.Key] = access
 	}
 
+	for _, key := range keys {
+		if allAccess, exists := allKeys[key]; exists {
+			if allAccess.Enabled {
+				span.AddEvent("[EnableBulkService] service already enabled")
+				log.Errorf("[EnableBulkService] service already enabled: %s", key)
+				return errors.New(localization.ErrorBulkServiceAlreadyEnabled.Code)
+			}
+		} else {
+			span.AddEvent("[EnableBulkService] service not found")
+			log.Errorf("[EnableBulkService] service not found: %s", key)
+			return errors.New(localization.ErrorInvalidBulkServiceKey.Code)
+		}
+	}
+
 	var disabledKeys []model.APPAccessList
 	var noneDisabledKeys []model.APPAccessList
 
@@ -285,6 +299,20 @@ func (s *bulkService) DisableBulkService(ctx context.Context, keys []string) err
 	for _, access := range allAccessLists {
 		log.Infof("[DisableBulkService] Access List - Key: %s, Enabled: %t", access.Key, access.Enabled)
 		allKeys[access.Key] = access
+	}
+
+	for _, key := range keys {
+		if allAccess, exists := allKeys[key]; exists {
+			if !allAccess.Enabled {
+				span.AddEvent("[EnableBulkService] service already disabled")
+				log.Errorf("[EnableBulkService] service already disabled: %s", key)
+				return errors.New(localization.ErrorBulkServiceAlreadyDisabled.Code)
+			}
+		} else {
+			span.AddEvent("[EnableBulkService] service not found")
+			log.Errorf("[EnableBulkService] service not found: %s", key)
+			return errors.New(localization.ErrorInvalidBulkServiceKey.Code)
+		}
 	}
 
 	var disabledKeys []model.APPAccessList
