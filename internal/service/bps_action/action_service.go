@@ -435,7 +435,7 @@ func (ba *bpsActionService) GetBPSActionsForApprover(ctx context.Context, userID
 
 func (ba *bpsActionService) GetBPSActionsForAuditor(ctx context.Context, userID string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*bps_model.BPSAction], string, error) {
 	log := local_util.LoggerFromCtx(ctx, ba.logger)
-
+	userData := local_util.ExtractUserFromContext(ctx)
 	ctx, span := lobal_util.TraceLogger(ctx, "service", "GetBPSActionsForAuditor", "BPSAction", "GetBPSActionsForAuditor")
 
 	defer span.End()
@@ -450,6 +450,7 @@ func (ba *bpsActionService) GetBPSActionsForAuditor(ctx context.Context, userID 
 	// Extract filters
 	levels := extractStringSlice(filterParams.Filters, "levels")
 	services := extractStringSlice(filterParams.Filters, "services")
+	_ = userData.BranchCode
 
 	// Check for customer_bared filter
 	var auditorCustomerBared *bool
@@ -496,7 +497,7 @@ func (ba *bpsActionService) GetBPSActionsForAuditor(ctx context.Context, userID 
 	}
 
 	// Get action codes from user_action_log
-	if ba.actionLogRepo != nil {
+	if ba.actionLogRepo != nil && (filterParams.Filters["status"] == constants.Approved || filterParams.Filters["status"] == constants.Rejected) {
 		actionCodes, err := ba.actionLogRepo.GetActionCodesByActionLogFilter(ctx, logFilter)
 		if err != nil {
 			span.AddEvent("failed to get action codes by action log filter", trace.WithAttributes(attribute.String("error", err.Error())))
@@ -526,7 +527,7 @@ func (ba *bpsActionService) GetBPSActionsForAuditor(ctx context.Context, userID 
 		}
 	}
 	if filterParams.Filters["action"] == "export" {
-		url, err := lib.FileExporterForBPSAction(ctx, ba.cfg, ba.minioClient, "", filterParams, result.Data, func(fields []string) []string {
+		url, err := lib.FileExporterForBPSAction(ctx, ba.cfg, ba.minioClient, ba.cfg.S3BucketName, filterParams, result.Data, func(fields []string) []string {
 			return fields
 		}, ba.logger)
 		if err != nil {
