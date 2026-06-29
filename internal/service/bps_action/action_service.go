@@ -31,6 +31,7 @@ import (
 	// bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 	bps_model "cbe-super-app-cps-action/internal/constants/model"
 
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
@@ -65,34 +66,27 @@ type bpsActionService struct {
 	archivedLinkedAccountRepo storage.ArchivedLinkedAccountRepository
 	bpsUserRepo               storage.BPSUserRepository
 	cpsUserRepo               storage.CpsUserRepository
+	minioClient               *s3.Client
 	logger                    utils.Logger
 
 	dispatcher Dispatcher
 	cfg        config.VaultConfig
 }
 
-func NewBPSActionService(roles storage.BPSActionRoleRepository, repo storage.BPSActionRepository, customerRepo storage.CustomerRepository, archivedLinkedAccountRepo storage.ArchivedLinkedAccountRepository, bpsUserRepo storage.BPSUserRepository, cpsUserRepo storage.CpsUserRepository, actionLogRepo storage.UserActionLogRepository, logger utils.Logger, dispatcher Dispatcher, cfg config.VaultConfig) service.BPSActionService {
+func NewBPSActionService(roles storage.BPSActionRoleRepository, repo storage.BPSActionRepository, customerRepo storage.CustomerRepository, archivedLinkedAccountRepo storage.ArchivedLinkedAccountRepository, bpsUserRepo storage.BPSUserRepository, cpsUserRepo storage.CpsUserRepository, actionLogRepo storage.UserActionLogRepository, logger utils.Logger, dispatcher Dispatcher, minioClient *s3.Client, cfg config.VaultConfig) service.BPSActionService {
 
 	return &bpsActionService{
-
-		repo: repo,
-
-		logger: logger,
-
-		roles: roles,
-
-		customerRepo: customerRepo,
-
+		repo:                      repo,
+		logger:                    logger,
+		roles:                     roles,
+		customerRepo:              customerRepo,
 		archivedLinkedAccountRepo: archivedLinkedAccountRepo,
-
-		bpsUserRepo: bpsUserRepo,
-
-		cpsUserRepo: cpsUserRepo,
-
-		actionLogRepo: actionLogRepo,
-
-		dispatcher: dispatcher,
-		cfg:        cfg,
+		bpsUserRepo:               bpsUserRepo,
+		cpsUserRepo:               cpsUserRepo,
+		actionLogRepo:             actionLogRepo,
+		dispatcher:                dispatcher,
+		cfg:                       cfg,
+		minioClient:               minioClient,
 	}
 
 }
@@ -532,7 +526,7 @@ func (ba *bpsActionService) GetBPSActionsForAuditor(ctx context.Context, userID 
 		}
 	}
 	if filterParams.Filters["action"] == "export" {
-		url, err := lib.FileExporterForBPSAction(ctx, ba.cfg, nil, "", filterParams, result.Data, func(fields []string) []string {
+		url, err := lib.FileExporterForBPSAction(ctx, ba.cfg, ba.minioClient, "", filterParams, result.Data, func(fields []string) []string {
 			return fields
 		}, ba.logger)
 		if err != nil {
