@@ -610,10 +610,14 @@ func (a *bpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.
 
 	// do not force action_status; let API-provided filters decide
 	userID := local_util.ExtractUserContext(r).UserID
-	res, err := a.bpsActionApplication.GetBPSActionsForAuditor(ctx, userID, reqs, filterParams)
+	res, url, err := a.bpsActionApplication.GetBPSActionsForAuditor(ctx, userID, reqs, filterParams)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	if url != "" {
+		localization.SendSuccessResponse(w, localization.SuccessBPSActionsRetrieved, map[string]interface{}{"url": url})
 		return
 	}
 	localization.SendSuccessResponse(w, localization.SuccessBPSActionsRetrieved, res)
@@ -844,7 +848,7 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 
 		if auditorActions != nil {
 			// UnAudited — NOTCHECKED: queries BPS repo directly (no user_action_log)
-			if res, err := a.bpsActionApplication.GetBPSActionsForAuditor(ctx, userID, reqs, buildFilter(queryActionStatus, string(model.AUDITORNOTCHECKED))); err != nil {
+			if res, _, err := a.bpsActionApplication.GetBPSActionsForAuditor(ctx, userID, reqs, buildFilter(queryActionStatus, string(model.AUDITORNOTCHECKED))); err != nil {
 				span.RecordError(err)
 				localization.SendErrorByCodeResponse(w, err.Error())
 				a.logger.Errorf("[BpsActionH][Auditor] failed to get un-audited count: %v", err)
@@ -854,7 +858,7 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 			}
 
 			// Inprogress — INPROGRESS: queries via user_action_log
-			if res, err := a.bpsActionApplication.GetBPSActionsForAuditor(ctx, userID, reqs, buildFilter(queryActionStatus, string(model.AUDITORINPROGRESS))); err != nil {
+			if res, _, err := a.bpsActionApplication.GetBPSActionsForAuditor(ctx, userID, reqs, buildFilter(queryActionStatus, string(model.AUDITORINPROGRESS))); err != nil {
 				span.RecordError(err)
 				localization.SendErrorByCodeResponse(w, err.Error())
 				a.logger.Errorf("[BpsActionH][Auditor] failed to get inprogress count: %v", err)
@@ -864,7 +868,7 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 			}
 
 			// Audited — CHECKED: queries via user_action_log
-			if res, err := a.bpsActionApplication.GetBPSActionsForAuditor(ctx, userID, reqs, buildFilter(queryActionStatus, string(model.AUDITORCHECKED))); err != nil {
+			if res, _, err := a.bpsActionApplication.GetBPSActionsForAuditor(ctx, userID, reqs, buildFilter(queryActionStatus, string(model.AUDITORCHECKED))); err != nil {
 				span.RecordError(err)
 				localization.SendErrorByCodeResponse(w, err.Error())
 				a.logger.Errorf("[BpsActionH][Auditor] failed to get audited count: %v", err)
@@ -876,7 +880,7 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 			// CustomerBarred — auditor_customer_bared=true in user_action_log
 			customerBarredFilter := buildFilter(queryActionStatus, string(model.AUDITORCHECKED))
 			customerBarredFilter.Filters["customer_bared"] = true
-			if res, err := a.bpsActionApplication.GetBPSActionsForAuditor(ctx, userID, reqs, customerBarredFilter); err != nil {
+			if res, _, err := a.bpsActionApplication.GetBPSActionsForAuditor(ctx, userID, reqs, customerBarredFilter); err != nil {
 				span.RecordError(err)
 				localization.SendErrorByCodeResponse(w, err.Error())
 				a.logger.Errorf("[BpsActionH][Auditor] failed to get customer-barred count: %v", err)

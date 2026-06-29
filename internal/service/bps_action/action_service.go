@@ -439,7 +439,7 @@ func (ba *bpsActionService) GetBPSActionsForApprover(ctx context.Context, userID
 
 }
 
-func (ba *bpsActionService) GetBPSActionsForAuditor(ctx context.Context, userID string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*bps_model.BPSAction], error) {
+func (ba *bpsActionService) GetBPSActionsForAuditor(ctx context.Context, userID string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*bps_model.BPSAction], string, error) {
 	log := local_util.LoggerFromCtx(ctx, ba.logger)
 
 	ctx, span := lobal_util.TraceLogger(ctx, "service", "GetBPSActionsForAuditor", "BPSAction", "GetBPSActionsForAuditor")
@@ -475,7 +475,7 @@ func (ba *bpsActionService) GetBPSActionsForAuditor(ctx context.Context, userID 
 		result, err := ba.repo.SanitizedFindAllWithPaginationForAuditor(ctx, userID, *filterParams, RAList)
 		if err != nil {
 			span.AddEvent("failed to find all with pagination for auditor (NOTCHECKED)", trace.WithAttributes(attribute.String("error", err.Error())))
-			return nil, err
+			return nil, "", err
 		}
 		for _, action := range result.Data {
 			if action.ServiceName == "" {
@@ -484,7 +484,7 @@ func (ba *bpsActionService) GetBPSActionsForAuditor(ctx context.Context, userID 
 				}
 			}
 		}
-		return result, nil
+		return result, "", nil
 	}
 
 	// Build log filter
@@ -506,13 +506,13 @@ func (ba *bpsActionService) GetBPSActionsForAuditor(ctx context.Context, userID 
 		actionCodes, err := ba.actionLogRepo.GetActionCodesByActionLogFilter(ctx, logFilter)
 		if err != nil {
 			span.AddEvent("failed to get action codes by action log filter", trace.WithAttributes(attribute.String("error", err.Error())))
-			return nil, err
+			return nil, "", err
 		}
 		if len(actionCodes) == 0 {
 			return &types.PaginatedResponse[[]*bps_model.BPSAction]{
 				Data: []*bps_model.BPSAction{},
 				Meta: lobal_util.BuildPaginationMeta(0, filterParams.Page, filterParams.PerPage),
-			}, nil
+			}, "", nil
 		}
 		filterParams.Filters["action_code"] = bson.M{"$in": actionCodes}
 	}
@@ -521,7 +521,7 @@ func (ba *bpsActionService) GetBPSActionsForAuditor(ctx context.Context, userID 
 
 	if err != nil {
 		span.AddEvent("failed to find all with pagination", trace.WithAttributes(attribute.String("error", err.Error())))
-		return nil, err
+		return nil, "", err
 	}
 
 	for _, action := range result.Data {
@@ -532,18 +532,19 @@ func (ba *bpsActionService) GetBPSActionsForAuditor(ctx context.Context, userID 
 		}
 	}
 	if filterParams.Filters["action"] == "export" {
-		_, err := lib.FileExporterForBPSAction(ctx, ba.cfg, nil, "", filterParams, result.Data, func(fields []string) []string {
+		url, err := lib.FileExporterForBPSAction(ctx, ba.cfg, nil, "", filterParams, result.Data, func(fields []string) []string {
 			return fields
 		}, ba.logger)
 		if err != nil {
 			span.AddEvent("failed to export BPS actions", trace.WithAttributes(attribute.String("error", err.Error())))
 			log.Errorf("[BpsActionSvc][Export] export BPS actions err: %v", err)
-			return nil, err
+			return nil, "", err
 		}
+		return nil, url, nil
 
 	}
 
-	return result, nil
+	return result, "", nil
 }
 
 func bpsExtractLevelClaimPairs(filters map[string]interface{}) []bps_model.LevelClaimPair {
