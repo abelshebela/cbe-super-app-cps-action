@@ -1,14 +1,9 @@
 package core
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
-	"cbe-super-app-cps-action/internal/service/cps_action"
-
-	// action "cbe-super-app-cps-action/internal/service/cps_action"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
-	"strings"
 )
 
 var VolatileChecksumKeys = map[string]bool{
@@ -100,47 +95,4 @@ func ComputeActionChecksum(requestAction, uniqueID string, currentAction interfa
 	h.Write([]byte("|"))
 	h.Write(raw)
 	return hex.EncodeToString(h.Sum(nil))
-}
-
-// pendingUpdateLockRequestActions returns UPDATE, ENABLE, and DELETE actions for blocking UPDATE requests.
-// UPDATE is blocked by any pending UPDATE, ENABLE, or DELETE action on the same resource.
-func PendingUpdateLockRequestActions(actionName string, requestAction string) []string {
-	normalize := func(s string) string {
-		return strings.ToUpper(strings.TrimSpace(s))
-	}
-	isUpdateEnableDisableOrDelete := func(s string) bool {
-		n := normalize(s)
-		return strings.Contains(n, constants.UPDATE) || strings.Contains(n, constants.ENABLE) ||
-			strings.Contains(n, constants.DELETE)
-	}
-
-	defaultReq := []string{normalize(requestAction)}
-	if actionName == "" {
-		return defaultReq
-	}
-
-	lst, ok := cps_action.RequestActionGroups[actionName]
-	if !ok {
-		return defaultReq
-	}
-
-	seen := map[string]struct{}{}
-	reqs := make([]string, 0, len(lst))
-
-	for _, ra := range lst {
-		key := string(ra)
-		if _, ok := seen[key]; ok {
-			continue
-		}
-		if !isUpdateEnableDisableOrDelete(key) {
-			continue
-		}
-		seen[key] = struct{}{}
-		reqs = append(reqs, key)
-	}
-
-	if len(reqs) == 0 {
-		return defaultReq
-	}
-	return reqs
 }
