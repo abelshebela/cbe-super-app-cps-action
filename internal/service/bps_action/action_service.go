@@ -479,6 +479,19 @@ func (ba *bpsActionService) GetBPSActionsForAuditor(ctx context.Context, userID 
 				}
 			}
 		}
+		if filterParams.Filters["action"] == "export" {
+			url, err := lib.FileExporterForBPSAction(ctx, ba.cfg, ba.minioClient, ba.cfg.S3BucketName, filterParams, result.Data, func(fields []string) []string {
+				return fields
+			}, ba.logger)
+			if err != nil {
+				span.AddEvent("failed to export BPS actions", trace.WithAttributes(attribute.String("error", err.Error())))
+				log.Errorf("[BpsActionSvc][Export] export BPS actions err: %v", err)
+				return nil, "", err
+			}
+			return nil, url, nil
+
+		}
+
 		return result, "", nil
 	}
 
