@@ -535,6 +535,7 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForApprover(ctx context
 		log.Errorf("[CPSAction][SanitizedFindAllWithPaginationForApprover] cursor decode failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
+
 	total, err := r.dal.TotalCount(ctx, finalMatch)
 	if err != nil {
 		log.Errorf("[CPSAction][SanitizedFindAllWithPaginationForApprover] failed to count CPS actions: %v", err)
