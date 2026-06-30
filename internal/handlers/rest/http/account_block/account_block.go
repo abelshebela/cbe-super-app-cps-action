@@ -130,38 +130,38 @@ func (a *accountBlockAdapter) GetAllBranches(w http.ResponseWriter, r *http.Requ
 
 // GetRegionById godoc
 //
-//	@Summary		Get region by code
-//	@Description	Retrieve a specific region by its region code.
+//	@Summary		Get region by federal region name
+//	@Description	Retrieve a specific region by its federal region name.
 //	@Tags			Account Block - Regions
 //	@Accept			json
 //	@Produce		json
-//	@Param			region_code	path		string																	true	"Region Code"	example(RG001)
+//	@Param			region_id	path		string																	true	"Federal Region Name"	example(Oromia)
 //	@Success		200			{object}	localization.StandardResponse{data=accountblock.AccountBlockResponse}	"Region retrieved"
 //	@Failure		400			{object}	localization.StandardResponse{data=nil}									"Bad request"
 //	@Failure		404			{object}	localization.StandardResponse{data=nil}									"Not found"
 //	@Failure		500			{object}	localization.StandardResponse{data=nil}									"Server error"
 //	@Security		BearerAuth
-//	@Router			/account_block/regions/{region_code} [get]
+//	@Router			/account_block/regions/{region_id} [get]
 func (a *accountBlockAdapter) GetRegionById(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getRegionById", "handler", "accountBlock")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, a.logger)
 
-	regionId, ok := local_util.GetParam(r, "region_id")
+	regionName, ok := local_util.GetParam(r, "region_id")
 	if !ok {
 		log.Errorf("[AccBlockH][GetRegionById] missing param")
 		localization.SendErrorByCodeResponse(w, localization.ErrorRegionCodeRequired.Code)
 		return
 	}
-	if regionId == "" {
-		log.Errorf("[AccBlockH] invalid id: %s", regionId)
-		localization.SendBadRequestResponse(w, "invalid id")
+	if regionName == "" {
+		log.Errorf("[AccBlockH] invalid federal region name: %s", regionName)
+		localization.SendBadRequestResponse(w, "invalid federal region name")
 		return
 	}
 
-	span.SetAttributes(attribute.String("account_block.region_id", regionId))
+	span.SetAttributes(attribute.String("account_block.federal_region_name", regionName))
 
-	region, err := a.accountBlockApplication.GetRegionById(ctx, regionId)
+	region, err := a.accountBlockApplication.GetRegionById(ctx, regionName)
 	if err != nil {
 		span.RecordError(err)
 		log.Errorf("[AccBlockH][GetRegionById] svc err: %v", err)
@@ -170,7 +170,7 @@ func (a *accountBlockAdapter) GetRegionById(w http.ResponseWriter, r *http.Reque
 	}
 
 	data := core.ToAccountBlockResponse(region)
-	log.Infof("[AccBlockH][GetRegionById] ok: %s", regionId)
+	log.Infof("[AccBlockH][GetRegionById] ok: %s", regionName)
 	localization.SendSuccessResponse(w, localization.SuccessRegionRetrieved, data)
 }
 
@@ -223,38 +223,38 @@ func (a *accountBlockAdapter) GetAllRegions(w http.ResponseWriter, r *http.Reque
 
 // GetDistrictById godoc
 //
-//	@Summary		Get district by code
-//	@Description	Retrieve a specific district by its district code.
+//	@Summary		Get district by name
+//	@Description	Retrieve a specific district by its district name.
 //	@Tags			Account Block - Districts
 //	@Accept			json
 //	@Produce		json
-//	@Param			district_code	path		string																	true	"District Code"	example(DS001)
+//	@Param			district_id	path		string																	true	"District Name"	example(Bole)
 //	@Success		200				{object}	localization.StandardResponse{data=accountblock.AccountBlockResponse}	"District retrieved successfully"
 //	@Failure		400				{object}	localization.StandardResponse{data=nil}									"Bad request"
 //	@Failure		404				{object}	localization.StandardResponse{data=nil}									"Not found"
 //	@Failure		500				{object}	localization.StandardResponse{data=nil}									"internal Server error"
 //	@Security		BearerAuth
-//	@Router			/account_block/districts/{district_code} [get]
+//	@Router			/account_block/districts/{district_id} [get]
 func (a *accountBlockAdapter) GetDistrictById(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getDistrictById", "handler", "accountBlock")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, a.logger)
 
-	districtId, ok := local_util.GetParam(r, "district_id")
+	districtName, ok := local_util.GetParam(r, "district_id")
 	if !ok {
 		log.Errorf("[AccBlockH][GetDistrictById] missing param")
 		localization.SendErrorByCodeResponse(w, localization.ErrorDistrictCodeRequired.Code)
 		return
 	}
-	if districtId == "" {
-		log.Errorf("[AccBlockH] invalid id: %s", districtId)
-		localization.SendBadRequestResponse(w, "invalid id")
+	if districtName == "" {
+		log.Errorf("[AccBlockH] invalid district name: %s", districtName)
+		localization.SendBadRequestResponse(w, "invalid district name")
 		return
 	}
 
-	span.SetAttributes(attribute.String("account_block.district_id", districtId))
+	span.SetAttributes(attribute.String("account_block.district_name", districtName))
 
-	district, err := a.accountBlockApplication.GetDistrictById(ctx, districtId)
+	district, err := a.accountBlockApplication.GetDistrictById(ctx, districtName)
 	if err != nil {
 		span.RecordError(err)
 		log.Errorf("[AccBlockH][GetDistrictById] svc err: %v", err)
@@ -263,7 +263,7 @@ func (a *accountBlockAdapter) GetDistrictById(w http.ResponseWriter, r *http.Req
 	}
 
 	data := core.ToAccountBlockResponse(district)
-	log.Infof("[AccBlockH][GetDistrictById] ok: %s", districtId)
+	log.Infof("[AccBlockH][GetDistrictById] ok: %s", districtName)
 	localization.SendSuccessResponse(w, localization.SuccessDistrictRetrieved, data)
 }
 
@@ -277,7 +277,7 @@ func (a *accountBlockAdapter) GetDistrictById(w http.ResponseWriter, r *http.Req
 //	@Param			page		query		int																	false	"Page number"								default(1)	minimum(1)	example(1)
 //	@Param			per_page	query		int																	false	"Items per page"							default(10)	minimum(1)	maximum(100)	example(10)
 //	@Param			search		query		string																false	"Search term"								example("Bole")
-//	@Param			filters		query		string																false	"JSON encoded filters (enabled, region)"	example("{\"enabled\":true,\"region_id\":\"RG001\"}")
+//	@Param			filters		query		string																false	"JSON encoded filters (enabled, region)"	example("{\"enabled\":true,\"region_id\":\"Oromia\"}")
 //	@Success		200			{object}	localization.StandardResponse{data=paginated_account_block_resp}	"Districts retrieved successfully"
 //	@Failure		500			{object}	localization.StandardResponse{data=nil}								"internal Server error"
 //	@Security		BearerAuth
@@ -321,7 +321,7 @@ func (a *accountBlockAdapter) GetAllDistricts(w http.ResponseWriter, r *http.Req
 //	@Tags			Account Block - Branches
 //	@Accept			json
 //	@Produce		json
-//	@Param			request	body		accountblock.EnableOrDisableBranches	true	"Branch codes and reason"	example({"branches_code":["BR001","BR002"], "reason": "foo"})
+//	@Param			request	body		accountblock.EnableOrDisableBranches	true	"Branch IDs and reason"	example({"branch_ids":["674003000000000000000001","674003000000000000000002"], "reason": "foo"})
 //	@Success		200		{object}	localization.StandardResponse{data=nil}	"Enable request submitted"
 //	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Invalid request"
 //	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Server error"
@@ -393,7 +393,7 @@ func (a *accountBlockAdapter) EnableBranches(w http.ResponseWriter, r *http.Requ
 //	@Tags			Account Block - Branches
 //	@Accept			json
 //	@Produce		json
-//	@Param			request	body		accountblock.EnableOrDisableBranches	true	"Branch codes and reason"	example({"branches_code":["BR001","BR002"], "reason": "foo"})
+//	@Param			request	body		accountblock.EnableOrDisableBranches	true	"Branch IDs and reason"	example({"branch_ids":["674003000000000000000001","674003000000000000000002"], "reason": "foo"})
 //	@Success		200		{object}	localization.StandardResponse{data=nil}	"Disable request submitted"
 //	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Invalid request"
 //	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Server error"
@@ -461,11 +461,11 @@ func (a *accountBlockAdapter) DisableBranches(w http.ResponseWriter, r *http.Req
 // EnableRegions godoc
 //
 //	@Summary		Enable multiple regions
-//	@Description	Enable multiple regions by codes.
+//	@Description	Enable multiple regions by federal region name.
 //	@Tags			Account Block - Regions
 //	@Accept			json
 //	@Produce		json
-//	@Param			request	body		accountblock.EnableOrDisableRegions		true	"Region codes and reason"	example({"regions_code":["RG001","RG002"], "reason": "foo"})
+//	@Param			request	body		accountblock.EnableOrDisableRegions		true	"Federal region names and reason"	example({"federal_region_names":["Oromia","Amhara"], "reason": "foo"})
 //	@Success		200		{object}	localization.StandardResponse{data=nil}	"Enable request submitted"
 //	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Invalid request"
 //	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Server error"
@@ -496,19 +496,19 @@ func (a *accountBlockAdapter) EnableRegions(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if len(req.RegionIds) == 0 {
-		span.AddEvent("missing region ids")
-		log.Errorf("[AccBlockH] region ids required")
+	if len(req.FederalRegionNames) == 0 {
+		span.AddEvent("missing federal region names")
+		log.Errorf("[AccBlockH] federal region names required")
 		localization.SendErrorByCodeResponse(w, localization.ErrorRegionCodeRequired.Code)
 		return
 	}
 
 	span.SetAttributes(
-		attribute.Int("account_block.regions.count", len(req.RegionIds)),
+		attribute.Int("account_block.regions.count", len(req.FederalRegionNames)),
 		attribute.String("account_block.reason", req.Reason),
 	)
 
-	err := a.accountBlockApplication.EnableOrDisableRegions(ctx, req.RegionIds, req.Reason, true)
+	err := a.accountBlockApplication.EnableOrDisableRegions(ctx, req.FederalRegionNames, req.Reason, true)
 	if err != nil {
 		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
@@ -525,7 +525,7 @@ func (a *accountBlockAdapter) EnableRegions(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	log.Infof("[AccBlockH][EnableRegions] ok count: %d", len(req.RegionIds))
+	log.Infof("[AccBlockH][EnableRegions] ok count: %d", len(req.FederalRegionNames))
 	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessEnableRegionsRequestSent, nil)
 }
@@ -533,11 +533,11 @@ func (a *accountBlockAdapter) EnableRegions(w http.ResponseWriter, r *http.Reque
 // DisableRegions godoc
 //
 //	@Summary		Disable multiple regions
-//	@Description	Disable multiple regions by codes.
+//	@Description	Disable multiple regions by federal region name.
 //	@Tags			Account Block - Regions
 //	@Accept			json
 //	@Produce		json
-//	@Param			request	body		accountblock.EnableOrDisableRegions		true	"Region codes and reason"	example({"regions_code":["RG001","RG002"], "reason": "foo"})
+//	@Param			request	body		accountblock.EnableOrDisableRegions		true	"Federal region names and reason"	example({"federal_region_names":["Oromia","Amhara"], "reason": "foo"})
 //	@Success		200		{object}	localization.StandardResponse{data=nil}	"Disable request submitted"
 //	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Invalid request"
 //	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Server error"
@@ -569,19 +569,19 @@ func (a *accountBlockAdapter) DisableRegions(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	if len(req.RegionIds) == 0 {
-		span.AddEvent("missing region ids")
-		log.Errorf("[AccBlockH] region ids required")
+	if len(req.FederalRegionNames) == 0 {
+		span.AddEvent("missing federal region names")
+		log.Errorf("[AccBlockH] federal region names required")
 		localization.SendErrorByCodeResponse(w, localization.ErrorRegionCodeRequired.Code)
 		return
 	}
 
 	span.SetAttributes(
-		attribute.Int("account_block.regions.count", len(req.RegionIds)),
+		attribute.Int("account_block.regions.count", len(req.FederalRegionNames)),
 		attribute.String("account_block.reason", req.Reason),
 	)
 
-	err := a.accountBlockApplication.EnableOrDisableRegions(ctx, req.RegionIds, req.Reason, false)
+	err := a.accountBlockApplication.EnableOrDisableRegions(ctx, req.FederalRegionNames, req.Reason, false)
 	if err != nil {
 		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
@@ -605,11 +605,11 @@ func (a *accountBlockAdapter) DisableRegions(w http.ResponseWriter, r *http.Requ
 // EnableDistricts godoc
 //
 //	@Summary		Enable multiple districts
-//	@Description	Enable multiple districts by codes.
+//	@Description	Enable multiple districts by district name.
 //	@Tags			Account Block - Districts
 //	@Accept			json
 //	@Produce		json
-//	@Param			request	body		accountblock.EnableOrDisableDistricts	true	"District codes and reason"	example({"districts_code":["DS001","DS002"], "reason": "foo"})
+//	@Param			request	body		accountblock.EnableOrDisableDistricts	true	"District names and reason"	example({"district_names":["Bole","Arada"], "reason": "foo"})
 //	@Success		200		{object}	localization.StandardResponse{data=nil}	"Enable request submitted"
 //	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Invalid request"
 //	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Server error"
@@ -640,19 +640,19 @@ func (a *accountBlockAdapter) EnableDistricts(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if len(req.DistrictIds) == 0 {
-		span.AddEvent("missing district ids")
-		log.Errorf("[AccBlockH] district ids required")
+	if len(req.DistrictNames) == 0 {
+		span.AddEvent("missing district names")
+		log.Errorf("[AccBlockH] district names required")
 		localization.SendErrorByCodeResponse(w, localization.ErrorDistrictCodeRequired.Code)
 		return
 	}
 
 	span.SetAttributes(
-		attribute.Int("account_block.districts.count", len(req.DistrictIds)),
+		attribute.Int("account_block.districts.count", len(req.DistrictNames)),
 		attribute.String("account_block.reason", req.Reason),
 	)
 
-	err := a.accountBlockApplication.EnableOrDisableDistricts(ctx, req.DistrictIds, req.Reason, true)
+	err := a.accountBlockApplication.EnableOrDisableDistricts(ctx, req.DistrictNames, req.Reason, true)
 	if err != nil {
 		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
@@ -676,11 +676,11 @@ func (a *accountBlockAdapter) EnableDistricts(w http.ResponseWriter, r *http.Req
 // DisableDistricts godoc
 //
 //	@Summary		Disable multiple districts
-//	@Description	Disable multiple districts by codes.
+//	@Description	Disable multiple districts by district name.
 //	@Tags			Account Block - Districts
 //	@Accept			json
 //	@Produce		json
-//	@Param			request	body		accountblock.EnableOrDisableDistricts	true	"District codes and reason"	example({"districts_code":["DS001","DS002"], "reason": "foo"})
+//	@Param			request	body		accountblock.EnableOrDisableDistricts	true	"District names and reason"	example({"district_names":["Bole","Arada"], "reason": "foo"})
 //	@Success		200		{object}	localization.StandardResponse{data=nil}	"Disable request submitted"
 //	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Invalid request"
 //	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Server error"
@@ -709,18 +709,18 @@ func (a *accountBlockAdapter) DisableDistricts(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	if len(req.DistrictIds) == 0 {
-		span.AddEvent("missing district ids")
+	if len(req.DistrictNames) == 0 {
+		span.AddEvent("missing district names")
 		localization.SendErrorByCodeResponse(w, localization.ErrorDistrictCodeRequired.Code)
 		return
 	}
 
 	span.SetAttributes(
-		attribute.Int("account_block.districts.count", len(req.DistrictIds)),
+		attribute.Int("account_block.districts.count", len(req.DistrictNames)),
 		attribute.String("account_block.reason", req.Reason),
 	)
 
-	err := a.accountBlockApplication.EnableOrDisableDistricts(ctx, req.DistrictIds, req.Reason, false)
+	err := a.accountBlockApplication.EnableOrDisableDistricts(ctx, req.DistrictNames, req.Reason, false)
 	if err != nil {
 		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)

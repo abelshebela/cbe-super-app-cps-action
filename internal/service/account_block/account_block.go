@@ -374,25 +374,25 @@ func (s *accountBlockService) EnableOrDisableDistricts(ctx context.Context, dist
 		}
 	}
 
-	if enabled {
-		regions, err := s.repo.GetRegionsByIds(ctx, regionIDs)
-		if err != nil {
-			return err
-		}
-		regionMap := make(map[string]bool)
-		for _, region := range regions {
-			regionMap[region.ID] = region.IsEnabled
-		}
+	// if enabled {
+	// 	regions, err := s.repo.GetRegionsByIds(ctx, regionIDs)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	regionMap := make(map[string]bool)
+	// 	for _, region := range regions {
+	// 		regionMap[region.ID] = region.IsEnabled
+	// 	}
 
-		for _, district := range districts {
-			if district.RegionID == nil {
-				return errors.New(localization.ErrorCannotEnableDistrict.Code)
-			}
-			if isRegionEnabled, exists := regionMap[*district.RegionID]; !exists || !isRegionEnabled {
-				return errors.New(localization.ErrorCannotEnableDistrict.Code)
-			}
-		}
-	}
+	// for _, district := range districts {
+	// 	if district.RegionID == nil {
+	// 		return errors.New(localization.ErrorCannotEnableDistrict.Code)
+	// 	}
+	// 	if isRegionEnabled, exists := regionMap[*district.RegionID]; !exists || !isRegionEnabled {
+	// 		return errors.New(localization.ErrorCannotEnableDistrict.Code)
+	// 	}
+	// }
+	// }
 
 	fullname := ctx.Value(constants.ContextKey("full_name")).(string)
 	for _, district := range districts {
