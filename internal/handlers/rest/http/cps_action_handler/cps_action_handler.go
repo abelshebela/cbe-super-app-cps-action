@@ -888,6 +888,8 @@ func (a *cpsActionAdapter) GetCPSActionByActionCode(w http.ResponseWriter, r *ht
 //	@Security		BearerAuth
 //	@Router			/actions/approver/checker/actions [get]
 func (a *cpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getUserApproverPendingActions", "handler", "cpsAction")
+	defer span.End()
 	log := local_util.LoggerFromCtx(r.Context(), a.logger)
 	filterParams := local_util.ExtractFilterParams(r)
 
@@ -906,9 +908,6 @@ func (a *cpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
-	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getUserApproverPendingActions", "handler", "cpsAction")
-	defer span.End()
 
 	// roleCode from context
 	rawRoleID, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
@@ -1016,6 +1015,58 @@ func (a *cpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http
 		return
 	}
 	localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, res)
+}
+
+func (a *cpsActionAdapter) GetListOfServiceForFilter(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getUserApproverPendingActions", "handler", "cpsAction")
+	defer span.End()
+	filterParams := local_util.ExtractFilterParams(r)
+	log := local_util.LoggerFromCtx(r.Context(), a.logger)
+	var data []string
+	role, _ := filterParams.Filters["role"]
+
+	if role == "" {
+		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+		return
+	}
+	// roleCode from context
+	rawRoleID, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
+	if rawRoleID == "" {
+		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+		return
+	}
+
+	// fetch checker allocations for this role
+	idxRepo := mid.GetCPSActionApproveRepo()
+	if idxRepo == nil {
+		log.Errorf("[CPSAction][GetListOfServiceForFilter] Error while geting the repo")
+		localization.SendErrorByCodeResponse(w, localization.ErrorUnexpectedError.Code)
+		return
+	}
+
+	_, makerActions, checkerActions, auditorActions, _, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
+	if err != nil {
+		span.RecordError(err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if role == constants.Maker {
+		data = makerActions
+	} else if role == constants.Checker {
+		data = checkerActions
+	} else if role == constants.Auditor {
+		data = auditorActions
+	}
+
+	if len(data) == 0 {
+		log.Errorf("[CPSAction][GetListOfServiceForFilter] Error while geting the repo")
+		localization.SendErrorByCodeResponse(w, localization.ErrorUnexpectedError.Code)
+		return
+	}
+
+	log.Infof("[CPSAction][GetListOfServiceForFilter] successfuly fetched the list of services")
+	localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, map[string]interface{}{"services": checkerActions})
 }
 
 // GetUserAuditorActions retrieves CPS actions pending audit for the current user's auditor role

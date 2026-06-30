@@ -270,6 +270,7 @@ func BuildRoleDelegationRequestWithNewUser(body role_delegation_dto.RoleDelegati
 		DelegatedUserID:                 delegatedUserID,
 		DelegatedUserFullName:           delegatedUserFullName,
 		DelegatedUserUserType:           delegatedUserUserType,
+		DelegatedUserUserCode:           local_util.GenerateCPSUserCode(),
 		DelegatedUserDepartmentOrBranch: delegatedUserDepartmentOrBranch,
 		DelegatedUserJobTitle:           delegatedUserJobTitle,
 		DelegationType:                  delegationType,
