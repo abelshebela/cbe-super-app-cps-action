@@ -850,7 +850,6 @@ var CPSActionDefaultFieldOrder = []string{
 var BPSActionDefaultFieldOrder = []string{
 	"action_code",
 	"user_code",
-	"phone_numbers",
 	"maker_user",
 	"maker_name",
 	"maker_reason",
