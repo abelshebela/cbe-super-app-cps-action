@@ -361,7 +361,7 @@ func (ba *bpsActionService) GetBPSActionsByDepartment(ctx context.Context, depar
 
 }
 
-func (ba *bpsActionService) GetBPSActionsForApprover(ctx context.Context, userID string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*bps_model.BPSAction], error) {
+func (ba *bpsActionService) GetBPSActionsForApprover(ctx context.Context, userID string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*bps_model.BPSAction], string, error) {
 	log := local_util.LoggerFromCtx(ctx, ba.logger)
 
 	ctx, span := lobal_util.TraceLogger(ctx, "service", "GetCPSActionsForApprover", "CPSAction", "GetCPSActionsForApprover")
@@ -394,7 +394,7 @@ func (ba *bpsActionService) GetBPSActionsForApprover(ctx context.Context, userID
 		actionCodes, err := ba.actionLogRepo.GetActionCodesByFilter(ctx, logFilter)
 		if err != nil {
 			span.AddEvent("failed to get action codes from log", trace.WithAttributes(attribute.String("error", err.Error())))
-			return nil, err
+			return nil, "", err
 		}
 
 		delete(filterParams.Filters, "status")
@@ -403,7 +403,7 @@ func (ba *bpsActionService) GetBPSActionsForApprover(ctx context.Context, userID
 			return &types.PaginatedResponse[[]*bps_model.BPSAction]{
 				Data: []*bps_model.BPSAction{},
 				Meta: lobal_util.BuildPaginationMeta(0, filterParams.Page, filterParams.PerPage),
-			}, nil
+			}, "", nil
 		}
 		filterParams.Filters["action_code"] = bson.M{"$in": actionCodes}
 	}
@@ -416,7 +416,7 @@ func (ba *bpsActionService) GetBPSActionsForApprover(ctx context.Context, userID
 
 		span.AddEvent("failed to find all with pagination", trace.WithAttributes(attribute.String("error", err.Error())))
 
-		return nil, err
+		return nil, "", err
 
 	}
 
@@ -429,7 +429,7 @@ func (ba *bpsActionService) GetBPSActionsForApprover(ctx context.Context, userID
 	}
 
 	log.Infof("[BpsActionSvc][GetBPSActionsForApprover] ----------------found %d actions for user %s with filter %+v", len(result.Data), userID, filterParams.Filters)
-	return result, nil
+	return result, "", nil
 
 }
 

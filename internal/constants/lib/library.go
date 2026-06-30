@@ -1002,7 +1002,8 @@ func formatIDTimestamp(id string, approvedAt time.Time) (string, bool) {
 	if id == "" || approvedAt.IsZero() {
 		return "", false
 	}
-	return fmt.Sprintf("%s:%s", id, local_util.FormatTime(approvedAt)), true
+	return fmt.Sprintf("%s", id), true
+	// return fmt.Sprintf("%s:%s", id, local_util.FormatTime(approvedAt)), true
 }
 
 // ResolveCPSActionFields returns the effective export column keys. When ?fields= is omitted
