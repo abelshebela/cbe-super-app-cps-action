@@ -952,13 +952,9 @@ func (a *AccountBlockStorage) enableOrDisableByColumn(ctx context.Context, block
 	args = append(args, sql.Named("is_enabled", isEnabledToInt(enabled)))
 
 	if !enabled {
-		// branchIDs, err := a.branchIDsForColumnValues(ctx, column, values)
-		// if err != nil {
-		// 	return err
-		// }
-		// if err := a.insertDisableReasonForBlocks(ctx, branchIDs, reason); err != nil {
-		// 	return err
-		// }
+		if err := a.insertDisableReasonForBlocks(ctx, blockType, values, reason); err != nil {
+			return err
+		}
 	}
 
 	query := fmt.Sprintf(`UPDATE COMPANY
@@ -994,7 +990,7 @@ func (a *AccountBlockStorage) branchIDsForColumnValues(ctx context.Context, colu
 	return ids, rows.Err()
 }
 
-func (a *AccountBlockStorage) enableOrDisableByIDs(ctx context.Context, ids []string, reason *types.Reason, enabled bool) error {
+func (a *AccountBlockStorage) enableOrDisableByIDs(ctx context.Context, blockType string, ids []string, reason *types.Reason, enabled bool) error {
 	if len(ids) == 0 {
 		return nil
 	}
@@ -1008,11 +1004,11 @@ func (a *AccountBlockStorage) enableOrDisableByIDs(ctx context.Context, ids []st
 	}
 	args = append(args, sql.Named("is_enabled", isEnabledToInt(enabled)))
 
-	// if !enabled {
-	// 	if err := a.insertDisableReasonForBlocks(ctx, ids, reason); err != nil {
-	// 		return err
-	// 	}
-	// }
+	if !enabled {
+		if err := a.insertDisableReasonForBlocks(ctx, blockType, ids, reason); err != nil {
+			return err
+		}
+	}
 
 	query := fmt.Sprintf(`UPDATE COMPANY
 		SET is_enabled = :is_enabled,
@@ -1030,7 +1026,7 @@ func (a *AccountBlockStorage) enableOrDisableByIDs(ctx context.Context, ids []st
 func (a *AccountBlockStorage) EnableOrDisableBranches(ctx context.Context, ids []string, reason *types.Reason, enabled bool) error {
 	log := local_util.LoggerFromCtx(ctx, a.logger)
 	log.Infof("[AccountBlockStorage][EnableOrDisableBranches] ids=%v enabled=%v", ids, enabled)
-	err := a.enableOrDisableByIDs(ctx, ids, reason, enabled)
+	err := a.enableOrDisableByIDs(ctx, "B", ids, reason, enabled)
 	if err != nil {
 		log.Errorf("[AccountBlockStorage][EnableOrDisableBranches] failed: %v", err)
 	}
@@ -1040,7 +1036,7 @@ func (a *AccountBlockStorage) EnableOrDisableBranches(ctx context.Context, ids [
 func (a *AccountBlockStorage) EnableOrDisableRegions(ctx context.Context, ids []string, reason *types.Reason, enabled bool) error {
 	log := local_util.LoggerFromCtx(ctx, a.logger)
 	log.Infof("[AccountBlockStorage][EnableOrDisableRegions] ids=%v enabled=%v", ids, enabled)
-	err := a.enableOrDisableByColumn(ctx, "REGION", "federal_region_name", ids, reason, enabled)
+	err := a.enableOrDisableByColumn(ctx, "R", "federal_region_name", ids, reason, enabled)
 	if err != nil {
 		log.Errorf("[AccountBlockStorage][EnableOrDisableRegions] failed: %v", err)
 	}
@@ -1050,7 +1046,7 @@ func (a *AccountBlockStorage) EnableOrDisableRegions(ctx context.Context, ids []
 func (a *AccountBlockStorage) EnableOrDisableDistricts(ctx context.Context, ids []string, reason *types.Reason, enabled bool) error {
 	log := local_util.LoggerFromCtx(ctx, a.logger)
 	log.Infof("[AccountBlockStorage][EnableOrDisableDistricts] ids=%v enabled=%v", ids, enabled)
-	err := a.enableOrDisableByColumn(ctx, "DISTRICT", "district_name", ids, reason, enabled)
+	err := a.enableOrDisableByColumn(ctx, "D", "district_name", ids, reason, enabled)
 	if err != nil {
 		log.Errorf("[AccountBlockStorage][EnableOrDisableDistricts] failed: %v", err)
 	}

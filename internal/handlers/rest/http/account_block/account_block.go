@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	accountblock "cbe-super-app-cps-action/internal/constants/dto/account_block"
 	ab_interface "cbe-super-app-cps-action/internal/constants/interfaces/account_block"
@@ -905,37 +906,50 @@ func (a *accountBlockAdapter) GetAccountBlockDetails(w http.ResponseWriter, r *h
 // GetPreviousReasons godoc
 //
 //	@Summary		Get previous disable reasons for an account block
-//	@Description	Returns the disable-reason history for a branch, district, or region by account block id.
+//	@Description	Returns the disable-reason history for a branch, district, or region. Use type=B with branch oracle ID, type=R with federal region name, or type=D with district name.
 //	@Tags			Account Block
 //	@Accept			json
 //	@Produce		json
-//	@Param			id	path		string																	true	"Account block ID"
-//	@Success		200	{object}	localization.StandardResponse{data=accountblock.PreviousDisableReasonsResponse}	"Disable reasons retrieved"
-//	@Failure		400	{object}	localization.StandardResponse{data=nil}									"Bad request"
-//	@Failure		404	{object}	localization.StandardResponse{data=nil}									"Not found"
-//	@Failure		500	{object}	localization.StandardResponse{data=nil}									"Server error"
+//	@Param			type		query		string																	true	"Entity type (B=branch, R=region, D=district)"	example(B)
+//	@Param			identifier	query		string																	true	"Entity identifier (branch oracle ID or region/district name)"	example(3F4A2B1C...)
+//	@Success		200			{object}	localization.StandardResponse{data=accountblock.PreviousDisableReasonsResponse}	"Disable reasons retrieved"
+//	@Failure		400			{object}	localization.StandardResponse{data=nil}									"Bad request"
+//	@Failure		404			{object}	localization.StandardResponse{data=nil}									"Not found"
+//	@Failure		500			{object}	localization.StandardResponse{data=nil}									"Server error"
 //	@Security		BearerAuth
-//	@Router			/account_block/previous_reasons/{id} [get]
+//	@Router			/account_block/previous_reasons [get]
 func (a *accountBlockAdapter) GetPreviousReasons(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "GetPreviousReasons", "handler", "accountBlock")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, a.logger)
 
-	id, ok := local_util.GetParam(r, "id")
-	if !ok {
-		log.Errorf("[AccBlockH][GetPreviousReasons] missing param")
-		localization.SendErrorByCodeResponse(w, localization.ErrorCodeRequired.Code)
+	entityType := strings.ToUpper(strings.TrimSpace(r.URL.Query().Get("type")))
+	identifier := strings.TrimSpace(r.URL.Query().Get("identifier"))
+
+	if entityType == "" {
+		log.Errorf("[AccBlockH][GetPreviousReasons] missing type query param")
+		localization.SendBadRequestResponse(w, "type is required")
 		return
 	}
-	if id == "" {
-		log.Errorf("[AccBlockH][GetPreviousReasons] invalid id: %s", id)
-		localization.SendBadRequestResponse(w, "invalid id")
+	if identifier == "" {
+		log.Errorf("[AccBlockH][GetPreviousReasons] missing identifier query param")
+		localization.SendBadRequestResponse(w, "identifier is required")
+		return
+	}
+	switch entityType {
+	case "B", "R", "D":
+	default:
+		log.Errorf("[AccBlockH][GetPreviousReasons] invalid type: %s", entityType)
+		localization.SendBadRequestResponse(w, "invalid type: must be B, R, or D")
 		return
 	}
 
-	span.SetAttributes(attribute.String("account_block.id", id))
+	span.SetAttributes(
+		attribute.String("account_block.entity_type", entityType),
+		attribute.String("account_block.identifier", identifier),
+	)
 
-	data, err := a.accountBlockApplication.GetPreviousReasons(ctx, id)
+	data, err := a.accountBlockApplication.GetPreviousReasons(ctx, entityType, identifier)
 	if err != nil {
 		span.RecordError(err)
 		log.Errorf("[AccBlockH][GetPreviousReasons] svc err: %v", err)
@@ -943,6 +957,6 @@ func (a *accountBlockAdapter) GetPreviousReasons(w http.ResponseWriter, r *http.
 		return
 	}
 
-	log.Infof("[AccBlockH][GetPreviousReasons] ok: %s count=%d", id, len(data.DisableReason))
+	log.Infof("[AccBlockH][GetPreviousReasons] ok: type=%s identifier=%s count=%d", entityType, identifier, len(data.DisableReason))
 	localization.SendSuccessResponse(w, localization.DataRetrievedSuccessfully, data)
 }

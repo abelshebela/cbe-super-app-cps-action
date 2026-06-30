@@ -154,7 +154,7 @@ func Init(
 			},
 			{
 				Method:  http.MethodGet,
-				Path:    "/previous_reasons/{id}",
+				Path:    "/previous_reasons",
 				Handler: handler.GetPreviousReasons,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,

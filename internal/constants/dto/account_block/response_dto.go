@@ -30,10 +30,11 @@ type AccountBlockResponse struct {
 	UpdatedAt         time.Time                   `json:"updated_at"`
 }
 
-// PreviousDisableReasonsResponse is returned by GET /account_block/previous_reasons/{id}.
+// PreviousDisableReasonsResponse is returned by GET /account_block/previous_reasons.
 type PreviousDisableReasonsResponse struct {
-	AccountBlockID string                      `json:"account_block_id"`
-	DisableReason  []imodel.AccountBlockReason `json:"disable_reason"`
+	EntityType    string                      `json:"entity_type"`
+	Identifier    string                      `json:"identifier"`
+	DisableReason []imodel.AccountBlockReason `json:"disable_reason"`
 }
 
 type AccountBlockActionResponse struct {
