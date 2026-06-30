@@ -830,6 +830,8 @@ var ResponseCodesList = []ResponseCode{
 	SuccessVaultAmountTierDisabled,
 	ErrorFailedToBeingTransaction,
 	ErrorOperationNotAllowed,
+	ErrorRoleRequired,
+	ErrorNotAllowedServicesIncluded,
 	ErrorAuditorAlreadyChecked,
 	ErrorAuditorActionOnThisRoleCompleted,
 	ErrorAuditorActionOnThisActionCompleted,
@@ -6873,6 +6875,20 @@ var (
 		Code:       "ERROR_OPERATION_NOT_ALLOWED",
 		StatusCode: StatusForbidden,
 		Message:    MsgOperationNotAllowed,
+		Type:       "error",
+	}
+
+	ErrorRoleRequired = ResponseCode{
+		Code:       "ERROR_ROLE_REQUIRED",
+		StatusCode: StatusForbidden,
+		Message:    MsgRoleRequired,
+		Type:       "error",
+	}
+
+	ErrorNotAllowedServicesIncluded = ResponseCode{
+		Code:       "ERROR_NOT_ALLOWED_SERVICES_INCLUDED",
+		StatusCode: StatusForbidden,
+		Message:    MsgNotAllowedServicesIncluded,
 		Type:       "error",
 	}
 
