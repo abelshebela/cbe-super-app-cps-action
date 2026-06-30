@@ -759,7 +759,6 @@ var CPSActionFieldRegistry = map[string]CPSActionFieldSpec{
 }
 
 var BPSActionFieldRegistry = map[string]BPSActionFieldSpec{
-	"id":                   {"ID", bpsActionID},
 	"action_code":          {"Action Code", func(a *imodel.BPSAction) string { return a.ActionCode }},
 	"is_auditor_approved":  {"Is Auditor Approved", func(a *imodel.BPSAction) string { return strconv.FormatBool(a.IsAuditorApproved) }},
 	"user_id":              {"User ID", func(a *imodel.BPSAction) string { return a.UserInformation.UserID }},
@@ -832,7 +831,6 @@ var BPSActionFieldFontOverride = map[string]float64{
 
 // CPSActionDefaultFieldOrder is the field order used when no ?fields= is provided.
 var CPSActionDefaultFieldOrder = []string{
-	"id",
 	"action_code",
 	"maker_id",
 	"maker_name",
@@ -850,11 +848,8 @@ var CPSActionDefaultFieldOrder = []string{
 }
 
 var BPSActionDefaultFieldOrder = []string{
-	"id",
 	"action_code",
 	"user_code",
-	"full_name",
-	"phone_numbers",
 	"maker_user",
 	"maker_name",
 	"maker_reason",
@@ -864,11 +859,11 @@ var BPSActionDefaultFieldOrder = []string{
 	"request_action",
 	"account_number",
 	"account_holder_name",
-	"service_name",
 	"created_at",
 	"last_modified_at",
 	"checker_time",
 	"auditor_time",
+	"auditor_approval",
 }
 
 func cpsAuditorNames(a *model.CPSAction) string {
