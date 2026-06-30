@@ -980,7 +980,7 @@ func cpsCheckerActionTimes(a *model.CPSAction) string {
 		// if !ok {
 		// 	continue
 		// }
-		parts = append(parts, checker.ApprovedAt.String())
+		parts = append(parts, checker.ApprovedAt.Format("2006-01-02 15:04:05"))
 	}
 	return strings.Join(parts, ", ")
 }
