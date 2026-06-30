@@ -884,11 +884,11 @@ func cpsAuditorNames(a *model.CPSAction) string {
 func cpsCheckerUsers(a *model.CPSAction) string {
 	parts := make([]string, 0, len(a.CheckerUsers))
 	for _, checker := range a.CheckerUsers {
-		entry, ok := formatIDTimestamp(checker.CheckerID, checker.ApprovedAt)
-		if !ok {
-			continue
-		}
-		parts = append(parts, entry)
+		// entry, ok := formatIDTimestamp(checker.CheckerID, checker.ApprovedAt)
+		// if !ok {
+		// 	continue
+		// }
+		parts = append(parts, checker.CheckerID)
 	}
 	return strings.Join(parts, ", ")
 }
@@ -976,11 +976,11 @@ func cpsAuditorUserInfo(a *model.CPSAction) string {
 func cpsCheckerActionTimes(a *model.CPSAction) string {
 	parts := make([]string, 0, len(a.CheckerUsers))
 	for _, checker := range a.CheckerUsers {
-		entry, ok := formatIDTimestamp(checker.CheckerID, checker.ApprovedAt)
-		if !ok {
-			continue
-		}
-		parts = append(parts, entry)
+		// entry, ok := formatIDTimestamp(checker.CheckerID, checker.ApprovedAt)
+		// if !ok {
+		// 	continue
+		// }
+		parts = append(parts, checker.ApprovedAt.String())
 	}
 	return strings.Join(parts, ", ")
 }
