@@ -691,3 +691,43 @@ func ToInterfaceSlice(strs []string) []interface{} {
 	}
 	return res
 }
+
+// CpsActionCSVHeader resolves the user-visible column labels for the given ?fields= keys.
+// Unknown/missing keys fall back to the registry default. Delegates to lib so headers and
+// row extractors stay in sync.
+func ExtractStringSlice(filters map[string]interface{}, key string) []string {
+	v, ok := filters[key]
+	if !ok {
+		return nil
+	}
+	switch val := v.(type) {
+	case []string:
+		return val
+	case string:
+		val = strings.TrimSpace(val)
+		if val == "" {
+			return nil
+		}
+		val = strings.TrimPrefix(val, "[")
+		val = strings.TrimSuffix(val, "]")
+		parts := strings.Split(val, ",")
+		result := make([]string, 0, len(parts))
+		for _, p := range parts {
+			if p = strings.TrimSpace(p); p != "" {
+				result = append(result, p)
+			}
+		}
+		return result
+	case []interface{}:
+		result := make([]string, 0, len(val))
+		for _, item := range val {
+			if s, ok := item.(string); ok {
+				if s = strings.TrimSpace(s); s != "" {
+					result = append(result, s)
+				}
+			}
+		}
+		return result
+	}
+	return nil
+}

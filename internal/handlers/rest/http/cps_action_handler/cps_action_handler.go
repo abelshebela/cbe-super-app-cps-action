@@ -931,15 +931,43 @@ func (a *cpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http
 	}
 
 	if checkerActions == nil {
-		localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, map[string]interface{}{})
+		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 		return
 	}
 
+	// resolve action_names -> request_actions
+	var filterReqs, reqs []string
+	seen := map[string]struct{}{}
+
+	services := local_util.ExtractStringSlice(filterParams.Filters, "services")
+	log.Infof("[CPSAction][GetUserApproverActions] list of service trying to filer ******** services:%s", services)
+
 	log.Infof("[CpsActionH][Approve] checker actions: %v", checkerActions)
 
-	// resolve action_names -> request_actions
-	var reqs []string
-	seen := map[string]struct{}{}
+	if len(services) != 0 {
+		for _, chk := range services {
+			if !slices.Contains(checkerActions, chk) {
+				localization.SendBadRequestResponse(w, localization.ErrorNotAllowedServicesIncluded.Message)
+				return
+			}
+		}
+
+		for _, svc := range services {
+			if lst, ok := cpsactionsvc.RequestActionGroups[strings.ToUpper(svc)]; ok {
+				for _, ra := range lst {
+					key := string(ra)
+					if _, ok := seen[key]; ok {
+						continue
+					}
+
+					seen[key] = struct{}{}
+					filterReqs = append(filterReqs, key)
+				}
+			}
+		}
+	}
+
+	seen = map[string]struct{}{}
 	for _, mod := range checkerActions {
 		upper := strings.ToUpper(strings.TrimSpace(mod))
 		if lst, ok := cpsactionsvc.RequestActionGroups[upper]; ok {
@@ -948,11 +976,18 @@ func (a *cpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http
 				if _, ok := seen[key]; ok {
 					continue
 				}
+				if len(services) > 0 {
+					if !slices.Contains(filterReqs, key) {
+						continue
+					}
+				}
+
 				seen[key] = struct{}{}
 				reqs = append(reqs, key)
 			}
 		}
 	}
+
 	if filterParams == nil {
 		filterParams = &types.Filter{}
 	}

@@ -294,26 +294,6 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 			log.Errorf("[BankSvc][Authorize] cache create err: %v", err)
 		}
 
-		// if banks, _, err := b.catch.GetAll(ctx); err == nil {
-		// 	log.Infof("[BankSvc][Authorize] get All cache after update: %+v", banks)
-		// 	var newBanks = make([]bank_catch.AllBankData, 0)
-		// 	for _, bank := range banks {
-		// 		if bank.BankID == actionData.ID {
-		// 			newBanks = append(newBanks, bank_catch.AllBankData{
-		// 				BankID:   actionData.ID,
-		// 				Name:     actionData.BankName,
-		// 				BICCode:  actionData.BICCode,
-		// 				ImageURL: actionData.Logo,
-		// 				IsCBE:    actionData.IS_CBE == 1,
-		// 			})
-		// 		} else {
-		// 			newBanks = append(newBanks, bank)
-		// 		}
-		// 	}
-		// 	if err := b.catch.SetAll(ctx, newBanks); err != nil {
-		// 		log.Errorf("[BankSvc][Authorize] cache set all err: %v", err)
-		// 	}
-		// }
 		log.Infof("[BankSvc][Authorize] updated id: %s", cpsAction.UniqueId)
 	default:
 		span.AddEvent("[Authorize] unsupported action", trace.WithAttributes(attribute.String("action", cpsAction.RequestAction)))
