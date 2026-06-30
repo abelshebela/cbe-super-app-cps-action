@@ -861,6 +861,7 @@ var BPSActionDefaultFieldOrder = []string{
 	"last_modified_at",
 	"checker_time",
 	"auditor_time",
+	"auditor_approval",
 }
 
 func cpsAuditorNames(a *model.CPSAction) string {
