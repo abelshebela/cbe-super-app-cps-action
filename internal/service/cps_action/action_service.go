@@ -725,7 +725,8 @@ func (ca *cpsActionService) GetCPSActionsForApprover(ctx context.Context, userID
 		if len(actionCodes) > 0 {
 			filterParams.Filters["action_code"] = actionCodes
 		}
-	} else if !isPendingOnly && (len(levels) > 0 || len(services) > 0) {
+		// } else if !isPendingOnly && (len(levels) > 0 || len(services) > 0) {
+	} else if len(levels) > 0 || len(services) > 0 {
 		actionCodes, err := ca.actionLogRepo.GetActionCodesByActionLogFilter(ctx, imodel.UserActionLogActionCodeFilter{
 			Responsibilities: []string{string(imodel.CHECKER)},
 			Levels:           levels,
