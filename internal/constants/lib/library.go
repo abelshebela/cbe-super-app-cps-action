@@ -850,8 +850,6 @@ var CPSActionDefaultFieldOrder = []string{
 
 var BPSActionDefaultFieldOrder = []string{
 	"action_code",
-	"user_code",
-	"maker_user",
 	"maker_name",
 	"maker_mid",
 	"maker_reason",
@@ -859,6 +857,7 @@ var BPSActionDefaultFieldOrder = []string{
 	"checker_name_list",
 	"auditor_mid",
 	"auditor_name_list",
+	"auditor_reason",
 	"status",
 	"request_action",
 	"account_holder_name",
