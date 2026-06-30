@@ -510,7 +510,8 @@ func (a *bpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	if filterParams.Filters["action"] == "export" && url != "" {
+
+	if url != "" {
 		localization.SendSuccessResponse(w, localization.SuccessBPSActionsRetrieved, map[string]interface{}{"url": url})
 		return
 	}
@@ -620,7 +621,7 @@ func (a *bpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	if filterParams.Filters["action"] == "export" && url != "" {
+	if url != "" {
 		localization.SendSuccessResponse(w, localization.SuccessBPSActionsRetrieved, map[string]interface{}{"url": url})
 		return
 	}
@@ -694,14 +695,10 @@ func (a *bpsActionAdapter) GetUserApproverApprovedActions(w http.ResponseWriter,
 	// do not force action_status; let API-provided filters decide
 
 	userID := local_util.ExtractUserContext(r).UserName
-	res, url, err := a.bpsActionApplication.GetBPSActionsForApprover(ctx, userID, reqs, filterParams)
+	res, _, err := a.bpsActionApplication.GetBPSActionsForApprover(ctx, userID, reqs, filterParams)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
-		return
-	}
-	if filterParams.Filters["action"] == "export" && url != "" {
-		localization.SendSuccessResponse(w, localization.SuccessBPSActionsRetrieved, map[string]interface{}{"url": url})
 		return
 	}
 	localization.SendSuccessResponse(w, localization.SuccessBPSActionsRetrieved, res)

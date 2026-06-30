@@ -29,11 +29,12 @@ import (
 	"sync"
 	"time"
 
-	bps_model "cbe-super-app-cps-action/internal/constants/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
+
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
@@ -436,11 +437,143 @@ func FileExporterForCPSAction(ctx context.Context, cfg config.VaultConfig, minio
 	return url, nil
 }
 
+func FileExporterForBPSAction(ctx context.Context, cfg config.VaultConfig, minioClient *s3.Client, buckerName string, filterMap *types.Filter, data []*imodel.BPSAction, _ func(fields []string) []string, logger utils.Logger) (string, error) {
+	if filterMap == nil {
+		return "", errors.New(localization.ErrorRequiredFieldMissing.Code)
+	}
+	if filterMap.Filters == nil {
+		filterMap.Filters = map[string]interface{}{}
+	}
+
+	// 1. Date range validation.
+	createdAtFrom, fromOk := filterMap.Filters["created_at_from"].(string)
+	createdAtTo, toOk := filterMap.Filters["created_at_to"].(string)
+	if !fromOk || !toOk || createdAtFrom == "" || createdAtTo == "" {
+		return "", errors.New(localization.ErrorRequiredFieldMissing.Code)
+	}
+
+	startDate, endDate, err := local_util.FormatDateRangeToUTCStrings(createdAtFrom, createdAtTo)
+	if err != nil {
+		return "", errors.New(localization.ErrorInvalidDateFormat.Code)
+	}
+	filterMap.Filters["created_at_from"] = startDate
+	filterMap.Filters["created_at_to"] = endDate
+
+	if len(data) == 0 {
+		return "", errors.New(localization.CpsActionDataNotFoundInDateRange.Code)
+	}
+
+	// 2. Resolve output format + field projection.
+	fileType, _ := filterMap.Filters["file_type"].(string)
+	fileType = strings.ToLower(strings.TrimSpace(fileType))
+	if fileType == "" {
+		fileType = string(FileTypeCSV)
+	}
+
+	requestedFields := extractFieldsFilter(filterMap.Filters)
+	resolvedFields := ResolveBPSActionFields(requestedFields)
+	if len(requestedFields) > 0 && len(resolvedFields) == 0 {
+		return "", errors.New(localization.ErrorInvalidRequest.Code)
+	}
+	header := BPSActionHeadersFromFields(resolvedFields)
+
+	// 3. Build object key.
+	ext := "csv"
+	if fileType == "pdf" {
+		ext = "pdf"
+	}
+	objectName := fmt.Sprintf(
+		"bps_actions_%s_to_%s_%d.%s",
+		startDate.Format("20060102"),
+		endDate.Format("20060102"),
+		time.Now().Unix(),
+		ext,
+	)
+
+	var url string
+	if fileType == "pdf" {
+		rows := make([][]string, 0, len(data))
+		for _, action := range data {
+			row, rerr := BuildBPSActionRowFromFields(action, resolvedFields)
+			if rerr != nil {
+				return "", rerr
+			}
+			rows = append(rows, row)
+		}
+
+		colFontPt := make([]float64, len(resolvedFields))
+		for i, key := range resolvedFields {
+			if override, ok := BPSActionFieldFontOverride[key]; ok && override > 0 {
+				colFontPt[i] = override
+			}
+		}
+
+		url, err = ExportPDFAndUpload(ctx, minioClient, buckerName, cfg, objectName, header, rows, PDFExportOptions{PageSize: "A4"}, colFontPt, logger)
+		if err != nil {
+			logger.Errorf("[BPSExport] PDF export failed: %v", err)
+			return "", errors.New(localization.CpsActionDataExportedError.Code)
+		}
+	} else {
+		tmpFile, terr := os.CreateTemp("", "bps_actions_*.csv")
+		if terr != nil {
+			return "", fmt.Errorf("create temp file: %w", terr)
+		}
+		defer os.Remove(tmpFile.Name())
+		defer tmpFile.Close()
+
+		// UTF-8 BOM for Excel compatibility.
+		if _, werr := tmpFile.Write([]byte{0xEF, 0xBB, 0xBF}); werr != nil {
+			return "", fmt.Errorf("write BOM: %w", werr)
+		}
+
+		writer := csv.NewWriter(tmpFile)
+		if werr := writer.Write(header); werr != nil {
+			return "", fmt.Errorf("write header: %w", werr)
+		}
+		for _, action := range data {
+			row, rerr := BuildBPSActionRowFromFields(action, resolvedFields)
+			if rerr != nil {
+				return "", rerr
+			}
+			if werr := writer.Write(row); werr != nil {
+				return "", werr
+			}
+		}
+		writer.Flush()
+		if werr := writer.Error(); werr != nil {
+			return "", fmt.Errorf("flush writer: %w", werr)
+		}
+
+		if _, serr := tmpFile.Seek(0, 0); serr != nil {
+			return "", errors.New(localization.ErrorUnexpectedError.Code)
+		}
+		stat, serr := tmpFile.Stat()
+		if serr != nil {
+			return "", errors.New(localization.ErrorUnexpectedError.Code)
+		}
+		url, err = UploadCSVToMinio(ctx, minioClient, buckerName, tmpFile, stat.Size(), cfg, objectName, logger)
+		if err != nil {
+			return "", errors.New(localization.CpsActionDataExportedError.Code)
+		}
+	}
+
+	baseURL := strings.TrimSuffix(cfg.MinioPublicEndPoint, "/")
+	if baseURL != "" {
+		url = fmt.Sprintf("%s/%s", baseURL, strings.TrimPrefix(objectName, "/"))
+	}
+	return url, nil
+}
+
 // CPSActionFieldSpec describes a single exportable column: the user-facing header label
 // and the extractor that turns a CPSAction into the string value for that column.
 type CPSActionFieldSpec struct {
 	Header  string
 	Extract func(a *model.CPSAction) string
+}
+
+type BPSActionFieldSpec struct {
+	Header  string
+	Extract func(a *imodel.BPSAction) string
 }
 
 // CPSActionExportSchema only exists to define the exported column order and the
@@ -474,6 +607,64 @@ type CPSActionExportSchema struct {
 	CanceledReason    string `json:"canceled_reason" bson:"canceled_reason"`
 }
 
+type BPSActionExportSchema struct {
+	ID                 string `json:"id" bson:"_id"`
+	ActionCode         string `json:"action_code" bson:"action_code"`
+	IsAuditorApproved  string `json:"is_auditor_approved" bson:"is_auditor_approved"`
+	UserID             string `json:"user_id" bson:"user_information.user_id"`
+	UserCode           string `json:"user_code" bson:"user_information.user_code"`
+	FullName           string `json:"full_name" bson:"user_information.full_name"`
+	AccountNumbers     string `json:"account_numbers" bson:"user_information.account_numbers"`
+	PhoneNumbers       string `json:"phone_numbers" bson:"user_information.phone_numbers"`
+	UserBranchCode     string `json:"user_branch_code" bson:"user_information.branch_code"`
+	BusinessID         string `json:"business_id" bson:"business.business_id"`
+	TillNumber         string `json:"till_number" bson:"business.till_number"`
+	BusinessName       string `json:"business_name" bson:"business.business_name"`
+	CheckersNeeded     string `json:"checkers_needed" bson:"checkers_needed"`
+	CheckersApproved   string `json:"checkers_approved" bson:"checkers_approved"`
+	CheckerID          string `json:"checker_id" bson:"checker_id"`
+	MakerUser          string `json:"maker_user" bson:"maker_user"`
+	MakerName          string `json:"maker_name" bson:"maker_name"`
+	MakerReason        string `json:"maker_reason" bson:"maker_reason"`
+	MakerPhoneNumber   string `json:"maker_phone_number" bson:"maker_phone_number"`
+	CheckerName        string `json:"checker_name" bson:"checker_name"`
+	CheckerPhoneNumber string `json:"checker_phone_number" bson:"checker_phone_number"`
+	ActionType         string `json:"action_type" bson:"action_reason.action_type"`
+	ActionNote         string `json:"action_note" bson:"action_reason.action_note"`
+	Identifier         string `json:"identifier" bson:"action_reason.identifier"`
+	MakerMID           string `json:"maker_mid" bson:"maker_mid"`
+	CheckerMID         string `json:"checker_mid" bson:"checker_mid"`
+	AuditorMID         string `json:"auditor_mid" bson:"auditor_mid"`
+	CheckerNameList    string `json:"checker_name_list" bson:"checker_name_list"`
+	AuditorNameList    string `json:"auditor_name_list" bson:"auditor_name_list"`
+	AuditorName        string `json:"auditor_name" bson:"auditors.auditor_name"`
+	AuditorPhoneNumber string `json:"auditor_phone_number" bson:"auditors.auditor_phone_number"`
+	AuditorsRequired   string `json:"auditors_required" bson:"auditors.auditors_required"`
+	AuditorID          string `json:"auditor_id" bson:"auditors.auditor_id"`
+	Audited            string `json:"audited" bson:"auditors.audited"`
+	AuditorApproval    string `json:"auditor_approval" bson:"auditors.auditor_approval"`
+	AuditorReason      string `json:"auditor_reason" bson:"auditors.reason"`
+	CheckerTime        string `json:"checker_time" bson:"checker_time"`
+	AuditorTime        string `json:"auditor_time" bson:"auditor_time"`
+	RequestAction      string `json:"request_action" bson:"request_action"`
+	Value              string `json:"value" bson:"value"`
+	HomeBranch         string `json:"home_branch" bson:"home_branch"`
+	AccountBranchCode  string `json:"account_branch_code" bson:"account_branch_code"`
+	DistrictCode       string `json:"district_code" bson:"district_code"`
+	BranchCode         string `json:"branch_code" bson:"branch_code"`
+	LinkedDistrictCode string `json:"linked_district_code" bson:"linked_district_code"`
+	AccountNumber      string `json:"account_number" bson:"account_number"`
+	AccountHolderName  string `json:"account_holder_name" bson:"account_holder_name"`
+	ServiceName        string `json:"service_name" bson:"service_name"`
+	CurrentAction      string `json:"current_action" bson:"current_action"`
+	PreviousAction     string `json:"previous_action" bson:"previous_action"`
+	Time               string `json:"time" bson:"time"`
+	Status             string `json:"status" bson:"status"`
+	CustomerBarred     string `json:"customer_barred" bson:"customer_barred"`
+	CreatedAt          string `json:"created_at" bson:"created_at"`
+	LastModifiedAt     string `json:"last_modified_at" bson:"last_modified_at"`
+}
+
 var cpsActionFieldTagAliases = func() map[string]string {
 	aliases := map[string]string{}
 	specType := reflect.TypeOf(CPSActionExportSchema{})
@@ -499,6 +690,41 @@ var cpsActionFieldTagAliases = func() map[string]string {
 	return aliases
 }()
 
+var bpsActionFieldTagAliases = func() map[string]string {
+	aliases := map[string]string{}
+	specType := reflect.TypeOf(BPSActionExportSchema{})
+	for i := 0; i < specType.NumField(); i++ {
+		field := specType.Field(i)
+		canonical := exportFieldKeyFromTag(field)
+		if canonical == "" {
+			continue
+		}
+		aliases[canonical] = canonical
+
+		for _, tagName := range []string{"json", "bson"} {
+			tag := strings.TrimSpace(field.Tag.Get(tagName))
+			if tag == "" || tag == "-" {
+				continue
+			}
+			key := strings.ToLower(strings.TrimSpace(strings.Split(tag, ",")[0]))
+			if key != "" {
+				aliases[key] = canonical
+			}
+		}
+	}
+
+	aliases["maker_id"] = "maker_user"
+	aliases["action_status"] = "status"
+	aliases["auditor_status"] = "is_auditor_approved"
+	aliases["checker_ids"] = "checker_id"
+	aliases["auditor_ids"] = "auditor_id"
+	aliases["auditor_names"] = "auditor_name_list"
+	aliases["checker_action_time"] = "checker_time"
+	aliases["auditor_action_time"] = "auditor_time"
+
+	return aliases
+}()
+
 // CPSActionFieldRegistry maps field keys (as used in the ?fields=a,b,c query param) to
 // their header label and row extractor. Add new exportable fields here.
 var CPSActionFieldRegistry = map[string]CPSActionFieldSpec{
@@ -507,10 +733,10 @@ var CPSActionFieldRegistry = map[string]CPSActionFieldSpec{
 	"maker_id":            {"Maker ID", func(a *model.CPSAction) string { return a.MakerID }},
 	"maker_name":          {"Maker Name", func(a *model.CPSAction) string { return a.MakerName }},
 	"maker_phone_number":  {"Maker Phone Number", func(a *model.CPSAction) string { return a.MakerPhoneNumber }},
-	"checker_users":      {"Checker Users", cpsCheckerUsers},
-	"checker_user_info":  {"Checker Info", cpsCheckerUserInfo},
-	"auditor_users":      {"Auditor Users", cpsAuditorUsers},
-	"auditor_user_info":  {"Auditor Info", cpsAuditorUserInfo},
+	"checker_users":       {"Checker Users", cpsCheckerUsers},
+	"checker_user_info":   {"Checker Info", cpsCheckerUserInfo},
+	"auditor_users":       {"Auditor Users", cpsAuditorUsers},
+	"auditor_user_info":   {"Auditor Info", cpsAuditorUserInfo},
 	"auditor_names":       {"Auditor Names", cpsAuditorNames},
 	"auditor_id":          {"Auditor ID", cpsAuditorIDs},
 	"auditor_ids":         {"Auditor ID", cpsAuditorIDs},
@@ -532,12 +758,76 @@ var CPSActionFieldRegistry = map[string]CPSActionFieldSpec{
 	"canceled_reason":     {"Canceled Reason", func(a *model.CPSAction) string { return a.CanceledReason }},
 }
 
+var BPSActionFieldRegistry = map[string]BPSActionFieldSpec{
+	"id":                   {"ID", bpsActionID},
+	"action_code":          {"Action Code", func(a *imodel.BPSAction) string { return a.ActionCode }},
+	"is_auditor_approved":  {"Is Auditor Approved", func(a *imodel.BPSAction) string { return strconv.FormatBool(a.IsAuditorApproved) }},
+	"user_id":              {"User ID", func(a *imodel.BPSAction) string { return a.UserInformation.UserID }},
+	"user_code":            {"User Code", func(a *imodel.BPSAction) string { return a.UserInformation.UserCode }},
+	"full_name":            {"Full Name", func(a *imodel.BPSAction) string { return a.UserInformation.FullName }},
+	"account_numbers":      {"Account Numbers", func(a *imodel.BPSAction) string { return strings.Join(a.UserInformation.AccountNumbers, ", ") }},
+	"phone_numbers":        {"Phone Numbers", func(a *imodel.BPSAction) string { return a.UserInformation.PhoneNumbers }},
+	"user_branch_code":     {"User Branch Code", func(a *imodel.BPSAction) string { return a.UserInformation.BranchCode }},
+	"business_id":          {"Business ID", bpsBusinessID},
+	"till_number":          {"Till Number", func(a *imodel.BPSAction) string { return a.BusinessInformation.TILLNumber }},
+	"business_name":        {"Business Name", func(a *imodel.BPSAction) string { return a.BusinessInformation.BusinessName }},
+	"checkers_needed":      {"Checkers Needed", func(a *imodel.BPSAction) string { return strconv.Itoa(a.CheckersNeeded) }},
+	"checkers_approved":    {"Checkers Approved", func(a *imodel.BPSAction) string { return strconv.Itoa(a.CheckersApproved) }},
+	"checker_id":           {"Checker ID", func(a *imodel.BPSAction) string { return strings.Join(a.CheckerID, ", ") }},
+	"maker_user":           {"Maker User", func(a *imodel.BPSAction) string { return a.MakerID }},
+	"maker_name":           {"Maker Name", func(a *imodel.BPSAction) string { return a.MakerName }},
+	"maker_reason":         {"Maker Reason", func(a *imodel.BPSAction) string { return a.MakerReason }},
+	"maker_phone_number":   {"Maker Phone Number", func(a *imodel.BPSAction) string { return a.MakerPhoneNumber }},
+	"checker_name":         {"Checker Name", func(a *imodel.BPSAction) string { return a.CheckerName }},
+	"checker_phone_number": {"Checker Phone Number", func(a *imodel.BPSAction) string { return a.CheckerPhoneNumber }},
+	"action_type":          {"Action Type", func(a *imodel.BPSAction) string { return string(a.ActionReason.ActionType) }},
+	"action_note":          {"Action Note", func(a *imodel.BPSAction) string { return a.ActionReason.ActionNote }},
+	"identifier":           {"Identifier", func(a *imodel.BPSAction) string { return a.ActionReason.Identifier }},
+	"maker_mid":            {"Maker MID", func(a *imodel.BPSAction) string { return a.MakerMID }},
+	"checker_mid":          {"Checker MID", func(a *imodel.BPSAction) string { return strings.Join(a.CheckerMID, ", ") }},
+	"auditor_mid":          {"Auditor MID", func(a *imodel.BPSAction) string { return strings.Join(a.AuditorMID, ", ") }},
+	"checker_name_list":    {"Checker Name List", func(a *imodel.BPSAction) string { return strings.Join(a.CheckerNameList, ", ") }},
+	"auditor_name_list":    {"Auditor Name List", func(a *imodel.BPSAction) string { return strings.Join(a.AuditorNameList, ", ") }},
+	"auditor_name":         {"Auditor Name", func(a *imodel.BPSAction) string { return a.Auditors.AuditorName }},
+	"auditor_phone_number": {"Auditor Phone Number", func(a *imodel.BPSAction) string { return a.Auditors.AuditorPhoneNumber }},
+	"auditors_required":    {"Auditors Required", func(a *imodel.BPSAction) string { return strconv.Itoa(a.Auditors.AuditorsRequired) }},
+	"auditor_id":           {"Auditor ID", func(a *imodel.BPSAction) string { return strings.Join(a.Auditors.AuditorID, ", ") }},
+	"audited":              {"Audited", func(a *imodel.BPSAction) string { return strconv.FormatBool(a.Auditors.Audited) }},
+	"auditor_approval":     {"Auditor Approval", func(a *imodel.BPSAction) string { return strconv.FormatBool(a.Auditors.AuditorApproval) }},
+	"auditor_reason":       {"Auditor Reason", func(a *imodel.BPSAction) string { return a.Auditors.Reason }},
+	"checker_time":         {"Checker Time", func(a *imodel.BPSAction) string { return bpsTimeSlice(a.CheckerTime) }},
+	"auditor_time":         {"Auditor Time", func(a *imodel.BPSAction) string { return bpsTimeSlice(a.AuditorTime) }},
+	"request_action":       {"Request Action", func(a *imodel.BPSAction) string { return string(a.RequestAction) }},
+	"value":                {"Value", func(a *imodel.BPSAction) string { return a.EntityIdentifyer }},
+	"home_branch":          {"Home Branch", func(a *imodel.BPSAction) string { return a.HomeBranch }},
+	"account_branch_code":  {"Account Branch Code", func(a *imodel.BPSAction) string { return a.AccountBranchCode }},
+	"district_code":        {"District Code", func(a *imodel.BPSAction) string { return a.DistrictCode }},
+	"branch_code":          {"Branch Code", func(a *imodel.BPSAction) string { return a.BranchCode }},
+	"linked_district_code": {"Linked District Code", func(a *imodel.BPSAction) string { return a.LinkedDistrictCode }},
+	"account_number":       {"Account Number", func(a *imodel.BPSAction) string { return a.AccountNumber }},
+	"account_holder_name":  {"Account Holder Name", func(a *imodel.BPSAction) string { return a.AccountHolderName }},
+	"service_name":         {"Service Name", func(a *imodel.BPSAction) string { return a.ServiceName }},
+	"current_action":       {"Current Action", func(a *imodel.BPSAction) string { return stringifyExportValue(a.CurrentAction) }},
+	"previous_action":      {"Previous Action", func(a *imodel.BPSAction) string { return stringifyExportValue(a.PreviousAction) }},
+	"time":                 {"Verified At", func(a *imodel.BPSAction) string { return local_util.FormatTime(a.VerifiedAt) }},
+	"status":               {"Status", func(a *imodel.BPSAction) string { return a.Status }},
+	"customer_barred":      {"Customer Barred", func(a *imodel.BPSAction) string { return strconv.FormatBool(a.CustomerBarred) }},
+	"created_at":           {"Created At", func(a *imodel.BPSAction) string { return local_util.FormatTime(a.CreatedAt) }},
+	"last_modified_at":     {"Last Modified At", func(a *imodel.BPSAction) string { return local_util.FormatTime(a.LastModifiedAt) }},
+}
+
 // CPSActionFieldFontOverride lets specific columns render in a smaller font than the
 // table's responsive default. Useful for columns whose values are long fixed-format
 // identifiers (e.g. "SRM26105_145513.440861" for action_code, 22 chars) that we don't
 // want to truncate. Keys are CPSActionFieldRegistry keys; values are font points.
 var CPSActionFieldFontOverride = map[string]float64{
 	"action_code": 5,
+}
+
+var BPSActionFieldFontOverride = map[string]float64{
+	"action_code":     5,
+	"current_action":  5,
+	"previous_action": 5,
 }
 
 // CPSActionDefaultFieldOrder is the field order used when no ?fields= is provided.
@@ -557,6 +847,28 @@ var CPSActionDefaultFieldOrder = []string{
 	"last_modified_at",
 	"maker_action_time",
 	"checker_action_time",
+}
+
+var BPSActionDefaultFieldOrder = []string{
+	"id",
+	"action_code",
+	"user_code",
+	"full_name",
+	"phone_numbers",
+	"maker_user",
+	"maker_name",
+	"maker_reason",
+	"checker_name_list",
+	"auditor_name_list",
+	"status",
+	"request_action",
+	"account_number",
+	"account_holder_name",
+	"service_name",
+	"created_at",
+	"last_modified_at",
+	"checker_time",
+	"auditor_time",
 }
 
 func cpsAuditorNames(a *model.CPSAction) string {
@@ -723,6 +1035,33 @@ func ResolveCPSActionFields(fields []string) []string {
 	return out
 }
 
+func ResolveBPSActionFields(fields []string) []string {
+	if len(fields) == 0 {
+		return append([]string(nil), BPSActionDefaultFieldOrder...)
+	}
+	out := make([]string, 0, len(fields))
+	seen := make(map[string]bool, len(fields))
+	for _, f := range fields {
+		key := strings.TrimSpace(strings.ToLower(f))
+		if key == "" || seen[key] {
+			continue
+		}
+		canonical, ok := bpsActionFieldTagAliases[key]
+		if !ok {
+			continue
+		}
+		if seen[canonical] {
+			continue
+		}
+		if _, ok := BPSActionFieldRegistry[canonical]; ok {
+			out = append(out, canonical)
+			seen[key] = true
+			seen[canonical] = true
+		}
+	}
+	return out
+}
+
 // CPSActionHeadersFromFields maps the resolved field keys to their display labels.
 func CPSActionHeadersFromFields(fields []string) []string {
 	resolved := ResolveCPSActionFields(fields)
@@ -733,12 +1072,31 @@ func CPSActionHeadersFromFields(fields []string) []string {
 	return out
 }
 
+func BPSActionHeadersFromFields(fields []string) []string {
+	resolved := ResolveBPSActionFields(fields)
+	out := make([]string, len(resolved))
+	for i, key := range resolved {
+		out[i] = BPSActionFieldRegistry[key].Header
+	}
+	return out
+}
+
 // BuildCPSActionRowFromFields builds a row containing only the requested fields (in order).
 func BuildCPSActionRowFromFields(a *model.CPSAction, fields []string) ([]string, error) {
 	resolved := ResolveCPSActionFields(fields)
 	row := make([]string, len(resolved))
 	for i, key := range resolved {
 		row[i] = CPSActionFieldRegistry[key].Extract(a)
+	}
+	return row, nil
+}
+
+// BuildBPSActionRowFromFields builds a row containing only the requested fields (in order).
+func BuildBPSActionRowFromFields(a *imodel.BPSAction, fields []string) ([]string, error) {
+	resolved := ResolveBPSActionFields(fields)
+	row := make([]string, len(resolved))
+	for i, key := range resolved {
+		row[i] = BPSActionFieldRegistry[key].Extract(a)
 	}
 	return row, nil
 }
@@ -758,217 +1116,259 @@ func exportFieldKeyFromTag(field reflect.StructField) string {
 }
 
 // BPSActionFieldSpec describes a single exportable column for BPS actions.
-type BPSActionFieldSpec struct {
-	Header  string
-	Extract func(a *bps_model.BPSAction) string
-}
+// type BPSActionFieldSpec struct {
+// 	Header  string
+// 	Extract func(a *bps_model.BPSAction) string
+// }
 
-// BPSActionFieldRegistry maps field keys to header + extractor for BPS action export.
-var BPSActionFieldRegistry = map[string]BPSActionFieldSpec{
-	// --- Action metadata ---
-	"action_code":    {"Action Code", func(a *bps_model.BPSAction) string { return a.ActionCode }},
-	"request_action": {"Request Action", func(a *bps_model.BPSAction) string { return string(a.RequestAction) }},
-	"status":         {"Status", func(a *bps_model.BPSAction) string { return a.Status }},
-	"service_name":   {"Service Name", func(a *bps_model.BPSAction) string { return a.ServiceName }},
-	// --- Maker ---
-	"maker_id":           {"Maker ID", func(a *bps_model.BPSAction) string { return a.MakerID }},
-	"maker_name":         {"Maker Name", func(a *bps_model.BPSAction) string { return a.MakerName }},
-	"maker_phone_number": {"Maker Phone", func(a *bps_model.BPSAction) string { return a.MakerPhoneNumber }},
-	"maker_reason":       {"Maker Reason", func(a *bps_model.BPSAction) string { return a.MakerReason }},
-	// --- Checker (top-level fields) ---
-	"checker_id":           {"Checker IDs", func(a *bps_model.BPSAction) string { return strings.Join(a.CheckerID, ", ") }},
-	"checker_name":         {"Checker Name", func(a *bps_model.BPSAction) string { return a.CheckerName }},
-	"checker_phone_number": {"Checker Phone", func(a *bps_model.BPSAction) string { return a.CheckerPhoneNumber }},
-	"checker_name_list":    {"Checker Names", func(a *bps_model.BPSAction) string { return strings.Join(a.CheckerNameList, ", ") }},
-	// --- Auditor (nested under Auditors) ---
-	"auditor_id":           {"Auditor IDs", func(a *bps_model.BPSAction) string { return strings.Join(a.Auditors.AuditorID, ", ") }},
-	"auditor_name":         {"Auditor Name", func(a *bps_model.BPSAction) string { return a.Auditors.AuditorName }},
-	"auditor_phone_number": {"Auditor Phone", func(a *bps_model.BPSAction) string { return a.Auditors.AuditorPhoneNumber }},
-	"auditor_approval": {"Auditor Approval", func(a *bps_model.BPSAction) string {
-		if a.Auditors.AuditorApproval {
-			return "APPROVED"
-		}
-		return "REJECTED"
-	}},
-	"auditor_reason": {"Auditor Reason", func(a *bps_model.BPSAction) string { return a.Auditors.Reason }},
-	// --- Customer / Subject (nested under UserInformation) ---
-	"customer_name":      {"Customer Name", func(a *bps_model.BPSAction) string { return a.UserInformation.FullName }},
-	"customer_phone":     {"Customer Phone", func(a *bps_model.BPSAction) string { return a.UserInformation.PhoneNumbers }},
-	"customer_branch":    {"Customer Branch Code", func(a *bps_model.BPSAction) string { return a.UserInformation.BranchCode }},
-	"customer_user_code": {"Customer User Code", func(a *bps_model.BPSAction) string { return a.UserInformation.UserCode }},
-	// --- Account ---
-	"account_number": {"Account Number", func(a *bps_model.BPSAction) string { return a.AccountNumber }},
-	"account_holder": {"Account Holder", func(a *bps_model.BPSAction) string { return a.AccountHolderName }},
-	"customer_barred": {"Customer Barred", func(a *bps_model.BPSAction) string {
-		if a.CustomerBarred {
-			return "YES"
-		}
-		return "NO"
-	}},
-	// --- Timestamps ---
-	"created_at":      {"Created At", func(a *bps_model.BPSAction) string { return local_util.FormatTime(a.CreatedAt) }},
-	"last_modified_at": {"Last Modified At", func(a *bps_model.BPSAction) string { return local_util.FormatTime(a.LastModifiedAt) }},
-}
+// // BPSActionFieldRegistry maps field keys to header + extractor for BPS action export.
+// var BPSActionFieldRegistry = map[string]BPSActionFieldSpec{
+// 	// --- Action metadata ---
+// 	"action_code":    {"Action Code", func(a *bps_model.BPSAction) string { return a.ActionCode }},
+// 	"request_action": {"Request Action", func(a *bps_model.BPSAction) string { return string(a.RequestAction) }},
+// 	"status":         {"Status", func(a *bps_model.BPSAction) string { return a.Status }},
+// 	"service_name":   {"Service Name", func(a *bps_model.BPSAction) string { return a.ServiceName }},
+// 	// --- Maker ---
+// 	"maker_id":           {"Maker ID", func(a *bps_model.BPSAction) string { return a.MakerID }},
+// 	"maker_name":         {"Maker Name", func(a *bps_model.BPSAction) string { return a.MakerName }},
+// 	"maker_phone_number": {"Maker Phone", func(a *bps_model.BPSAction) string { return a.MakerPhoneNumber }},
+// 	"maker_reason":       {"Maker Reason", func(a *bps_model.BPSAction) string { return a.MakerReason }},
+// 	// --- Checker (top-level fields) ---
+// 	"checker_id":           {"Checker IDs", func(a *bps_model.BPSAction) string { return strings.Join(a.CheckerID, ", ") }},
+// 	"checker_name":         {"Checker Name", func(a *bps_model.BPSAction) string { return a.CheckerName }},
+// 	"checker_phone_number": {"Checker Phone", func(a *bps_model.BPSAction) string { return a.CheckerPhoneNumber }},
+// 	"checker_name_list":    {"Checker Names", func(a *bps_model.BPSAction) string { return strings.Join(a.CheckerNameList, ", ") }},
+// 	// --- Auditor (nested under Auditors) ---
+// 	"auditor_id":           {"Auditor IDs", func(a *bps_model.BPSAction) string { return strings.Join(a.Auditors.AuditorID, ", ") }},
+// 	"auditor_name":         {"Auditor Name", func(a *bps_model.BPSAction) string { return a.Auditors.AuditorName }},
+// 	"auditor_phone_number": {"Auditor Phone", func(a *bps_model.BPSAction) string { return a.Auditors.AuditorPhoneNumber }},
+// 	"auditor_approval": {"Auditor Approval", func(a *bps_model.BPSAction) string {
+// 		if a.Auditors.AuditorApproval {
+// 			return "APPROVED"
+// 		}
+// 		return "REJECTED"
+// 	}},
+// 	"auditor_reason": {"Auditor Reason", func(a *bps_model.BPSAction) string { return a.Auditors.Reason }},
+// 	// --- Customer / Subject (nested under UserInformation) ---
+// 	"customer_name":      {"Customer Name", func(a *bps_model.BPSAction) string { return a.UserInformation.FullName }},
+// 	"customer_phone":     {"Customer Phone", func(a *bps_model.BPSAction) string { return a.UserInformation.PhoneNumbers }},
+// 	"customer_branch":    {"Customer Branch Code", func(a *bps_model.BPSAction) string { return a.UserInformation.BranchCode }},
+// 	"customer_user_code": {"Customer User Code", func(a *bps_model.BPSAction) string { return a.UserInformation.UserCode }},
+// 	// --- Account ---
+// 	"account_number": {"Account Number", func(a *bps_model.BPSAction) string { return a.AccountNumber }},
+// 	"account_holder": {"Account Holder", func(a *bps_model.BPSAction) string { return a.AccountHolderName }},
+// 	"customer_barred": {"Customer Barred", func(a *bps_model.BPSAction) string {
+// 		if a.CustomerBarred {
+// 			return "YES"
+// 		}
+// 		return "NO"
+// 	}},
+// 	// --- Timestamps ---
+// 	"created_at":      {"Created At", func(a *bps_model.BPSAction) string { return local_util.FormatTime(a.CreatedAt) }},
+// 	"last_modified_at": {"Last Modified At", func(a *bps_model.BPSAction) string { return local_util.FormatTime(a.LastModifiedAt) }},
+// }
 
-// BPSActionDefaultFieldOrder is the column order used when no ?fields= is provided.
-var BPSActionDefaultFieldOrder = []string{
-	"action_code",
-	"request_action",
-	"status",
-	"service_name",
-	"maker_id",
-	"maker_name",
-	"maker_phone_number",
-	"checker_name",
-	"checker_phone_number",
-	"checker_name_list",
-	"auditor_name",
-	"auditor_phone_number",
-	"auditor_approval",
-	"auditor_reason",
-	"customer_name",
-	"customer_phone",
-	"customer_branch",
-	"customer_user_code",
-	"account_number",
-	"account_holder",
-	"customer_barred",
-	"created_at",
-	"last_modified_at",
-}
+// // BPSActionDefaultFieldOrder is the column order used when no ?fields= is provided.
+// var BPSActionDefaultFieldOrder = []string{
+// 	"action_code",
+// 	"request_action",
+// 	"status",
+// 	"service_name",
+// 	"maker_id",
+// 	"maker_name",
+// 	"maker_phone_number",
+// 	"checker_name",
+// 	"checker_phone_number",
+// 	"checker_name_list",
+// 	"auditor_name",
+// 	"auditor_phone_number",
+// 	"auditor_approval",
+// 	"auditor_reason",
+// 	"customer_name",
+// 	"customer_phone",
+// 	"customer_branch",
+// 	"customer_user_code",
+// 	"account_number",
+// 	"account_holder",
+// 	"customer_barred",
+// 	"created_at",
+// 	"last_modified_at",
+// }
 
-// ResolveBPSActionFields returns the effective export column keys for BPS actions.
-func ResolveBPSActionFields(fields []string) []string {
-	if len(fields) == 0 {
-		return append([]string(nil), BPSActionDefaultFieldOrder...)
-	}
-	var resolved []string
-	for _, f := range fields {
-		key := strings.ToLower(strings.TrimSpace(f))
-		if _, ok := BPSActionFieldRegistry[key]; ok {
-			resolved = append(resolved, key)
-		}
-	}
-	return resolved
-}
+// // ResolveBPSActionFields returns the effective export column keys for BPS actions.
+// func ResolveBPSActionFields(fields []string) []string {
+// 	if len(fields) == 0 {
+// 		return append([]string(nil), BPSActionDefaultFieldOrder...)
+// 	}
+// 	var resolved []string
+// 	for _, f := range fields {
+// 		key := strings.ToLower(strings.TrimSpace(f))
+// 		if _, ok := BPSActionFieldRegistry[key]; ok {
+// 			resolved = append(resolved, key)
+// 		}
+// 	}
+// 	return resolved
+// }
 
 // FileExporterForBPSAction streams BPS actions into CSV or PDF and uploads to MinIO.
 // Triggered when filterMap.Filters["action"] == "export".
 // Requires created_at_from + created_at_to. Supports ?fields= and ?file_type=csv|pdf.
-func FileExporterForBPSAction(ctx context.Context, cfg config.VaultConfig, minioClient *s3.Client, buckerName string, filterMap *types.Filter, data []*bps_model.BPSAction, logger utils.Logger) (string, error) {
-	if filterMap == nil {
-		return "", errors.New(localization.ErrorRequiredFieldMissing.Code)
-	}
-	if filterMap.Filters == nil {
-		filterMap.Filters = map[string]interface{}{}
-	}
+// func FileExporterForBPSAction(ctx context.Context, cfg config.VaultConfig, minioClient *s3.Client, buckerName string, filterMap *types.Filter, data []*bps_model.BPSAction, logger utils.Logger) (string, error) {
+// 	if filterMap == nil {
+// 		return "", errors.New(localization.ErrorRequiredFieldMissing.Code)
+// 	}
+// 	if filterMap.Filters == nil {
+// 		filterMap.Filters = map[string]interface{}{}
+// 	}
 
-	createdAtFrom, fromOk := filterMap.Filters["created_at_from"].(string)
-	createdAtTo, toOk := filterMap.Filters["created_at_to"].(string)
-	if !fromOk || !toOk || createdAtFrom == "" || createdAtTo == "" {
-		return "", errors.New(localization.ErrorRequiredFieldMissing.Code)
-	}
+// 	createdAtFrom, fromOk := filterMap.Filters["created_at_from"].(string)
+// 	createdAtTo, toOk := filterMap.Filters["created_at_to"].(string)
+// 	if !fromOk || !toOk || createdAtFrom == "" || createdAtTo == "" {
+// 		return "", errors.New(localization.ErrorRequiredFieldMissing.Code)
+// 	}
 
-	startDate, endDate, err := local_util.FormatDateRangeToUTCStrings(createdAtFrom, createdAtTo)
-	if err != nil {
-		return "", errors.New(localization.ErrorInvalidDateFormat.Code)
-	}
+// 	startDate, endDate, err := local_util.FormatDateRangeToUTCStrings(createdAtFrom, createdAtTo)
+// 	if err != nil {
+// 		return "", errors.New(localization.ErrorInvalidDateFormat.Code)
+// 	}
 
-	if len(data) == 0 {
-		return "", errors.New(localization.CpsActionDataNotFoundInDateRange.Code)
-	}
+// 	if len(data) == 0 {
+// 		return "", errors.New(localization.CpsActionDataNotFoundInDateRange.Code)
+// 	}
 
-	fileType, _ := filterMap.Filters["file_type"].(string)
-	fileType = strings.ToLower(strings.TrimSpace(fileType))
-	if fileType == "" {
-		fileType = string(FileTypeCSV)
-	}
+// 	fileType, _ := filterMap.Filters["file_type"].(string)
+// 	fileType = strings.ToLower(strings.TrimSpace(fileType))
+// 	if fileType == "" {
+// 		fileType = string(FileTypeCSV)
+// 	}
 
-	requestedFields := extractFieldsFilter(filterMap.Filters)
-	resolvedFields := ResolveBPSActionFields(requestedFields)
+// 	requestedFields := extractFieldsFilter(filterMap.Filters)
+// 	resolvedFields := ResolveBPSActionFields(requestedFields)
 
-	headers := make([]string, len(resolvedFields))
-	for i, key := range resolvedFields {
-		headers[i] = BPSActionFieldRegistry[key].Header
-	}
+// 	headers := make([]string, len(resolvedFields))
+// 	for i, key := range resolvedFields {
+// 		headers[i] = BPSActionFieldRegistry[key].Header
+// 	}
 
-	ext := "csv"
-	if fileType == "pdf" {
-		ext = "pdf"
-	}
-	objectName := fmt.Sprintf(
-		"bps_actions_%s_to_%s_%d.%s",
-		startDate.Format("20060102"),
-		endDate.Format("20060102"),
-		time.Now().Unix(),
-		ext,
-	)
+// 	ext := "csv"
+// 	if fileType == "pdf" {
+// 		ext = "pdf"
+// 	}
+// 	objectName := fmt.Sprintf(
+// 		"bps_actions_%s_to_%s_%d.%s",
+// 		startDate.Format("20060102"),
+// 		endDate.Format("20060102"),
+// 		time.Now().Unix(),
+// 		ext,
+// 	)
 
-	if fileType == "pdf" {
-		rows := make([][]string, 0, len(data))
-		for _, action := range data {
-			row := make([]string, len(resolvedFields))
-			for i, key := range resolvedFields {
-				row[i] = BPSActionFieldRegistry[key].Extract(action)
-			}
-			rows = append(rows, row)
-		}
-		url, perr := ExportPDFAndUpload(ctx, minioClient, buckerName, cfg, objectName, headers, rows, PDFExportOptions{PageSize: "A4"}, nil, logger)
-		if perr != nil {
-			logger.Errorf("[BPSExport] PDF export failed: %v", perr)
-			return "", errors.New(localization.CpsActionDataExportedError.Code)
-		}
-		return url, nil
-	}
+// 	if fileType == "pdf" {
+// 		rows := make([][]string, 0, len(data))
+// 		for _, action := range data {
+// 			row := make([]string, len(resolvedFields))
+// 			for i, key := range resolvedFields {
+// 				row[i] = BPSActionFieldRegistry[key].Extract(action)
+// 			}
+// 			rows = append(rows, row)
+// 		}
+// 		url, perr := ExportPDFAndUpload(ctx, minioClient, buckerName, cfg, objectName, headers, rows, PDFExportOptions{PageSize: "A4"}, nil, logger)
+// 		if perr != nil {
+// 			logger.Errorf("[BPSExport] PDF export failed: %v", perr)
+// 			return "", errors.New(localization.CpsActionDataExportedError.Code)
+// 		}
+// 		return url, nil
+// 	}
 
-	tmpFile, terr := os.CreateTemp("", "bps_actions_*.csv")
-	if terr != nil {
-		return "", fmt.Errorf("create temp file: %w", terr)
-	}
-	defer os.Remove(tmpFile.Name())
-	defer tmpFile.Close()
+// 	tmpFile, terr := os.CreateTemp("", "bps_actions_*.csv")
+// 	if terr != nil {
+// 		return "", fmt.Errorf("create temp file: %w", terr)
+// 	}
+// 	defer os.Remove(tmpFile.Name())
+// 	defer tmpFile.Close()
 
-	if _, werr := tmpFile.Write([]byte{0xEF, 0xBB, 0xBF}); werr != nil {
-		return "", fmt.Errorf("write BOM: %w", werr)
-	}
+// 	if _, werr := tmpFile.Write([]byte{0xEF, 0xBB, 0xBF}); werr != nil {
+// 		return "", fmt.Errorf("write BOM: %w", werr)
+// 	}
 
-	writer := csv.NewWriter(tmpFile)
-	if werr := writer.Write(headers); werr != nil {
-		return "", fmt.Errorf("write header: %w", werr)
-	}
-	for _, action := range data {
-		row := make([]string, len(resolvedFields))
-		for i, key := range resolvedFields {
-			row[i] = BPSActionFieldRegistry[key].Extract(action)
-		}
-		if werr := writer.Write(row); werr != nil {
-			return "", werr
-		}
-	}
-	writer.Flush()
-	if werr := writer.Error(); werr != nil {
-		return "", fmt.Errorf("flush writer: %w", werr)
-	}
+// 	writer := csv.NewWriter(tmpFile)
+// 	if werr := writer.Write(headers); werr != nil {
+// 		return "", fmt.Errorf("write header: %w", werr)
+// 	}
+// 	for _, action := range data {
+// 		row := make([]string, len(resolvedFields))
+// 		for i, key := range resolvedFields {
+// 			row[i] = BPSActionFieldRegistry[key].Extract(action)
+// 		}
+// 		if werr := writer.Write(row); werr != nil {
+// 			return "", werr
+// 		}
+// 	}
+// 	writer.Flush()
+// 	if werr := writer.Error(); werr != nil {
+// 		return "", fmt.Errorf("flush writer: %w", werr)
+// 	}
 
-	if _, serr := tmpFile.Seek(0, 0); serr != nil {
-		return "", errors.New(localization.ErrorUnexpectedError.Code)
-	}
-	stat, serr := tmpFile.Stat()
-	if serr != nil {
-		return "", errors.New(localization.ErrorUnexpectedError.Code)
-	}
-	url, uerr := UploadCSVToMinio(ctx, minioClient, buckerName, tmpFile, stat.Size(), cfg, objectName, logger)
-	if uerr != nil {
-		return "", errors.New(localization.CpsActionDataExportedError.Code)
-	}
-	return url, nil
-}
+// 	if _, serr := tmpFile.Seek(0, 0); serr != nil {
+// 		return "", errors.New(localization.ErrorUnexpectedError.Code)
+// 	}
+// 	stat, serr := tmpFile.Stat()
+// 	if serr != nil {
+// 		return "", errors.New(localization.ErrorUnexpectedError.Code)
+// 	}
+// 	url, uerr := UploadCSVToMinio(ctx, minioClient, buckerName, tmpFile, stat.Size(), cfg, objectName, logger)
+// 	if uerr != nil {
+// 		return "", errors.New(localization.CpsActionDataExportedError.Code)
+// 	}
+// 	return url, nil
+// }
 
 func cpsActionID(a *model.CPSAction) string {
 	if a == nil {
 		return ""
 	}
 	return a.ID.Hex()
+}
+
+func bpsActionID(a *imodel.BPSAction) string {
+	if a == nil {
+		return ""
+	}
+	return a.ID.Hex()
+}
+
+func bpsBusinessID(a *imodel.BPSAction) string {
+	if a == nil || a.BusinessInformation.BusinessID.IsZero() {
+		return ""
+	}
+	return a.BusinessInformation.BusinessID.Hex()
+}
+
+func bpsTimeSlice(items []time.Time) string {
+	if len(items) == 0 {
+		return ""
+	}
+	parts := make([]string, 0, len(items))
+	for _, item := range items {
+		if item.IsZero() {
+			continue
+		}
+		parts = append(parts, local_util.FormatTime(item))
+	}
+	return strings.Join(parts, ", ")
+}
+
+func stringifyExportValue(v interface{}) string {
+	if v == nil {
+		return ""
+	}
+	if s, ok := v.(string); ok {
+		return s
+	}
+	raw, err := json.Marshal(v)
+	if err != nil {
+		return fmt.Sprintf("%v", v)
+	}
+	return string(raw)
 }
 
 // BuildCPSActionRow keeps the legacy signature (full default row). New callers should use
@@ -1172,118 +1572,6 @@ func GoRoutinBaker(opts types.BakerOptions, tasks ...func()) {
 	wg.Wait()
 }
 
-// func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []string) (bson.M, int64, int64) {
-// 	var skip, limit int64
-// 	filter := bson.M{}
-
-// 	if filterParam.Search != "" {
-// 		maps.Copy(filter, searchKeys)
-// 	}
-
-// 	if filterParam.Filters != nil {
-
-// 		// --- date range filters ---
-// 		// For each allowed key, check if _from / _to variants exist in the filters.
-// 		allowedSet := make(map[string]bool, len(allowedKeys))
-// 		for _, k := range allowedKeys {
-// 			allowedSet[k] = true
-// 		}
-
-// 		for _, ak := range allowedKeys {
-// 			fromKey := ak + "_from"
-// 			toKey := ak + "_to"
-// 			dateFilter := bson.M{}
-
-// 			// exact date match: ?created_at=2026-01-05 → full day range
-// 			if raw, ok := filterParam.Filters[ak]; ok {
-// 				if str, ok := raw.(string); ok && str != "" {
-// 					if t, err := parseDateInput(str); err == nil {
-// 						if !strings.Contains(str, "T") {
-// 							// date-only → match the whole day
-// 							dateFilter["$gte"] = t
-// 							dateFilter["$lte"] = t.Add(24*time.Hour - time.Millisecond)
-// 						} else {
-// 							// exact datetime
-// 							dateFilter["$eq"] = t
-// 						}
-// 						delete(filterParam.Filters, ak)
-// 					}
-// 				}
-// 			}
-
-// 			// range: ?created_at_from=...&created_at_to=...
-// 			if raw, ok := filterParam.Filters[fromKey]; ok {
-// 				if str, ok := raw.(string); ok && str != "" {
-// 					if t, err := parseDateInput(str); err == nil {
-// 						dateFilter["$gte"] = t
-// 					}
-// 				}
-// 				delete(filterParam.Filters, fromKey)
-// 			}
-
-// 			if raw, ok := filterParam.Filters[toKey]; ok {
-// 				if str, ok := raw.(string); ok && str != "" {
-// 					if t, err := parseDateInput(str); err == nil {
-// 						// if date-only (no time component), set to end of day
-// 						if !strings.Contains(str, "T") {
-// 							t = t.Add(24*time.Hour - time.Millisecond)
-// 						}
-// 						dateFilter["$lte"] = t
-// 					}
-// 				}
-// 				delete(filterParam.Filters, toKey)
-// 			}
-
-// 			if len(dateFilter) > 0 {
-// 				filter[ak] = dateFilter
-// 			}
-// 		}
-
-// 		handler := map[string]func(interface{}) interface{}{}
-// 		includedKeys := []string{
-// 			"enabled",
-// 			"enable",
-// 			"is_enabled",
-// 			"is_deleted",
-// 			"is_blocked",
-// 			"ussd_enabled",
-// 			"is_account_active",
-// 			"is_main",
-// 			"last_linked_status",
-// 			"is_verified",
-// 			"is_blocked",
-// 			"active_account",
-// 			"account_frozen",
-// 			"account_dormant",
-// 			"debit_allowed",
-// 			"credit_allowed",
-// 			"has_restriction",
-// 			"advert_for",
-// 		}
-// 		for _, key := range includedKeys {
-// 			for _, allowedKey := range allowedKeys {
-// 				if allowedKey == key {
-// 					handler[key] = func(value interface{}) interface{} {
-// 						if str, ok := value.(string); ok {
-// 							if parsed, err := strconv.ParseBool(str); err == nil {
-// 								return parsed
-// 							}
-// 						}
-// 						return value
-// 					}
-// 				}
-// 			}
-// 		}
-// 		enhancedFilter := local_util.BuildMongoFilterWithKeys(filterParam.Filters, allowedKeys, handler)
-
-// 		maps.Copy(filter, enhancedFilter)
-// 	}
-
-// 	skip = int64((filterParam.Page - 1) * filterParam.PerPage)
-// 	limit = int64(filterParam.PerPage)
-
-//		return filter, skip, limit
-//	}
 func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []string) (bson.M, int64, int64) {
 	var skip, limit int64
 	filter := bson.M{}
@@ -1389,6 +1677,7 @@ func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []st
 
 	return filter, skip, limit
 }
+
 func BuildOracleFilter(
 	filterParam types.Filter,
 	searchKeys map[string]string, // keep as map
@@ -2165,31 +2454,3 @@ func PublishMerchantChangeToERP(ctx context.Context, cfg *config.VaultConfig, bo
 	logger.Infof("ERP update successful for merchant %s with response status %d, response body: %s", merchantID, resp.StatusCode, string(bodyBytes))
 	return nil
 }
-
-// func ResolveModuleForRABelongsToUpdate(action constants.RequestAction,RequestActionGroups map[string][]constants.RequestAction) (string, bool) {
-
-// 	var RAUpdateList = []string{}
-// 	// First, check in priority order to mirror dispatcher behavior
-// 	for _, mod := range modulePriority {
-// 		if local_util.IsActionInGroup(action, mod, RequestActionGroups) {
-// 			return mod, true
-// 		}
-// 	}
-
-// 	// Then, scan any remaining groups not explicitly prioritized
-// 	for mod := range RequestActionGroups {
-// 		// skip already-checked modules
-// 		if local_util.Contains(modulePriority, mod) {
-// 			continue
-// 		}
-
-// 		if IsActionInGroup(action, mod) {
-// 			return mod, true
-// 		}
-// 	}
-// 	// Fallback: infer module from request action string patterns
-// 	if mod, ok := lib.FallbackModuleForRA(constants.RequestAction(action)); ok {
-// 		return mod, true
-// 	}
-// 	return "", false
-// }

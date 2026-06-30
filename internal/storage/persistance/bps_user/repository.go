@@ -145,7 +145,7 @@ func (b *BPSUserStorage) FindForExport(ctx context.Context, startDate, endDate t
 			"first_name":   "$full_name",
 			"phone_number": 1,
 			"email":        1,
-			"department":   bson.M{"$ifNull": bson.A{"$branch_name", bson.M{"$arrayElemAt": bson.A{"$branch_code", 0}}}},
+			"branch_name":  bson.M{"$ifNull": bson.A{"$branch_name", bson.M{"$arrayElemAt": bson.A{"$branch_code", 0}}}},
 			"branch_code": bson.M{
 				"$ifNull": bson.A{
 					bson.M{
