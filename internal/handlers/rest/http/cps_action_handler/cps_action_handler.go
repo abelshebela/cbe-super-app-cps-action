@@ -942,6 +942,8 @@ func (a *cpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http
 	services := local_util.ExtractStringSlice(filterParams.Filters, "services")
 	log.Infof("[CPSAction][GetUserApproverActions] list of service trying to filer ******** services:%s", services)
 
+	log.Infof("[CpsActionH][Approve] checker actions: %v", checkerActions)
+
 	if len(services) != 0 {
 		for _, chk := range services {
 			if !slices.Contains(checkerActions, chk) {
@@ -964,8 +966,6 @@ func (a *cpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http
 			}
 		}
 	}
-
-	log.Infof("[CpsActionH][Approve] checker actions: %v", checkerActions)
 
 	seen = map[string]struct{}{}
 	for _, mod := range checkerActions {
