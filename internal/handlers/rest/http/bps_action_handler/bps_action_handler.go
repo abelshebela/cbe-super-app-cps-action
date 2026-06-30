@@ -504,10 +504,15 @@ func (a *bpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http
 		filterParams.Filters["request_action"] = map[string]interface{}{"$in": reqs}
 	}
 
-	res, err := a.bpsActionApplication.GetBPSActionsForApprover(ctx, userID, reqs, filterParams)
+	res, url, err := a.bpsActionApplication.GetBPSActionsForApprover(ctx, userID, reqs, filterParams)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if url != "" {
+		localization.SendSuccessResponse(w, localization.SuccessBPSActionsRetrieved, map[string]interface{}{"url": url})
 		return
 	}
 	localization.SendSuccessResponse(w, localization.SuccessBPSActionsRetrieved, res)
@@ -690,7 +695,7 @@ func (a *bpsActionAdapter) GetUserApproverApprovedActions(w http.ResponseWriter,
 	// do not force action_status; let API-provided filters decide
 
 	userID := local_util.ExtractUserContext(r).UserName
-	res, err := a.bpsActionApplication.GetBPSActionsForApprover(ctx, userID, reqs, filterParams)
+	res, _, err := a.bpsActionApplication.GetBPSActionsForApprover(ctx, userID, reqs, filterParams)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -907,7 +912,7 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 		log.Infof("[BPSAction][GetActionCounts] ************************** CHECKER")
 		if checkerActions != nil {
 			// Pending: query BPS collection directly (consistent with GetBPSActionsForApprover)
-			if res, err := a.bpsActionApplication.GetBPSActionsForApprover(ctx, userID, reqs, buildFilter(string(bpsactionsvc.ActionPending), "")); err != nil {
+			if res, _, err := a.bpsActionApplication.GetBPSActionsForApprover(ctx, userID, reqs, buildFilter(string(bpsactionsvc.ActionPending), "")); err != nil {
 				span.RecordError(err)
 				localization.SendErrorByCodeResponse(w, err.Error())
 				return
@@ -917,7 +922,7 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 			}
 
 			// Approved: query user log with action_type=BPS_ACTION (consistent with GetBPSActionsForApprover)
-			if res, err := a.bpsActionApplication.GetBPSActionsForApprover(ctx, userID, reqs, buildFilter(string(bpsactionsvc.ActionApproved), "")); err != nil {
+			if res, _, err := a.bpsActionApplication.GetBPSActionsForApprover(ctx, userID, reqs, buildFilter(string(bpsactionsvc.ActionApproved), "")); err != nil {
 				span.RecordError(err)
 				localization.SendErrorByCodeResponse(w, err.Error())
 				return
@@ -927,7 +932,7 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 			}
 
 			// Rejected: query user log with action_type=BPS_ACTION (consistent with GetBPSActionsForApprover)
-			if res, err := a.bpsActionApplication.GetBPSActionsForApprover(ctx, userID, reqs, buildFilter(string(bpsactionsvc.ActionRejected), "")); err != nil {
+			if res, _, err := a.bpsActionApplication.GetBPSActionsForApprover(ctx, userID, reqs, buildFilter(string(bpsactionsvc.ActionRejected), "")); err != nil {
 				span.RecordError(err)
 				localization.SendErrorByCodeResponse(w, err.Error())
 				return

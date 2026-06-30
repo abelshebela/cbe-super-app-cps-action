@@ -51,7 +51,7 @@ func (s *bpsActionServiceWithRoles) GetUserCreatedActions(ctx context.Context, u
 	return s.base.GetUserCreatedActions(ctx, userID, filterParams)
 }
 
-func (s *bpsActionServiceWithRoles) GetBPSActionsForApprover(ctx context.Context, userID string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*bps_model.BPSAction], error) {
+func (s *bpsActionServiceWithRoles) GetBPSActionsForApprover(ctx context.Context, userID string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*bps_model.BPSAction], string, error) {
 	return s.base.GetBPSActionsForApprover(ctx, userID, RAList, filterParams)
 }
 

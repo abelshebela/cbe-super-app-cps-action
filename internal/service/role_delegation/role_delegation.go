@@ -65,6 +65,7 @@ func (r *roleDelegation) Authorize(ctx context.Context, cpsAction *model.CPSActi
 		log.Errorf("[RoleDelegation Service][Authorize] map to RoleDelegation failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
+
 	log.Infof("[RoleDelegation Service][Authorize] CPS action data as RoleDelegation: %+v", roleDelegation)
 	if cpsAction.UniqueId != "" {
 		if oid, err := bson.ObjectIDFromHex(cpsAction.UniqueId); err == nil {
@@ -201,7 +202,7 @@ func (r *roleDelegation) CreateWithExistingUser(ctx context.Context, roleDelegat
 		}
 	}
 	roleDelegation.Enable = true
-	cpsModel := lib.CpsModelBuilder(roleDelegation.DelegatedUserID, maker, nil, roleDelegation, constants.RequestCreateRoleDelegationForExistingUser, constants.CREATE)
+	cpsModel := lib.CpsModelBuilder(roleDelegation.DelegatedUserUserCode, maker, nil, roleDelegation, constants.RequestCreateRoleDelegationForExistingUser, constants.CREATE)
 	return r.cpsService.CreateCPSAction(ctx, &cpsModel)
 
 }
@@ -210,7 +211,7 @@ func (r *roleDelegation) CreateWithExistingUser(ctx context.Context, roleDelegat
 func (r *roleDelegation) CreateWithNewUser(ctx context.Context, roleDelegation imodel.RoleDelegation) error {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
-	log.Infof("[RoleDelegation/Create] Creating role delegation for user %s with job title %s", roleDelegation.DelegatedUserID, roleDelegation.DelegatedUserJobTitle)
+	log.Infof("[RoleDelegation/Create] Creating role delegation for user %s with job title %s", roleDelegation.DelegatedUserUserCode, roleDelegation.DelegatedUserJobTitle)
 
 	maker := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(maker) {
@@ -305,7 +306,7 @@ func (r *roleDelegation) CreateWithNewUser(ctx context.Context, roleDelegation i
 
 	roleDelegation.Enable = true
 
-	cpsModel := lib.CpsModelBuilder(roleDelegation.DelegatedUserID, maker, nil, roleDelegation, constants.RequestCreateRoleDelegationForNewUser, constants.CREATE)
+	cpsModel := lib.CpsModelBuilder(roleDelegation.DelegatedUserUserCode, maker, nil, roleDelegation, constants.RequestCreateRoleDelegationForNewUser, constants.CREATE)
 	return r.cpsService.CreateCPSAction(ctx, &cpsModel)
 
 }
