@@ -8,21 +8,26 @@ import (
 
 // AccountBlockResponse represents any region, district, city, or branch
 type AccountBlockResponse struct {
-	ID            string                    `json:"id,omitempty"`
-	Name          string                    `json:"name"`
-	Code          string                    `json:"code"`
-	Address       string                    `json:"address"`
-	Slug          string                    `json:"slug"`
-	ParentID      string                    `json:"parent_id,omitempty"`
-	Parent        *imodel.AccountBlock      `json:"parent,omitempty"`
-	Type          string                    `json:"type"` // R=Region, D=District, C=City, B=Branch
-	CityID        string                    `json:"city_id,omitempty"`
-	RegionID      string                    `json:"region_id,omitempty"`
-	DistrictID    string                    `json:"district_id,omitempty"`
+	ID            string                      `json:"id,omitempty"`
+	Name          string                      `json:"name"`
+	Code          string                      `json:"code"`
+	Address       string                      `json:"address"`
+	Slug          string                      `json:"slug"`
+	ParentID      string                      `json:"parent_id,omitempty"`
+	Parent        *imodel.AccountBlock        `json:"parent,omitempty"`
+	Type          string                      `json:"type"` // R=Region, D=District, C=City, B=Branch
+	BranchType    string                      `json:"branch_type,omitempty"`
+	RegionName    string                      `json:"region_name,omitempty"`
+	RegionCode    string                      `json:"region_code,omitempty"`
+	DistrictName  string                      `json:"district_name,omitempty"`
+	DistrictCode  string                      `json:"district_code,omitempty"`
+	CityID        string                      `json:"city_id,omitempty"`
+	RegionID      string                      `json:"region_id,omitempty"`
+	DistrictID    string                      `json:"district_id,omitempty"`
 	DisableReason []imodel.AccountBlockReason `json:"disable_reason"`
-	IsEnabled     bool                      `json:"is_enabled"`
-	CreatedAt     time.Time                 `json:"created_at"`
-	UpdatedAt     time.Time                 `json:"updated_at"`
+	IsEnabled     bool                        `json:"is_enabled"`
+	CreatedAt     time.Time                   `json:"created_at"`
+	UpdatedAt     time.Time                   `json:"updated_at"`
 }
 
 // PreviousDisableReasonsResponse is returned by GET /account_block/previous_reasons/{id}.

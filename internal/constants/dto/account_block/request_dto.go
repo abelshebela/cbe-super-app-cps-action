@@ -8,13 +8,13 @@ type EnableOrDisableBranches struct {
 
 // EnableOrDisableRegions represents the request to enable or disable regions
 type EnableOrDisableRegions struct {
-	RegionIds []string `json:"region_ids" example:"674003000000000000000001" validate:"required,min=1"`
+	RegionIds []string `json:"region_ids" example:"RG001,RG002" validate:"required,min=1"`
 	Reason    string   `json:"reason" example:"Policy Update" validate:"required"`
 }
 
 // EnableOrDisableDistricts represents the request to enable or disable districts
 type EnableOrDisableDistricts struct {
-	DistrictIds []string `json:"district_ids" example:"674003000000000000010001" validate:"required,min=1"`
+	DistrictIds []string `json:"district_ids" example:"DS001,DS002" validate:"required,min=1"`
 	Reason      string   `json:"reason" example:"Operational Change" validate:"required"`
 }
 

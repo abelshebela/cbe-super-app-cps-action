@@ -22,6 +22,11 @@ type AccountBlock struct {
 	Parent        *AccountBlock        `json:"parent,omitempty"`
 	Slug          string               `json:"slug"`
 	Type          AccountBlockType     `json:"type"`
+	BranchType    string               `json:"branch_type,omitempty"`
+	RegionName    string               `json:"region_name,omitempty"`
+	RegionCode    string               `json:"region_code,omitempty"`
+	DistrictName  string               `json:"district_name,omitempty"`
+	DistrictCode  string               `json:"district_code,omitempty"`
 	IsEnabled     bool                 `json:"is_enabled"`
 	CityID        *string              `json:"city_id,omitempty"`
 	RegionID      *string              `json:"region_id,omitempty"`
