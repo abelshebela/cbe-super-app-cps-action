@@ -1140,10 +1140,57 @@ func (a *cpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.
 		}
 		allocation = append(allocation, v)
 	}
+	// // resolve action_names -> request_actions
+	// var reqs []string
+	// seen := map[string]struct{}{}
+	// for _, mod := range allocation {
+	// 	upper := strings.ToUpper(strings.TrimSpace(mod))
+	// 	if lst, ok := cpsactionsvc.RequestActionGroups[upper]; ok {
+	// 		for _, ra := range lst {
+	// 			key := string(ra)
+	// 			if _, ok := seen[key]; ok {
+	// 				continue
+	// 			}
+	// 			seen[key] = struct{}{}
+	// 			reqs = append(reqs, key)
+	// 		}
+	// 	}
+	// }
+
 	// resolve action_names -> request_actions
-	var reqs []string
+	var filterReqs, reqs []string
 	seen := map[string]struct{}{}
-	for _, mod := range allocation {
+
+	services := local_util.ExtractStringSlice(filterParams.Filters, "services")
+	log.Infof("[CPSAction][GetUserAuditorActions] list of service trying to filer ******** services:%s", services)
+
+	log.Infof("[CpsActionH][Approve] auditor actions: %v", auditorAllocations)
+
+	if len(services) != 0 {
+		for _, chk := range services {
+			if !slices.Contains(auditorAllocations, chk) {
+				localization.SendBadRequestResponse(w, localization.ErrorNotAllowedServicesIncluded.Message)
+				return
+			}
+		}
+
+		for _, svc := range services {
+			if lst, ok := cpsactionsvc.RequestActionGroups[strings.ToUpper(svc)]; ok {
+				for _, ra := range lst {
+					key := string(ra)
+					if _, ok := seen[key]; ok {
+						continue
+					}
+
+					seen[key] = struct{}{}
+					filterReqs = append(filterReqs, key)
+				}
+			}
+		}
+	}
+
+	seen = map[string]struct{}{}
+	for _, mod := range auditorAllocations {
 		upper := strings.ToUpper(strings.TrimSpace(mod))
 		if lst, ok := cpsactionsvc.RequestActionGroups[upper]; ok {
 			for _, ra := range lst {
@@ -1151,6 +1198,12 @@ func (a *cpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.
 				if _, ok := seen[key]; ok {
 					continue
 				}
+				if len(services) > 0 {
+					if !slices.Contains(filterReqs, key) {
+						continue
+					}
+				}
+
 				seen[key] = struct{}{}
 				reqs = append(reqs, key)
 			}
