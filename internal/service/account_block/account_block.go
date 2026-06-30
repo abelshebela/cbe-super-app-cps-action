@@ -155,6 +155,13 @@ func (s *accountBlockService) EnableOrDisableBranches(ctx context.Context, branc
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 
+	for _, id := range branchIds {
+		ok := local_util.IsOracleHexID(id)
+		if id == "" || !ok {
+			return errors.New(localization.ErrorInvalidID.Code)
+		}
+	}
+
 	log.Infof("[AccBlockSvc][EnableDisableBranches] count: %d enabled: %v", len(branchIds), enabled)
 	var alreadyEnabled []string
 	var alreadyDisabled []string
