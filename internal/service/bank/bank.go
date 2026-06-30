@@ -124,11 +124,6 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 	// }
 	actionData := bank_core.Bank_oracle_mapper(actionMapCurrent.(map[string]interface{}))
 
-	var previousData imodel.BankOracle
-	if actionMapPrev != nil {
-		previousData = bank_core.Bank_oracle_mapper(actionMapPrev.(map[string]interface{}))
-	}
-
 	switch string(cpsAction.RequestAction) {
 	case string(constants.RequestCreateBank):
 		actionData.CreateAt = time.Now().String()
@@ -219,8 +214,8 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 			return nil, err
 		}
 		// create cache
-		_, err = b.catch.Update(ctx, actionData.BICCode, bank_catch.BankData{
-			BankID:          actionData.ID,
+		_, err = b.catch.Update(ctx, bank_catch.BankData{
+			BankID:          cpsAction.UniqueId,
 			Name:            actionData.BankName,
 			BICCode:         actionData.BICCode,
 			AccountLength:   actionData.AccountLength,
@@ -236,22 +231,39 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 			))
 			log.Errorf("[BankSvc][Authorize] cache create err: %v", err)
 		}
-		// if banks, _, err := b.catch.GetAll(ctx); err == nil {
-		// 	log.Infof("[BankSvc][Authorize] get All cache after delete: %+v", banks)
-		// 	var newBanks = make([]bank_catch.AllBankData, 0)
-		// 	for _, bank := range banks {
-		// 		if bank.BICCode != actionData.BICCode {
-		// 			newBanks = append(newBanks, bank)
-		// 		} else {
-		// 			if actionData.IsEnabled == 1 {
-		// 				newBanks = append(newBanks, bank)
-		// 			}
-		// 		}
-		// 	}
-		// 	if err := b.catch.SetAll(ctx, newBanks); err != nil {
-		// 		log.Errorf("[BankSvc][Authorize] cache set all err: %v", err)
-		// 	}
-		// }
+
+		if banks, _, err := b.catch.GetAll(ctx); err == nil {
+			log.Infof("[BankSvc][Authorize] get All cache after delete: %+v", banks)
+			var newBanks = make([]bank_catch.AllBankData, 0)
+			var found bool
+			for _, bank := range banks {
+				if bank.BICCode != actionData.BICCode {
+					newBanks = append(newBanks, bank)
+					found = true
+				} else {
+					if actionData.IsEnabled == 1 {
+						newBanks = append(newBanks, bank)
+						found = true
+					}
+				}
+			}
+
+			if found && actionData.IsEnabled == 1 {
+				newBanks = append(newBanks, bank_catch.AllBankData{
+					BankID:          cpsAction.UniqueId,
+					Name:            actionData.BankName,
+					BICCode:         actionData.BICCode,
+					AccountLength:   actionData.AccountLength,
+					IsEnabled:       actionData.IsEnabled == 1,
+					ImageURL:        actionData.Logo,
+					HasAlphaNumeric: actionData.HasAlphaNumeric == 1,
+					IsCBE:           actionData.IS_CBE == 1,
+				})
+			}
+			if err := b.catch.SetAll(ctx, newBanks); err != nil {
+				log.Errorf("[BankSvc][Authorize] cache set all err: %v", err)
+			}
+		}
 		log.Infof("[BankSvc][Authorize] enable/disable done id: %s", cpsAction.UniqueId)
 	case string(constants.RequestUpdateBankLogo):
 		err := b.oracleRepo.Update(ctx, cpsAction.UniqueId, &actionData)
@@ -276,8 +288,8 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 			return nil, err
 		}
 		// create cache
-		_, err = b.catch.Update(ctx, previousData.BICCode, bank_catch.BankData{
-			BankID:          actionData.ID,
+		_, err = b.catch.Update(ctx, bank_catch.BankData{
+			BankID:          cpsAction.UniqueId,
 			Name:            actionData.BankName,
 			BICCode:         actionData.BICCode,
 			AccountLength:   actionData.AccountLength,
@@ -294,26 +306,6 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 			log.Errorf("[BankSvc][Authorize] cache create err: %v", err)
 		}
 
-		// if banks, _, err := b.catch.GetAll(ctx); err == nil {
-		// 	log.Infof("[BankSvc][Authorize] get All cache after update: %+v", banks)
-		// 	var newBanks = make([]bank_catch.AllBankData, 0)
-		// 	for _, bank := range banks {
-		// 		if bank.BankID == actionData.ID {
-		// 			newBanks = append(newBanks, bank_catch.AllBankData{
-		// 				BankID:   actionData.ID,
-		// 				Name:     actionData.BankName,
-		// 				BICCode:  actionData.BICCode,
-		// 				ImageURL: actionData.Logo,
-		// 				IsCBE:    actionData.IS_CBE == 1,
-		// 			})
-		// 		} else {
-		// 			newBanks = append(newBanks, bank)
-		// 		}
-		// 	}
-		// 	if err := b.catch.SetAll(ctx, newBanks); err != nil {
-		// 		log.Errorf("[BankSvc][Authorize] cache set all err: %v", err)
-		// 	}
-		// }
 		log.Infof("[BankSvc][Authorize] updated id: %s", cpsAction.UniqueId)
 	default:
 		span.AddEvent("[Authorize] unsupported action", trace.WithAttributes(attribute.String("action", cpsAction.RequestAction)))

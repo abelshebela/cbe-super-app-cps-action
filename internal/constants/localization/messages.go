@@ -697,11 +697,13 @@ const (
 	MsgExternalServiceError            = "External service error"
 
 	// Business logic error messages
-	MsgInsufficientBalance = "Insufficient balance"
-	MsgTransactionFailed   = "Transaction failed"
-	MsgLimitExceeded       = "Limit exceeded"
-	MsgOperationNotAllowed = "Access Denied"
-	MsgActionActorRequired = "Action actor is required"
+	MsgInsufficientBalance        = "Insufficient balance"
+	MsgTransactionFailed          = "Transaction failed"
+	MsgLimitExceeded              = "Limit exceeded"
+	MsgOperationNotAllowed        = "Access Denied"
+	MsgRoleRequired               = "Please Provide Role that you want"
+	MsgNotAllowedServicesIncluded = "You Included Services that are not allowed"
+	MsgActionActorRequired        = "Action actor is required"
 	// MsgOperationNotAllowed                 = "Operation not allowed"
 	MsgAuditorAlreadyChecked               = "Auditor already checked this action"
 	MsgAuditorActionOnThisRoleCompleted    = "Action Auditing on this role is already completed"

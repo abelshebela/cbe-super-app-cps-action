@@ -504,10 +504,15 @@ func (a *bpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http
 		filterParams.Filters["request_action"] = map[string]interface{}{"$in": reqs}
 	}
 
-	res, err := a.bpsActionApplication.GetBPSActionsForApprover(ctx, userID, reqs, filterParams)
+	res, url, err := a.bpsActionApplication.GetBPSActionsForApprover(ctx, userID, reqs, filterParams)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if url != "" {
+		localization.SendSuccessResponse(w, localization.SuccessBPSActionsRetrieved, map[string]interface{}{"url": url})
 		return
 	}
 	localization.SendSuccessResponse(w, localization.SuccessBPSActionsRetrieved, res)
@@ -610,10 +615,14 @@ func (a *bpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.
 
 	// do not force action_status; let API-provided filters decide
 	userID := local_util.ExtractUserContext(r).UserID
-	res, err := a.bpsActionApplication.GetBPSActionsForAuditor(ctx, userID, reqs, filterParams)
+	res, url, err := a.bpsActionApplication.GetBPSActionsForAuditor(ctx, userID, reqs, filterParams)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	if url != "" {
+		localization.SendSuccessResponse(w, localization.SuccessBPSActionsRetrieved, map[string]interface{}{"url": url})
 		return
 	}
 	localization.SendSuccessResponse(w, localization.SuccessBPSActionsRetrieved, res)
@@ -686,7 +695,7 @@ func (a *bpsActionAdapter) GetUserApproverApprovedActions(w http.ResponseWriter,
 	// do not force action_status; let API-provided filters decide
 
 	userID := local_util.ExtractUserContext(r).UserName
-	res, err := a.bpsActionApplication.GetBPSActionsForApprover(ctx, userID, reqs, filterParams)
+	res, _, err := a.bpsActionApplication.GetBPSActionsForApprover(ctx, userID, reqs, filterParams)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -844,7 +853,7 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 
 		if auditorActions != nil {
 			// UnAudited — NOTCHECKED: queries BPS repo directly (no user_action_log)
-			if res, err := a.bpsActionApplication.GetBPSActionsForAuditor(ctx, userID, reqs, buildFilter(queryActionStatus, string(model.AUDITORNOTCHECKED))); err != nil {
+			if res, _, err := a.bpsActionApplication.GetBPSActionsForAuditor(ctx, userID, reqs, buildFilter(queryActionStatus, string(model.AUDITORNOTCHECKED))); err != nil {
 				span.RecordError(err)
 				localization.SendErrorByCodeResponse(w, err.Error())
 				a.logger.Errorf("[BpsActionH][Auditor] failed to get un-audited count: %v", err)
@@ -854,7 +863,7 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 			}
 
 			// Inprogress — INPROGRESS: queries via user_action_log
-			if res, err := a.bpsActionApplication.GetBPSActionsForAuditor(ctx, userID, reqs, buildFilter(queryActionStatus, string(model.AUDITORINPROGRESS))); err != nil {
+			if res, _, err := a.bpsActionApplication.GetBPSActionsForAuditor(ctx, userID, reqs, buildFilter(queryActionStatus, string(model.AUDITORINPROGRESS))); err != nil {
 				span.RecordError(err)
 				localization.SendErrorByCodeResponse(w, err.Error())
 				a.logger.Errorf("[BpsActionH][Auditor] failed to get inprogress count: %v", err)
@@ -864,7 +873,7 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 			}
 
 			// Audited — CHECKED: queries via user_action_log
-			if res, err := a.bpsActionApplication.GetBPSActionsForAuditor(ctx, userID, reqs, buildFilter(queryActionStatus, string(model.AUDITORCHECKED))); err != nil {
+			if res, _, err := a.bpsActionApplication.GetBPSActionsForAuditor(ctx, userID, reqs, buildFilter(queryActionStatus, string(model.AUDITORCHECKED))); err != nil {
 				span.RecordError(err)
 				localization.SendErrorByCodeResponse(w, err.Error())
 				a.logger.Errorf("[BpsActionH][Auditor] failed to get audited count: %v", err)
@@ -876,7 +885,7 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 			// CustomerBarred — auditor_customer_bared=true in user_action_log
 			customerBarredFilter := buildFilter(queryActionStatus, string(model.AUDITORCHECKED))
 			customerBarredFilter.Filters["customer_bared"] = true
-			if res, err := a.bpsActionApplication.GetBPSActionsForAuditor(ctx, userID, reqs, customerBarredFilter); err != nil {
+			if res, _, err := a.bpsActionApplication.GetBPSActionsForAuditor(ctx, userID, reqs, customerBarredFilter); err != nil {
 				span.RecordError(err)
 				localization.SendErrorByCodeResponse(w, err.Error())
 				a.logger.Errorf("[BpsActionH][Auditor] failed to get customer-barred count: %v", err)
@@ -903,7 +912,7 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 		log.Infof("[BPSAction][GetActionCounts] ************************** CHECKER")
 		if checkerActions != nil {
 			// Pending: query BPS collection directly (consistent with GetBPSActionsForApprover)
-			if res, err := a.bpsActionApplication.GetBPSActionsForApprover(ctx, userID, reqs, buildFilter(string(bpsactionsvc.ActionPending), "")); err != nil {
+			if res, _, err := a.bpsActionApplication.GetBPSActionsForApprover(ctx, userID, reqs, buildFilter(string(bpsactionsvc.ActionPending), "")); err != nil {
 				span.RecordError(err)
 				localization.SendErrorByCodeResponse(w, err.Error())
 				return
@@ -913,7 +922,7 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 			}
 
 			// Approved: query user log with action_type=BPS_ACTION (consistent with GetBPSActionsForApprover)
-			if res, err := a.bpsActionApplication.GetBPSActionsForApprover(ctx, userID, reqs, buildFilter(string(bpsactionsvc.ActionApproved), "")); err != nil {
+			if res, _, err := a.bpsActionApplication.GetBPSActionsForApprover(ctx, userID, reqs, buildFilter(string(bpsactionsvc.ActionApproved), "")); err != nil {
 				span.RecordError(err)
 				localization.SendErrorByCodeResponse(w, err.Error())
 				return
@@ -923,7 +932,7 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 			}
 
 			// Rejected: query user log with action_type=BPS_ACTION (consistent with GetBPSActionsForApprover)
-			if res, err := a.bpsActionApplication.GetBPSActionsForApprover(ctx, userID, reqs, buildFilter(string(bpsactionsvc.ActionRejected), "")); err != nil {
+			if res, _, err := a.bpsActionApplication.GetBPSActionsForApprover(ctx, userID, reqs, buildFilter(string(bpsactionsvc.ActionRejected), "")); err != nil {
 				span.RecordError(err)
 				localization.SendErrorByCodeResponse(w, err.Error())
 				return

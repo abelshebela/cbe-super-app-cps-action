@@ -31,6 +31,7 @@ import (
 	// bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 	bps_model "cbe-super-app-cps-action/internal/constants/model"
 
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
@@ -65,34 +66,27 @@ type bpsActionService struct {
 	archivedLinkedAccountRepo storage.ArchivedLinkedAccountRepository
 	bpsUserRepo               storage.BPSUserRepository
 	cpsUserRepo               storage.CpsUserRepository
+	minioClient               *s3.Client
 	logger                    utils.Logger
 
 	dispatcher Dispatcher
 	cfg        config.VaultConfig
 }
 
-func NewBPSActionService(roles storage.BPSActionRoleRepository, repo storage.BPSActionRepository, customerRepo storage.CustomerRepository, archivedLinkedAccountRepo storage.ArchivedLinkedAccountRepository, bpsUserRepo storage.BPSUserRepository, cpsUserRepo storage.CpsUserRepository, actionLogRepo storage.UserActionLogRepository, logger utils.Logger, dispatcher Dispatcher, cfg config.VaultConfig) service.BPSActionService {
+func NewBPSActionService(roles storage.BPSActionRoleRepository, repo storage.BPSActionRepository, customerRepo storage.CustomerRepository, archivedLinkedAccountRepo storage.ArchivedLinkedAccountRepository, bpsUserRepo storage.BPSUserRepository, cpsUserRepo storage.CpsUserRepository, actionLogRepo storage.UserActionLogRepository, logger utils.Logger, dispatcher Dispatcher, minioClient *s3.Client, cfg config.VaultConfig) service.BPSActionService {
 
 	return &bpsActionService{
-
-		repo: repo,
-
-		logger: logger,
-
-		roles: roles,
-
-		customerRepo: customerRepo,
-
+		repo:                      repo,
+		logger:                    logger,
+		roles:                     roles,
+		customerRepo:              customerRepo,
 		archivedLinkedAccountRepo: archivedLinkedAccountRepo,
-
-		bpsUserRepo: bpsUserRepo,
-
-		cpsUserRepo: cpsUserRepo,
-
-		actionLogRepo: actionLogRepo,
-
-		dispatcher: dispatcher,
-		cfg:        cfg,
+		bpsUserRepo:               bpsUserRepo,
+		cpsUserRepo:               cpsUserRepo,
+		actionLogRepo:             actionLogRepo,
+		dispatcher:                dispatcher,
+		cfg:                       cfg,
+		minioClient:               minioClient,
 	}
 
 }
@@ -367,7 +361,7 @@ func (ba *bpsActionService) GetBPSActionsByDepartment(ctx context.Context, depar
 
 }
 
-func (ba *bpsActionService) GetBPSActionsForApprover(ctx context.Context, userID string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*bps_model.BPSAction], error) {
+func (ba *bpsActionService) GetBPSActionsForApprover(ctx context.Context, userID string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*bps_model.BPSAction], string, error) {
 	log := local_util.LoggerFromCtx(ctx, ba.logger)
 
 	ctx, span := lobal_util.TraceLogger(ctx, "service", "GetCPSActionsForApprover", "CPSAction", "GetCPSActionsForApprover")
@@ -400,7 +394,7 @@ func (ba *bpsActionService) GetBPSActionsForApprover(ctx context.Context, userID
 		actionCodes, err := ba.actionLogRepo.GetActionCodesByFilter(ctx, logFilter)
 		if err != nil {
 			span.AddEvent("failed to get action codes from log", trace.WithAttributes(attribute.String("error", err.Error())))
-			return nil, err
+			return nil, "", err
 		}
 
 		delete(filterParams.Filters, "status")
@@ -409,7 +403,7 @@ func (ba *bpsActionService) GetBPSActionsForApprover(ctx context.Context, userID
 			return &types.PaginatedResponse[[]*bps_model.BPSAction]{
 				Data: []*bps_model.BPSAction{},
 				Meta: lobal_util.BuildPaginationMeta(0, filterParams.Page, filterParams.PerPage),
-			}, nil
+			}, "", nil
 		}
 		filterParams.Filters["action_code"] = bson.M{"$in": actionCodes}
 	}
@@ -422,7 +416,7 @@ func (ba *bpsActionService) GetBPSActionsForApprover(ctx context.Context, userID
 
 		span.AddEvent("failed to find all with pagination", trace.WithAttributes(attribute.String("error", err.Error())))
 
-		return nil, err
+		return nil, "", err
 
 	}
 
@@ -435,13 +429,13 @@ func (ba *bpsActionService) GetBPSActionsForApprover(ctx context.Context, userID
 	}
 
 	log.Infof("[BpsActionSvc][GetBPSActionsForApprover] ----------------found %d actions for user %s with filter %+v", len(result.Data), userID, filterParams.Filters)
-	return result, nil
+	return result, "", nil
 
 }
 
-func (ba *bpsActionService) GetBPSActionsForAuditor(ctx context.Context, userID string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*bps_model.BPSAction], error) {
+func (ba *bpsActionService) GetBPSActionsForAuditor(ctx context.Context, userID string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*bps_model.BPSAction], string, error) {
 	log := local_util.LoggerFromCtx(ctx, ba.logger)
-
+	userData := local_util.ExtractUserFromContext(ctx)
 	ctx, span := lobal_util.TraceLogger(ctx, "service", "GetBPSActionsForAuditor", "BPSAction", "GetBPSActionsForAuditor")
 
 	defer span.End()
@@ -456,6 +450,7 @@ func (ba *bpsActionService) GetBPSActionsForAuditor(ctx context.Context, userID 
 	// Extract filters
 	levels := extractStringSlice(filterParams.Filters, "levels")
 	services := extractStringSlice(filterParams.Filters, "services")
+	_ = userData.BranchCode
 
 	// Check for customer_bared filter
 	var auditorCustomerBared *bool
@@ -475,7 +470,7 @@ func (ba *bpsActionService) GetBPSActionsForAuditor(ctx context.Context, userID 
 		result, err := ba.repo.SanitizedFindAllWithPaginationForAuditor(ctx, userID, *filterParams, RAList)
 		if err != nil {
 			span.AddEvent("failed to find all with pagination for auditor (NOTCHECKED)", trace.WithAttributes(attribute.String("error", err.Error())))
-			return nil, err
+			return nil, "", err
 		}
 		for _, action := range result.Data {
 			if action.ServiceName == "" {
@@ -484,7 +479,20 @@ func (ba *bpsActionService) GetBPSActionsForAuditor(ctx context.Context, userID 
 				}
 			}
 		}
-		return result, nil
+		if filterParams.Filters["action"] == "export" {
+			url, err := lib.FileExporterForBPSAction(ctx, ba.cfg, ba.minioClient, ba.cfg.S3BucketName, filterParams, result.Data, func(fields []string) []string {
+				return fields
+			}, ba.logger)
+			if err != nil {
+				span.AddEvent("failed to export BPS actions", trace.WithAttributes(attribute.String("error", err.Error())))
+				log.Errorf("[BpsActionSvc][Export] export BPS actions err: %v", err)
+				return nil, "", err
+			}
+			return nil, url, nil
+
+		}
+
+		return result, "", nil
 	}
 
 	// Build log filter
@@ -502,17 +510,17 @@ func (ba *bpsActionService) GetBPSActionsForAuditor(ctx context.Context, userID 
 	}
 
 	// Get action codes from user_action_log
-	if ba.actionLogRepo != nil {
+	if ba.actionLogRepo != nil && (filterParams.Filters["status"] == constants.Approved || filterParams.Filters["status"] == constants.Rejected) {
 		actionCodes, err := ba.actionLogRepo.GetActionCodesByActionLogFilter(ctx, logFilter)
 		if err != nil {
 			span.AddEvent("failed to get action codes by action log filter", trace.WithAttributes(attribute.String("error", err.Error())))
-			return nil, err
+			return nil, "", err
 		}
 		if len(actionCodes) == 0 {
 			return &types.PaginatedResponse[[]*bps_model.BPSAction]{
 				Data: []*bps_model.BPSAction{},
 				Meta: lobal_util.BuildPaginationMeta(0, filterParams.Page, filterParams.PerPage),
-			}, nil
+			}, "", nil
 		}
 		filterParams.Filters["action_code"] = bson.M{"$in": actionCodes}
 	}
@@ -521,7 +529,7 @@ func (ba *bpsActionService) GetBPSActionsForAuditor(ctx context.Context, userID 
 
 	if err != nil {
 		span.AddEvent("failed to find all with pagination", trace.WithAttributes(attribute.String("error", err.Error())))
-		return nil, err
+		return nil, "", err
 	}
 
 	for _, action := range result.Data {
@@ -532,18 +540,19 @@ func (ba *bpsActionService) GetBPSActionsForAuditor(ctx context.Context, userID 
 		}
 	}
 	if filterParams.Filters["action"] == "export" {
-		_, err := lib.FileExporterForBPSAction(ctx, ba.cfg, nil, "", filterParams, result.Data, func(fields []string) []string {
+		url, err := lib.FileExporterForBPSAction(ctx, ba.cfg, ba.minioClient, ba.cfg.S3BucketName, filterParams, result.Data, func(fields []string) []string {
 			return fields
 		}, ba.logger)
 		if err != nil {
 			span.AddEvent("failed to export BPS actions", trace.WithAttributes(attribute.String("error", err.Error())))
 			log.Errorf("[BpsActionSvc][Export] export BPS actions err: %v", err)
-			return nil, err
+			return nil, "", err
 		}
+		return nil, url, nil
 
 	}
 
-	return result, nil
+	return result, "", nil
 }
 
 func bpsExtractLevelClaimPairs(filters map[string]interface{}) []bps_model.LevelClaimPair {

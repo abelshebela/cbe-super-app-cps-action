@@ -555,7 +555,7 @@ func (b *bpsActionRepository) SanitizedFindAllWithPaginationForAuditor(ctx conte
 	switch filter["auditor_status"] {
 	case "NOTCHECKED":
 		filter["auditors.audited"] = bson.M{"$ne": true}
-		filter["status"] = constants.Approved // Only show APPROVED actions for auditors
+		// filter["status"] = constants.Approved // Only show APPROVED actions for auditors
 	case "CHECKED":
 		filter["auditors.audited"] = true
 	}
