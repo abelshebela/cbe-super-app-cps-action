@@ -888,6 +888,8 @@ func (a *cpsActionAdapter) GetCPSActionByActionCode(w http.ResponseWriter, r *ht
 //	@Security		BearerAuth
 //	@Router			/actions/approver/checker/actions [get]
 func (a *cpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getUserApproverPendingActions", "handler", "cpsAction")
+	defer span.End()
 	log := local_util.LoggerFromCtx(r.Context(), a.logger)
 	filterParams := local_util.ExtractFilterParams(r)
 
@@ -906,9 +908,6 @@ func (a *cpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
-	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getUserApproverPendingActions", "handler", "cpsAction")
-	defer span.End()
 
 	// roleCode from context
 	rawRoleID, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
@@ -1018,6 +1017,58 @@ func (a *cpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http
 	localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, res)
 }
 
+func (a *cpsActionAdapter) GetListOfServiceForFilter(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getUserApproverPendingActions", "handler", "cpsAction")
+	defer span.End()
+	filterParams := local_util.ExtractFilterParams(r)
+	log := local_util.LoggerFromCtx(r.Context(), a.logger)
+	var data []string
+	role, _ := filterParams.Filters["role"]
+
+	if role == "" {
+		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+		return
+	}
+	// roleCode from context
+	rawRoleID, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
+	if rawRoleID == "" {
+		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+		return
+	}
+
+	// fetch checker allocations for this role
+	idxRepo := mid.GetCPSActionApproveRepo()
+	if idxRepo == nil {
+		log.Errorf("[CPSAction][GetListOfServiceForFilter] Error while geting the repo")
+		localization.SendErrorByCodeResponse(w, localization.ErrorUnexpectedError.Code)
+		return
+	}
+
+	_, makerActions, checkerActions, auditorActions, _, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
+	if err != nil {
+		span.RecordError(err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if role == constants.Maker {
+		data = makerActions
+	} else if role == constants.Checker {
+		data = checkerActions
+	} else if role == constants.Auditor {
+		data = auditorActions
+	}
+
+	if len(data) == 0 {
+		log.Errorf("[CPSAction][GetListOfServiceForFilter] Error while geting the repo")
+		localization.SendErrorByCodeResponse(w, localization.ErrorUnexpectedError.Code)
+		return
+	}
+
+	log.Infof("[CPSAction][GetListOfServiceForFilter] successfuly fetched the list of services")
+	localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, map[string]interface{}{"services": checkerActions})
+}
+
 // GetUserAuditorActions retrieves CPS actions pending audit for the current user's auditor role
 //
 //	@Summary		Get auditor checker actions
@@ -1089,10 +1140,57 @@ func (a *cpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.
 		}
 		allocation = append(allocation, v)
 	}
+	// // resolve action_names -> request_actions
+	// var reqs []string
+	// seen := map[string]struct{}{}
+	// for _, mod := range allocation {
+	// 	upper := strings.ToUpper(strings.TrimSpace(mod))
+	// 	if lst, ok := cpsactionsvc.RequestActionGroups[upper]; ok {
+	// 		for _, ra := range lst {
+	// 			key := string(ra)
+	// 			if _, ok := seen[key]; ok {
+	// 				continue
+	// 			}
+	// 			seen[key] = struct{}{}
+	// 			reqs = append(reqs, key)
+	// 		}
+	// 	}
+	// }
+
 	// resolve action_names -> request_actions
-	var reqs []string
+	var filterReqs, reqs []string
 	seen := map[string]struct{}{}
-	for _, mod := range allocation {
+
+	services := local_util.ExtractStringSlice(filterParams.Filters, "services")
+	log.Infof("[CPSAction][GetUserAuditorActions] list of service trying to filer ******** services:%s", services)
+
+	log.Infof("[CpsActionH][Approve] auditor actions: %v", auditorAllocations)
+
+	if len(services) != 0 {
+		for _, chk := range services {
+			if !slices.Contains(auditorAllocations, chk) {
+				localization.SendBadRequestResponse(w, localization.ErrorNotAllowedServicesIncluded.Message)
+				return
+			}
+		}
+
+		for _, svc := range services {
+			if lst, ok := cpsactionsvc.RequestActionGroups[strings.ToUpper(svc)]; ok {
+				for _, ra := range lst {
+					key := string(ra)
+					if _, ok := seen[key]; ok {
+						continue
+					}
+
+					seen[key] = struct{}{}
+					filterReqs = append(filterReqs, key)
+				}
+			}
+		}
+	}
+
+	seen = map[string]struct{}{}
+	for _, mod := range auditorAllocations {
 		upper := strings.ToUpper(strings.TrimSpace(mod))
 		if lst, ok := cpsactionsvc.RequestActionGroups[upper]; ok {
 			for _, ra := range lst {
@@ -1100,6 +1198,12 @@ func (a *cpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.
 				if _, ok := seen[key]; ok {
 					continue
 				}
+				if len(services) > 0 {
+					if !slices.Contains(filterReqs, key) {
+						continue
+					}
+				}
+
 				seen[key] = struct{}{}
 				reqs = append(reqs, key)
 			}
