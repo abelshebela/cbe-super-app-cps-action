@@ -50,6 +50,12 @@ func Bank_oracle_mapper(action map[string]interface{}) imodel.BankOracle {
 	fmt.Printf("[Bank_oracle_mapper] Mapping action to BankOracle: %v\n", action)
 	bank := imodel.BankOracle{}
 
+	if v, ok := action["id"]; ok {
+		if id, ok := v.(string); ok {
+			bank.ID = id
+		}
+	}
+
 	if v, ok := action["bank_name"]; ok {
 		if name, ok := v.(string); ok {
 			bank.BankName = name

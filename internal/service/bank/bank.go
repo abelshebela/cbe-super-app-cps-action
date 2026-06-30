@@ -220,7 +220,7 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 		}
 		// create cache
 		_, err = b.catch.Update(ctx, actionData.BICCode, bank_catch.BankData{
-			BankID:          actionData.ID,
+			BankID:          cpsAction.UniqueId,
 			Name:            actionData.BankName,
 			BICCode:         actionData.BICCode,
 			AccountLength:   actionData.AccountLength,
@@ -277,7 +277,7 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 		}
 		// create cache
 		_, err = b.catch.Update(ctx, previousData.BICCode, bank_catch.BankData{
-			BankID:          actionData.ID,
+			BankID:          cpsAction.UniqueId,
 			Name:            actionData.BankName,
 			BICCode:         actionData.BICCode,
 			AccountLength:   actionData.AccountLength,
