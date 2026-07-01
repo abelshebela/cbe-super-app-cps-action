@@ -7,8 +7,23 @@ import (
 )
 
 func ToAccountBlockResponse(ab *imodel.AccountBlock) *ab_dto.AccountBlockResponse {
-	regionID := ab.RegionID
-	districtID := ab.DistrictID
+	if ab == nil {
+		return nil
+	}
+
+	regionID := ""
+	if ab.RegionID != nil {
+		regionID = *ab.RegionID
+	} else if ab.FederalRegionName != "" {
+		regionID = ab.FederalRegionName
+	}
+
+	districtID := ""
+	if ab.DistrictID != nil {
+		districtID = *ab.DistrictID
+	} else if ab.DistrictName != "" {
+		districtID = ab.DistrictName
+	}
 
 	var parent *imodel.AccountBlock
 	if ab.Parent != nil {
@@ -21,18 +36,21 @@ func ToAccountBlockResponse(ab *imodel.AccountBlock) *ab_dto.AccountBlockRespons
 	}
 
 	return &ab_dto.AccountBlockResponse{
-		ID:            ab.ID,
-		Name:          ab.Name,
-		Code:          ab.Code,
-		Address:       ab.Address,
-		Slug:          ab.Slug,
-		Type:          string(ab.Type),
-		Parent:        parent,
-		RegionID:      *regionID,
-		DistrictID:    *districtID,
-		DisableReason: dr,
-		IsEnabled:     ab.IsEnabled,
-		CreatedAt:     ab.CreatedAt,
-		UpdatedAt:     ab.UpdatedAt,
+		ID:                ab.ID,
+		Name:              ab.Name,
+		Code:              ab.Code,
+		Type:              string(ab.Type),
+		RegionName:        ab.RegionName,
+		FederalRegionName: ab.FederalRegionName,
+		DistrictName:      ab.DistrictName,
+		DaoCode:           ab.DaoCode,
+		AccountType:       ab.AccountType,
+		Parent:            parent,
+		RegionID:          regionID,
+		DistrictID:        districtID,
+		DisableReason:     dr,
+		IsEnabled:         ab.IsEnabled,
+		CreatedAt:         ab.CreatedAt,
+		UpdatedAt:         ab.UpdatedAt,
 	}
 }
