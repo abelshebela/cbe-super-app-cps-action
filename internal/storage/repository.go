@@ -367,7 +367,7 @@ type AccountBlockRepository interface {
 	EnableOrDisableDistricts(ctx context.Context, ids []string, reason *types.Reason, enabled bool) error
 	GetDistrictsByIds(ctx context.Context, ids []string) ([]*local_model.AccountBlock, error)
 	GetAccountBlockDetails(ctx context.Context, id string, filterParam types.Filter) (*types.PaginatedResponse[[]account_block_dto.AccountBlockActionResponse], error)
-	GetPreviousReasons(ctx context.Context, accountBlockID string) ([]local_model.AccountBlockReason, error)
+	GetPreviousReasons(ctx context.Context, entityType string, identifier string) ([]local_model.AccountBlockReason, error)
 	GetAllBranches(ctx context.Context, id string) ([]local_model.AccountBlock, error)
 	GetBranchByCode(ctx context.Context, code string) (*imodel.AccountBlock, error)
 }
@@ -449,6 +449,7 @@ type CpsUserRepository interface {
 	UpdateCpsUsersJobTitle(ctx context.Context, oldJobTitle, newJobTitle string) error
 	GetUserByDepartment(ctx context.Context, department string) (*imodel.CPSUser, error)
 	GetUserByJobTitle(ctx context.Context, jobTitle string) (*imodel.CPSUser, error)
+	GetByUserCode(ctx context.Context, userCode string) (imodel.CPSUser, error)
 }
 
 type BankVaultRepository interface {
