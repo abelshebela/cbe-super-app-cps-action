@@ -581,7 +581,7 @@ func (r *roleDelegation) Update(ctx context.Context, id string, update imodel.Ro
 
 	newRole.UpdatedAt = time.Now()
 
-	cpsModel := lib.CpsModelBuilder(id, maker, prev, newRole, constants.RequestUpdateRoleDelegation, constants.UPDATE)
+	cpsModel := lib.CpsModelBuilder(prev.DelegatedUserUserCode, maker, prev, newRole, constants.RequestUpdateRoleDelegation, constants.UPDATE)
 	return r.cpsService.CreateCPSAction(ctx, &cpsModel)
 }
 

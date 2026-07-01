@@ -109,11 +109,11 @@ func (r *roleDelegationRepository) CreateWithNewUser(ctx context.Context, role *
 	_, err = session.WithTransaction(ctx, func(sc context.Context) (any, error) {
 		role.ID = bson.NewObjectID()
 		role.Enable = true
-		if role.DelegatedUserUserType == "CPS" {
-			role.DelegatedUserUserCode = local_util.GenerateCPSUserCode()
-		} else {
-			role.DelegatedUserUserCode = local_util.GenerateBPSUserCode()
-		}
+		// if role.DelegatedUserUserType == "CPS" {
+		// 	role.DelegatedUserUserCode = local_util.GenerateCPSUserCode()
+		// } else {
+		// 	role.DelegatedUserUserCode = local_util.GenerateBPSUserCode()
+		// }
 		result, err := r.collection.InsertOne(sc, role)
 		if err != nil {
 			log.Errorf("[RoleDelegationRepository][Create] failed to create role delegation: %v", err)

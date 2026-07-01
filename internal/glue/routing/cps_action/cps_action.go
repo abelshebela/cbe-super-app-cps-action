@@ -63,6 +63,14 @@ func Init(router chi.Router, handler cpsaction.CPSActionAdapter, authMiddleware 
 		},
 		{
 			Method:  http.MethodGet,
+			Path:    "/actions/services_list",
+			Handler: handler.GetListOfServiceForFilter,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodGet,
 			Path:    "/actions/user/checked/actions",
 			Handler: handler.GetUserCheckedActions,
 			Middlewares: []func(next http.Handler) http.Handler{
