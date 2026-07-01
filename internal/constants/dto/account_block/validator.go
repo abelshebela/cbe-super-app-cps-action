@@ -12,14 +12,14 @@ func (e *EnableOrDisableBranches) Clean() {
 }
 
 func (e *EnableOrDisableRegions) Clean() {
-	for i, code := range e.RegionIds {
-		e.RegionIds[i] = strings.TrimSpace(code)
+	for i, name := range e.FederalRegionNames {
+		e.FederalRegionNames[i] = strings.TrimSpace(name)
 	}
 }
 
 func (e *EnableOrDisableDistricts) Clean() {
-	for i, code := range e.DistrictIds {
-		e.DistrictIds[i] = strings.TrimSpace(code)
+	for i, name := range e.DistrictNames {
+		e.DistrictNames[i] = strings.TrimSpace(name)
 	}
 }
 
@@ -45,9 +45,9 @@ func (e *EnableOrDisableRegions) Validate() error {
 	if e.Reason == "" {
 		return errors.New("reason is required")
 	}
-	for _, id := range e.RegionIds {
-		if strings.TrimSpace(id) == "" {
-			return errors.New("invalid region ID: empty value")
+	for _, name := range e.FederalRegionNames {
+		if strings.TrimSpace(name) == "" {
+			return errors.New("invalid federal region name: empty value")
 		}
 	}
 	return nil
@@ -57,9 +57,9 @@ func (e *EnableOrDisableDistricts) Validate() error {
 	if e.Reason == "" {
 		return errors.New("reason is required")
 	}
-	for _, id := range e.DistrictIds {
-		if strings.TrimSpace(id) == "" {
-			return errors.New("invalid district ID: empty value")
+	for _, name := range e.DistrictNames {
+		if strings.TrimSpace(name) == "" {
+			return errors.New("invalid district name: empty value")
 		}
 	}
 	return nil
