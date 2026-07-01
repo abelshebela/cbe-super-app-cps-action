@@ -598,6 +598,19 @@ func (r *CPSUserStorage) GetPopulatedWithRole(ctx context.Context, userCode stri
 	return &resp, nil
 }
 
+func (r *CPSUserStorage) GetByUserCode(ctx context.Context, userCode string) (imodel.CPSUser, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+	log.Infof("[CPSUserStorage][GetPopulatedByUserName] fetching populated CPS user")
+
+	data, err := r.dal.FindOne(ctx, bson.M{"user_code": userCode, "is_deleted": false}, nil)
+	if err != nil {
+		log.Errorf("[CPSUserStorage][GetPopulatedByUserName] failed to find CPS user: %v", err)
+		return imodel.CPSUser{}, local_util.HandleDBError(err)
+	}
+
+	return *data, nil
+}
+
 func (r *CPSUserStorage) GetPopulatedWithRoleByUserName(ctx context.Context, userName string) (*cpsuser.CpsUserPopulatedResponse, error) {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 

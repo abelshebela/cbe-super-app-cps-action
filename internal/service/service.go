@@ -170,6 +170,7 @@ type CPSUserService interface {
 	GetPopulatedCpsUser(ctx context.Context, userCode string) (*cpsuser.CpsUserResponse, error)
 	GetCpsUserDetail(ctx context.Context, userCode string) (*cpsuser.CpsUserPopulatedResponse, error)
 	GetCpsUserDetailByUserName(ctx context.Context, userCode string) (*cpsuser.CpsUserPopulatedResponse, error)
+	GetCpsUserDetailByCode(ctx context.Context, userCode string) (imodel.CPSUser, error)
 }
 
 type NotificationService interface {

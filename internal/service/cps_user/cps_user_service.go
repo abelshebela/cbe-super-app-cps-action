@@ -606,6 +606,7 @@ func (s *cpsUserService) FetchUserByUserCode(ctx context.Context, userCode strin
 	}
 	var roles *imodel.JobRole
 	if user.IsDelegationActive {
+
 		s.logger.Infof("fetching role by delegated role code: %s", user.DelegatedRoleCode)
 		roles, err = s.jobRoleRepo.FindByRole(ctx, user.DelegatedRoleCode)
 		if err != nil {
@@ -667,6 +668,19 @@ func (s *cpsUserService) GetPopulatedCpsUser(ctx context.Context, userCode strin
 	return user, nil
 }
 
+func (s *cpsUserService) GetCpsUserDetailByCode(ctx context.Context, userCode string) (imodel.CPSUser, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "GetPopulatedCpsUserByUserName", "CPSUser", "GetPopulatedCpsUserByUserName")
+	defer span.End()
+
+	data, err := s.repo.GetByUserCode(ctx, userCode)
+	if err != nil {
+		span.AddEvent("failed to get populated by id", trace.WithAttributes(attribute.String("error", err.Error())))
+		return imodel.CPSUser{}, err
+	}
+
+	return data, nil
+
+}
 func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) (*cpsuser.CpsUserPopulatedResponse, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetCpsUserDetail", "CPSUser", "GetCpsUserDetail")
 
