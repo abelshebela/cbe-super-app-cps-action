@@ -9,6 +9,7 @@ type CPSActionAdapter interface {
 	ReverseCPSAction(w http.ResponseWriter, r *http.Request)
 	GetCPSActionsByDepartment(w http.ResponseWriter, r *http.Request)
 	GetUserCreatedActions(w http.ResponseWriter, r *http.Request)
+	GetListOfServiceForFilter(w http.ResponseWriter, r *http.Request)
 	GetUserCheckedActions(w http.ResponseWriter, r *http.Request)
 	GetCPSActionByID(w http.ResponseWriter, r *http.Request)
 	GetCPSActionByActionCode(w http.ResponseWriter, r *http.Request)
