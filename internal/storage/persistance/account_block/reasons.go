@@ -53,10 +53,11 @@ func (a *AccountBlockStorage) deleteReasonsForBlockIDs(ctx context.Context, bloc
 	return err
 }
 
-func (a *AccountBlockStorage) insertDisableReasonForBlocks(ctx context.Context, blockIDs []string, reason *types.Reason) error {
+func (a *AccountBlockStorage) insertDisableReasonForBlocks(ctx context.Context, blockType string, blockIDs []string, reason *types.Reason) error {
 	if len(blockIDs) == 0 {
 		return nil
 	}
+
 	rt := bindOracleTime(time.Now())
 	rText, rBy := "", ""
 	if reason != nil {
@@ -65,12 +66,14 @@ func (a *AccountBlockStorage) insertDisableReasonForBlocks(ctx context.Context, 
 			rt = bindOracleTime(reason.CreatedAt)
 		}
 	}
+
 	for _, bid := range blockIDs {
 		_, err := a.db.ExecContext(ctx, `
-			INSERT INTO ACCOUNT_BLOCKS_DISABLED_REASONS (account_block_id, reason_text, created_by, created_at)
-			VALUES (HEXTORAW(:account_block_id), :reason_text, :created_by, :created_at)`,
-			sql.Named("account_block_id", bid),
-			sql.Named("reason_text", rText),
+			INSERT INTO COMPANY_BLOCK_REASON (entity_type, entity_id, reason, created_by, created_at)
+			VALUES (:entity_type, :entity_id, :reason, :created_by, :created_at)`,
+			sql.Named("entity_type", blockType),
+			sql.Named("entity_id", bid),
+			sql.Named("reason", rText),
 			sql.Named("created_by", rBy),
 			sql.Named("created_at", rt),
 		)
@@ -139,24 +142,89 @@ func (a *AccountBlockStorage) fetchReasonsMap(ctx context.Context, blockIDs []st
 	return out, rows.Err()
 }
 
-func (a *AccountBlockStorage) GetPreviousReasons(ctx context.Context, accountBlockID string) ([]imodel.AccountBlockReason, error) {
+func (a *AccountBlockStorage) GetPreviousReasons(ctx context.Context, entityType string, identifier string) ([]imodel.AccountBlockReason, error) {
 	log := local_util.LoggerFromCtx(ctx, a.logger)
 
-	log.Infof("[AccountBlockStorage][GetPreviousReasons] account_block_id=%s", accountBlockID)
-	if _, err := a.fetchBlockByID(ctx, accountBlockID); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, errors.New(localization.ErrorResourceNotFound.Code)
+	entityType = strings.ToUpper(strings.TrimSpace(entityType))
+	identifier = strings.TrimSpace(identifier)
+
+	log.Infof("[AccountBlockStorage][GetPreviousReasons] entity_type=%s entity_id=%s", entityType, identifier)
+
+	switch entityType {
+	case string(imodel.TypeBranch):
+		ok := local_util.IsOracleHexID(identifier)
+		if identifier == "" || !ok {
+			return nil, errors.New(localization.ErrorInvalidID.Code)
 		}
-		return nil, err
+
+		if _, err := a.fetchBlockByID(ctx, identifier); err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return nil, errors.New(localization.ErrorBranchNotFound.Code)
+			}
+			return nil, err
+		}
+	case string(imodel.TypeRegion):
+		regions, err := a.getRegionsByNames(ctx, []string{identifier})
+		if err != nil {
+			return nil, err
+		}
+		if len(regions) == 0 {
+			return nil, errors.New(localization.ErrorRegionNotFound.Code)
+		}
+	case string(imodel.TypeDistrict):
+		districts, err := a.getDistrictsByNames(ctx, []string{identifier})
+		if err != nil {
+			return nil, err
+		}
+		if len(districts) == 0 {
+			return nil, errors.New(localization.ErrorDistrictNotFound.Code)
+		}
+	default:
+		return nil, errors.New(localization.ErrorResourceNotFound.Code)
 	}
-	m, err := a.fetchReasonsMap(ctx, []string{accountBlockID})
+
+	rows, err := a.db.QueryContext(ctx, `
+		SELECT RAWTOHEX(id), reason, created_by, created_at
+		FROM COMPANY_BLOCK_REASON
+		WHERE entity_type = :entity_type AND entity_id = :entity_id
+		ORDER BY created_at DESC`,
+		sql.Named("entity_type", entityType),
+		sql.Named("entity_id", identifier),
+	)
 	if err != nil {
+		if isOracleTableMissingErr(err) {
+			log.Warnf("[AccountBlockStorage][GetPreviousReasons] reason table missing, returning empty list: %v", err)
+			return []imodel.AccountBlockReason{}, nil
+		}
 		log.Errorf("[AccountBlockStorage][GetPreviousReasons] fetch failed: %v", err)
 		return nil, err
 	}
-	reasons := m[normalizeHexID(accountBlockID)]
+	defer rows.Close()
+
+	var reasons []imodel.AccountBlockReason
+	for rows.Next() {
+		var id, rText, rBy sql.NullString
+		var rAt sql.NullTime
+		if err := rows.Scan(&id, &rText, &rBy, &rAt); err != nil {
+			return nil, err
+		}
+		at := time.Time{}
+		if rAt.Valid {
+			at = rAt.Time
+		}
+		rid := ""
+		if id.Valid {
+			rid = normalizeHexID(id.String)
+		}
+		reasons = append(reasons, imodel.AccountBlockReason{
+			ID:        rid,
+			Reason:    rText.String,
+			CreatedBy: rBy.String,
+			CreatedAt: at,
+		})
+	}
 	if reasons == nil {
 		reasons = []imodel.AccountBlockReason{}
 	}
-	return reasons, nil
+	return reasons, rows.Err()
 }

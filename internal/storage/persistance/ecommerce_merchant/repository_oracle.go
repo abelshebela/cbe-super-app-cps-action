@@ -466,13 +466,15 @@ func (m *EcommerceMerchantStorage) Delete(ctx context.Context, id string) error 
 	}
 	defer func() { _ = tx.Rollback() }()
 
-	const deleteMerchantQ = `
-UPDATE MERCHANTS
-SET
-	IS_DELETED = 1,
-	DELETED_AT = SYSTIMESTAMP,
-	LAST_MODIFIED_AT = SYSTIMESTAMP
-WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0`
+	// 	const deleteMerchantQ = `
+	// UPDATE MERCHANTS
+	// SET
+	// 	IS_DELETED = 1,
+	// 	DELETED_AT = SYSTIMESTAMP,
+	// 	LAST_MODIFIED_AT = SYSTIMESTAMP
+	// WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0`
+
+	const deleteMerchantQ = `DELETE FROM MERCHANTS WHERE ID = HEXTORAW(:1)`
 
 	res, err := tx.ExecContext(ctx, deleteMerchantQ, id)
 	if err != nil {
@@ -484,13 +486,16 @@ WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0`
 		return errors.New(localization.ErrorEcommerceMerchantNotFound.Code)
 	}
 
-	const deleteBranchesQ = `
-UPDATE MERCHANT_BRANCHES
-SET
-	IS_DELETED = 1,
-	DELETED_AT = SYSTIMESTAMP,
-	LAST_MODIFIED_AT = SYSTIMESTAMP
-WHERE MERCHANT_ID = HEXTORAW(:1) AND IS_DELETED = 0`
+	// 	const deleteBranchesQ = `
+	// UPDATE MERCHANT_BRANCHES
+	// SET
+	// 	IS_DELETED = 1,
+	// 	DELETED_AT = SYSTIMESTAMP,
+	// 	LAST_MODIFIED_AT = SYSTIMESTAMP
+	// WHERE MERCHANT_ID = HEXTORAW(:1) AND IS_DELETED = 0`
+
+	const deleteBranchesQ = `DELETE FROM MERCHANT_BRANCHES WHERE MERCHANT_ID = HEXTORAW(:1)`
+
 	if _, err := tx.ExecContext(ctx, deleteBranchesQ, id); err != nil {
 		log.Errorf("[EcommerceMerchantRepo][Delete] branch delete failed: %v", err)
 		return local_util.HandleDBError(err)
@@ -507,13 +512,14 @@ WHERE MERCHANT_ID = HEXTORAW(:1) AND IS_DELETED = 0`
 func (m *EcommerceMerchantStorage) DeleteBranch(ctx context.Context, id string) error {
 	log := local_util.LoggerFromCtx(ctx, m.logger)
 
-	const q = `
-UPDATE MERCHANT_BRANCHES
-SET
-	IS_DELETED = 1,
-	DELETED_AT = SYSTIMESTAMP,
-	LAST_MODIFIED_AT = SYSTIMESTAMP
-WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0`
+	// 	const q = `
+	// UPDATE MERCHANT_BRANCHES
+	// SET
+	// 	IS_DELETED = 1,
+	// 	DELETED_AT = SYSTIMESTAMP,
+	// 	LAST_MODIFIED_AT = SYSTIMESTAMP
+	// WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0`
+	const q = `DELETE FROM MERCHANT_BRANCHES WHERE ID = HEXTORAW(:1)`
 
 	res, err := m.db.ExecContext(ctx, q, id)
 	if err != nil {

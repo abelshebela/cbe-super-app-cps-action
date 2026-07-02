@@ -123,8 +123,9 @@ type BPSUserResposenDTO struct {
 	BranchCode        []string      `json:"branch_code" bson:"branch_code"` // enum: IFB, CB
 	BranchName        string        `json:"branch_name" bson:"branch_name"`
 	HomeBranch        string        `json:"home_branch" bson:"home_branch"`
-	Role              string        `json:"role" bson:"role"`   // enum: Maker, Checker, Aduditer
-	Realm             string        `json:"realm" bson:"realm"` // default: bank
+	Role              string        `json:"role" bson:"role"`                     // enum: Maker, Checker, Aduditer
+	DelegatedRole     string        `json:"delegated_role" bson:"delegated_role"` // enum: Maker, Checker, Aduditer
+	Realm             string        `json:"realm" bson:"realm"`                   // default: bank
 	LoginAttemptCount uint8         `json:"login_attempt_count" bson:"login_attempt_count"`
 	FirstPasswordSet  bool          `json:"first_password_set" bson:"first_password_set"`
 	Enabled           bool          `json:"enabled" bson:"enabled"`

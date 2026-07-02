@@ -155,6 +155,13 @@ func (s *accountBlockService) EnableOrDisableBranches(ctx context.Context, branc
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 
+	for _, id := range branchIds {
+		ok := local_util.IsOracleHexID(id)
+		if id == "" || !ok {
+			return errors.New(localization.ErrorInvalidID.Code)
+		}
+	}
+
 	log.Infof("[AccBlockSvc][EnableDisableBranches] count: %d enabled: %v", len(branchIds), enabled)
 	var alreadyEnabled []string
 	var alreadyDisabled []string
@@ -367,25 +374,25 @@ func (s *accountBlockService) EnableOrDisableDistricts(ctx context.Context, dist
 		}
 	}
 
-	if enabled {
-		regions, err := s.repo.GetRegionsByIds(ctx, regionIDs)
-		if err != nil {
-			return err
-		}
-		regionMap := make(map[string]bool)
-		for _, region := range regions {
-			regionMap[region.ID] = region.IsEnabled
-		}
+	// if enabled {
+	// 	regions, err := s.repo.GetRegionsByIds(ctx, regionIDs)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	regionMap := make(map[string]bool)
+	// 	for _, region := range regions {
+	// 		regionMap[region.ID] = region.IsEnabled
+	// 	}
 
-		for _, district := range districts {
-			if district.RegionID == nil {
-				return errors.New(localization.ErrorCannotEnableDistrict.Code)
-			}
-			if isRegionEnabled, exists := regionMap[*district.RegionID]; !exists || !isRegionEnabled {
-				return errors.New(localization.ErrorCannotEnableDistrict.Code)
-			}
-		}
-	}
+	// for _, district := range districts {
+	// 	if district.RegionID == nil {
+	// 		return errors.New(localization.ErrorCannotEnableDistrict.Code)
+	// 	}
+	// 	if isRegionEnabled, exists := regionMap[*district.RegionID]; !exists || !isRegionEnabled {
+	// 		return errors.New(localization.ErrorCannotEnableDistrict.Code)
+	// 	}
+	// }
+	// }
 
 	fullname := ctx.Value(constants.ContextKey("full_name")).(string)
 	for _, district := range districts {
@@ -676,19 +683,20 @@ func (s *accountBlockService) GetAccountBlockDetails(ctx context.Context, id str
 	return result, nil
 }
 
-func (s *accountBlockService) GetPreviousReasons(ctx context.Context, id string) (*account_block_dto.PreviousDisableReasonsResponse, error) {
+func (s *accountBlockService) GetPreviousReasons(ctx context.Context, entityType string, identifier string) (*account_block_dto.PreviousDisableReasonsResponse, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetPreviousReasons", "BlockAccount", "GetPreviousReasons")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 
-	reasons, err := s.repo.GetPreviousReasons(ctx, id)
+	reasons, err := s.repo.GetPreviousReasons(ctx, entityType, identifier)
 	if err != nil {
-		log.Errorf("[AccBlockSvc][GetPreviousReasons] id=%s err: %v", id, err)
+		log.Errorf("[AccBlockSvc][GetPreviousReasons] type=%s identifier=%s err: %v", entityType, identifier, err)
 		return nil, err
 	}
 
 	return &account_block_dto.PreviousDisableReasonsResponse{
-		AccountBlockID: id,
-		DisableReason:  reasons,
+		EntityType:    entityType,
+		Identifier:    identifier,
+		DisableReason: reasons,
 	}, nil
 }

@@ -170,6 +170,7 @@ type CPSUserService interface {
 	GetPopulatedCpsUser(ctx context.Context, userCode string) (*cpsuser.CpsUserResponse, error)
 	GetCpsUserDetail(ctx context.Context, userCode string) (*cpsuser.CpsUserPopulatedResponse, error)
 	GetCpsUserDetailByUserName(ctx context.Context, userCode string) (*cpsuser.CpsUserPopulatedResponse, error)
+	GetCpsUserDetailByCode(ctx context.Context, userCode string) (imodel.CPSUser, error)
 }
 
 type NotificationService interface {
@@ -429,7 +430,7 @@ type AccountBlockService interface {
 	EnableOrDisableDistricts(ctx context.Context, regionIds []string, reason string, enabled bool) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	GetAccountBlockDetails(ctx context.Context, id string, filter *types.Filter) (*types.PaginatedResponse[[]account_block_dto.AccountBlockActionResponse], error)
-	GetPreviousReasons(ctx context.Context, id string) (*account_block_dto.PreviousDisableReasonsResponse, error)
+	GetPreviousReasons(ctx context.Context, entityType string, identifier string) (*account_block_dto.PreviousDisableReasonsResponse, error)
 }
 
 type AccountValidationService interface {
