@@ -410,9 +410,35 @@ func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 			{Key: "as", Value: "job_roles"},
 		}}},
 
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from": "role_delegations",
+			"let":  bson.M{"uname": "$username"},
+			"pipeline": mongo.Pipeline{
+				bson.D{{Key: "$match", Value: bson.M{
+					"$expr": bson.M{"$and": bson.A{
+						bson.M{"$eq": []interface{}{bson.M{"$toLower": "$delegated_user_id"}, bson.M{"$toLower": "$$uname"}}},
+						bson.M{"$lte": []interface{}{"$start_at", "$$NOW"}},
+						bson.M{"$gt": []interface{}{"$end_at", "$$NOW"}},
+					}},
+				}}},
+				bson.D{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},
+				bson.D{{Key: "$limit", Value: 1}},
+				bson.D{{Key: "$project", Value: bson.M{"new_role_id": 1}}},
+			},
+			"as": "delegation_info",
+		}}},
+
+		bson.D{{Key: "$unwind", Value: bson.M{
+			"path":                       "$delegation_info",
+			"preserveNullAndEmptyArrays": true,
+		}}},
+
 		bson.D{{Key: "$addFields", Value: bson.D{
 			{Key: "user_role", Value: bson.D{
 				{Key: "$arrayElemAt", Value: bson.A{"$job_roles.name", 0}},
+			}},
+			{Key: "delegated_role", Value: bson.D{
+				{Key: "$ifNull", Value: bson.A{"$delegation_info.new_role_id", ""}},
 			}},
 		}}},
 
@@ -420,6 +446,7 @@ func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 			{Key: "roles", Value: 0},
 			{Key: "job_roles", Value: 0},
 			{Key: "role_code", Value: 0},
+			{Key: "delegation_info", Value: 0},
 		}}},
 
 		bson.D{{Key: "$sort", Value: bson.D{
