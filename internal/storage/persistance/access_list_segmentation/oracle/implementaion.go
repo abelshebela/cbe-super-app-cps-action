@@ -297,28 +297,28 @@ func (q *accessListSegmentationOracle) FindAllForBlock(ctx context.Context, geog
 func (q *accessListSegmentationOracle) FindAllForBlockParents(ctx context.Context, geographicalID string) ([]local_model.APPAccessList, error) {
 	log := local_util.LoggerFromCtx(ctx, q.logger)
 
-	// Step 1: Fetch city_id, region_id, district_id for the given account block id
-	var regionID, districtID sql.NullString
+	// Step 1: Fetch parent names for the given branch from COMPANY.
+	var federalRegionName, districtName sql.NullString
 	err := q.db.QueryRowContext(ctx, `
-    SELECT rawtohex(region_id), rawtohex(district_id)
-    FROM ACCOUNT_BLOCKS
+    SELECT federal_region_name, district_name
+    FROM COMPANY
     WHERE id = HEXTORAW(:1)
-`, geographicalID).Scan(&regionID, &districtID)
+`, geographicalID).Scan(&federalRegionName, &districtName)
 	if err != nil {
 		log.Errorf("[AccessListSegmentation][FindAllForBlockParents] failed to fetch block: %v", err)
 		return nil, err
 	}
 
-	// Step 2: Build a slice of non-null IDs
+	// Step 2: Build a slice of non-empty parent location identifiers.
 	var ids []string
-	if regionID.Valid {
-		ids = append(ids, regionID.String)
+	if federalRegionName.Valid && strings.TrimSpace(federalRegionName.String) != "" {
+		ids = append(ids, strings.TrimSpace(federalRegionName.String))
 	}
-	if districtID.Valid {
-		ids = append(ids, districtID.String)
+	if districtName.Valid && strings.TrimSpace(districtName.String) != "" {
+		ids = append(ids, strings.TrimSpace(districtName.String))
 	}
 	if len(ids) == 0 {
-		return nil, nil // No city/region/district to look up
+		return nil, nil // No parent locations to look up
 	}
 
 	// Step 3: Query ACCESS_LIST_BY_GEOGRAPHICAL_LOCATIONS for these IDs
@@ -645,12 +645,12 @@ func (q *accessListSegmentationOracle) FindBySegmentIDAndAccessListKeys(ctx cont
 	log := local_util.LoggerFromCtx(ctx, q.logger)
 
 	log.Infof("[AccessListSegmentationOracle][FindBySegmentIDAndAccessListKeys] called with id: %s, keys: %v", id, keys)
-	var regionID, districtID sql.NullString
+	var federalRegionName, districtName sql.NullString
 	err := q.db.QueryRowContext(ctx, `
-		SELECT region_id, district_id
-		FROM ACCOUNT_BLOCKS
-		WHERE id = :1
-	`, id).Scan(&regionID, &districtID)
+		SELECT federal_region_name, district_name
+		FROM COMPANY
+		WHERE id = HEXTORAW(:1)
+	`, id).Scan(&federalRegionName, &districtName)
 	if err != nil {
 		log.Errorf("[AccessListSegmentation][FindBySegmentIDAndAccessListKeys] failed to fetch block: %v", err)
 		return nil, err
@@ -659,16 +659,16 @@ func (q *accessListSegmentationOracle) FindBySegmentIDAndAccessListKeys(ctx cont
 		return nil, fmt.Errorf("no keys provided")
 	}
 
-	// Build list of non-null ids (city, region, district)
+	// Build list of non-empty parent location identifiers.
 	var ids []string
-	if regionID.Valid && strings.TrimSpace(regionID.String) != "" {
-		ids = append(ids, regionID.String)
+	if federalRegionName.Valid && strings.TrimSpace(federalRegionName.String) != "" {
+		ids = append(ids, strings.TrimSpace(federalRegionName.String))
 	}
-	if districtID.Valid && strings.TrimSpace(districtID.String) != "" {
-		ids = append(ids, districtID.String)
+	if districtName.Valid && strings.TrimSpace(districtName.String) != "" {
+		ids = append(ids, strings.TrimSpace(districtName.String))
 	}
 	if len(ids) == 0 {
-		return nil, nil // No city/region/district to look up
+		return nil, nil // No parent locations to look up
 	}
 	// Build IN clause for SUPERAPP_ROLE_ID
 	segPlaceholders := make([]string, len(ids))
