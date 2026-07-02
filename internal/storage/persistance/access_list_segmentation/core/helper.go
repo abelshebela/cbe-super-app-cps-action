@@ -26,7 +26,7 @@ func ChangeTopicName(cfg *config.VaultConfig) string {
 
 func GetAllBranches(ctx context.Context, segmentedID string, repo storage.AccountBlockRepository) []string {
 	// Implementation for getting all branches
-	branches, err := repo.GetAllBranches(ctx, segmentedID)
+	branches, err := repo.GetAllBranchesByDistrictOrRegion(ctx, segmentedID)
 	if err != nil {
 		// Handle error appropriately
 		return []string{}
