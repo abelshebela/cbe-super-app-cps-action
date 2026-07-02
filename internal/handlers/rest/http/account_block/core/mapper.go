@@ -30,10 +30,10 @@ func ToAccountBlockResponse(ab *imodel.AccountBlock) *ab_dto.AccountBlockRespons
 		parent = ab.Parent
 	}
 
-	dr := ab.DisableReason
-	if dr == nil {
-		dr = []imodel.AccountBlockReason{}
-	}
+	// dr := ab.DisableReason
+	// if dr == nil {
+	// 	dr = []imodel.AccountBlockReason{}
+	// }
 
 	return &ab_dto.AccountBlockResponse{
 		ID:                ab.ID,
@@ -48,7 +48,6 @@ func ToAccountBlockResponse(ab *imodel.AccountBlock) *ab_dto.AccountBlockRespons
 		Parent:            parent,
 		RegionID:          regionID,
 		DistrictID:        districtID,
-		DisableReason:     dr,
 		IsEnabled:         ab.IsEnabled,
 		CreatedAt:         ab.CreatedAt,
 		UpdatedAt:         ab.UpdatedAt,
