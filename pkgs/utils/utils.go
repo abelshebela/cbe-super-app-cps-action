@@ -16,7 +16,6 @@ import (
 	"math"
 	"mime/multipart"
 
-	// "math/rand"
 	mathrand "math/rand"
 	"net/http"
 	"os"
@@ -79,6 +78,13 @@ func ParseObjectID(id interface{}) (bson.ObjectID, error) {
 	default:
 		return bson.NilObjectID, fmt.Errorf("invalid id type")
 	}
+}
+
+func BoolToInt(b bool) int {
+	if b {
+		return 1
+	}
+	return 0
 }
 
 func IsValidImage(fileHeader *multipart.FileHeader) bool {
