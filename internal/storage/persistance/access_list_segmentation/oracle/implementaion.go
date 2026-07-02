@@ -302,7 +302,7 @@ func (q *accessListSegmentationOracle) FindAllForBlockParents(ctx context.Contex
 	err := q.db.QueryRowContext(ctx, `
     SELECT federal_region_name, district_name
     FROM COMPANY
-    WHERE id = HEXTORAW(:1)
+    WHERE branch_name = :1 or district_name = :1 or federal_region_name = :1
 `, geographicalID).Scan(&federalRegionName, &districtName)
 	if err != nil {
 		log.Errorf("[AccessListSegmentation][FindAllForBlockParents] failed to fetch block: %v", err)
@@ -649,7 +649,7 @@ func (q *accessListSegmentationOracle) FindBySegmentIDAndAccessListKeys(ctx cont
 	err := q.db.QueryRowContext(ctx, `
 		SELECT federal_region_name, district_name
 		FROM COMPANY
-		WHERE id = HEXTORAW(:1)
+		WHERE BRANCH_NAME = :1 OR DISTRICT_NAME = :1 OR FEDERAL_REGION_NAME = :1
 	`, id).Scan(&federalRegionName, &districtName)
 	if err != nil {
 		log.Errorf("[AccessListSegmentation][FindBySegmentIDAndAccessListKeys] failed to fetch block: %v", err)
@@ -682,7 +682,7 @@ func (q *accessListSegmentationOracle) FindBySegmentIDAndAccessListKeys(ctx cont
 	keyPlaceholders := make([]string, len(keys))
 	keyArgs := make([]interface{}, len(keys))
 	for i, k := range keys {
-		keyPlaceholders[i] = fmt.Sprintf("HEXTORAW(:key%d)", i)
+		keyPlaceholders[i] = fmt.Sprintf(":key%d", i)
 		keyArgs[i] = k
 	}
 
