@@ -690,6 +690,7 @@ const (
 	MsgNetworkError                    = "Network error occurred"
 	MsgTimeoutError                    = "Request timeout occurred"
 	MsgUnexpectedError                 = "An unexpected error occurred"
+	MsgRoleParameterIsRequired         = "Role parameter is required"
 	MsgDonationForServiceAlreadyExists = "Donation for this service already exists"
 	MsgInvalidSegmentationType         = "Invalid segmentation type"
 	MsgMerchantAlreadyExist            = "Merchant data already exist"

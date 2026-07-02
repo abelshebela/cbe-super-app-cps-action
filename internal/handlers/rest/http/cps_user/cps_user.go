@@ -279,7 +279,7 @@ func (h *handler) FetchUserByCode(w http.ResponseWriter, r *http.Request) {
 
 	// Build detailed response in the service layer
 	span.SetAttributes(attribute.String("cps_user.code", userCode))
-	user, err := h.svc.GetCpsUserDetail(ctx, userCode)
+	user, err := h.svc.GetCpsUserDetailByCode(ctx, userCode)
 	if err != nil {
 		span.RecordError(err)
 		log.Errorf("[FetchUserByCode] service error: %v", err)

@@ -413,12 +413,9 @@ func (s *walletService) Authorize(ctx context.Context, action *model.CPSAction) 
 				s.logger.Errorf("[wallet service authorizor update] error:%v",err)
 				return  nil,err
 		}
-		privUniqueCode,err:= s.getActionCodeFromPrivAction(action)
-		if err != nil{
-			return nil,err
-		}
+	
 		enabledWallerService := buildEnableWalletServices(wallet)
-		_,err = s.walletCatch.Update(ctx,privUniqueCode,walletCatch.WalletData{
+		_,err = s.walletCatch.Update(ctx,walletCatch.WalletData{
 				Name: wallet.Name,
 				ServiceID: wallet.ID,
 				UniqueCode: wallet.UniqueCode,
@@ -513,7 +510,7 @@ func (s *walletService) Authorize(ctx context.Context, action *model.CPSAction) 
 				return  nil,err
 		}
 		enabledWalletService := buildEnableWalletServices(wallet)
-		_,err := s.walletCatch.Update(ctx,wallet.UniqueCode,walletCatch.WalletData{
+		_,err := s.walletCatch.Update(ctx,walletCatch.WalletData{
 				ServiceID: wallet.ID,
 				Name: wallet.Name,
 				UniqueCode: wallet.UniqueCode,
@@ -538,7 +535,7 @@ func (s *walletService) Authorize(ctx context.Context, action *model.CPSAction) 
 		}
 
 		enabledWalletService := buildEnableWalletServices(wallet)
-		_,err := s.walletCatch.Update(ctx,wallet.UniqueCode,walletCatch.WalletData{
+		_,err := s.walletCatch.Update(ctx,walletCatch.WalletData{
 				ServiceID: wallet.ID,
 				Name: wallet.Name,
 				UniqueCode: wallet.UniqueCode,
