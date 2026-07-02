@@ -211,13 +211,13 @@ func (c *customerOracleRepository) FindCustomerDetailByID(ctx context.Context, i
 			       a.account_holder_name,
 			       a.account_type,
 			       a.account_number,
-			       ab.name,
-			       ab.code,
+			       ab.BRANCH_NAME,
+			       ab.BRANCH_CODE,
 			       la.is_active
 		       FROM linked_accounts la
 		       LEFT JOIN accounts a ON a.id = la.account_id
 		       LEFT JOIN users u ON la.user_code = u.user_code
-		       LEFT JOIN account_blocks ab ON ab.code = u.branch_code
+		       LEFT JOIN COMPANY ab ON ab.BRANCH_CODE = u.branch_code
 		       WHERE la.user_code = :1`
 
 	rows, err := c.db.QueryContext(ctx, query, id)
