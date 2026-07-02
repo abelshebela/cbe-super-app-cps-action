@@ -483,6 +483,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorMissingOrInvalidImage,
 	ErrorPendingCpsActionExists,
 	ErrorUnexpectedError,
+	ErrorParamsIsRequired,
 	ErrorDonationForServiceAlreadyExists,
 	ErrorMarchantDataAlready,
 	ErrorExternalServiceError,
@@ -6799,6 +6800,13 @@ var (
 		Code:       "ERROR_UNEXPECTED_ERROR",
 		StatusCode: StatusInternalServerError,
 		Message:    MsgUnexpectedError,
+		Type:       "error",
+	}
+
+	ErrorParamsIsRequired = ResponseCode{
+		Code:       "ERROR_PARAMS_IS_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgRoleParameterIsRequired,
 		Type:       "error",
 	}
 

@@ -1071,8 +1071,8 @@ func (a *cpsActionAdapter) GetListOfServiceForFilter(w http.ResponseWriter, r *h
 	}
 
 	if len(data) == 0 {
-		log.Errorf("[CPSAction][GetListOfServiceForFilter] Error while geting the repo")
-		localization.SendErrorByCodeResponse(w, localization.ErrorUnexpectedError.Code)
+		log.Errorf("[CPSAction][GetListOfServiceForFilter] Error while geting the role")
+		localization.SendErrorByCodeResponse(w, localization.ErrorParamsIsRequired.Code)
 		return
 	}
 
