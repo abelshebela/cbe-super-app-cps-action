@@ -16,4 +16,5 @@ type BPSActionAdapter interface {
 	GetUserApproverApprovedActions(w http.ResponseWriter, r *http.Request)
 	AuditorAction(w http.ResponseWriter, r *http.Request)
 	ReinstateCustomer(w http.ResponseWriter, r *http.Request)
+	GetListOfServiceForFilter(w http.ResponseWriter, r *http.Request)
 }
