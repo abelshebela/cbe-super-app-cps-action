@@ -259,7 +259,7 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 		if len(tokens) > 0 {
 			if updErr := ca.repo.UpdateCustome(ctx,
 				bson.M{"action_code": cpsActionResult.ActionCode},
-				bson.M{"$set": bson.M{"unique_tokens": tokens}},
+				bson.M{"unique_tokens": tokens},
 			); updErr != nil {
 				log.Warnf("[CpsActionSvc][Create] failed to write unique_tokens: %v", updErr)
 			}
