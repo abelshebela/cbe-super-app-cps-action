@@ -154,19 +154,20 @@ type Department struct {
 }
 
 type CPSUserWithDepartment struct {
-	ID           bson.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
-	UserCode     string        `json:"user_code,omitempty" bson:"user_code"`
-	FullName     string        `json:"full_name,omitempty" bson:"full_name"`
-	Role         string        `json:"role,omitempty" bson:"role"`
-	Gender       string        `json:"gender,omitempty" bson:"gender"`
-	PhoneNumber  string        `json:"phone_number,omitempty" bson:"phone_number"`
-	Department   Department    `json:"department,omitempty" bson:"department"`
-	Email        string        `json:"email,omitempty" bson:"email"`
-	UserName     string        `json:"username,omitempty" bson:"username"`
-	JobTitle     string        `json:"job_title,omitempty" bson:"job_title"`
-	Enabled      bool          `json:"enabled" bson:"enabled"`
-	DateJoined   *time.Time    `json:"date_joined,omitempty" bson:"date_joined"`
-	LastModified *time.Time    `json:"last_modified,omitempty" bson:"last_modified"`
-	Country      string        `json:"country,omitempty" bson:"country"`
-	Region       string        `json:"region,omitempty" bson:"region"`
+	ID            bson.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
+	UserCode      string        `json:"user_code,omitempty" bson:"user_code"`
+	FullName      string        `json:"full_name,omitempty" bson:"full_name"`
+	Role          string        `json:"role,omitempty" bson:"role"`
+	DelegatedRole string        `json:"delegated_role" bson:"delegated_role"`
+	Gender        string        `json:"gender,omitempty" bson:"gender"`
+	PhoneNumber   string        `json:"phone_number,omitempty" bson:"phone_number"`
+	Department    Department    `json:"department,omitempty" bson:"department"`
+	Email         string        `json:"email,omitempty" bson:"email"`
+	UserName      string        `json:"username,omitempty" bson:"username"`
+	JobTitle      string        `json:"job_title,omitempty" bson:"job_title"`
+	Enabled       bool          `json:"enabled" bson:"enabled"`
+	DateJoined    *time.Time    `json:"date_joined,omitempty" bson:"date_joined"`
+	LastModified  *time.Time    `json:"last_modified,omitempty" bson:"last_modified"`
+	Country       string        `json:"country,omitempty" bson:"country"`
+	Region        string        `json:"region,omitempty" bson:"region"`
 }
