@@ -37,10 +37,10 @@ func GenerateNotification(notification model.Notification) *model.Notification {
 
 func BuildCreateNotification(req notify.NotificationRequest) local_model.NotificationDocument {
 	return local_model.NotificationDocument{
-		Title:         req.Title,
-		Message:       req.NotificationBody,
-		Category:      notification_constants.BroadcastCategoryOther.String(),
-		BroadcastType: notification_constants.BroadcastType(req.NotificationType).String(),
+		Title:            req.Title,
+		NotificationBody: req.NotificationBody,
+		Category:         notification_constants.BroadcastCategoryOther.String(),
+		For:              notification_constants.BroadcastType(req.NotificationType).String(),
 	}
 }
 
@@ -49,14 +49,11 @@ func BuildUpdateNotification(prev *local_model.NotificationDocument, req notify.
 	if req.Title != "" {
 		cur.Title = req.Title
 	}
-	if req.NotificationType != "" {
-		cur.BroadcastType = req.NotificationType
-	}
 	if req.NotificationBody != "" {
-		cur.Message = req.NotificationBody
+		cur.NotificationBody = req.NotificationBody
 	}
 	if req.For != "" {
-		cur.BroadcastType = notification_constants.BroadcastType(req.For).String()
+		cur.For = notification_constants.BroadcastType(req.For).String()
 	}
 	return cur
 }

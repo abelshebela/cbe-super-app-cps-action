@@ -7,9 +7,9 @@ import (
 func MapNotificationToResponse(entity *local_model.NotificationDocument) *NotificationResponse {
 	return &NotificationResponse{
 		Title:            entity.Title,
-		NotificationType: entity.BroadcastType,
-		NotificationBody: entity.Message,
-		For:              string(entity.BroadcastType),
+		NotificationType: entity.For,
+		NotificationBody: entity.NotificationBody,
+		For:              string(entity.For),
 	}
 }
 

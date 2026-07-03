@@ -47,18 +47,18 @@ func NewNotificationRepository(client *mongo.Client, cfg *config.VaultConfig, db
 
 func (n *NotificationStorage) Create(ctx context.Context, notification *shared_notification.BroadcastInAppNotificationMessage) error {
 	log := local_util.LoggerFromCtx(ctx, n.logger)
-	notification.Data = map[string]interface{}{
-		"title":             notification.Title,
-		"notification_body": notification.Message,
-		"for":               notification.BroadcastType,
-	}
+	// notification.Data = map[string]interface{}{
+	// 	"title":             notification.Title,
+	// 	"notification_body": notification.Message,
+	// 	"for":               notification.BroadcastType,
+	// }
 	data := local_model.NotificationDocument{
 		Title:            notification.Title,
 		NotificationCode: time.Now().Format("20060102150405"),
-		Message:          notification.Message,
+		NotificationBody: notification.Message,
 		Category:         notification.Category,
-		BroadcastType:    notification.BroadcastType,
-		Data:             notification.Data,
+		For:              notification.BroadcastType,
+		CreatedAt:        time.Now(),
 	}
 	// notification.IsFromCPS = true
 	newNotification, err := n.dal.InsertOne(ctx, data)
@@ -67,7 +67,7 @@ func (n *NotificationStorage) Create(ctx context.Context, notification *shared_n
 	}
 
 	// err = n.kafkaProducer.PublishMessage(ctx, inAppMessage)
-	err = n.kafkaProducer.PublishMessage(ctx, notification, newNotification.BroadcastType, n.cfg.KafkaInAppBordcastTopic, "inapp-notifications")
+	err = n.kafkaProducer.PublishMessage(ctx, notification, newNotification.For, n.cfg.KafkaInAppBordcastTopic, "inapp-notifications")
 	if err != nil {
 		log.Errorf("[NotificationStorage][Create] failed to send in app notification %v", err)
 	}
@@ -89,10 +89,10 @@ func (n *NotificationStorage) Update(ctx context.Context, id string, notificatio
 	data := local_model.NotificationDocument{
 		Title:            notification.Title,
 		NotificationCode: time.Now().Format("20060102150405"),
-		Message:          notification.Message,
+		NotificationBody: notification.Message,
 		Category:         notification.Category,
-		BroadcastType:    notification.BroadcastType,
-		Data:             notification.Data,
+		For:              notification.BroadcastType,
+		// Data:             notification.Data,
 	}
 	updateData := NotificationMapper(data)
 
