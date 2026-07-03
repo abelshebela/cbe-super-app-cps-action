@@ -149,7 +149,6 @@ func (n *NotificationStorage) FindAllWithPagination(ctx context.Context, filterP
 	}
 
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
-	filter["is_deleted"] = false
 
 	data, err := n.notificationDal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
