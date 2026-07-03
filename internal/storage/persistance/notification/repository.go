@@ -26,7 +26,7 @@ import (
 )
 
 type NotificationStorage struct {
-	dal             dal.MongoDal[shared_notification.BroadcastInAppNotificationMessage, shared_notification.BroadcastInAppNotificationMessage]
+	dal             dal.MongoDal[local_model.NotificationDocument, local_model.NotificationDocument]
 	notificationDal dal.MongoDal[local_model.NotificationDocument, local_model.NotificationDocument]
 	client          *mongo.Client
 	kafkaProducer   kafka.NotificationProducer
@@ -36,7 +36,7 @@ type NotificationStorage struct {
 
 func NewNotificationRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, kafkaProducer kafka.NotificationProducer, logger utils.Logger) storage.NotificationRepository {
 	return &NotificationStorage{
-		dal:             dal.NewMongoDal[shared_notification.BroadcastInAppNotificationMessage, shared_notification.BroadcastInAppNotificationMessage](client, cfg, dbName, collection),
+		dal:             dal.NewMongoDal[local_model.NotificationDocument, local_model.NotificationDocument](client, cfg, dbName, collection),
 		notificationDal: dal.NewMongoDal[local_model.NotificationDocument, local_model.NotificationDocument](client, cfg, dbName, collection),
 		client:          client,
 		kafkaProducer:   kafkaProducer,
@@ -52,8 +52,16 @@ func (n *NotificationStorage) Create(ctx context.Context, notification *shared_n
 		"notification_body": notification.Message,
 		"for":               notification.BroadcastType,
 	}
+	data := local_model.NotificationDocument{
+		Title:            notification.Title,
+		NotificationCode: time.Now().Format("20060102150405"),
+		Message:          notification.Message,
+		Category:         notification.Category,
+		BroadcastType:    notification.BroadcastType,
+		Data:             notification.Data,
+	}
 	// notification.IsFromCPS = true
-	newNotification, err := n.dal.InsertOne(ctx, *notification)
+	newNotification, err := n.dal.InsertOne(ctx, data)
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
@@ -78,7 +86,15 @@ func (n *NotificationStorage) Update(ctx context.Context, id string, notificatio
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
-	updateData := NotificationMapper(*notification)
+	data := local_model.NotificationDocument{
+		Title:            notification.Title,
+		NotificationCode: time.Now().Format("20060102150405"),
+		Message:          notification.Message,
+		Category:         notification.Category,
+		BroadcastType:    notification.BroadcastType,
+		Data:             notification.Data,
+	}
+	updateData := NotificationMapper(data)
 
 	_, err = n.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
@@ -113,7 +129,7 @@ func (n *NotificationStorage) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (n *NotificationStorage) FindByID(ctx context.Context, id string) (*shared_notification.BroadcastInAppNotificationMessage, error) {
+func (n *NotificationStorage) FindByID(ctx context.Context, id string) (*local_model.NotificationDocument, error) {
 	log := local_util.LoggerFromCtx(ctx, n.logger)
 
 	log.Infof("[NotificationStorage][FindByID] fetching notification by id: %s", id)
@@ -149,7 +165,6 @@ func (n *NotificationStorage) FindAllWithPagination(ctx context.Context, filterP
 	}
 
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
-	filter["is_deleted"] = false
 
 	data, err := n.notificationDal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
@@ -205,7 +220,7 @@ func (n *NotificationStorage) NotificationExists(ctx context.Context, notificati
 	return count > 0, nil
 }
 
-func (n *NotificationStorage) EnableDisableNotification(ctx context.Context, id string, enable bool) (*shared_notification.BroadcastInAppNotificationMessage, error) {
+func (n *NotificationStorage) EnableDisableNotification(ctx context.Context, id string, enable bool) (*local_model.NotificationDocument, error) {
 	log := local_util.LoggerFromCtx(ctx, n.logger)
 
 	objID, err := bson.ObjectIDFromHex(id)
