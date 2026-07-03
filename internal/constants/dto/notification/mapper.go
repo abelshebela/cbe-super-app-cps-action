@@ -1,10 +1,10 @@
 package notification
 
 import (
-	shared_notification "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/notification/dto"
+	local_model "cbe-super-app-cps-action/internal/constants/model"
 )
 
-func MapNotificationToResponse(entity *shared_notification.BroadcastInAppNotificationMessage) *NotificationResponse {
+func MapNotificationToResponse(entity *local_model.NotificationDocument) *NotificationResponse {
 	return &NotificationResponse{
 		Title:            entity.Title,
 		NotificationType: entity.BroadcastType,

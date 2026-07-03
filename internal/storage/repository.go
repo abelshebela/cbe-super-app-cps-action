@@ -577,9 +577,9 @@ type NotificationRepository interface {
 	Create(ctx context.Context, notification *shared_notification.BroadcastInAppNotificationMessage) error
 	Update(ctx context.Context, id string, notification *shared_notification.BroadcastInAppNotificationMessage) error
 	Delete(ctx context.Context, id string) error
-	FindByID(ctx context.Context, id string) (*shared_notification.BroadcastInAppNotificationMessage, error)
+	FindByID(ctx context.Context, id string) (*imodel.NotificationDocument, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.NotificationDocument], error)
-	EnableDisableNotification(ctx context.Context, id string, enable bool) (*shared_notification.BroadcastInAppNotificationMessage, error)
+	EnableDisableNotification(ctx context.Context, id string, enable bool) (*imodel.NotificationDocument, error)
 	NotificationExists(ctx context.Context, notificationType string, forValue constants.NotificationFor, id *string) (bool, error)
 }
 
