@@ -317,6 +317,7 @@ func (a *AccountBlockStorage) findAllBranchesWithPagination(ctx context.Context,
 		  AND (:search IS NULL
 		       OR %s
 		       OR LOWER(branch_code) LIKE '%%' || LOWER(:search) || '%%'
+			   OR LOWER(dao_code) LIKE '%%' || LOWER(:search) || '%%'
 		       OR LOWER(region_name) LIKE '%%' || LOWER(:search) || '%%'
 		       OR LOWER(district_name) LIKE '%%' || LOWER(:search) || '%%'
 		       OR LOWER(federal_region_name) LIKE '%%' || LOWER(:search) || '%%')
