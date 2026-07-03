@@ -487,28 +487,227 @@ func (r *roleDelegationRepository) FindAllWithPagination(ctx context.Context, fi
 	}
 
 	pipeline := mongo.Pipeline{
+		// 1. Initial Filtering, Sorting, and Pagination
 		bson.D{{Key: "$match", Value: filter}},
 		bson.D{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},
 		bson.D{{Key: "$skip", Value: skip}},
 		bson.D{{Key: "$limit", Value: limit}},
-		bson.D{{Key: "$addFields", Value: bson.M{
-			"new_department_obj_id": bson.M{
-				"$convert": bson.M{
-					"input":   "$new_department_or_branch",
-					"to":      "objectId",
-					"onError": nil,
-					"onNull":  nil,
-				},
+
+		// 2. CONDITIONAL CPS LOOKUP (Only runs if type is CPS)
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from": r.cpsUserCollection.Name(),
+			"let": bson.M{
+				"user_type": "$delegated_user_user_type",
+				"user_code": "$delegated_user_user_code",
 			},
-			"delegated_department_obj_id": bson.M{
-				"$convert": bson.M{
-					"input":   "$delegated_user_department_or_branch",
-					"to":      "objectId",
-					"onError": nil,
-					"onNull":  nil,
+			"pipeline": mongo.Pipeline{
+				bson.D{{Key: "$match", Value: bson.M{
+					"$expr": bson.M{"$and": bson.A{
+						bson.M{"$eq": bson.A{"$$user_type", "CPS"}}, // IF condition
+						bson.M{"$eq": bson.A{"$user_code", "$$user_code"}},
+						bson.M{"$ne": bson.A{"$is_deleted", true}},
+					}},
+				}}},
+				bson.D{{Key: "$limit", Value: 1}},
+				bson.D{{Key: "$project", Value: bson.M{
+					"user_code":                           1,
+					"full_name":                           1,
+					"username":                            1,
+					"email":                               1,
+					"phone_number":                        1,
+					"job_title":                           1,
+					"role":                                1,
+					"delegated_user_department_or_branch": bson.M{"$toString": "$department"},
+				}}},
+			},
+			"as": "cps_source",
+		}}},
+
+		// 3. CONDITIONAL BPS LOOKUP (Only runs if type is BPS)
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from": r.bpsUserCollection.Name(),
+			"let": bson.M{
+				"user_type": "$delegated_user_user_type",
+				"user_code": "$delegated_user_user_code",
+			},
+			"pipeline": mongo.Pipeline{
+				bson.D{{Key: "$match", Value: bson.M{
+					"$expr": bson.M{"$and": bson.A{
+						bson.M{"$eq": bson.A{"$$user_type", "BPS"}}, // IF condition
+						bson.M{"$eq": bson.A{"$user_code", "$$user_code"}},
+						bson.M{"$ne": bson.A{"$is_deleted", true}},
+					}},
+				}}},
+				bson.D{{Key: "$limit", Value: 1}},
+				bson.D{{Key: "$project", Value: bson.M{
+					"user_code":    1,
+					"full_name":    1,
+					"username":     1,
+					"email":        1,
+					"phone_number": 1,
+					"job_title":    1,
+					"role":         1,
+					"delegated_user_department_or_branch": bson.M{"$ifNull": bson.A{
+						"$branch_name",
+						bson.M{"$ifNull": bson.A{bson.M{"$arrayElemAt": bson.A{"$branch_code", 0}}, ""}},
+					}},
+				}}},
+			},
+			"as": "bps_source",
+		}}},
+
+		// 4. Merge the source arrays into a single unified object variable
+		bson.D{{Key: "$addFields", Value: bson.M{
+			"delegated_user_source": bson.M{
+				"$cond": bson.A{
+					bson.M{"$eq": bson.A{"$delegated_user_user_type", "CPS"}},
+					bson.M{"$arrayElemAt": bson.A{"$cps_source", 0}},
+					bson.M{"$cond": bson.A{
+						bson.M{"$eq": bson.A{"$delegated_user_user_type", "BPS"}},
+						bson.M{"$arrayElemAt": bson.A{"$bps_source", 0}},
+						nil,
+					}},
 				},
 			},
 		}}},
+
+		// Clean up temporary lookups right away
+		bson.D{{Key: "$project", Value: bson.M{"cps_source": 0, "bps_source": 0}}},
+
+		// 5. Map fields exactly like you did before (using the unified delegated_user_source)
+		bson.D{{Key: "$addFields", Value: bson.M{
+			"delegated_user_user_code":            bson.M{"$ifNull": bson.A{"$delegated_user_source.user_code", "$delegated_user_user_code"}},
+			"delegated_user_full_name":            bson.M{"$ifNull": bson.A{"$delegated_user_source.full_name", "$delegated_user_full_name"}},
+			"delegated_user_id":                   bson.M{"$ifNull": bson.A{"$delegated_user_source.username", "$delegated_user_id"}},
+			"delegated_user_email":                bson.M{"$ifNull": bson.A{"$delegated_user_source.email", "$delegated_user_email"}},
+			"delegated_user_phone_number":         bson.M{"$ifNull": bson.A{"$delegated_user_source.phone_number", "$delegated_user_phone_number"}},
+			"delegated_user_job_title":            bson.M{"$ifNull": bson.A{"$delegated_user_source.job_title", "$delegated_user_job_title"}},
+			"delegated_user_existing_role":        bson.M{"$ifNull": bson.A{"$delegated_user_source.role", "$delegated_user_existing_role"}},
+			"delegated_user_department_or_branch": bson.M{"$ifNull": bson.A{"$delegated_user_source.delegated_user_department_or_branch", "$delegated_user_department_or_branch"}},
+		}}},
+		bson.D{{Key: "$project", Value: bson.M{"delegated_user_source": 0}}},
+
+		// 6. Rest of your pipeline (Conversions, Department lookups, Job role lookups, etc.)
+		bson.D{{Key: "$addFields", Value: bson.M{
+			"new_department_obj_id":       bson.M{"$convert": bson.M{"input": "$new_department_or_branch", "to": "objectId", "onError": nil, "onNull": nil}},
+			"delegated_department_obj_id": bson.M{"$convert": bson.M{"input": "$delegated_user_department_or_branch", "to": "objectId", "onError": nil, "onNull": nil}},
+		}}},
+		// ... Keep the exact same code you had from your $lookup department stages down to the end
+
+		// pipeline := mongo.Pipeline{
+		// 	bson.D{{Key: "$match", Value: filter}},
+		// 	bson.D{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},
+		// 	bson.D{{Key: "$skip", Value: skip}},
+		// 	bson.D{{Key: "$limit", Value: limit}},
+		// 	bson.D{{Key: "$facet", Value: bson.M{
+		// 		"cps_data": mongo.Pipeline{
+		// 			bson.D{{Key: "$match", Value: bson.M{"delegated_user_user_type": "CPS"}}},
+		// 			bson.D{{Key: "$lookup", Value: bson.M{
+		// 				"from": r.cpsUserCollection.Name(),
+		// 				"let":  bson.M{"delegated_user_user_code": "$delegated_user_user_code"},
+		// 				"pipeline": mongo.Pipeline{
+		// 					bson.D{{Key: "$match", Value: bson.M{
+		// 						"$expr": bson.M{"$and": bson.A{
+		// 							bson.M{"$eq": bson.A{"$user_code", "$$delegated_user_user_code"}},
+		// 							bson.M{"$ne": bson.A{"$is_deleted", true}},
+		// 						}},
+		// 					}}},
+		// 					bson.D{{Key: "$limit", Value: 1}},
+		// 					bson.D{{Key: "$project", Value: bson.M{
+		// 						"user_code":                           1,
+		// 						"full_name":                           1,
+		// 						"username":                            1,
+		// 						"email":                               1,
+		// 						"phone_number":                        1,
+		// 						"job_title":                           1,
+		// 						"role":                                1,
+		// 						"delegated_user_department_or_branch": bson.M{"$toString": "$department"},
+		// 					}}},
+		// 				},
+		// 				"as": "delegated_user_source",
+		// 			}}},
+		// 			bson.D{{Key: "$addFields", Value: bson.M{
+		// 				"delegated_user_source":               bson.M{"$arrayElemAt": bson.A{"$delegated_user_source", 0}},
+		// 				"delegated_user_user_code":            bson.M{"$ifNull": bson.A{"$delegated_user_source.user_code", "$delegated_user_user_code"}},
+		// 				"delegated_user_full_name":            bson.M{"$ifNull": bson.A{"$delegated_user_source.full_name", "$delegated_user_full_name"}},
+		// 				"delegated_user_id":                   bson.M{"$ifNull": bson.A{"$delegated_user_source.username", "$delegated_user_id"}},
+		// 				"delegated_user_email":                bson.M{"$ifNull": bson.A{"$delegated_user_source.email", "$delegated_user_email"}},
+		// 				"delegated_user_phone_number":         bson.M{"$ifNull": bson.A{"$delegated_user_source.phone_number", "$delegated_user_phone_number"}},
+		// 				"delegated_user_job_title":            bson.M{"$ifNull": bson.A{"$delegated_user_source.job_title", "$delegated_user_job_title"}},
+		// 				"delegated_user_existing_role":        bson.M{"$ifNull": bson.A{"$delegated_user_source.role", "$delegated_user_existing_role"}},
+		// 				"delegated_user_department_or_branch": bson.M{"$ifNull": bson.A{"$delegated_user_source.delegated_user_department_or_branch", "$delegated_user_department_or_branch"}},
+		// 			}}},
+		// 			bson.D{{Key: "$project", Value: bson.M{"delegated_user_source": 0}}},
+		// 		},
+		// 		"bps_data": mongo.Pipeline{
+		// 			bson.D{{Key: "$match", Value: bson.M{"delegated_user_user_type": "BPS"}}},
+		// 			bson.D{{Key: "$lookup", Value: bson.M{
+		// 				"from": r.bpsUserCollection.Name(),
+		// 				"let":  bson.M{"delegated_user_user_code": "$delegated_user_user_code"},
+		// 				"pipeline": mongo.Pipeline{
+		// 					bson.D{{Key: "$match", Value: bson.M{
+		// 						"$expr": bson.M{"$and": bson.A{
+		// 							bson.M{"$eq": bson.A{"$user_code", "$$delegated_user_user_code"}},
+		// 							bson.M{"$ne": bson.A{"$is_deleted", true}},
+		// 						}},
+		// 					}}},
+		// 					bson.D{{Key: "$limit", Value: 1}},
+		// 					bson.D{{Key: "$project", Value: bson.M{
+		// 						"user_code":    1,
+		// 						"full_name":    1,
+		// 						"username":     1,
+		// 						"email":        1,
+		// 						"phone_number": 1,
+		// 						"job_title":    1,
+		// 						"role":         1,
+		// 						"delegated_user_department_or_branch": bson.M{"$ifNull": bson.A{
+		// 							"$branch_name",
+		// 							bson.M{"$ifNull": bson.A{bson.M{"$arrayElemAt": bson.A{"$branch_code", 0}}, ""}},
+		// 						}},
+		// 					}}},
+		// 				},
+		// 				"as": "delegated_user_source",
+		// 			}}},
+		// 			bson.D{{Key: "$addFields", Value: bson.M{
+		// 				"delegated_user_source":               bson.M{"$arrayElemAt": bson.A{"$delegated_user_source", 0}},
+		// 				"delegated_user_user_code":            bson.M{"$ifNull": bson.A{"$delegated_user_source.user_code", "$delegated_user_user_code"}},
+		// 				"delegated_user_full_name":            bson.M{"$ifNull": bson.A{"$delegated_user_source.full_name", "$delegated_user_full_name"}},
+		// 				"delegated_user_id":                   bson.M{"$ifNull": bson.A{"$delegated_user_source.username", "$delegated_user_id"}},
+		// 				"delegated_user_email":                bson.M{"$ifNull": bson.A{"$delegated_user_source.email", "$delegated_user_email"}},
+		// 				"delegated_user_phone_number":         bson.M{"$ifNull": bson.A{"$delegated_user_source.phone_number", "$delegated_user_phone_number"}},
+		// 				"delegated_user_job_title":            bson.M{"$ifNull": bson.A{"$delegated_user_source.job_title", "$delegated_user_job_title"}},
+		// 				"delegated_user_existing_role":        bson.M{"$ifNull": bson.A{"$delegated_user_source.role", "$delegated_user_existing_role"}},
+		// 				"delegated_user_department_or_branch": bson.M{"$ifNull": bson.A{"$delegated_user_source.delegated_user_department_or_branch", "$delegated_user_department_or_branch"}},
+		// 			}}},
+		// 			bson.D{{Key: "$project", Value: bson.M{"delegated_user_source": 0}}},
+		// 		},
+		// 		"other_data": mongo.Pipeline{
+		// 			bson.D{{Key: "$match", Value: bson.M{"delegated_user_user_type": bson.M{"$nin": bson.A{"CPS", "BPS"}}}}},
+		// 		},
+		// 	}}},
+		// 	bson.D{{Key: "$project", Value: bson.M{
+		// 		"merged_docs": bson.M{"$concatArrays": bson.A{"$cps_data", "$bps_data", "$other_data"}},
+		// 	}}},
+		// 	bson.D{{Key: "$unwind", Value: "$merged_docs"}},
+		// 	bson.D{{Key: "$replaceRoot", Value: bson.M{"newRoot": "$merged_docs"}}},
+		// 	bson.D{{Key: "$addFields", Value: bson.M{
+		// 		"new_department_obj_id": bson.M{
+		// 			"$convert": bson.M{
+		// 				"input":   "$new_department_or_branch",
+		// 				"to":      "objectId",
+		// 				"onError": nil,
+		// 				"onNull":  nil,
+		// 			},
+		// 		},
+		// 		"delegated_department_obj_id": bson.M{
+		// 			"$convert": bson.M{
+		// 				"input":   "$delegated_user_department_or_branch",
+		// 				"to":      "objectId",
+		// 				"onError": nil,
+		// 				"onNull":  nil,
+		// 			},
+		// 		},
+		// 	}}},
 		bson.D{{Key: "$lookup", Value: bson.M{
 			"from":         "department",
 			"localField":   "new_department_obj_id",
