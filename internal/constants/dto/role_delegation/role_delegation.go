@@ -5,7 +5,9 @@ import (
 )
 
 type RoleDelegationRequest struct {
-	DelegatedUserID                 string `json:"delegated_user_id" bson:"delegated_user_id"`
+	DelegatedUserUserCode string `json:"delegated_user_user_code" bson:"delegated_user_user_code"`
+	DelegatedUserID       string `json:"delegated_user_id" bson:"delegated_user_id"`
+
 	DelegatedUserFullName           string `json:"delegated_user_full_name" bson:"delegated_user_full_name"`
 	DelegatedUserUserType           string `json:"delegated_user_user_type" bson:"delegated_user_user_type"`
 	DelegatedUserDepartmentOrBranch string `json:"delegated_user_department_or_branch" bson:"delegated_user_department_or_branch"`
