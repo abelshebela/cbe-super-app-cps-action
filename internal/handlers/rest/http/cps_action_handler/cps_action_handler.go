@@ -760,9 +760,12 @@ func (a *cpsActionAdapter) GetUserCheckedActions(w http.ResponseWriter, r *http.
 //	@Router			/actions/user/created/actions [get]
 func (a *cpsActionAdapter) GetUserCreatedActions(w http.ResponseWriter, r *http.Request) {
 	filterParams := local_util.ExtractFilterParams(r)
-
+	var err error
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
+	services, _ := filterParams.Filters["services"].(string)
+
+	log := local_util.LoggerFromCtx(r.Context(), a.logger)
 
 	if err := local_util.NoSpecialChars(search); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -777,6 +780,20 @@ func (a *cpsActionAdapter) GetUserCreatedActions(w http.ResponseWriter, r *http.
 	userData := local_util.ExtractUserContext(r)
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getUserCreatedActions", "handler", "cpsAction")
 	defer span.End()
+
+	idxRepo := mid.GetCPSActionApproveRepo()
+	if idxRepo == nil {
+		localization.SendErrorByCodeResponse(w, localization.ErrorUnexpectedError.Code)
+		return
+	}
+
+	if services != "" {
+		filterParams, _, err = cpsactioncore.ParameterProvider(ctx, filterParams, span, constants.Maker, idxRepo, log)
+		if err != nil {
+			localization.SendErrorByCodeResponse(w, err.Error())
+			return
+		}
+	}
 
 	userID := userData.UserName
 	res, url, err := a.cpsActionApplication.GetUserCreatedActions(ctx, userID, filterParams)
