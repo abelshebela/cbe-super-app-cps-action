@@ -34,5 +34,6 @@ type NotificationDocument struct {
 	NotificationBody string        `bson:"notification_body" json:"notification_body"`
 	Category         string        `bson:"category" json:"category"`
 	For              string        `bson:"for" json:"for"`
+	Enabled          *bool         `bson:"enabled,omitempty" json:"enabled,omitempty"`
 	CreatedAt        time.Time     `bson:"created_at" json:"created_at"`
 }
