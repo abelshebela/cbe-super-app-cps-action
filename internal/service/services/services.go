@@ -308,10 +308,6 @@ func (s *servicesService) UpdateServiceList(ctx context.Context, id string, req 
 		return err
 	}
 
-	// if strings.EqualFold(existing.ServiceName, req.ServiceName) || strings.EqualFold(existing.ServiceKey, req.ServiceKey) {
-	// 	return errors.New(localization.ErrorNoChangesDetected.Code)
-	// }
-
 	mapped := core.MapServiceListDtoUpdateToModel(*existing, req)
 	return core.HandleCPSAction(ctx, s.cps, id, constants.RequestUpdateServiceList, mapped, existing, constants.ActionUpdate)
 }
@@ -491,24 +487,6 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 			action.CurrentAction = serviceDoc
 		}
 
-		// Set to cache
-		// var sources []string
-		// var currencies []string
-		// var singleTransferCaps []string
-		// var minimumTransferCaps []string
-
-		// for _, c := range serviceDoc.Cap {
-		// 	sources = append(sources, string(c.Source))
-		// 	currencies = append(currencies, c.Currency)
-		// 	singleTransferCaps = append(singleTransferCaps, c.SingleCap)
-		// 	minimumTransferCaps = append(minimumTransferCaps, c.MinimumTransferCap)
-		// }
-
-		// sourceJoined := strings.Join(sources, ":")
-		// currencyJoined := strings.Join(currencies, ":")
-		// singleTransferCap := strings.Join(singleTransferCaps, ":")
-		// minimumTransferCap := strings.Join(minimumTransferCaps, ":")
-
 		var values []service_cache.ServiceData
 
 		for _, c := range serviceDoc.Cap {
@@ -539,38 +517,6 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 		if err == nil {
 			action.CurrentAction = serviceDoc
 		}
-
-		// Set to cache
-		// var sources []string
-		// var currencies []string
-		// var singleTransferCaps []string
-		// var minimumTransferCaps []string
-
-		// for _, c := range serviceDoc.Cap {
-		// 	sources = append(sources, string(c.Source))
-		// 	currencies = append(currencies, c.Currency)
-		// 	singleTransferCaps = append(singleTransferCaps, c.SingleCap)
-		// 	minimumTransferCaps = append(minimumTransferCaps, c.MinimumTransferCap)
-		// }
-
-		// sourceJoined := strings.Join(sources, ":")
-		// currencyJoined := strings.Join(currencies, ":")
-		// singleTransferCap := strings.Join(singleTransferCaps, ":")
-		// minimumTransferCap := strings.Join(minimumTransferCaps, ":")
-
-		// s.serviceCache.Update(ctx,
-		// 	service_cache.ServiceData{
-		// 		AccessListID:       serviceDoc.ServiceKeyId,
-		// 		ServiceKey:         serviceDoc.ServiceKey,
-		// 		ServiceCode:        serviceDoc.ServiceCode,
-		// 		MinimumFraudAmount: serviceDoc.MinimumFraudAmount,
-		// 		ProductGlAccount:   serviceDoc.ProductGlAccount,
-		// 		ServiceName:        serviceDoc.ServiceName,
-		// 		Source:             service_cache.Source(sourceJoined),
-		// 		Currency:           currencyJoined,
-		// 		SingleTransferCap:  singleTransferCap,
-		// 		MinimumTransferCap: minimumTransferCap,
-		// 	})
 
 		var values []service_cache.ServiceData
 
