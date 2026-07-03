@@ -28,11 +28,11 @@ type Notification struct {
 }
 
 type NotificationDocument struct {
-	ID               bson.ObjectID          `bson:"_id,omitempty" json:"id"`
-	Title            string                 `bson:"title,omitempty" json:"title"`
-	NotificationCode string                 `bson:"notification_code,omitempty" json:"notification_code"`
-	Message          string                 `bson:"message" json:"message"`
-	Category         string                 `bson:"category" json:"category"`
-	BroadcastType    string                 `bson:"broadcasttype" json:"broadcasttype"`
-	Data             map[string]interface{} `bson:"data" json:"data"`
+	ID               bson.ObjectID `bson:"_id,omitempty" json:"id"`
+	Title            string        `bson:"title,omitempty" json:"title"`
+	NotificationCode string        `bson:"notification_code,omitempty" json:"notification_code"`
+	NotificationBody string        `bson:"notification_body" json:"notification_body"`
+	Category         string        `bson:"category" json:"category"`
+	For              string        `bson:"for" json:"for"`
+	CreatedAt        time.Time     `bson:"created_at" json:"created_at"`
 }
