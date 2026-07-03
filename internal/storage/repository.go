@@ -1,8 +1,6 @@
 package storage
 
 import (
-	shared_notification "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/notification/dto"
-
 	ussd_merchant_dto "cbe-super-app-cps-action/internal/constants/dto/ussd_merchant"
 	"context"
 	"time"
@@ -574,8 +572,8 @@ type EcommerceMerchantRepository interface {
 }
 
 type NotificationRepository interface {
-	Create(ctx context.Context, notification *shared_notification.BroadcastInAppNotificationMessage) error
-	Update(ctx context.Context, id string, notification *shared_notification.BroadcastInAppNotificationMessage) error
+	Create(ctx context.Context, notification *imodel.NotificationDocument) error
+	Update(ctx context.Context, id string, notification *imodel.NotificationDocument) error
 	Delete(ctx context.Context, id string) error
 	FindByID(ctx context.Context, id string) (*imodel.NotificationDocument, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.NotificationDocument], error)
