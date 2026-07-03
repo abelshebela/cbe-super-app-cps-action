@@ -36,10 +36,10 @@ func NotificationMapper(notification local_model.NotificationDocument) bson.M {
 	// }
 
 	return bson.M{
-		"title":    notification.Title,
-		"message":  notification.Message,
-		"category": notification.Category,
-		"type":     notification.BroadcastType,
+		"title":             notification.Title,
+		"notification_body": notification.NotificationBody,
+		"category":          notification.Category,
+		"for":               notification.For,
 	}
 }
 
