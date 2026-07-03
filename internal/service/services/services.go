@@ -491,6 +491,7 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 
 		for _, c := range serviceDoc.Cap {
 			values = append(values, service_cache.ServiceData{
+				ServiceID:          action.UniqueId,
 				AccessListID:       serviceDoc.ServiceKeyId,
 				ServiceKey:         serviceDoc.ServiceKey,
 				ServiceCode:        serviceDoc.ServiceCode,
@@ -522,6 +523,7 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 
 		for _, c := range serviceDoc.Cap {
 			values = append(values, service_cache.ServiceData{
+				ServiceID:          action.UniqueId,
 				AccessListID:       serviceDoc.ServiceKeyId,
 				ServiceKey:         serviceDoc.ServiceKey,
 				ServiceCode:        serviceDoc.ServiceCode,
@@ -552,7 +554,18 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 		}
 
 		// Set to cache
+		var source accessList_cache.Source
+		if listDoc.IsSuperAppEnabled && listDoc.IsUSSDEnabled {
+			source = accessList_cache.SourceBoth
+		} else if listDoc.IsSuperAppEnabled {
+			source = accessList_cache.SourceAPP
+		} else if listDoc.IsUSSDEnabled {
+			source = accessList_cache.SourceUSSD
+		}
+
 		s.accessListCache.Set(ctx, accessList_cache.AccessListData{
+			ID:          action.UniqueId,
+			Source:      source,
 			ServiceName: listDoc.ServiceName,
 			ServiceKey:  listDoc.ServiceKey,
 			AccountType: accessList_cache.AccountType(listDoc.AccountType),
@@ -573,8 +586,19 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 		}
 
 		// Set to cache
+		var source accessList_cache.Source
+		if listDoc.IsSuperAppEnabled && listDoc.IsUSSDEnabled {
+			source = accessList_cache.SourceBoth
+		} else if listDoc.IsSuperAppEnabled {
+			source = accessList_cache.SourceAPP
+		} else if listDoc.IsUSSDEnabled {
+			source = accessList_cache.SourceUSSD
+		}
+
 		s.accessListCache.Update(ctx,
 			accessList_cache.AccessListData{
+				ID:          action.UniqueId,
+				Source:      source,
 				ServiceName: listDoc.ServiceName,
 				ServiceKey:  listDoc.ServiceKey,
 				AccountType: accessList_cache.AccountType(listDoc.AccountType),
