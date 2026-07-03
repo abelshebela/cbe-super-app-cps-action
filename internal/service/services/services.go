@@ -308,10 +308,6 @@ func (s *servicesService) UpdateServiceList(ctx context.Context, id string, req 
 		return err
 	}
 
-	// if strings.EqualFold(existing.ServiceName, req.ServiceName) || strings.EqualFold(existing.ServiceKey, req.ServiceKey) {
-	// 	return errors.New(localization.ErrorNoChangesDetected.Code)
-	// }
-
 	mapped := core.MapServiceListDtoUpdateToModel(*existing, req)
 	return core.HandleCPSAction(ctx, s.cps, id, constants.RequestUpdateServiceList, mapped, existing, constants.ActionUpdate)
 }
@@ -491,28 +487,11 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 			action.CurrentAction = serviceDoc
 		}
 
-		// Set to cache
-		// var sources []string
-		// var currencies []string
-		// var singleTransferCaps []string
-		// var minimumTransferCaps []string
-
-		// for _, c := range serviceDoc.Cap {
-		// 	sources = append(sources, string(c.Source))
-		// 	currencies = append(currencies, c.Currency)
-		// 	singleTransferCaps = append(singleTransferCaps, c.SingleCap)
-		// 	minimumTransferCaps = append(minimumTransferCaps, c.MinimumTransferCap)
-		// }
-
-		// sourceJoined := strings.Join(sources, ":")
-		// currencyJoined := strings.Join(currencies, ":")
-		// singleTransferCap := strings.Join(singleTransferCaps, ":")
-		// minimumTransferCap := strings.Join(minimumTransferCaps, ":")
-
 		var values []service_cache.ServiceData
 
 		for _, c := range serviceDoc.Cap {
 			values = append(values, service_cache.ServiceData{
+				ServiceID:          action.UniqueId,
 				AccessListID:       serviceDoc.ServiceKeyId,
 				ServiceKey:         serviceDoc.ServiceKey,
 				ServiceCode:        serviceDoc.ServiceCode,
@@ -540,42 +519,11 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 			action.CurrentAction = serviceDoc
 		}
 
-		// Set to cache
-		// var sources []string
-		// var currencies []string
-		// var singleTransferCaps []string
-		// var minimumTransferCaps []string
-
-		// for _, c := range serviceDoc.Cap {
-		// 	sources = append(sources, string(c.Source))
-		// 	currencies = append(currencies, c.Currency)
-		// 	singleTransferCaps = append(singleTransferCaps, c.SingleCap)
-		// 	minimumTransferCaps = append(minimumTransferCaps, c.MinimumTransferCap)
-		// }
-
-		// sourceJoined := strings.Join(sources, ":")
-		// currencyJoined := strings.Join(currencies, ":")
-		// singleTransferCap := strings.Join(singleTransferCaps, ":")
-		// minimumTransferCap := strings.Join(minimumTransferCaps, ":")
-
-		// s.serviceCache.Update(ctx,
-		// 	service_cache.ServiceData{
-		// 		AccessListID:       serviceDoc.ServiceKeyId,
-		// 		ServiceKey:         serviceDoc.ServiceKey,
-		// 		ServiceCode:        serviceDoc.ServiceCode,
-		// 		MinimumFraudAmount: serviceDoc.MinimumFraudAmount,
-		// 		ProductGlAccount:   serviceDoc.ProductGlAccount,
-		// 		ServiceName:        serviceDoc.ServiceName,
-		// 		Source:             service_cache.Source(sourceJoined),
-		// 		Currency:           currencyJoined,
-		// 		SingleTransferCap:  singleTransferCap,
-		// 		MinimumTransferCap: minimumTransferCap,
-		// 	})
-
 		var values []service_cache.ServiceData
 
 		for _, c := range serviceDoc.Cap {
 			values = append(values, service_cache.ServiceData{
+				ServiceID:          action.UniqueId,
 				AccessListID:       serviceDoc.ServiceKeyId,
 				ServiceKey:         serviceDoc.ServiceKey,
 				ServiceCode:        serviceDoc.ServiceCode,
@@ -606,7 +554,18 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 		}
 
 		// Set to cache
+		var source accessList_cache.Source
+		if listDoc.IsSuperAppEnabled && listDoc.IsUSSDEnabled {
+			source = accessList_cache.SourceBoth
+		} else if listDoc.IsSuperAppEnabled {
+			source = accessList_cache.SourceAPP
+		} else if listDoc.IsUSSDEnabled {
+			source = accessList_cache.SourceUSSD
+		}
+
 		s.accessListCache.Set(ctx, accessList_cache.AccessListData{
+			ID:          action.UniqueId,
+			Source:      source,
 			ServiceName: listDoc.ServiceName,
 			ServiceKey:  listDoc.ServiceKey,
 			AccountType: accessList_cache.AccountType(listDoc.AccountType),
@@ -627,8 +586,19 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 		}
 
 		// Set to cache
+		var source accessList_cache.Source
+		if listDoc.IsSuperAppEnabled && listDoc.IsUSSDEnabled {
+			source = accessList_cache.SourceBoth
+		} else if listDoc.IsSuperAppEnabled {
+			source = accessList_cache.SourceAPP
+		} else if listDoc.IsUSSDEnabled {
+			source = accessList_cache.SourceUSSD
+		}
+
 		s.accessListCache.Update(ctx,
 			accessList_cache.AccessListData{
+				ID:          action.UniqueId,
+				Source:      source,
 				ServiceName: listDoc.ServiceName,
 				ServiceKey:  listDoc.ServiceKey,
 				AccountType: accessList_cache.AccountType(listDoc.AccountType),
