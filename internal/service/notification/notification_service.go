@@ -74,36 +74,6 @@ func (s *notificationService) CreateNotification(ctx context.Context, req notify
 
 	entity := helper.BuildCreateNotification(req)
 
-	// var ent map[string]interface{}
-	// data, err := json.Marshal(entity)
-	// if err != nil {
-	// 	log.Errorf("[NotifSvc][Create] marshal err: %v", err)
-	// 	span.AddEvent("Failed to marshal notification entity", trace.WithAttributes(
-	// 		attribute.String("error", err.Error()),
-	// 	))
-	// 	return nil, err
-	// }
-
-	// if json.Unmarshal(data, &ent) != nil {
-	// 	log.Errorf("[NotifSvc][Create] unmarshal err: %v", err)
-	// 	span.AddEvent("Failed to unmarshal notification entity", trace.WithAttributes(
-	// 		attribute.String("error", err.Error()),
-	// 	))
-	// 	return nil, err
-	// }
-
-	// title, _ := ent["title"].(string)
-	// message, _ := ent["message"].(string)
-	// category, _ := ent["category"].(string)
-	// broadcastType, _ := ent["type"].(string)
-
-	// cpsAction := lib.CpsModelBuilder("", maker, nil, BroadcastInAppNotificationMessage{
-	// 	Title:         title,
-	// 	Message:       message,
-	// 	Category:      category,
-	// 	BroadcastType: broadcastType,
-	// }, string(constants.RequestCreatePublicNotification), constants.CREATE)
-
 	cpsAction := lib.CpsModelBuilder("", maker, nil, entity, string(constants.RequestCreatePublicNotification), constants.CREATE)
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
 		log.Errorf("[NotifSvc][Create] cps action err: %v", err)
@@ -349,15 +319,6 @@ func (s *notificationService) Authorize(ctx context.Context, action *model.CPSAc
 	}
 	switch action.RequestAction {
 	case string(constants.RequestCreatePublicNotification):
-		// notif, err := helper.BindNotificationFromAction(action.CurrentAction)
-		// if err != nil {
-		// 	log.Errorf("[NotifSvc][Authorize] bind err: %v", err)
-		// 	span.AddEvent("Failed to bind notification from action", trace.WithAttributes(
-		// 		attribute.String("error", err.Error()),
-		// 		attribute.String("unique_id", action.UniqueId),
-		// 	))
-		// 	return nil, errors.New(localization.ErrorInvalidRequest.Code)
-		// }
 
 		if notif.Title == "" || notif.Category == "" || string(notif.BroadcastType) == "" {
 			log.Errorf("[NotifSvc][Authorize] invalid data")
