@@ -380,7 +380,7 @@ func (c *customerOracleRepository) SearchCustomerByCIForAccountNumber(ctx contex
 			 FROM users u
 			 LEFT JOIN linked_accounts la ON la.user_code = u.user_code
 			 LEFT JOIN accounts ac ON ac.id = la.account_id
-			 LEFT JOIN COMPANY co ON co.DAO_CODE = u.dao_code
+			 LEFT JOIN COMPANY co ON co.DAO_CODE = u.branch_code
 			 WHERE (
 				 u.contact_phone = :1
 				 OR u.customer_number = :1
