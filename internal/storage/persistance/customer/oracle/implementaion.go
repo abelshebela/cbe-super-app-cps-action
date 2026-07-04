@@ -388,7 +388,7 @@ func (c *customerOracleRepository) SearchCustomerByCIForAccountNumber(ctx contex
 	var (
 		id, userCode, email, customerNumber, fullName, phoneNumber, branchCode, gender, accountNumber string
 		createdAt                                                                                     time.Time
-		isBlocked, isSupperAppEnabled, isUssdEnabled                                                 int
+		isBlocked, isSupperAppEnabled, isUssdEnabled                                                  int
 	)
 	err := row.Scan(&id, &userCode, &email, &customerNumber, &fullName, &phoneNumber, &branchCode, &gender, &isBlocked, &accountNumber, &isSupperAppEnabled, &isUssdEnabled)
 	if err != nil {

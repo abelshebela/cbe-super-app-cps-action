@@ -101,17 +101,17 @@ func (a *CoreAccountLookupAdapter) LookupAccountByAccountNumber(ctx context.Cont
 	// }
 	/*
 	   	type AccountDetail struct {
-	   	AccountNumber  string `json:"account_number"`
-	   	CustomerName   string `json:"customer_name"`
-	   	CustomerNumber string `json:"customer_number"`
-	   	PhoneNumber    string `json:"phone_number"`
-	   	BranchCode     string `json:"branch_code"`
-	   	BranchName     string `json:"branch_name"`
-	   	Restriction    string `json:"restriction"`
-	   	Currency       string `json:"currency"`
-	   	WorkingBalance string `json:"working_balance"`
-	   	CustomerID     string `json:"customer_id"`
-	   	AccountType    string `json:"account_type"`
+			AccountNumber  string `json:"account_number"`
+			CustomerName   string `json:"customer_name"`
+			CustomerNumber string `json:"customer_number"`
+			PhoneNumber    string `json:"phone_number"`
+			BranchCode     string `json:"branch_code"`
+			BranchName     string `json:"branch_name"`
+			Restriction    string `json:"restriction"`
+			Currency       string `json:"currency"`
+			WorkingBalance string `json:"working_balance"`
+			CustomerID     string `json:"customer_id"`
+			AccountType    string `json:"account_type"`
 	   }
 
 	   type NameLookupResultDetail struct {
@@ -136,9 +136,6 @@ func (a *CoreAccountLookupAdapter) LookupAccountByAccountNumber(ctx context.Cont
 		AccountNumber:  detail.AccountNumber,
 		CustomerName:   detail.AccountName,
 		CustomerNumber: detail.CustomerNumber,
-		// PhoneNumber:    detail.PhoneNumber,
-		// BranchCode:     detail.BranchCode,
-		// BranchName:     detail.BranchName,
 
 		Restriction:    detail.RestrictionType,
 		Currency:       detail.Currency,
