@@ -136,12 +136,10 @@ func (a *CoreAccountLookupAdapter) LookupAccountByAccountNumber(ctx context.Cont
 		AccountNumber:  detail.AccountNumber,
 		CustomerName:   detail.AccountName,
 		CustomerNumber: detail.CustomerNumber,
-
 		Restriction:    detail.RestrictionType,
 		Currency:       detail.Currency,
 		WorkingBalance: "",
 		CustomerID:     detail.CustomerNumber,
-		AccountType:    detail.RestrictionType,
 	}, nil
 }
 
