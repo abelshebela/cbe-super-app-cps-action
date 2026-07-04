@@ -19,6 +19,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	imodel "cbe-super-app-cps-action/internal/constants/model"
+
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -320,7 +321,7 @@ func (d *DonationCompany) Authorize(ctx context.Context, action *model.CPSAction
 
 // Account lookup end point
 
-func (d *DonationCompany) AccountLookup(ctx context.Context, accountNumber string) (*model.AccountDetail, error) {
+func (d *DonationCompany) AccountLookup(ctx context.Context, accountNumber string) (*imodel.AccountDetail, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "AccountLookup", "DonationCompany", "AccountLookup")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, d.logger)

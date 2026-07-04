@@ -669,6 +669,9 @@ type CustomerRepository interface {
 	FindCustomerLinkedAccountByUserID(ctx context.Context, userID string) (*model.LinkedAccount, error)
 	BlockCustomerByUserCode(ctx context.Context, userCode string) error
 	UNBlockCustomerByUserCode(ctx context.Context, userCode string) error
+	DisableCustomerByChannel(ctx context.Context, userCode, channel string) error
+	SaveBarUnBarReason(ctx context.Context, entry *imodel.CustomerBarUnBarReason) error
+	GetBarUnBarReasons(ctx context.Context, userID string) ([]*imodel.CustomerBarUnBarReason, error)
 }
 
 type BulkServiceRepository interface {

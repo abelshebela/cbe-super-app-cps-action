@@ -2244,6 +2244,34 @@ var (
 		Type:       "success",
 	}
 
+	SuccessCustomerBlockedSP = ResponseCode{
+		Code:       "SUCCESS_CUSTOMER_BLOCKED",
+		StatusCode: StatusOK,
+		Message:    MsgCustomerBlockedSuccessfulySP,
+		Type:       "success",
+	}
+
+	SuccessCustomerBlockedRequestSent = ResponseCode{
+		Code:       "SUCCESS_CUSTOMER_BLOCKED",
+		StatusCode: StatusOK,
+		Message:    MsgCustomerBlockRequestSentSuccessfuly,
+		Type:       "success",
+	}
+
+	SuccessCustomerUnBlocked = ResponseCode{
+		Code:       "SUCCESS_CUSTOMER_BLOCKED",
+		StatusCode: StatusOK,
+		Message:    MsgCustomerUnBlockedSuccessfulySP,
+		Type:       "success",
+	}
+
+	SuccessCustomerUnBlockedRequestSent = ResponseCode{
+		Code:       "SUCCESS_CUSTOMER_BLOCKED",
+		StatusCode: StatusOK,
+		Message:    MsgCustomerUnBlockRequestSentSuccessfuly,
+		Type:       "success",
+	}
+
 	SuccessBpsUserEnableRequestSent = ResponseCode{
 		Code:       "SUCCESS_BPS_USER_ENABLE_REQUEST_SENT",
 		StatusCode: StatusOK,
@@ -9736,6 +9764,18 @@ var (
 		Code:       "ERROR_ACCEErrorSegmentationTypeRequired,SS_LIST_KEYS_REQUIRED",
 		StatusCode: StatusBadRequest,
 		Message:    MsgAccessListKeysRequired,
+		Type:       "error",
+	}
+	ErrorCustomerAlreadyBlocked = ResponseCode{
+		Code:       "ERROR_CUSTOMER_ALREADY_BLOCKED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCustomerAlreadyBlocked,
+		Type:       "error",
+	}
+	ErrorCustomerAlreadyUnBlocked = ResponseCode{
+		Code:       "ERROR_CUSTOMER_ALREADY_UNBLOCKED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCustomerAlreadyUnBlocked,
 		Type:       "error",
 	}
 	ErrorSegmentationTypeRequired = ResponseCode{

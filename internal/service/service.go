@@ -197,6 +197,9 @@ type CustomerService interface {
 	SearchCustomerByCIForAccountNumber(ctx context.Context, number string) (*customer_dto.CustomerListResponse, error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	GetCustomerDetailByID(ctx context.Context, id string) (*customer_dto.CustomerDetailResponse, error)
+	UnBlockCustomerSession(ctx context.Context, id string) error
+	BlockCustomerSession(ctx context.Context, id, BlockedReason string) error
+	GetCustomerBarUnBarReasons(ctx context.Context, userID string) ([]*imodel.CustomerBarUnBarReason, error)
 }
 
 type DepartmentService interface {
@@ -241,7 +244,7 @@ type DonationCompanyService interface {
 	FetchDonationCompany(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]donationComp_dto.DonationCompanyListResponse], error)
 	FetchDonationCompanyByID(ctx context.Context, id string) (*donationComp_dto.DonationCompanyListResponse, error)
 	UpdateDonationCompany(ctx context.Context, id string, donationCompany donationComp_dto.DonationCompanyRequest) (*imodel.DonationCompanyOracle, error)
-	AccountLookup(ctx context.Context, accountNumber string) (*model.AccountDetail, error)
+	AccountLookup(ctx context.Context, accountNumber string) (*imodel.AccountDetail, error)
 	EnableDonationCompany(ctx context.Context, id string) error
 	DisableDonationCompany(ctx context.Context, id string) error
 	DeleteDonationCompany(ctx context.Context, id string) error

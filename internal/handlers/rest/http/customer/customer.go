@@ -9,6 +9,7 @@ import (
 	"cbe-super-app-cps-action/internal/handlers/rest/http/customer/core"
 	"context"
 	"encoding/json"
+	"strings"
 
 	"cbe-super-app-cps-action/internal/service"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -151,7 +152,8 @@ func (c *customerAdapter) DisableCustomer(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if payload.IsTemporary == nil {
+	if payload.Channel != "BOTH" && payload.Channel != "SUPPERAPP" && payload.Channel != "USSD" {
+		log.Errorf("[CustomerH][Disable] invalid channel: %s", payload.Channel)
 		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidInputParameter.Code)
 		return
 	}
@@ -434,7 +436,7 @@ func (c customerAdapter) ApproveFaydaCustomer(w http.ResponseWriter, r *http.Req
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		span.RecordError(err)
-		log.Errorf(localization.ErrorInvalidJSONPayload.Message)
+		log.Errorf("%s", localization.ErrorInvalidJSONPayload.Message)
 		localization.SendBadRequestResponse(w, localization.MsgInvalidJSONPayload)
 		return
 	}
@@ -496,6 +498,81 @@ func (c customerAdapter) SearchCustomerByCIForAccountNumber(w http.ResponseWrite
 
 }
 
+func (c *customerAdapter) SetBlockCustomerSession(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "blockCustomer", "handler", "customer")
+	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, c.logger)
+	req := &dto.BlockCustomerRequest{}
+	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
+		span.RecordError(err)
+		log.Errorf("[BlockCustomer] invalid request body: %v", err)
+		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidRequestBody.Code)
+		return
+	}
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
+
+	id := strings.TrimSpace(chi.URLParam(r, "id"))
+	if id == "" {
+		localization.SendErrorByCodeResponse(w, localization.ErrorIdNotSetOnQueryParam.Code)
+		return
+	}
+
+	if err := c.customerService.BlockCustomerSession(ctx, id, req.BlockedReason); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
+		span.RecordError(err)
+		log.Errorf("[BlockCustomer] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+	if md.IsMakerOnly {
+		log.Infof("[BlockCustomer] customer with id: %s is successfully blocked and is_maker_only: %v", id, md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessCustomerBlockedSP, nil)
+		return
+	}
+
+	log.Infof("[BlockCustomer] request sent successfully for id: %s is_maker_only: %v", id, md.IsMakerOnly)
+	localization.SendSuccessResponse(w, localization.SuccessCustomerBlockedRequestSent, nil)
+}
+
+func (c *customerAdapter) SetUnBlockCustomerSession(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "unblockCustomer", "handler", "customer")
+	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, c.logger)
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
+
+	id := strings.TrimSpace(chi.URLParam(r, "id"))
+	if id == "" {
+		localization.SendErrorByCodeResponse(w, localization.ErrorIdNotSetOnQueryParam.Code)
+		return
+	}
+
+	if err := c.customerService.UnBlockCustomerSession(ctx, id); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
+		span.RecordError(err)
+		log.Errorf("[BlockCustomer] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+	if md.IsMakerOnly {
+		log.Infof("[UnBlockCustomer] customer with id: %s is successfully blocked and is_maker_only: %v", id, md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessCustomerUnBlocked, nil)
+		return
+	}
+
+	log.Infof("[UnBlockCustomer] request sent successfully for id: %s is_maker_only: %v", id, md.IsMakerOnly)
+	localization.SendSuccessResponse(w, localization.SuccessCustomerUnBlockedRequestSent, nil)
+}
+
 // GetCustomerDetailByID retrieves detailed customer information by ID
 //
 //	@Summary		Get customer detail by ID
@@ -524,4 +601,26 @@ func (c *customerAdapter) GetCustomerDetailByID(w http.ResponseWriter, r *http.R
 		return
 	}
 	localization.SendSuccessResponse(w, localization.SuccessUserRetrieved, customerDetail)
+}
+
+func (c *customerAdapter) GetCustomerBarUnBarReasons(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getCustomerBarUnBarReasons", "handler", "customer")
+	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, c.logger)
+
+	id := strings.TrimSpace(chi.URLParam(r, "id"))
+	if id == "" {
+		log.Errorf("[GetCustomerBarUnBarReasons] id not set")
+		localization.SendErrorByCodeResponse(w, localization.ErrorIdNotSetOnQueryParam.Code)
+		return
+	}
+
+	reasons, err := c.customerService.GetCustomerBarUnBarReasons(ctx, id)
+	if err != nil {
+		span.RecordError(err)
+		log.Errorf("[GetCustomerBarUnBarReasons] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	localization.SendSuccessResponse(w, localization.SuccessUserRetrieved, reasons)
 }

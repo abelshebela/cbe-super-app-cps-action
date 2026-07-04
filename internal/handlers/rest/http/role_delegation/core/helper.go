@@ -165,7 +165,7 @@ func BuildRoleDelegationRequestWithExistingUser(body role_delegation_dto.RoleDel
 	}, nil
 }
 func BuildRoleDelegationRequestWithNewUser(body role_delegation_dto.RoleDelegationRequest) (imodel.RoleDelegation, error) {
-	delegatedUserID := strings.TrimSpace(body.DelegatedUserID)
+	delegatedUserID := strings.ToUpper(strings.TrimSpace(body.DelegatedUserID))
 	delegatedUserFullName := strings.TrimSpace(body.DelegatedUserFullName)
 	delegatedUserUserType := strings.TrimSpace(body.DelegatedUserUserType)
 	delegatedUserDepartmentOrBranch := strings.TrimSpace(body.DelegatedUserDepartmentOrBranch)

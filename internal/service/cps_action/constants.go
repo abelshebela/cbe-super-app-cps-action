@@ -269,6 +269,8 @@ const (
 	RequestDisableMultiBranches  constants.RequestAction = "REQUEST_DISABLE_MULTI_BRANCHES"
 	RequestDisableFaydaAccount   constants.RequestAction = "DISABLE_FAYDA_ACCOUNT"
 	RequestEnableFaydaAccount    constants.RequestAction = "ENABLE_FAYDA_ACCOUNT"
+	RequestUnblockCustomer       constants.RequestAction = "UNBLOCK_CUSTOMER"
+	RequestBlockCustomer         constants.RequestAction = "BLOCK_CUSTOMER"
 
 	RequestAccountUpdate         constants.RequestAction = "REQUEST_ACCOUNT_UPDATE"
 	RequestCreatePermissionGroup constants.RequestAction = "CREATE_PERMISSION_GROUP"
@@ -661,6 +663,8 @@ var validRequestActions = map[constants.RequestAction]struct{}{
 	RequestUpdateBlockTime:        {},
 	RequestDisableFaydaAccount:    {},
 	RequestEnableFaydaAccount:     {},
+	RequestBlockCustomer:          {},
+	RequestUnblockCustomer:        {},
 	RequestCreateAvatar:           {},
 	RequestDeleteAvatar:           {},
 	RequestDisableAvatar:          {},
@@ -1218,6 +1222,8 @@ var RequestActionGroups = map[string][]constants.RequestAction{
 	"CUSTOMER": {
 		RequestEnableDisableCustomer,
 		RequestApproveFaydaCustomer,
+		RequestBlockCustomer,
+		RequestUnblockCustomer,
 	},
 	"NEWSCATEGORY": {
 		constants.RequestAction("CREATE_NEWS_CATEGORY"),
