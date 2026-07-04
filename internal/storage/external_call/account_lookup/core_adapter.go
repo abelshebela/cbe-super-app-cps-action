@@ -5,6 +5,7 @@ import (
 	accountLookup "cbe-super-app-cps-action/internal/constants/dto/account_lookup"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
 	"fmt"
@@ -26,6 +27,7 @@ type Account interface {
 	LookupAccountByAccountNumberFromBps(ctx context.Context, accountNumber string) (accountLookup.AccountResponse, error)
 	CreateAccountWithFayda(ctx context.Context, account accountLookup.AccountCreateParams) (types.Account, error)
 	CifSearch(ctx context.Context, cif string) ([]imodel.AccountData, error)
+	SearchCustomerServiceLimitByCIF(ctx context.Context, cif string) (*core.CustomerLimitFetchByCIFReturnServiceResult, error)
 }
 
 type CoreAccountLookupAdapter struct {
@@ -195,4 +197,18 @@ func (s *CoreAccountLookupAdapter) CifSearch(ctx context.Context, cif string) ([
 
 	s.Logger.Infof("CIF search completed successfully")
 	return accounts, nil
+}
+
+func (s *CoreAccountLookupAdapter) SearchCustomerServiceLimitByCIF(ctx context.Context, cif string) (*core.CustomerLimitFetchByCIFReturnServiceResult, error) {
+	log := local_util.LoggerFromCtx(ctx, s.Logger)
+	log.Infof("[AccountLookup][SearchCustomerServiceLimitByCIF] Searching customer service limit by CIF: %s", cif)
+	res, err := s.coreAPI.CustomerLimitFetchByCIFReturnService(ctx, core.CustomerLimitFetchByCIFReturnServiceParam{CustomerNumber: cif})
+	if err != nil {
+		s.Logger.Errorf("[AccountLookup][SearchCustomerServiceLimitByCIF] failed to search customer service limit by CIF: %v", err)
+		log.Errorf("[AccountLookup][SearchCustomerServiceLimitByCIF] failed to search customer service limit by CIF: %v", err)
+		return nil, localization.ErrorUnexpectedError
+	}
+
+	return res, nil
+
 }
