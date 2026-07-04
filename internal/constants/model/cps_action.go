@@ -40,6 +40,11 @@ type CPSAction struct {
 	Checksum string `bson:"checksum,omitempty" json:"checksum,omitempty"`
 }
 
+type DisableCustomerCurrentAction struct {
+	User    interface{} `bson:"user" json:"user"`
+	Channel string      `bson:"channel" json:"channel"`
+}
+
 type AuditorStatus string
 type AuditorMark string
 

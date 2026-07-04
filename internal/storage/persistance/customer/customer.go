@@ -22,6 +22,7 @@ import (
 
 	customer_dto "cbe-super-app-cps-action/internal/constants/dto/customer"
 	"cbe-super-app-cps-action/internal/constants/lib"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -32,6 +33,7 @@ type CustomerRepository struct {
 	client           *mongo.Client
 	mongoDal         dal.MongoDal[member.User, member.User]
 	linkedAccountDal dal.MongoDal[model.LinkedAccount, model.LinkedAccount]
+	barReasonDal     dal.MongoDal[imodel.CustomerBarUnBarReason, imodel.CustomerBarUnBarReason]
 	logger           utils.Logger
 	coll             *mongo.Collection
 	kafkaProducer    kafka.ClientOrchestrationProducer
@@ -40,11 +42,13 @@ type CustomerRepository struct {
 func InitCustomerDetail(client *mongo.Client, cfg *config.VaultConfig, database string, collection []string, clientOrchestrationProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.CustomerRepository {
 	mongoDal := dal.NewMongoDal[member.User, member.User](client, cfg, database, collection[0])
 	linkedAccountDal := dal.NewMongoDal[model.LinkedAccount, model.LinkedAccount](client, cfg, database, collection[1])
+	barReasonDal := dal.NewMongoDal[imodel.CustomerBarUnBarReason, imodel.CustomerBarUnBarReason](client, cfg, database, "customer_bar_reasons")
 	return &CustomerRepository{
 		client:           client,
 		mongoDal:         mongoDal,
 		logger:           logger,
 		linkedAccountDal: linkedAccountDal,
+		barReasonDal:     barReasonDal,
 		coll:             client.Database(database).Collection(collection[0]),
 		kafkaProducer:    clientOrchestrationProducer,
 	}
@@ -703,6 +707,8 @@ func (p *CustomerRepository) SearchCustomerByCIForAccountNumber(ctx context.Cont
 			{Key: "gender", Value: 1},
 			{Key: "created_at", Value: 1},
 			{Key: "is_blocked", Value: 1},
+			{Key: "is_superapp_enabled", Value: 1},
+			{Key: "is_ussd_enabled", Value: 1},
 			// Extract the first account_number from linked_account array if exists
 			{Key: "account_number", Value: bson.D{{Key: "$arrayElemAt", Value: bson.A{"$accounts.account_number", 0}}}},
 		}}},
@@ -716,18 +722,20 @@ func (p *CustomerRepository) SearchCustomerByCIForAccountNumber(ctx context.Cont
 	defer cursor.Close(ctx)
 
 	var results []struct {
-		ID             bson.ObjectID `bson:"_id"`
-		UserID         string        `bson:"user_id"`
-		UserCode       string        `bson:"user_code"`
-		Email          string        `bson:"email"`
-		CustomerNumber string        `bson:"customer_number"`
-		AccountNumber  string        `bson:"account_number"`
-		FullName       string        `bson:"full_name"`
-		PhoneNumber    string        `bson:"phone_number"`
-		BranchCode     string        `bson:"branch_code"`
-		Gender         string        `bson:"gender"`
-		CreatedAt      time.Time     `bson:"created_at"`
-		IsBlocked      bool          `bson:"is_blocked"`
+		ID                 bson.ObjectID `bson:"_id"`
+		UserID             string        `bson:"user_id"`
+		UserCode           string        `bson:"user_code"`
+		Email              string        `bson:"email"`
+		CustomerNumber     string        `bson:"customer_number"`
+		AccountNumber      string        `bson:"account_number"`
+		FullName           string        `bson:"full_name"`
+		PhoneNumber        string        `bson:"phone_number"`
+		BranchCode         string        `bson:"branch_code"`
+		Gender             string        `bson:"gender"`
+		CreatedAt          time.Time     `bson:"created_at"`
+		IsBlocked          bool          `bson:"is_blocked"`
+		IsSupperAppEnabled bool          `bson:"is_superapp_enabled"`
+		IsUssdEnabled      bool          `bson:"is_ussd_enabled"`
 	}
 
 	if err = cursor.All(ctx, &results); err != nil {
@@ -741,18 +749,20 @@ func (p *CustomerRepository) SearchCustomerByCIForAccountNumber(ctx context.Cont
 
 	res := results[0]
 	return &customer_dto.CustomerListResponse{
-		ID:             res.ID.Hex(),
-		UserID:         res.UserID,
-		UserCode:       res.UserCode,
-		Email:          res.Email,
-		CustomerNumber: res.CustomerNumber,
-		FullName:       res.FullName,
-		PhoneNumber:    res.PhoneNumber,
-		BranchCode:     res.BranchCode,
-		Gender:         res.Gender,
-		CreatedAt:      res.CreatedAt.Format(time.RFC3339),
-		IsBlocked:      res.IsBlocked,
-		AccountNumber:  res.AccountNumber,
+		ID:                 res.ID.Hex(),
+		UserID:             res.UserID,
+		UserCode:           res.UserCode,
+		Email:              res.Email,
+		CustomerNumber:     res.CustomerNumber,
+		FullName:           res.FullName,
+		PhoneNumber:        res.PhoneNumber,
+		BranchCode:         res.BranchCode,
+		Gender:             res.Gender,
+		CreatedAt:          res.CreatedAt.Format(time.RFC3339),
+		IsBlocked:          res.IsBlocked,
+		AccountNumber:      res.AccountNumber,
+		IsSupperAppEnabled: res.IsSupperAppEnabled,
+		IsUssdEnabled:      res.IsUssdEnabled,
 	}, nil
 }
 
@@ -833,4 +843,54 @@ func (p *CustomerRepository) FindCustomerLinkedAccountByUserID(ctx context.Conte
 		return nil, errors.New(localization.ErrorResourceNotFound.Code)
 	}
 	return linkedAccount, nil
+}
+
+func (p *CustomerRepository) DisableCustomerByChannel(ctx context.Context, userCode, channel string) error {
+	log := local_util.LoggerFromCtx(ctx, p.logger)
+	log.Infof("[CustomerRepository][DisableCustomerByChannel] user_code: %s channel: %s", userCode, channel)
+
+	var update bson.M
+	switch channel {
+	case "BOTH":
+		update = bson.M{"is_superapp_enabled": false, "is_ussd_enabled": false}
+	case "SUPPERAPP":
+		update = bson.M{"is_superapp_enabled": false}
+	case "USSD":
+		update = bson.M{"is_ussd_enabled": false}
+	default:
+		return errors.New(localization.ErrorInvalidInputParameter.Code)
+	}
+	filter := bson.M{"user_code": userCode}
+	_, err := p.mongoDal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		log.Errorf("[CustomerRepository][DisableCustomerByChannel] failed: %v", err)
+		return local_util.HandleDBError(err)
+	}
+	return nil
+}
+
+func (p *CustomerRepository) SaveBarUnBarReason(ctx context.Context, entry *imodel.CustomerBarUnBarReason) error {
+	log := local_util.LoggerFromCtx(ctx, p.logger)
+	entry.ID = bson.NewObjectID()
+	if _, err := p.barReasonDal.InsertOne(ctx, *entry); err != nil {
+		log.Errorf("[CustomerRepository][SaveBarUnBarReason] failed to save: %v", err)
+		return local_util.HandleDBError(err)
+	}
+	return nil
+}
+
+func (p *CustomerRepository) GetBarUnBarReasons(ctx context.Context, userID string) ([]*imodel.CustomerBarUnBarReason, error) {
+	log := local_util.LoggerFromCtx(ctx, p.logger)
+	filter := bson.M{"user_id": userID}
+	results, err := p.barReasonDal.FindAll(ctx, filter, bson.M{})
+	if err != nil {
+		log.Errorf("[CustomerRepository][GetBarUnBarReasons] failed to fetch: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+	out := make([]*imodel.CustomerBarUnBarReason, len(results))
+	for i, r := range results {
+		copied := r
+		out[i] = &copied
+	}
+	return out, nil
 }

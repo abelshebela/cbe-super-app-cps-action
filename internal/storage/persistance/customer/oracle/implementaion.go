@@ -3,11 +3,13 @@ package customer_oracle
 import (
 	"cbe-super-app-cps-action/internal/constants/dto/customer"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/kafka"
 	"context"
 	"database/sql"
+	"fmt"
 	"time"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -366,7 +368,9 @@ func (c *customerOracleRepository) SearchCustomerByCIForAccountNumber(ctx contex
 				 '' AS branch_code,
 				 u.gender,
 				 u.is_blocked,
-				 ac.account_number
+				 ac.account_number,
+				 u.IS_SUPERAPP_ENABLED,
+				 u.IS_USSD_ENABLED
 			 FROM users u
 			 LEFT JOIN linked_accounts la ON la.user_code = u.user_code
 			 LEFT JOIN accounts ac ON ac.id = la.account_id 
@@ -384,9 +388,9 @@ func (c *customerOracleRepository) SearchCustomerByCIForAccountNumber(ctx contex
 	var (
 		id, userCode, email, customerNumber, fullName, phoneNumber, branchCode, gender, accountNumber string
 		createdAt                                                                                     time.Time
-		isBlocked                                                                                     int
+		isBlocked, isSupperAppEnabled, isUssdEnabled                                                  int
 	)
-	err := row.Scan(&id, &userCode, &email, &customerNumber, &fullName, &phoneNumber, &branchCode, &gender, &isBlocked, &accountNumber)
+	err := row.Scan(&id, &userCode, &email, &customerNumber, &fullName, &phoneNumber, &branchCode, &gender, &isBlocked, &accountNumber, &isSupperAppEnabled, &isUssdEnabled)
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
 			return nil, localization.ErrorCustomerNotFound
@@ -396,18 +400,20 @@ func (c *customerOracleRepository) SearchCustomerByCIForAccountNumber(ctx contex
 	}
 
 	return &customer.CustomerListResponse{
-		ID:             id,
-		UserID:         id,
-		UserCode:       userCode,
-		Email:          email,
-		CustomerNumber: customerNumber,
-		FullName:       fullName,
-		PhoneNumber:    phoneNumber,
-		BranchCode:     branchCode,
-		Gender:         gender,
-		CreatedAt:      createdAt.Format(time.RFC3339),
-		IsBlocked:      isBlocked == 1,
-		AccountNumber:  accountNumber,
+		ID:                 id,
+		UserID:             id,
+		UserCode:           userCode,
+		Email:              email,
+		CustomerNumber:     customerNumber,
+		FullName:           fullName,
+		PhoneNumber:        phoneNumber,
+		BranchCode:         branchCode,
+		Gender:             gender,
+		CreatedAt:          createdAt.Format(time.RFC3339),
+		IsBlocked:          isBlocked == 1,
+		AccountNumber:      accountNumber,
+		IsSupperAppEnabled: isSupperAppEnabled == 1,
+		IsUssdEnabled:      isUssdEnabled == 1,
 	}, nil
 }
 
@@ -458,6 +464,48 @@ func (c *customerOracleRepository) UNBlockCustomerByUserCode(ctx context.Context
 
 // Update implements [storage.CustomerRepository].
 func (c *customerOracleRepository) Update(ctx context.Context, id string, data member.User) error {
+	panic("unimplemented")
+}
+
+func (c *customerOracleRepository) DisableCustomerByChannel(ctx context.Context, userCode, channel string) error {
+	log := local_util.LoggerFromCtx(ctx, c.logger)
+
+	var query string
+	switch channel {
+	case "BOTH":
+		query = `UPDATE users SET IS_SUPERAPP_ENABLED = 0, IS_USSD_ENABLED = 0 WHERE user_code = :1`
+	case "SUPPERAPP":
+		query = `UPDATE users SET IS_SUPERAPP_ENABLED = 0 WHERE user_code = :1`
+	case "USSD":
+		query = `UPDATE users SET IS_USSD_ENABLED = 0 WHERE user_code = :1`
+	default:
+		log.Errorf("[CustomerRepository][DisableCustomerByChannel] unsupported channel: %s", channel)
+		return fmt.Errorf("%s", localization.ErrorInvalidInputParameter.Code)
+	}
+
+	result, err := c.db.ExecContext(ctx, query, userCode)
+	if err != nil {
+		log.Errorf("[CustomerRepository][DisableCustomerByChannel] failed for user_code %s channel %s: %v", userCode, channel, err)
+		return localization.ErrorUnexpectedError
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		log.Errorf("[CustomerRepository][DisableCustomerByChannel] failed to get rows affected: %v", err)
+		return localization.ErrorUnexpectedError
+	}
+	if rowsAffected == 0 {
+		log.Errorf("[CustomerRepository][DisableCustomerByChannel] no user found with user_code: %s", userCode)
+		return localization.ErrorCustomerNotFound
+	}
+	log.Infof("[CustomerRepository][DisableCustomerByChannel] disabled channel %s for user_code: %s", channel, userCode)
+	return nil
+}
+
+func (c *customerOracleRepository) SaveBarUnBarReason(ctx context.Context, entry *imodel.CustomerBarUnBarReason) error {
+	panic("unimplemented")
+}
+
+func (c *customerOracleRepository) GetBarUnBarReasons(ctx context.Context, userID string) ([]*imodel.CustomerBarUnBarReason, error) {
 	panic("unimplemented")
 }
 

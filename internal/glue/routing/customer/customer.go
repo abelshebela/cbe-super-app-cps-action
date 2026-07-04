@@ -45,6 +45,22 @@ func Init(router chi.Router, handler customer.CustomerDetail, authMiddleware mid
 		},
 		{
 			Method:  http.MethodPatch,
+			Path:    "/customers/block/{id}",
+			Handler: handler.SetBlockCustomerSession,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodPatch,
+			Path:    "/customers/unblock/{id}",
+			Handler: handler.SetUnBlockCustomerSession,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodPatch,
 			Path:    "/customers/enable_otp_verify/{id}",
 			Handler: handler.EnableCustomer,
 			Middlewares: []func(next http.Handler) http.Handler{
@@ -103,6 +119,14 @@ func Init(router chi.Router, handler customer.CustomerDetail, authMiddleware mid
 			Method:  http.MethodGet,
 			Path:    "/customers/action_log/{id}",
 			Handler: handler.GetCustomerActionLogByID,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/customers/block_reasons/{id}",
+			Handler: handler.GetCustomerBarUnBarReasons,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
 			},
