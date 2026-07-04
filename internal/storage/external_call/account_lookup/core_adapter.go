@@ -136,12 +136,10 @@ func (a *CoreAccountLookupAdapter) LookupAccountByAccountNumber(ctx context.Cont
 		AccountNumber:  detail.AccountNumber,
 		CustomerName:   detail.AccountName,
 		CustomerNumber: detail.CustomerNumber,
-
 		Restriction:    detail.RestrictionType,
 		Currency:       detail.Currency,
 		WorkingBalance: "",
 		CustomerID:     detail.CustomerNumber,
-		AccountType:    detail.RestrictionType,
 	}, nil
 }
 
@@ -235,6 +233,11 @@ func (s *CoreAccountLookupAdapter) CifSearch(ctx context.Context, cif string) ([
 func (s *CoreAccountLookupAdapter) SearchCustomerServiceLimitByCIF(ctx context.Context, cif string) (*core.CustomerLimitFetchByCIFReturnServiceResult, error) {
 	log := local_util.LoggerFromCtx(ctx, s.Logger)
 	log.Infof("[AccountLookup][SearchCustomerServiceLimitByCIF] Searching customer service limit by CIF: %s", cif)
+
+	if s.coreAPI == nil {
+		log.Errorf("[AccountLookup][SearchCustomerServiceLimitByCIF] coreAPI is nil")
+		return nil, localization.ErrorUnexpectedError
+	}
 	res, err := s.coreAPI.CustomerLimitFetchByCIFReturnService(ctx, core.CustomerLimitFetchByCIFReturnServiceParam{CustomerNumber: cif})
 	if err != nil {
 		s.Logger.Errorf("[AccountLookup][SearchCustomerServiceLimitByCIF] failed to search customer service limit by CIF: %v", err)

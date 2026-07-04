@@ -365,15 +365,22 @@ func (c *customerOracleRepository) SearchCustomerByCIForAccountNumber(ctx contex
 				 u.customer_number,
 				 u.full_name,
 				 u.contact_phone,
-				 '' AS branch_code,
+				 NVL(co.BRANCH_CODE, '') AS branch_code,
 				 u.gender,
 				 u.is_blocked,
-				 ac.account_number,
+				 NVL(ac.account_number, '') AS account_number,
 				 u.IS_SUPERAPP_ENABLED,
-				 u.IS_USSD_ENABLED
+				 u.IS_USSD_ENABLED,
+				 NVL(co.BRANCH_NAME, '') AS branch_name,
+				 NVL(co.ACCOUNT_TYPE, '') AS account_type,
+				 NVL(co.DISTRICT_NAME, '') AS district_name,
+				 NVL(co.REGION_NAME, '') AS region_name,
+				 NVL(co.FEDERAL_REGION_NAME, '') AS federal_region_name,
+				 NVL(TO_CHAR(co.DAO_CODE), '') AS dao_code
 			 FROM users u
 			 LEFT JOIN linked_accounts la ON la.user_code = u.user_code
-			 LEFT JOIN accounts ac ON ac.id = la.account_id 
+			 LEFT JOIN accounts ac ON ac.id = la.account_id
+			 LEFT JOIN COMPANY co ON co.BRANCH_CODE = u.branch_code
 			 WHERE (
 				 u.contact_phone = :1
 				 OR u.customer_number = :1
@@ -387,10 +394,15 @@ func (c *customerOracleRepository) SearchCustomerByCIForAccountNumber(ctx contex
 	row := c.db.QueryRowContext(ctx, query, number, number, number, number)
 	var (
 		id, userCode, email, customerNumber, fullName, phoneNumber, branchCode, gender, accountNumber string
+		branchName, accountType, districtName, regionName, federalRegionName, daoCode                string
 		createdAt                                                                                     time.Time
-		isBlocked, isSupperAppEnabled, isUssdEnabled                                                  int
+		isBlocked, isSupperAppEnabled, isUssdEnabled                                                 int
 	)
-	err := row.Scan(&id, &userCode, &email, &customerNumber, &fullName, &phoneNumber, &branchCode, &gender, &isBlocked, &accountNumber, &isSupperAppEnabled, &isUssdEnabled)
+	err := row.Scan(
+		&id, &userCode, &email, &customerNumber, &fullName, &phoneNumber, &branchCode,
+		&gender, &isBlocked, &accountNumber, &isSupperAppEnabled, &isUssdEnabled,
+		&branchName, &accountType, &districtName, &regionName, &federalRegionName, &daoCode,
+	)
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
 			return nil, localization.ErrorCustomerNotFound
@@ -408,6 +420,12 @@ func (c *customerOracleRepository) SearchCustomerByCIForAccountNumber(ctx contex
 		FullName:           fullName,
 		PhoneNumber:        phoneNumber,
 		BranchCode:         branchCode,
+		BranchName:         branchName,
+		AccountType:        accountType,
+		DistrictName:       districtName,
+		RegionName:         regionName,
+		FederalRegionName:  federalRegionName,
+		DaoCode:            daoCode,
 		Gender:             gender,
 		CreatedAt:          createdAt.Format(time.RFC3339),
 		IsBlocked:          isBlocked == 1,
