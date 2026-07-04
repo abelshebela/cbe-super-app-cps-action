@@ -103,7 +103,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 
 	tokenProviderClient := tp_client.NewTokenProviderClient(cfg.AccountOpeningTokenURL, cfg.AccountOpeningTokenClientID, cfg.AccountOpeningTokenClientSecret, cfg.AccountOpeningTokenScope, logger)
 	tokenProviderService := token_provider_svc.NewTokenProviderService(tokenProviderClient, redis, logger)
-	serviceCache := service_cache.NewServiceCatch(*sharedRedisClient, cacheLogger)
+	serviceCache := service_cache.NewServiceCatch(sharedRedisClient, cacheLogger)
 	accessListCache := access_list_cache.NewAccessListCatch(*sharedRedisClient, cacheLogger)
 	bankCache := bank_cache.NewBankCatch(*sharedRedisClient, cacheLogger)
 

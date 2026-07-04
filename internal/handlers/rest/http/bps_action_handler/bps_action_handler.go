@@ -6,7 +6,8 @@ import (
 	bps_actionrole_dto "cbe-super-app-cps-action/internal/constants/dto/bps_action_role"
 	bpsaction "cbe-super-app-cps-action/internal/constants/interfaces/bps_action"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	imodel "cbe-super-app-cps-action/internal/constants/model"
+
+	// imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	mid "cbe-super-app-cps-action/internal/handlers/middleware"
 	"cbe-super-app-cps-action/internal/service"
@@ -16,8 +17,10 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	"slices"
 
+	// "slices"
+
+	bpsactioncore "cbe-super-app-cps-action/internal/handlers/rest/http/bps_action_handler/core"
 	"strings"
 	"time"
 
@@ -450,60 +453,66 @@ func (a *bpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http
 		return
 	}
 
-	// roleCode from context
-	rawRoleID, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
-	if rawRoleID == "" {
-		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
-		return
-	}
+	// // roleCode from context
+	// rawRoleID, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
+	// if rawRoleID == "" {
+	// 	localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+	// 	return
+	// }
 
 	// fetch checker allocations for this role
+
+	// _, _, checkerActions, _, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
+	// if err != nil {
+	// 	span.RecordError(err)
+	// 	localization.SendErrorByCodeResponse(w, err.Error())
+	// 	return
+	// }
+
+	// if checkerActions == nil {
+	// 	localization.SendSuccessResponse(w, localization.SuccessBPSActionsRetrieved, map[string]interface{}{})
+	// 	return
+	// }
+
+	// log.Infof("[BpsActionH][Approve] checker actions: %v", checkerActions)
+
+	// // resolve action_names -> request_actions
+	// var reqs []string
+	// seen := map[string]struct{}{}
+	// for _, mod := range checkerActions {
+	// 	upper := strings.ToUpper(strings.TrimSpace(mod))
+	// 	if lst, ok := bpsactionsvc.RequestActionGroups[upper]; ok {
+	// 		for _, ra := range lst {
+	// 			key := string(ra)
+	// 			if _, ok := seen[key]; ok {
+	// 				continue
+	// 			}
+	// 			seen[key] = struct{}{}
+	// 			reqs = append(reqs, key)
+	// 		}
+	// 	}
+	// }
+	// if filterParams == nil {
+	// 	filterParams = &types.Filter{}
+	// }
+	// if filterParams.Filters == nil {
+	// 	filterParams.Filters = map[string]interface{}{}
+	// }
+	// if len(reqs) > 0 {
+	// 	filterParams.Filters["request_action"] = map[string]interface{}{"$in": reqs}
+	// }
+
 	idxRepo := mid.GetBPSActionApproveRepo()
 	if idxRepo == nil {
 		localization.SendErrorByCodeResponse(w, localization.ErrorUnexpectedError.Code)
 		return
 	}
 
-	_, _, checkerActions, _, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
+	filterParams, reqs, err := bpsactioncore.ParameterProvider(ctx, filterParams, span, constants.Auditor, idxRepo, log)
 	if err != nil {
-		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
-	if checkerActions == nil {
-		localization.SendSuccessResponse(w, localization.SuccessBPSActionsRetrieved, map[string]interface{}{})
-		return
-	}
-
-	log.Infof("[BpsActionH][Approve] checker actions: %v", checkerActions)
-
-	// resolve action_names -> request_actions
-	var reqs []string
-	seen := map[string]struct{}{}
-	for _, mod := range checkerActions {
-		upper := strings.ToUpper(strings.TrimSpace(mod))
-		if lst, ok := bpsactionsvc.RequestActionGroups[upper]; ok {
-			for _, ra := range lst {
-				key := string(ra)
-				if _, ok := seen[key]; ok {
-					continue
-				}
-				seen[key] = struct{}{}
-				reqs = append(reqs, key)
-			}
-		}
-	}
-	if filterParams == nil {
-		filterParams = &types.Filter{}
-	}
-	if filterParams.Filters == nil {
-		filterParams.Filters = map[string]interface{}{}
-	}
-	if len(reqs) > 0 {
-		filterParams.Filters["request_action"] = map[string]interface{}{"$in": reqs}
-	}
-
 	res, url, err := a.bpsActionApplication.GetBPSActionsForApprover(ctx, userID, reqs, filterParams)
 	if err != nil {
 		span.RecordError(err)
@@ -524,9 +533,9 @@ func (a *bpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	localization.UpdateWriterContext(w, ctx)
-
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	filterParams := local_util.ExtractFilterParams(r)
-	var allocation []string
+	// var allocation []string
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
 
@@ -541,76 +550,88 @@ func (a *bpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.
 	}
 
 	// roleCode from context
-	rawRoleID, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
-	if rawRoleID == "" {
-		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
-		return
-	}
+	// rawRoleID, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
+	// if rawRoleID == "" {
+	// 	localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+	// 	return
+	// }
 
-	// fetch checker allocations for this role
+	// // fetch checker allocations for this role
+	// idxRepo := mid.GetBPSActionApproveRepo()
+	// if idxRepo == nil {
+	// 	localization.SendErrorByCodeResponse(w, localization.ErrorUnexpectedError.Code)
+	// 	return
+	// }
+
+	// _, _, _, auditorAllocations, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
+	// if err != nil {
+	// 	span.RecordError(err)
+	// 	localization.SendErrorByCodeResponse(w, err.Error())
+	// 	return
+	// }
+
+	// if auditorAllocations == nil {
+	// 	localization.SendSuccessResponse(w, localization.SuccessBPSActionsRetrieved, map[string]interface{}{})
+	// 	return
+	// }
+
+	// for _, v := range auditorAllocations {
+	// 	if slices.Contains(allocation, v) {
+	// 		continue
+	// 	}
+	// 	allocation = append(allocation, v)
+	// }
+	// // resolve action_names -> request_actions
+	// var reqs []string
+	// seen := map[string]struct{}{}
+	// for _, mod := range allocation {
+	// 	upper := strings.ToUpper(strings.TrimSpace(mod))
+	// 	if lst, ok := bpsactionsvc.RequestActionGroups[upper]; ok {
+	// 		for _, ra := range lst {
+	// 			key := string(ra)
+	// 			if _, ok := seen[key]; ok {
+	// 				continue
+	// 			}
+	// 			seen[key] = struct{}{}
+	// 			reqs = append(reqs, key)
+	// 		}
+	// 	}
+	// }
+
+	// a.logger.Infof("[BPSAction][GetUserAuditorActions] Length: %v request actiokn list*******: %v", len(reqs), reqs)
+
+	// // Parse level+claim filter: level=1,2,3&level_1_claim=MARKEDASRIGHT&level_2_claim=MARKEDASWRONG
+	// if rawLevel := strings.TrimSpace(r.URL.Query().Get("level")); rawLevel != "" {
+	// 	var levelClaimPairs []imodel.LevelClaimPair
+	// 	for _, lv := range strings.Split(rawLevel, ",") {
+	// 		lv = strings.TrimSpace(lv)
+	// 		if lv == "" {
+	// 			continue
+	// 		}
+	// 		claim := strings.ToUpper(strings.TrimSpace(r.URL.Query().Get("level_" + lv + "_claim")))
+	// 		if claim == "" {
+	// 			continue
+	// 		}
+	// 		levelClaimPairs = append(levelClaimPairs, imodel.LevelClaimPair{Level: lv, Claim: claim})
+	// 	}
+	// 	if len(levelClaimPairs) > 0 {
+	// 		if filterParams.Filters == nil {
+	// 			filterParams.Filters = map[string]interface{}{}
+	// 		}
+	// 		filterParams.Filters["level_claim_pairs"] = levelClaimPairs
+	// 	}
+	// }
+
 	idxRepo := mid.GetBPSActionApproveRepo()
 	if idxRepo == nil {
 		localization.SendErrorByCodeResponse(w, localization.ErrorUnexpectedError.Code)
 		return
 	}
 
-	_, _, _, auditorAllocations, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
+	filterParams, reqs, err := bpsactioncore.ParameterProvider(ctx, filterParams, span, constants.Auditor, idxRepo, log)
 	if err != nil {
-		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
-	}
-
-	if auditorAllocations == nil {
-		localization.SendSuccessResponse(w, localization.SuccessBPSActionsRetrieved, map[string]interface{}{})
-		return
-	}
-
-	for _, v := range auditorAllocations {
-		if slices.Contains(allocation, v) {
-			continue
-		}
-		allocation = append(allocation, v)
-	}
-	// resolve action_names -> request_actions
-	var reqs []string
-	seen := map[string]struct{}{}
-	for _, mod := range allocation {
-		upper := strings.ToUpper(strings.TrimSpace(mod))
-		if lst, ok := bpsactionsvc.RequestActionGroups[upper]; ok {
-			for _, ra := range lst {
-				key := string(ra)
-				if _, ok := seen[key]; ok {
-					continue
-				}
-				seen[key] = struct{}{}
-				reqs = append(reqs, key)
-			}
-		}
-	}
-
-	a.logger.Infof("[BPSAction][GetUserAuditorActions] Length: %v request actiokn list*******: %v", len(reqs), reqs)
-
-	// Parse level+claim filter: level=1,2,3&level_1_claim=MARKEDASRIGHT&level_2_claim=MARKEDASWRONG
-	if rawLevel := strings.TrimSpace(r.URL.Query().Get("level")); rawLevel != "" {
-		var levelClaimPairs []imodel.LevelClaimPair
-		for _, lv := range strings.Split(rawLevel, ",") {
-			lv = strings.TrimSpace(lv)
-			if lv == "" {
-				continue
-			}
-			claim := strings.ToUpper(strings.TrimSpace(r.URL.Query().Get("level_" + lv + "_claim")))
-			if claim == "" {
-				continue
-			}
-			levelClaimPairs = append(levelClaimPairs, imodel.LevelClaimPair{Level: lv, Claim: claim})
-		}
-		if len(levelClaimPairs) > 0 {
-			if filterParams.Filters == nil {
-				filterParams.Filters = map[string]interface{}{}
-			}
-			filterParams.Filters["level_claim_pairs"] = levelClaimPairs
-		}
 	}
 
 	// do not force action_status; let API-provided filters decide
@@ -1238,4 +1259,55 @@ func (a *bpsActionAdapter) ReinstateCustomer(w http.ResponseWriter, r *http.Requ
 	}
 
 	localization.SendSuccessResponse(w, localization.SuccessBPSActionChecked, nil)
+}
+
+func (a *bpsActionAdapter) GetListOfServiceForFilter(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getUserApproverPendingActions", "handler", "bpsAction")
+	defer span.End()
+	filterParams := local_util.ExtractFilterParams(r)
+
+	log := local_util.LoggerFromCtx(r.Context(), a.logger)
+	var data []string
+	role, _ := filterParams.Filters["role"]
+
+	if role == "" {
+		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+		return
+	}
+	// roleCode from context
+	rawRoleID, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
+	if rawRoleID == "" {
+		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+		return
+	}
+
+	// fetch checker allocations for this role
+	idxRepo := mid.GetCPSActionApproveRepo()
+	if idxRepo == nil {
+		log.Errorf("[BPSAction][GetListOfServiceForFilter] Error while geting the repo")
+		localization.SendErrorByCodeResponse(w, localization.ErrorUnexpectedError.Code)
+		return
+	}
+
+	_, _, checkerActions, auditorActions, _, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
+	if err != nil {
+		span.RecordError(err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if role == constants.Checker {
+		data = checkerActions
+	} else if role == constants.Auditor {
+		data = auditorActions
+	}
+
+	if len(data) == 0 {
+		log.Errorf("[BPSAction][GetListOfServiceForFilter] Error while geting the role")
+		localization.SendErrorByCodeResponse(w, localization.ErrorParamsIsRequired.Code)
+		return
+	}
+
+	log.Infof("[BPSAction][GetListOfServiceForFilter] successfuly fetched the list of services")
+	localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, map[string]interface{}{"services": data})
 }

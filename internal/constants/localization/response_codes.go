@@ -483,6 +483,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorMissingOrInvalidImage,
 	ErrorPendingCpsActionExists,
 	ErrorUnexpectedError,
+	ErrorParamsIsRequired,
 	ErrorDonationForServiceAlreadyExists,
 	ErrorMarchantDataAlready,
 	ErrorExternalServiceError,
@@ -2242,6 +2243,34 @@ var (
 		Code:       "SUCCESS_CPS_USER_DISABLED",
 		StatusCode: StatusOK,
 		Message:    MsgCpsUserDisabledSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessCustomerBlockedSP = ResponseCode{
+		Code:       "SUCCESS_CUSTOMER_BLOCKED",
+		StatusCode: StatusOK,
+		Message:    MsgCustomerBlockedSuccessfulySP,
+		Type:       "success",
+	}
+
+	SuccessCustomerBlockedRequestSent = ResponseCode{
+		Code:       "SUCCESS_CUSTOMER_BLOCKED",
+		StatusCode: StatusOK,
+		Message:    MsgCustomerBlockRequestSentSuccessfuly,
+		Type:       "success",
+	}
+
+	SuccessCustomerUnBlocked = ResponseCode{
+		Code:       "SUCCESS_CUSTOMER_BLOCKED",
+		StatusCode: StatusOK,
+		Message:    MsgCustomerUnBlockedSuccessfulySP,
+		Type:       "success",
+	}
+
+	SuccessCustomerUnBlockedRequestSent = ResponseCode{
+		Code:       "SUCCESS_CUSTOMER_BLOCKED",
+		StatusCode: StatusOK,
+		Message:    MsgCustomerUnBlockRequestSentSuccessfuly,
 		Type:       "success",
 	}
 
@@ -6804,6 +6833,13 @@ var (
 		Type:       "error",
 	}
 
+	ErrorParamsIsRequired = ResponseCode{
+		Code:       "ERROR_PARAMS_IS_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgRoleParameterIsRequired,
+		Type:       "error",
+	}
+
 	ErrorDonationForServiceAlreadyExists = ResponseCode{
 		Code:       "ERROR_DONATION_FOR_SERVICE_ALREADY_EXISTS",
 		StatusCode: StatusConflict,
@@ -9744,6 +9780,18 @@ var (
 		Code:       "ERROR_ACCEErrorSegmentationTypeRequired,SS_LIST_KEYS_REQUIRED",
 		StatusCode: StatusBadRequest,
 		Message:    MsgAccessListKeysRequired,
+		Type:       "error",
+	}
+	ErrorCustomerAlreadyBlocked = ResponseCode{
+		Code:       "ERROR_CUSTOMER_ALREADY_BLOCKED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCustomerAlreadyBlocked,
+		Type:       "error",
+	}
+	ErrorCustomerAlreadyUnBlocked = ResponseCode{
+		Code:       "ERROR_CUSTOMER_ALREADY_UNBLOCKED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCustomerAlreadyUnBlocked,
 		Type:       "error",
 	}
 	ErrorSegmentationTypeRequired = ResponseCode{

@@ -22,6 +22,14 @@ func Init(router chi.Router, handler bpsaction.BPSActionAdapter, authMiddleware 
 			},
 		},
 		{
+			Method:  http.MethodGet,
+			Path:    "/bps_actions/services_list",
+			Handler: handler.GetListOfServiceForFilter,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
+		{
 			Method:  http.MethodPatch,
 			Path:    "/bps_actions/{action_code}/reject",
 			Handler: handler.RejectBPSAction,

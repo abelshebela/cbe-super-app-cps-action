@@ -14,9 +14,9 @@ import (
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 
+	local_helper "cbe-super-app-cps-action/internal/storage/persistance/account_block/helper"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
-	"github.com/google/uuid"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -82,250 +82,21 @@ func NewAccountBlockRepository(client *mongo.Client, cfg *config.VaultConfig, cp
 	}
 }
 
-func isEnabledToInt(enabled bool) int {
-	if enabled {
-		return 1
-	}
-	return 0
-}
-
-func attachSyntheticParentChain(b *imodel.AccountBlock) {
-	if b == nil || b.Type != imodel.TypeBranch {
-		return
-	}
-
-	federalRegionName := strings.TrimSpace(b.FederalRegionName)
-	districtName := strings.TrimSpace(b.DistrictName)
-
-	var federalRegion *imodel.AccountBlock
-	if federalRegionName != "" {
-		federalRegion = &imodel.AccountBlock{
-			ID:                federalRegionName,
-			Name:              federalRegionName,
-			FederalRegionName: federalRegionName,
-			Type:              imodel.TypeRegion,
-		}
-		frn := federalRegionName
-		b.RegionID = &frn
-	}
-
-	if districtName != "" {
-		district := &imodel.AccountBlock{
-			ID:           districtName,
-			Name:         districtName,
-			DistrictName: districtName,
-			Type:         imodel.TypeDistrict,
-		}
-		if b.FederalRegionName != "" {
-			district.FederalRegionName = b.FederalRegionName
-			frn := b.FederalRegionName
-			district.RegionID = &frn
-		}
-		if federalRegion != nil {
-			district.Parent = federalRegion
-		}
-		dn := districtName
-		b.DistrictID = &dn
-		b.Parent = district
-		return
-	}
-
-	if federalRegion != nil {
-		b.Parent = federalRegion
-	}
-}
-
-func scanCompanyBranch(scanner interface{ Scan(dest ...any) error }) (*imodel.AccountBlock, error) {
-	var ab imodel.AccountBlock
-	var districtName, regionName, federalRegionName sql.NullString
-	var isEnabledInt int
-	var createdAt, updatedAt sql.NullTime
-
-	err := scanner.Scan(
-		&ab.ID, &ab.Code, &ab.Name,
-		&districtName, &regionName, &federalRegionName,
-		&ab.DaoCode, &ab.AccountType, &isEnabledInt,
-		&createdAt, &updatedAt,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	ab.Type = imodel.TypeBranch
-	ab.IsEnabled = isEnabledInt == 1
-	if districtName.Valid {
-		ab.DistrictName = districtName.String
-	}
-	if regionName.Valid {
-		ab.RegionName = regionName.String
-	}
-	if federalRegionName.Valid {
-		ab.FederalRegionName = federalRegionName.String
-	}
-	if createdAt.Valid {
-		ab.CreatedAt = createdAt.Time
-	}
-	if updatedAt.Valid {
-		ab.UpdatedAt = updatedAt.Time
-	}
-
-	attachSyntheticParentChain(&ab)
-	return &ab, nil
-}
-
-func scanRegionAggregate(scanner interface{ Scan(dest ...any) error }) (*imodel.AccountBlock, error) {
-	var ab imodel.AccountBlock
-	var isEnabledInt int
-	var createdAt, updatedAt sql.NullTime
-
-	err := scanner.Scan(
-		&ab.FederalRegionName,
-		&isEnabledInt, &createdAt, &updatedAt,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	ab.ID = ab.FederalRegionName
-	ab.Name = ab.FederalRegionName
-	ab.Type = imodel.TypeRegion
-	ab.IsEnabled = isEnabledInt == 1
-	frn := ab.FederalRegionName
-	ab.RegionID = &frn
-	if createdAt.Valid {
-		ab.CreatedAt = createdAt.Time
-	}
-	if updatedAt.Valid {
-		ab.UpdatedAt = updatedAt.Time
-	}
-	return &ab, nil
-}
-
-func scanDistrictAggregate(scanner interface{ Scan(dest ...any) error }) (*imodel.AccountBlock, error) {
-	var ab imodel.AccountBlock
-	var federalRegionName sql.NullString
-	var isEnabledInt int
-	var createdAt, updatedAt sql.NullTime
-
-	err := scanner.Scan(
-		&federalRegionName, &ab.DistrictName,
-		&isEnabledInt, &createdAt, &updatedAt,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	ab.ID = ab.DistrictName
-	ab.Name = ab.DistrictName
-	ab.Type = imodel.TypeDistrict
-	ab.IsEnabled = isEnabledInt == 1
-	if federalRegionName.Valid {
-		ab.FederalRegionName = federalRegionName.String
-		frn := federalRegionName.String
-		ab.RegionID = &frn
-	}
-	dn := ab.DistrictName
-	ab.DistrictID = &dn
-	if createdAt.Valid {
-		ab.CreatedAt = createdAt.Time
-	}
-	if updatedAt.Valid {
-		ab.UpdatedAt = updatedAt.Time
-	}
-
-	if ab.FederalRegionName != "" {
-		ab.Parent = &imodel.AccountBlock{
-			ID:                ab.FederalRegionName,
-			Name:              ab.FederalRegionName,
-			FederalRegionName: ab.FederalRegionName,
-			Type:              imodel.TypeRegion,
-		}
-	}
-	return &ab, nil
-}
-
 func (a *AccountBlockStorage) fetchBlockByID(ctx context.Context, id string) (*imodel.AccountBlock, error) {
 	row := a.db.QueryRowContext(ctx, selectCompanyByID, sql.Named("id", id))
-	return scanCompanyBranch(row)
+	return local_helper.ScanCompanyBranch(row)
 }
 
-func (a *AccountBlockStorage) populateParentsAndReasons(ctx context.Context, blocks []*imodel.AccountBlock) error {
+func (a *AccountBlockStorage) populateParents(blocks []*imodel.AccountBlock) error {
 	for _, b := range blocks {
 		if b == nil {
 			continue
 		}
 		if b.Type == imodel.TypeBranch {
-			attachSyntheticParentChain(b)
+			local_helper.AttachParentChain(b)
 		}
 	}
 	return nil
-}
-
-func (a *AccountBlockStorage) CreateBranch(ctx context.Context, branch *imodel.AccountBlock) error {
-	log := local_util.LoggerFromCtx(ctx, a.logger)
-
-	log.Infof("[AccountBlockStorage][CreateBranch] creating branch: %s", branch.Name)
-	branch.ID = uuid.New().String()
-	branch.Type = imodel.TypeBranch
-	if branch.AccountType == "" {
-		branch.AccountType = "CONVENTIONAL"
-	}
-
-	_, err := a.db.ExecContext(ctx, insertCompany,
-		sql.Named("id", branch.ID),
-		sql.Named("branch_code", branch.Code),
-		sql.Named("branch_name", branch.Name),
-		sql.Named("district_name", branch.DistrictName),
-		sql.Named("region_name", branch.RegionName),
-		sql.Named("federal_region_name", branch.FederalRegionName),
-		sql.Named("dao_code", branch.DaoCode),
-		sql.Named("account_type", branch.AccountType),
-	)
-	if err != nil {
-		log.Errorf("[AccountBlockStorage][CreateBranch] failed: %v", err)
-		return fmt.Errorf("failed to create branch")
-	}
-	storage.BumpRedisCacheKey(ctx, a.redis, constants.RedisCacheKeyAccountBlock)
-	log.Infof("[AccountBlockStorage][CreateBranch] branch created: %s", branch.ID)
-	return nil
-}
-
-func (a *AccountBlockStorage) CreateRegion(ctx context.Context, region *imodel.AccountBlock) error {
-	return errors.New("create region is not supported with the COMPANY schema")
-}
-
-func (a *AccountBlockStorage) CreateDistrict(ctx context.Context, district *imodel.AccountBlock) error {
-	return errors.New("create district is not supported with the COMPANY schema")
-}
-
-func (a *AccountBlockStorage) deleteCompanyRows(ctx context.Context, whereClause string, args []interface{}, entity string) error {
-	log := local_util.LoggerFromCtx(ctx, a.logger)
-
-	query := fmt.Sprintf("DELETE FROM COMPANY WHERE %s", whereClause)
-	res, err := a.db.ExecContext(ctx, query, args...)
-	if err != nil {
-		log.Errorf("[AccountBlockStorage][Delete%s] failed: %v", entity, err)
-		return fmt.Errorf("failed to delete %s", entity)
-	}
-	rows, _ := res.RowsAffected()
-	if rows == 0 {
-		return fmt.Errorf("%s not found", entity)
-	}
-	storage.BumpRedisCacheKey(ctx, a.redis, constants.RedisCacheKeyAccountBlock)
-	log.Infof("[AccountBlockStorage][Delete%s] deleted rows: %d", entity, rows)
-	return nil
-}
-
-func (a *AccountBlockStorage) DeleteBranch(ctx context.Context, id string) error {
-	return a.deleteCompanyRows(ctx, "id = HEXTORAW(:id)", []interface{}{sql.Named("id", id)}, "Branch")
-}
-
-func (a *AccountBlockStorage) DeleteRegion(ctx context.Context, id string) error {
-	return a.deleteCompanyRows(ctx, "federal_region_name = :federal_region_name", []interface{}{sql.Named("federal_region_name", id)}, "Region")
-}
-
-func (a *AccountBlockStorage) DeleteDistrict(ctx context.Context, id string) error {
-	return a.deleteCompanyRows(ctx, "district_name = :district_name", []interface{}{sql.Named("district_name", id)}, "District")
 }
 
 func (a *AccountBlockStorage) FindByFilterKey(ctx context.Context, field, value string) (*imodel.AccountBlock, error) {
@@ -347,7 +118,7 @@ func (a *AccountBlockStorage) FindByFilterKey(ctx context.Context, field, value 
 
 	query := fmt.Sprintf(`SELECT %s FROM COMPANY WHERE %s = :val`, companySelectColumns, column)
 	row := a.db.QueryRowContext(ctx, query, sql.Named("val", value))
-	ab, err := scanCompanyBranch(row)
+	ab, err := local_helper.ScanCompanyBranch(row)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, errors.New(localization.ErrorResourceNotFound.Code)
@@ -356,55 +127,6 @@ func (a *AccountBlockStorage) FindByFilterKey(ctx context.Context, field, value 
 		return nil, err
 	}
 	return ab, nil
-}
-
-func buildInClause(column string, values []string, paramPrefix string) (string, []interface{}) {
-	if len(values) == 0 {
-		return "", nil
-	}
-	conditions := make([]string, len(values))
-	args := make([]interface{}, 0, len(values))
-	for i, val := range values {
-		name := fmt.Sprintf("%s_%d", paramPrefix, i)
-		conditions[i] = fmt.Sprintf("%s = :%s", column, name)
-		args = append(args, sql.Named(name, val))
-	}
-	return "(" + strings.Join(conditions, " OR ") + ")", args
-}
-
-func namesFromFilterValue(v interface{}) []string {
-	if v == nil {
-		return nil
-	}
-	switch t := v.(type) {
-	case string:
-		var codes []string
-		for _, part := range strings.Split(t, ",") {
-			if s := strings.TrimSpace(part); s != "" {
-				codes = append(codes, s)
-			}
-		}
-		return codes
-	case []string:
-		codes := make([]string, 0, len(t))
-		for _, s := range t {
-			if s = strings.TrimSpace(s); s != "" {
-				codes = append(codes, s)
-			}
-		}
-		return codes
-	case []interface{}:
-		var codes []string
-		for _, x := range t {
-			codes = append(codes, namesFromFilterValue(x)...)
-		}
-		return codes
-	default:
-		if s := strings.TrimSpace(fmt.Sprint(t)); s != "" {
-			return []string{s}
-		}
-		return nil
-	}
 }
 
 func (a *AccountBlockStorage) getBranchesByIDs(ctx context.Context, ids []string) ([]*imodel.AccountBlock, error) {
@@ -431,7 +153,7 @@ func (a *AccountBlockStorage) getBranchesByIDs(ctx context.Context, ids []string
 
 	var results []*imodel.AccountBlock
 	for rows.Next() {
-		ab, err := scanCompanyBranch(rows)
+		ab, err := local_helper.ScanCompanyBranch(rows)
 		if err != nil {
 			return nil, err
 		}
@@ -445,7 +167,7 @@ func (a *AccountBlockStorage) getRegionsByNames(ctx context.Context, names []str
 		return nil, nil
 	}
 
-	clause, args := buildInClause("federal_region_name", names, "region")
+	clause, args := local_helper.BuildInClause("federal_region_name", names, "region")
 	query := fmt.Sprintf(`
 		SELECT federal_region_name,
 		       MIN(is_enabled) AS is_enabled,
@@ -463,7 +185,7 @@ func (a *AccountBlockStorage) getRegionsByNames(ctx context.Context, names []str
 
 	var results []*imodel.AccountBlock
 	for rows.Next() {
-		ab, err := scanRegionAggregate(rows)
+		ab, err := local_helper.ScanRegionAggregate(rows)
 		if err != nil {
 			return nil, err
 		}
@@ -477,7 +199,7 @@ func (a *AccountBlockStorage) getDistrictsByNames(ctx context.Context, names []s
 		return nil, nil
 	}
 
-	clause, args := buildInClause("district_name", names, "district")
+	clause, args := local_helper.BuildInClause("district_name", names, "district")
 	query := fmt.Sprintf(`
 		SELECT federal_region_name, district_name,
 		       MIN(is_enabled) AS is_enabled,
@@ -495,7 +217,7 @@ func (a *AccountBlockStorage) getDistrictsByNames(ctx context.Context, names []s
 
 	var results []*imodel.AccountBlock
 	for rows.Next() {
-		ab, err := scanDistrictAggregate(rows)
+		ab, err := local_helper.ScanDistrictAggregate(rows)
 		if err != nil {
 			return nil, err
 		}
@@ -511,7 +233,7 @@ func (a *AccountBlockStorage) GetBranchesByIds(ctx context.Context, ids []string
 	if err != nil {
 		return nil, err
 	}
-	if err := a.populateParentsAndReasons(ctx, results); err != nil {
+	if err := a.populateParents(results); err != nil {
 		return nil, err
 	}
 	return results, nil
@@ -549,14 +271,14 @@ func (a *AccountBlockStorage) findAllBranchesWithPagination(ctx context.Context,
 	}
 	if filterParam.Filters != nil {
 		if v, ok := filterParam.Filters["region_id"]; ok {
-			regionNames = namesFromFilterValue(v)
+			regionNames = local_helper.NamesFromFilterValue(v)
 		}
 		if v, ok := filterParam.Filters["district_id"]; ok {
-			districtNames = namesFromFilterValue(v)
+			districtNames = local_helper.NamesFromFilterValue(v)
 		}
 		if v, ok := filterParam.Filters["is_enabled"]; ok {
 			if enabled, isBool := v.(bool); isBool {
-				isEnabledFilter = isEnabledToInt(enabled)
+				isEnabledFilter = local_util.BoolToInt(enabled)
 			}
 		}
 		if v, ok := filterParam.Filters["status_check"]; ok {
@@ -568,11 +290,11 @@ func (a *AccountBlockStorage) findAllBranchesWithPagination(ctx context.Context,
 
 	var filterClauses []string
 	var args []interface{}
-	if clause, clauseArgs := buildInClause("federal_region_name", regionNames, "region"); clause != "" {
+	if clause, clauseArgs := local_helper.BuildInClause("federal_region_name", regionNames, "region"); clause != "" {
 		filterClauses = append(filterClauses, clause)
 		args = append(args, clauseArgs...)
 	}
-	if clause, clauseArgs := buildInClause("district_name", districtNames, "district"); clause != "" {
+	if clause, clauseArgs := local_helper.BuildInClause("district_name", districtNames, "district"); clause != "" {
 		filterClauses = append(filterClauses, clause)
 		args = append(args, clauseArgs...)
 	}
@@ -595,6 +317,7 @@ func (a *AccountBlockStorage) findAllBranchesWithPagination(ctx context.Context,
 		  AND (:search IS NULL
 		       OR %s
 		       OR LOWER(branch_code) LIKE '%%' || LOWER(:search) || '%%'
+			   OR LOWER(dao_code) LIKE '%%' || LOWER(:search) || '%%'
 		       OR LOWER(region_name) LIKE '%%' || LOWER(:search) || '%%'
 		       OR LOWER(district_name) LIKE '%%' || LOWER(:search) || '%%'
 		       OR LOWER(federal_region_name) LIKE '%%' || LOWER(:search) || '%%')
@@ -631,7 +354,7 @@ func (a *AccountBlockStorage) findAllRegionsWithPagination(ctx context.Context, 
 	if filterParam.Filters != nil {
 		if v, ok := filterParam.Filters["is_enabled"]; ok {
 			if enabled, isBool := v.(bool); isBool {
-				isEnabledFilter = isEnabledToInt(enabled)
+				isEnabledFilter = local_util.BoolToInt(enabled)
 			}
 		}
 	}
@@ -685,18 +408,18 @@ func (a *AccountBlockStorage) findAllDistrictsWithPagination(ctx context.Context
 	}
 	if filterParam.Filters != nil {
 		if v, ok := filterParam.Filters["region_id"]; ok {
-			regionNames = namesFromFilterValue(v)
+			regionNames = local_helper.NamesFromFilterValue(v)
 		}
 		if v, ok := filterParam.Filters["is_enabled"]; ok {
 			if enabled, isBool := v.(bool); isBool {
-				isEnabledFilter = isEnabledToInt(enabled)
+				isEnabledFilter = local_util.BoolToInt(enabled)
 			}
 		}
 	}
 
 	var filterClauses []string
 	var args []interface{}
-	if clause, clauseArgs := buildInClause("federal_region_name", regionNames, "region"); clause != "" {
+	if clause, clauseArgs := local_helper.BuildInClause("federal_region_name", regionNames, "region"); clause != "" {
 		filterClauses = append(filterClauses, clause)
 		args = append(args, clauseArgs...)
 	}
@@ -802,13 +525,12 @@ func (a *AccountBlockStorage) scanPaginatedBranches(ctx context.Context, query s
 		if updatedAt.Valid {
 			ab.UpdatedAt = updatedAt.Time
 		}
-		attachSyntheticParentChain(&ab)
 		results = append(results, &ab)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
-	if err := a.populateParentsAndReasons(ctx, results); err != nil {
+	if err := a.populateParents(results); err != nil {
 		return nil, err
 	}
 
@@ -948,8 +670,8 @@ func (a *AccountBlockStorage) enableOrDisableByColumn(ctx context.Context, block
 		return nil
 	}
 
-	clause, args := buildInClause(column, values, "val")
-	args = append(args, sql.Named("is_enabled", isEnabledToInt(enabled)))
+	clause, args := local_helper.BuildInClause(column, values, "val")
+	args = append(args, sql.Named("is_enabled", local_util.BoolToInt(enabled)))
 
 	if !enabled {
 		if err := a.insertDisableReasonForBlocks(ctx, blockType, values, reason); err != nil {
@@ -971,7 +693,7 @@ func (a *AccountBlockStorage) enableOrDisableByColumn(ctx context.Context, block
 }
 
 func (a *AccountBlockStorage) branchIDsForColumnValues(ctx context.Context, column string, values []string) ([]string, error) {
-	clause, args := buildInClause(column, values, "val")
+	clause, args := local_helper.BuildInClause(column, values, "val")
 	query := fmt.Sprintf(`SELECT RAWTOHEX(id) FROM COMPANY WHERE %s`, clause)
 	rows, err := a.db.QueryContext(ctx, query, args...)
 	if err != nil {
@@ -1002,7 +724,7 @@ func (a *AccountBlockStorage) enableOrDisableByIDs(ctx context.Context, blockTyp
 		placeholders[i] = "HEXTORAW(:" + paramName + ")"
 		args = append(args, sql.Named(paramName, id))
 	}
-	args = append(args, sql.Named("is_enabled", isEnabledToInt(enabled)))
+	args = append(args, sql.Named("is_enabled", local_util.BoolToInt(enabled)))
 
 	if !enabled {
 		if err := a.insertDisableReasonForBlocks(ctx, blockType, ids, reason); err != nil {
@@ -1120,8 +842,8 @@ func (a *AccountBlockStorage) GetAccountBlockDetails(ctx context.Context, id str
 			MakerID:             cpsAction.MakerID,
 			MakerName:           cpsAction.MakerName,
 			MakerPhoneNumber:    cpsAction.MakerPhoneNumber,
-			CheckerUsers:        convertCheckers(cpsAction.CheckerUsers),
-			AuditorUsers:        convertAuditors(cpsAction.AuditorUsers),
+			CheckerUsers:        local_helper.ConvertCheckers(cpsAction.CheckerUsers),
+			AuditorUsers:        local_helper.ConvertAuditors(cpsAction.AuditorUsers),
 			AuditorCount:        cpsAction.AuditorCount,
 			AuditorStatus:       account_block_dto.AuditorStatus(cpsAction.AuditorStatus),
 			CurrentAuditorIndex: cpsAction.CurrentAuditorIndex,
@@ -1201,39 +923,7 @@ func getMatchingAction(actionData interface{}, accountBlockID string, logger uti
 	return nil
 }
 
-func convertCheckers(checkers []model.Checker) []account_block_dto.Checker {
-	result := make([]account_block_dto.Checker, 0, len(checkers))
-	for _, c := range checkers {
-		result = append(result, account_block_dto.Checker{
-			CheckerID:          c.CheckerID,
-			RoleID:             c.RoleID,
-			CheckerIndex:       c.CheckerIndex,
-			CheckerName:        c.CheckerName,
-			CheckerPhoneNumber: c.CheckerPhoneNumber,
-			ApprovedAt:         c.ApprovedAt,
-		})
-	}
-	return result
-}
-
-func convertAuditors(auditors []model.Auditor) []account_block_dto.Auditor {
-	result := make([]account_block_dto.Auditor, 0, len(auditors))
-	for _, a := range auditors {
-		result = append(result, account_block_dto.Auditor{
-			AuditorID:          a.AuditorID,
-			RoleID:             a.RoleID,
-			AuditorIndex:       a.AuditorIndex,
-			AuditorName:        a.AuditorName,
-			AuditorPhoneNumber: a.AuditorPhoneNumber,
-			AuditorReason:      a.AuditorReason,
-			AuditorMark:        account_block_dto.AuditorMark(a.AuditorMark),
-			ApprovedAt:         a.ApprovedAt,
-		})
-	}
-	return result
-}
-
-func (a *AccountBlockStorage) GetAllBranches(ctx context.Context, id string) ([]imodel.AccountBlock, error) {
+func (a *AccountBlockStorage) GetAllBranchesByDistrictOrRegion(ctx context.Context, id string) ([]imodel.AccountBlock, error) {
 	query := `SELECT ` + companySelectColumns + `
 		FROM COMPANY
 		WHERE federal_region_name = :id OR district_name = :id`
@@ -1246,7 +936,7 @@ func (a *AccountBlockStorage) GetAllBranches(ctx context.Context, id string) ([]
 
 	var results []imodel.AccountBlock
 	for rows.Next() {
-		ab, err := scanCompanyBranch(rows)
+		ab, err := local_helper.ScanCompanyBranch(rows)
 		if err != nil {
 			return nil, err
 		}
@@ -1256,7 +946,7 @@ func (a *AccountBlockStorage) GetAllBranches(ctx context.Context, id string) ([]
 	for i := range results {
 		ptrs[i] = &results[i]
 	}
-	if err := a.populateParentsAndReasons(ctx, ptrs); err != nil {
+	if err := a.populateParents(ptrs); err != nil {
 		return nil, err
 	}
 	return results, rows.Err()
@@ -1289,7 +979,7 @@ func (a *AccountBlockStorage) GetBranchByCode(ctx context.Context, code string) 
 		  AND is_enabled = 1`
 
 	row := a.db.QueryRowContext(ctx, query, sql.Named("code", code))
-	branch, err := scanCompanyBranch(row)
+	branch, err := local_helper.ScanCompanyBranch(row)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			log.Infof("[AccountBlockStorage][GetBranchByCode] branch not found: %s", code)

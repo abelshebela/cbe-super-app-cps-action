@@ -5,6 +5,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/storage"
@@ -45,7 +46,7 @@ func HandleCPSActionForEventMerchant(ctx context.Context, cpsService service.CPS
 	return nil
 }
 
-func ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber string, accountLookupService account_lookup.Account) (*model.AccountDetail, error) {
+func ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber string, accountLookupService account_lookup.Account) (*imodel.AccountDetail, error) {
 	accountRequest := model.AccountLookUpRequest{
 		AccountNumber: accountNumber,
 	}

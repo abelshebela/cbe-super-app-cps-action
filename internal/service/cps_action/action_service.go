@@ -259,7 +259,7 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 		if len(tokens) > 0 {
 			if updErr := ca.repo.UpdateCustome(ctx,
 				bson.M{"action_code": cpsActionResult.ActionCode},
-				bson.M{"$set": bson.M{"unique_tokens": tokens}},
+				bson.M{"unique_tokens": tokens},
 			); updErr != nil {
 				log.Warnf("[CpsActionSvc][Create] failed to write unique_tokens: %v", updErr)
 			}
@@ -1146,10 +1146,11 @@ func (ca *cpsActionService) GetUserCreatedActions(ctx context.Context, userID st
 	services := local_util.ExtractStringSlice(filterParams.Filters, "services")
 
 	if len(levels) > 0 || len(services) > 0 {
+		userData := local_util.ExtractUserFromContext(ctx)
 		// Log-only filters requested: query user_action_logs for matching codes.
 		// Pre-log actions won't appear here — they have no log metadata.
 		actionCodes, err := ca.actionLogRepo.GetActionCodesByActionLogFilter(ctx, imodel.UserActionLogActionCodeFilter{
-			MakerUserIDs:   []string{userID},
+			MakerUserIDs:   []string{userData.UserID},
 			ActionStatuses: local_util.ExtractStringSlice(filterParams.Filters, "action_status"),
 			Levels:         levels,
 			Services:       services,
