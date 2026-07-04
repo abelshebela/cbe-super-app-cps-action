@@ -16,6 +16,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"slices"
 	"strconv"
 
 	"strings"
@@ -1092,9 +1093,16 @@ func (a *cpsActionAdapter) GetListOfServiceForFilter(w http.ResponseWriter, r *h
 		localization.SendErrorByCodeResponse(w, localization.ErrorParamsIsRequired.Code)
 		return
 	}
+	var res []string
+	for _, v := range data {
+		if slices.Contains(res, v) {
+			continue
+		}
+		res = append(res, v)
+	}
 
 	log.Infof("[CPSAction][GetListOfServiceForFilter] successfuly fetched the list of services")
-	localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, map[string]interface{}{"services": data})
+	localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, map[string]interface{}{"services": res})
 }
 
 // GetUserAuditorActions retrieves CPS actions pending audit for the current user's auditor role

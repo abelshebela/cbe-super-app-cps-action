@@ -7,6 +7,8 @@ type CustomerDetail interface {
 	GetCustomerByID(w http.ResponseWriter, r *http.Request)
 	GetBlockedCustomer(w http.ResponseWriter, r *http.Request)
 	SetEnableCustomerSession(w http.ResponseWriter, r *http.Request)
+	SetBlockCustomerSession(w http.ResponseWriter, r *http.Request)
+	SetUnBlockCustomerSession(w http.ResponseWriter, r *http.Request)
 	ApproveFaydaCustomer(w http.ResponseWriter, r *http.Request)
 	EnableCustomer(w http.ResponseWriter, r *http.Request)
 	DisableCustomer(w http.ResponseWriter, r *http.Request)
@@ -15,4 +17,5 @@ type CustomerDetail interface {
 	SearchCustomerServiceLimitByCIF(w http.ResponseWriter, r *http.Request)
 	GetCustomerDetailByID(w http.ResponseWriter, r *http.Request)
 	GetCustomerActionLogByID(w http.ResponseWriter, r *http.Request)
+	GetCustomerBarUnBarReasons(w http.ResponseWriter, r *http.Request)
 }

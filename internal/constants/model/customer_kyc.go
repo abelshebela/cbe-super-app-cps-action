@@ -108,5 +108,14 @@ type KYCRequest struct {
 	Vendor            Vendor    `json:"vendor" bson:"vendor"`
 	Address           Address   `json:"address" bson:"address"`
 	// IssuedDate is the Fayda ID issuance date in YYYYMMDD format, sourced from Fayda's verification response.
-	IssuedDate        string    `json:"issued_date" bson:"issued_date"`
+	IssuedDate string `json:"issued_date" bson:"issued_date"`
+}
+
+type CustomerBarUnBarReason struct {
+	ID        bson.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
+	UserID    string        `json:"user_id" bson:"user_id"`
+	Reason    string        `json:"reason" bson:"reason"`
+	IsBarred  bool          `json:"is_barred" bson:"is_barred"`
+	CreatedBy string        `json:"created_by" bson:"created_by"`
+	CreatedAt time.Time     `json:"created_at" bson:"created_at"`
 }
