@@ -228,6 +228,8 @@ github.com/hashicorp/hcl v1.0.1-vault-7/go.mod h1:XYhtn6ijBSAj6n4YqAaf7RBPS4I06A
 github.com/hashicorp/vault/api v1.23.0 h1:gXgluBsSECfRWTSW9niY2jwg2e9mMJc4WoHNv4g3h6A=
 github.com/hashicorp/vault/api v1.23.0/go.mod h1:zransKiB9ftp+kgY8ydjnvCU7Wk8i9L0DYWpXeMj9ko=
 github.com/heetch/avro v0.3.1/go.mod h1:4xn38Oz/+hiEUTpbVfGVLfvOg0yKLlRP7Q9+gJJILgA=
+github.com/hugokessem/coreio v1.1.26-0.20260621094413-472779f98d4c h1:aWU6+AYxXGMzNFvkR5J/lGOR9VFSH+jc24jjjsaNy54=
+github.com/hugokessem/coreio v1.1.26-0.20260621094413-472779f98d4c/go.mod h1:dehzss4T00khbwguqvOYi3A9cawDumsh4p8Abor1N+Q=
 github.com/hugokessem/coreio v1.1.41 h1:zRa8pEnIWNaR359nhLLaU7/A9WJODMWL9g/zBVrNXc8=
 github.com/hugokessem/coreio v1.1.41/go.mod h1:dehzss4T00khbwguqvOYi3A9cawDumsh4p8Abor1N+Q=
 github.com/iancoleman/orderedmap v0.0.0-20190318233801-ac98e3ecb4b0/go.mod h1:N0Wam8K1arqPXNWjMo21EXnBPOPp36vB07FNRdD2geA=
