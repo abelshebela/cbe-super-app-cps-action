@@ -54,7 +54,6 @@ import (
 	portalcard "cbe-super-app-cps-action/internal/service/portal_card"
 
 	cps_action_role_service "cbe-super-app-cps-action/internal/service/cps_action_role"
-	cps_role "cbe-super-app-cps-action/internal/service/cps_roles"
 	customer_group "cbe-super-app-cps-action/internal/service/customer_group"
 	kyc_service "cbe-super-app-cps-action/internal/service/customer_kyc"
 	customer_segmentation "cbe-super-app-cps-action/internal/service/customer_segmentation"
@@ -168,7 +167,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	customerSegmentationService := customer_segmentation.NewCustomerSegmentation(oracle.CustomerSegmentation, oracle.NewCPSRolesStorage, nil, nil, logger)
 	jobRoleService := job_role.NewJobRoleService(persistence.JobRolePersistence, persistence.RolePersistence, nil, persistence.CpsUserPersistence, *cfg, logger)
 	RoleService := roles.NewRoleService(persistence.RolePersistence, persistence.PortalCardPersistence, persistence.CPSActionApproveIndexPersistence, persistence.JobRolePersistence, persistence.BPSActionApproveIndexPersistence, nil, *cfg, logger)
-	CPSRolesService := cps_role.NewCPSRoleService(oracle.NewCPSRolesStorage, nil, coreInterface, logger)
+	// CPSRolesService := cps_role.NewCPSRoleService(oracle.NewCPSRolesStorage, nil, coreInterface, logger)
 	customerKYCService := kyc_service.NewCustomerKYCService(oracle.CustomerKYC, nil, persistence.CpsUserPersistence, accountLookupAdapter, coreInterface, tokenProviderService, logger, minioClient, cfg.S3BucketName, cfg, minioPubUrl, smsService)
 	customerGroupService := customer_group.NewCustomerGroupService(oracle.CustomerGroup, nil, logger)
 	superAppRoleService := superapp_role.NewSuperAppRoleService(oracle.SuperAppRole, nil, coreInterface, logger)
@@ -228,12 +227,12 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		CustomerSegmentationContainer:     customerSegmentationService,
 		MiniAppMerchantContainer:          miniMerchant,
 		EcommerceMerchantContainer:        ecommerceMerchantService,
-		CPSRolesContainer:                 CPSRolesService,
-		CustomerKYCContainer:              customerKYCService,
-		UssdMerchantContainer:             ussdMerchant,
-		CustomerGroupContainer:            customerGroupService,
-		SuperAppRoleContainer:             superAppRoleService,
-		RoleDelegationContainer:           roleDelegationService,
+		// CPSRolesContainer:                 CPSRolesService,
+		CustomerKYCContainer:    customerKYCService,
+		UssdMerchantContainer:   ussdMerchant,
+		CustomerGroupContainer:  customerGroupService,
+		SuperAppRoleContainer:   superAppRoleService,
+		RoleDelegationContainer: roleDelegationService,
 	}
 
 	dispatcher := cpsaction.NewDispatcher(serviceContainer)
@@ -334,7 +333,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	customerSegmentationService = customer_segmentation.NewCustomerSegmentation(oracle.CustomerSegmentation, oracle.NewCPSRolesStorage, cpsActionService, nil, logger)
 	jobRoleService = job_role.NewJobRoleService(persistence.JobRolePersistence, persistence.RolePersistence, cpsActionService, persistence.CpsUserPersistence, *cfg, logger)
 	RoleService = roles.NewRoleService(persistence.RolePersistence, persistence.PortalCardPersistence, persistence.CPSActionApproveIndexPersistence, persistence.JobRolePersistence, persistence.BPSActionApproveIndexPersistence, cpsActionService, *cfg, logger)
-	CPSRolesService = cps_role.NewCPSRoleService(oracle.NewCPSRolesStorage, cpsActionService, coreInterface, logger)
+	// CPSRolesService = cps_role.NewCPSRoleService(oracle.NewCPSRolesStorage, cpsActionService, coreInterface, logger)
 	customerKYCService = kyc_service.NewCustomerKYCService(oracle.CustomerKYC, cpsActionService, persistence.CpsUserPersistence, accountLookupAdapter, coreInterface, tokenProviderService, logger, minioClient, cfg.S3BucketName, cfg, minioPubUrl, smsService)
 	customerGroupService = customer_group.NewCustomerGroupService(oracle.CustomerGroup, cpsActionService, logger)
 	serviceContainer.CustomerGroupContainer = customerGroupService
@@ -396,17 +395,17 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		MiniappProductCode:            miniAppProductCodeContainer,
 		AccessListSegmentationService: accessListSegmentationService,
 		CustomerSegmentation:          customerSegmentationService,
-		CPSRoles:                      CPSRolesService,
-		CustomerKYC:                   customerKYCService,
-		CustomerGroup:                 customerGroupService,
-		SuperAppRole:                  superAppRoleService,
-		UssdMerchantService:           ussdMerchant,
-		BPSActionService:              bpsActionService,
-		QueueManager:                  queueManager,
-		RoleDelegationService:         roleDelegationService,
-		AccountProductCategory:        accountProductCategoryService,
-		AccountProduct:                accountProductService,
-		AccountOpeningTerms:           accountOpeningTermsService,
-		TokenProvider:                 tokenProviderService,
+		// CPSRoles:                      CPSRolesService,
+		CustomerKYC:            customerKYCService,
+		CustomerGroup:          customerGroupService,
+		SuperAppRole:           superAppRoleService,
+		UssdMerchantService:    ussdMerchant,
+		BPSActionService:       bpsActionService,
+		QueueManager:           queueManager,
+		RoleDelegationService:  roleDelegationService,
+		AccountProductCategory: accountProductCategoryService,
+		AccountProduct:         accountProductService,
+		AccountOpeningTerms:    accountOpeningTermsService,
+		TokenProvider:          tokenProviderService,
 	}
 }
