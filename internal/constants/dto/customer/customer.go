@@ -128,6 +128,15 @@ type CustomerListResponse struct {
 	IsUssdEnabled       bool   `json:"is_ussd_enabled" bson:"is_ussd_enabled"`
 }
 
+type CustomerServiceLimitResponse struct {
+	CIF         string `json:"CIF"`
+	Channel     string `json:"Channel"`
+	ServiceCode string `json:"ServiceCode"`
+	ServiceName string `json:"ServiceName"`
+	Limit       string `json:"Limit"`
+	Count       string `json:"Count"`
+}
+
 type FindCustomerByIDResponse struct {
 	ID                   bson.ObjectID              `json:"id,omitempty" bson:"_id,omitempty"`
 	UserCode             string                     `json:"user_code" bson:"user_code"`

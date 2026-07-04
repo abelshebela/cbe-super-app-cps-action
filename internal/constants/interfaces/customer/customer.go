@@ -14,6 +14,7 @@ type CustomerDetail interface {
 	DisableCustomer(w http.ResponseWriter, r *http.Request)
 	GetLinkedAccount(w http.ResponseWriter, r *http.Request)
 	SearchCustomerByCIForAccountNumber(w http.ResponseWriter, r *http.Request)
+	SearchCustomerServiceLimitByCIF(w http.ResponseWriter, r *http.Request)
 	GetCustomerDetailByID(w http.ResponseWriter, r *http.Request)
 	GetCustomerActionLogByID(w http.ResponseWriter, r *http.Request)
 	GetCustomerBarUnBarReasons(w http.ResponseWriter, r *http.Request)

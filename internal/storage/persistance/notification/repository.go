@@ -26,7 +26,7 @@ import (
 )
 
 type NotificationStorage struct {
-	dal             dal.MongoDal[shared_notification.BroadcastInAppNotificationMessage, shared_notification.BroadcastInAppNotificationMessage]
+	dal             dal.MongoDal[local_model.NotificationDocument, local_model.NotificationDocument]
 	notificationDal dal.MongoDal[local_model.NotificationDocument, local_model.NotificationDocument]
 	client          *mongo.Client
 	kafkaProducer   kafka.NotificationProducer
@@ -36,7 +36,7 @@ type NotificationStorage struct {
 
 func NewNotificationRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, kafkaProducer kafka.NotificationProducer, logger utils.Logger) storage.NotificationRepository {
 	return &NotificationStorage{
-		dal:             dal.NewMongoDal[shared_notification.BroadcastInAppNotificationMessage, shared_notification.BroadcastInAppNotificationMessage](client, cfg, dbName, collection),
+		dal:             dal.NewMongoDal[local_model.NotificationDocument, local_model.NotificationDocument](client, cfg, dbName, collection),
 		notificationDal: dal.NewMongoDal[local_model.NotificationDocument, local_model.NotificationDocument](client, cfg, dbName, collection),
 		client:          client,
 		kafkaProducer:   kafkaProducer,
@@ -45,21 +45,40 @@ func NewNotificationRepository(client *mongo.Client, cfg *config.VaultConfig, db
 	}
 }
 
-func (n *NotificationStorage) Create(ctx context.Context, notification *shared_notification.BroadcastInAppNotificationMessage) error {
-	log := local_util.LoggerFromCtx(ctx, n.logger)
-	notification.Data = map[string]interface{}{
-		"title":             notification.Title,
-		"notification_body": notification.Message,
-		"for":               notification.BroadcastType,
+func toSharedNotificationMessage(notification *local_model.NotificationDocument) shared_notification.BroadcastInAppNotificationMessage {
+	if notification == nil {
+		return shared_notification.BroadcastInAppNotificationMessage{}
 	}
-	// notification.IsFromCPS = true
-	newNotification, err := n.dal.InsertOne(ctx, *notification)
+
+	return shared_notification.BroadcastInAppNotificationMessage{
+		Title:         notification.Title,
+		Message:       notification.NotificationBody,
+		Category:      notification.Category,
+		BroadcastType: notification.For,
+	}
+}
+
+func (n *NotificationStorage) Create(ctx context.Context, notification *local_model.NotificationDocument) error {
+	log := local_util.LoggerFromCtx(ctx, n.logger)
+	if notification == nil {
+		return errors.New(localization.ErrorInvalidRequest.Code)
+	}
+
+	data := *notification
+	if data.NotificationCode == "" {
+		data.NotificationCode = time.Now().Format("20060102150405")
+	}
+	if data.CreatedAt.IsZero() {
+		data.CreatedAt = time.Now()
+	}
+
+	newNotification, err := n.dal.InsertOne(ctx, data)
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+	publishData := toSharedNotificationMessage(&newNotification)
 
-	// err = n.kafkaProducer.PublishMessage(ctx, inAppMessage)
-	err = n.kafkaProducer.PublishMessage(ctx, notification, newNotification.BroadcastType, n.cfg.KafkaInAppBordcastTopic, "inapp-notifications")
+	err = n.kafkaProducer.PublishMessage(ctx, publishData, newNotification.For, n.cfg.KafkaInAppBordcastTopic, "inapp-notifications")
 	if err != nil {
 		log.Errorf("[NotificationStorage][Create] failed to send in app notification %v", err)
 	}
@@ -68,8 +87,11 @@ func (n *NotificationStorage) Create(ctx context.Context, notification *shared_n
 	return nil
 }
 
-func (n *NotificationStorage) Update(ctx context.Context, id string, notification *shared_notification.BroadcastInAppNotificationMessage) error {
+func (n *NotificationStorage) Update(ctx context.Context, id string, notification *local_model.NotificationDocument) error {
 	log := local_util.LoggerFromCtx(ctx, n.logger)
+	if notification == nil {
+		return errors.New(localization.ErrorInvalidRequest.Code)
+	}
 
 	log.Infof("[NotificationStorage][Update] updating notification for id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
@@ -77,16 +99,17 @@ func (n *NotificationStorage) Update(ctx context.Context, id string, notificatio
 		log.Errorf("[NotificationStorage][Update] invalid object id: %v", err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
-	filter := bson.M{"_id": objID, "is_deleted": false}
-	updateData := NotificationMapper(*notification)
+	filter := bson.M{"_id": objID}
+	data := *notification
+	updateData := NotificationMapper(data)
 
-	_, err = n.dal.UpdateOne(ctx, filter, updateData)
+	updatedNotification, err := n.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
 		return local_util.HandleDBError(err)
 	}
+	publishData := toSharedNotificationMessage(&updatedNotification)
 
-	// err = n.kafkaProducer.PublishMessage(ctx, inAppMessage)
-	err = n.kafkaProducer.PublishMessage(ctx, notification, notification.BroadcastType, n.cfg.KafkaInAppTopic, "notification updated")
+	err = n.kafkaProducer.PublishMessage(ctx, publishData, publishData.BroadcastType, n.cfg.KafkaInAppTopic, "notification updated")
 	if err != nil {
 		log.Errorf("[NotificationStorage][Update] failed to update notification %v", err)
 	}
@@ -103,8 +126,8 @@ func (n *NotificationStorage) Delete(ctx context.Context, id string) error {
 		log.Errorf("[NotificationStorage][Delete] invalid object id: %v", err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
-	filter := bson.M{"_id": objID, "is_deleted": false}
-	err = n.dal.DeleteOne(ctx, filter)
+	filter := bson.M{"_id": objID}
+	err = n.dal.DeleteOneH(ctx, filter)
 	if err != nil {
 		log.Errorf("[NotificationStorage][Delete] failed to delete notification: %v", err)
 		return local_util.HandleDBError(err)
@@ -113,7 +136,7 @@ func (n *NotificationStorage) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (n *NotificationStorage) FindByID(ctx context.Context, id string) (*shared_notification.BroadcastInAppNotificationMessage, error) {
+func (n *NotificationStorage) FindByID(ctx context.Context, id string) (*local_model.NotificationDocument, error) {
 	log := local_util.LoggerFromCtx(ctx, n.logger)
 
 	log.Infof("[NotificationStorage][FindByID] fetching notification by id: %s", id)
@@ -122,7 +145,7 @@ func (n *NotificationStorage) FindByID(ctx context.Context, id string) (*shared_
 		log.Errorf("[NotificationStorage][FindByID] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
-	filter := bson.M{"_id": objID, "is_deleted": false}
+	filter := bson.M{"_id": objID}
 
 	result, err := n.dal.FindOne(ctx, filter, nil)
 	if err != nil {
@@ -204,14 +227,14 @@ func (n *NotificationStorage) NotificationExists(ctx context.Context, notificati
 	return count > 0, nil
 }
 
-func (n *NotificationStorage) EnableDisableNotification(ctx context.Context, id string, enable bool) (*shared_notification.BroadcastInAppNotificationMessage, error) {
+func (n *NotificationStorage) EnableDisableNotification(ctx context.Context, id string, enable bool) (*local_model.NotificationDocument, error) {
 	log := local_util.LoggerFromCtx(ctx, n.logger)
 
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	filter := bson.M{"_id": objID, "is_deleted": false}
+	filter := bson.M{"_id": objID}
 	update := bson.M{
 		"enabled":          enable,
 		"last_modified_at": time.Now(),

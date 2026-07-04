@@ -29,6 +29,38 @@ type customerAdapter struct {
 	logger          utils.Logger
 }
 
+func InitCustomerAdapter(customer service.CustomerService, logger utils.Logger) customer.CustomerDetail {
+	return &customerAdapter{
+		logger:          logger,
+		customerService: customer,
+	}
+}
+
+// SearchCustomerServiceLimitByCIF implements [customer.CustomerDetail].
+func (c *customerAdapter) SearchCustomerServiceLimitByCIF(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "searchCustomerServiceLimitByCIF", "handler", "customer")
+	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, c.logger)
+	log.Infof("[CustomerH][SearchCustomerServiceLimitByCIF] request received")
+
+	cif := chi.URLParam(r, "cif")
+	if cif == "" {
+		log.Errorf("[CustomerH][SearchCustomerServiceLimitByCIF] cif not set")
+		localization.SendBadRequestResponse(w, localization.ErrorCustomerCifIsRequired.Code)
+		return
+	}
+
+	res, err := c.customerService.SearchCustomerServiceLimitByCIF(ctx, cif)
+	if err != nil {
+		span.RecordError(err)
+		log.Errorf("[SearchCustomerServiceLimitByCIF] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessCustomerDetailSuccessfullyFetched, res)
+}
+
 // GetCustomerActionLogByID retrieves action logs for a specific customer
 //
 //	@Summary		Get customer action log
@@ -66,13 +98,6 @@ func (c *customerAdapter) GetCustomerActionLogByID(w http.ResponseWriter, r *htt
 		return
 	}
 	localization.SendSuccessResponse(w, localization.CustomerActionLogRetrievedSuccessfully, actionLogs)
-}
-
-func InitCustomerAdapter(customer service.CustomerService, logger utils.Logger) customer.CustomerDetail {
-	return &customerAdapter{
-		logger:          logger,
-		customerService: customer,
-	}
 }
 
 // SetEnableCustomerSession initiates enabling a customer session by generating an OTP

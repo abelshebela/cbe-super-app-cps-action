@@ -670,6 +670,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorFailedToGetCustomerDetail,
 	ErrorKeyRequiredForBulkService,
 	SuccessCustomerDetailSuccessfullyFetched,
+	CustomerServiceLimitSuccessfullyFetched,
 	CustomerEnableRequestSessionCreatedSuccessfully,
 	CustomerActionLogRetrievedSuccessfully,
 	CustomerDisableRequestCreatedSuccessfully,
@@ -678,6 +679,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorCustomerAlreadyEnabled,
 	ErrorCustomerNotFound,
 	ErrorIdNotSetOnQueryParam,
+	ErrorCustomerCifIsRequired,
 	CustomerDetailSuccessfullyFetched,
 	ErrorFailedToGetBlockedCustomer,
 	SuccessFullyFetchBlockCustomer,
@@ -8982,6 +8984,13 @@ var (
 		Type:       "success",
 	}
 
+	CustomerServiceLimitSuccessfullyFetched = ResponseCode{
+		Code:       "SUCCESS_CUSTOMER_SERVICE_LIMIT_FETCHED",
+		StatusCode: StatusOK,
+		Message:    "Customer service limit(s) fetched successfully",
+		Type:       "success",
+	}
+
 	CustomerEnableRequestCreatedSuccessfully = ResponseCode{
 		Code:       "SUCCESS_CUSTOMER_ENABLE_REQUEST_CREATED",
 		StatusCode: StatusOK,
@@ -9027,6 +9036,13 @@ var (
 		Code:       "ERROR_ID_NOT_SET_ON_QUERY_PARAM",
 		StatusCode: StatusBadRequest,
 		Message:    "ID not set on query parameter",
+		Type:       "error",
+	}
+
+	ErrorCustomerCifIsRequired = ResponseCode{
+		Code:       "ERROR_CUSTOMER_CIF_IS_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    "Customer cif is required",
 		Type:       "error",
 	}
 

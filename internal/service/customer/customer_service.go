@@ -679,6 +679,32 @@ func (d *customerService) SearchCustomerByCIForAccountNumber(ctx context.Context
 	return customer, nil
 }
 
+// SearchCustomerServiceLimitByCIF implements [service.CustomerService].
+func (s *customerService) SearchCustomerServiceLimitByCIF(ctx context.Context, cif string) ([]customer_dto.CustomerServiceLimitResponse, error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+	log.Infof("[CustomerSvc][SearchCustomerServiceLimitByCIF] cif: %s", cif)
+
+	res, err := s.core.SearchCustomerServiceLimitByCIF(ctx, cif)
+	if err != nil {
+		log.Errorf("[CustomerSvc][SearchCustomerServiceLimitByCIF] core search err: %v", err)
+		return nil, err
+	}
+
+	data := []customer_dto.CustomerServiceLimitResponse{}
+	for _, detail := range res.Detail {
+		log.Infof("[CustomerSvc][SearchCustomerServiceLimitByCIF] detail: %v", detail)
+		data = append(data, customer_dto.CustomerServiceLimitResponse{
+			CIF:         detail.CIF,
+			Channel:     detail.Channel,
+			ServiceCode: detail.ServiceCode,
+			ServiceName: detail.ServiceName,
+			Limit:       detail.Limit,
+			Count:       detail.Count,
+		})
+	}
+	return data, nil
+}
+
 func (d *customerService) GetCustomerDetailByID(ctx context.Context, id string) (*customer_dto.CustomerDetailResponse, error) {
 	log := local_util.LoggerFromCtx(ctx, d.logger)
 
