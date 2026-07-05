@@ -144,6 +144,11 @@ type CustomerServiceLimitResponse struct {
 	Count       string `json:"Count"`
 }
 
+type CustomerServiceLimitResponses struct {
+	ServiceCode                  string                         `json:"service_code"`
+	ServiceName                  string                         `json:"service_name"`
+	CustomerServiceLimitResponse []CustomerServiceLimitResponse `json:"customer_service_limit_response"`
+}
 type FindCustomerByIDResponse struct {
 	ID                   bson.ObjectID              `json:"id,omitempty" bson:"_id,omitempty"`
 	UserCode             string                     `json:"user_code" bson:"user_code"`
