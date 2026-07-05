@@ -948,6 +948,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAccessListSegmentationNameAlreadyExists,
 	ErrorCustomerSegmentationCodeNotFound,
 	ErrorAccessListKeysRequired,
+	ErrorCustomerAlreadyBlocked,
 	ErrorSegmentationTypeRequired,
 	ErrorBranchNotFoundRequired,
 
