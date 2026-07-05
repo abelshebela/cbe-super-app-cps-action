@@ -583,13 +583,21 @@ func (c *customerAdapter) SetUnBlockCustomerSession(w http.ResponseWriter, r *ht
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	localization.UpdateWriterContext(w, ctx)
 
+	req := &dto.BlockCustomerRequest{}
+	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
+		span.RecordError(err)
+		log.Errorf("[BlockCustomer] invalid request body: %v", err)
+		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidRequestBody.Code)
+		return
+	}
+
 	id := strings.TrimSpace(chi.URLParam(r, "id"))
 	if id == "" {
 		localization.SendErrorByCodeResponse(w, localization.ErrorIdNotSetOnQueryParam.Code)
 		return
 	}
 
-	if err := c.customerService.UnBlockCustomerSession(ctx, id); err != nil {
+	if err := c.customerService.UnBlockCustomerSession(ctx, id, req.BlockedReason); err != nil {
 		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[BlockCustomer] service error: %v", err)

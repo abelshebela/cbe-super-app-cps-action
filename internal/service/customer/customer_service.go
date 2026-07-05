@@ -13,7 +13,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
 
 	"cbe-super-app-cps-action/internal/constants/types"
 
@@ -471,7 +470,7 @@ func (c *customerService) BlockCustomerSession(ctx context.Context, id, BlockedR
 	return nil
 }
 
-func (c *customerService) UnBlockCustomerSession(ctx context.Context, id string) error {
+func (c *customerService) UnBlockCustomerSession(ctx context.Context, id, reason string) error {
 	log := local_util.LoggerFromCtx(ctx, c.logger)
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "BlockCustomerSession", "Customer", "BlockCustomerSession")
@@ -488,21 +487,8 @@ func (c *customerService) UnBlockCustomerSession(ctx context.Context, id string)
 		return fmt.Errorf(constants.IncompleteUserInfo)
 	}
 
-	customer, err := c.repo.FindByID(ctx, id)
-	code, _ := local_util.HandleMongoError(err)
-	if code == localization.ErrorResourceNotFound.Code {
-		log.Errorf("[CustomerSvc][BlockCustomerSession] not found")
-		span.AddEvent("Customer not found", trace.WithAttributes(
-			attribute.String("error", code),
-			attribute.String("id", id),
-		))
-		return fmt.Errorf("%s", code)
-	} else if err != nil {
-		log.Errorf("[CustomerSvc][BlockCustomerSession] find err: %v", err)
-		span.AddEvent("Failed to find customer", trace.WithAttributes(
-			attribute.String("error", err.Error()),
-			attribute.String("id", id),
-		))
+	customer, err := c.repo.FindUserByUserCode(ctx, id)
+	if err != nil {
 		return err
 	}
 
@@ -517,7 +503,7 @@ func (c *customerService) UnBlockCustomerSession(ctx context.Context, id string)
 
 	new_customer := *customer
 	new_customer.IsBlocked = false
-	new_customer.BlockedReason = ""
+	new_customer.BlockedReason = reason
 
 	action := lib.CpsModelBuilder(customer.UserCode, makerData, customer, new_customer, string(constants.RequestUnblockCustomer), constants.UPDATE)
 
@@ -531,16 +517,16 @@ func (c *customerService) UnBlockCustomerSession(ctx context.Context, id string)
 		return err
 	}
 
-	entry := &imodel.CustomerBarUnBarReason{
-		UserID:    id,
-		Reason:    "",
-		IsBarred:  false,
-		CreatedBy: makerData.UserCode,
-		CreatedAt: time.Now(),
-	}
-	if saveErr := c.repo.SaveBarUnBarReason(ctx, entry); saveErr != nil {
-		log.Errorf("[CustomerSvc][UnBlockCustomerSession] save reason err: %v", saveErr)
-	}
+	// entry := &imodel.CustomerBarUnBarReason{
+	// 	UserID:    id,
+	// 	Reason:    "",
+	// 	IsBarred:  false,
+	// 	CreatedBy: makerData.UserCode,
+	// 	CreatedAt: time.Now(),
+	// }
+	// if saveErr := c.repo.SaveBarUnBarReason(ctx, entry); saveErr != nil {
+	// 	log.Errorf("[CustomerSvc][UnBlockCustomerSession] save reason err: %v", saveErr)
+	// }
 
 	log.Infof("[CustomerSvc][UnBlockCustomerSession] request created id: %s", id)
 	return nil
