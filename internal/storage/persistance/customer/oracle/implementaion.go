@@ -9,6 +9,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/kafka"
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 
@@ -31,7 +32,24 @@ type customerOracleRepository struct {
 
 // EnableOrDisable implements [storage.CustomerRepository].
 func (c *customerOracleRepository) EnableOrDisable(ctx context.Context, id string, enable bool) error {
-	panic("unimplemented")
+	const userQ = `
+	UPDATE USERS
+	SET
+		IS_SUPERAPP_ACTIVE = :1,
+		LAST_MODIFIED_AT = SYSTIMESTAMP
+	WHERE USER_CODE = :2 AND IS_DELETED = 0`
+
+	res, err := c.db.ExecContext(ctx, userQ, local_util.BoolToOracleNumber(enable), id)
+	if err != nil {
+		c.logger.Errorf("[CustomerRepository][EnableOrDisable] user update failed: %v", err)
+		return local_util.HandleDBError(err)
+	}
+	rows, _ := res.RowsAffected()
+	if rows == 0 {
+		return localization.ErrorResourceNotFound
+	}
+
+	return nil
 }
 
 // FetchLinkedAccount implements [storage.CustomerRepository].
@@ -44,9 +62,84 @@ func (c *customerOracleRepository) FindAllWithPagination(ctx context.Context, fi
 	panic("unimplemented")
 }
 
-// FindByID implements [storage.CustomerRepository].
 func (c *customerOracleRepository) FindByID(ctx context.Context, id string) (*member.User, error) {
-	panic("unimplemented")
+	log := local_util.LoggerFromCtx(ctx, c.logger)
+
+	log.Infof("[customerOracleRepository][FindByID] fetching customer by id: %s", id)
+
+	const query = `
+		SELECT
+			RAWTOHEX(ID),
+			USER_CODE
+		FROM USERS
+		WHERE ID = HEXTORAW(:1)
+	`
+
+	user := &member.User{}
+
+	err := c.db.QueryRowContext(ctx, query, id).Scan(
+		&user.ID,
+		&user.UserCode,
+	)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			log.Errorf("[customerOracleRepository][FindByID] customer not found for id: %s", id)
+			return nil, errors.New(localization.ErrorResourceNotFound.Code)
+		}
+
+		log.Errorf("[customerOracleRepository][FindByID] failed to fetch customer: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+
+	log.Infof("[customerOracleRepository][FindByID] customer retrieved successfully")
+	return user, nil
+}
+
+func (c *customerOracleRepository) FindUserByUserCode(ctx context.Context, userCode string) (*member.User, error) {
+	log := local_util.LoggerFromCtx(ctx, c.logger)
+
+	log.Infof("[customerOracleRepository][FindUserByUserCode] fetching customer by userCode: %s", userCode)
+
+	const query = `
+		SELECT
+			USER_CODE,
+			FULL_NAME,
+			CONTACT_PHONE,
+			CONTACT_EMAIL,
+			CUSTOMER_NUMBER,
+			IS_SUPERAPP_ENABLED,
+			IS_USSD_ENABLED,
+			IS_BLOCKED
+		FROM USERS
+		WHERE USER_CODE = :1
+	`
+
+	user := &member.User{}
+
+	err := c.db.QueryRowContext(ctx, query, userCode).Scan(
+		&user.UserCode,
+		&user.FullName,
+		&user.PhoneNumber,
+		&user.Email,
+		&user.CustomerNumber,
+		&user.ISuperappEnabled,
+		&user.IsUSSDEnabled,
+		&user.IsBlocked,
+	)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			log.Errorf("[customerOracleRepository][FindUserByUserCode] customer not found for userCode: %s", userCode)
+			return nil, errors.New(localization.ErrorResourceNotFound.Code)
+		}
+
+		log.Errorf("[customerOracleRepository][FindUserByUserCode] failed to fetch customer: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+
+	log.Infof("[customerOracleRepository][FindUserByUserCode] customer retrieved successfully")
+	return user, nil
 }
 
 // FindCustomerByID implements [storage.CustomerRepository].
@@ -394,9 +487,9 @@ func (c *customerOracleRepository) SearchCustomerByCIForAccountNumber(ctx contex
 	row := c.db.QueryRowContext(ctx, query, number, number, number, number)
 	var (
 		id, userCode, email, customerNumber, fullName, phoneNumber, branchCode, gender, accountNumber string
-		branchName, accountType, districtName, regionName, federalRegionName, daoCode                string
+		branchName, accountType, districtName, regionName, federalRegionName, daoCode                 string
 		createdAt                                                                                     time.Time
-		isBlocked, isSupperAppEnabled, isUssdEnabled                                                 int
+		isBlocked, isSupperAppEnabled, isUssdEnabled                                                  int
 	)
 	err := row.Scan(
 		&id, &userCode, &email, &customerNumber, &fullName, &phoneNumber, &branchCode,

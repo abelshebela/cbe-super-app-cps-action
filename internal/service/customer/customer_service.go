@@ -360,31 +360,17 @@ func (c *customerService) DisableCustomerByID(ctx context.Context, id string, di
 		return fmt.Errorf(constants.IncompleteUserInfo)
 	}
 
-	customer, err := c.repo.FindByID(ctx, id)
-	code, _ := local_util.HandleMongoError(err)
-	if code == localization.ErrorResourceNotFound.Code {
-		log.Errorf("[CustomerSvc][Disable] not found")
-		span.AddEvent("Customer not found", trace.WithAttributes(
-			attribute.String("error", code),
-			attribute.String("id", id),
-		))
-		return fmt.Errorf("%s", code)
-	} else if err != nil {
-		log.Errorf("[CustomerSvc][Disable] find err: %v", err)
-		span.AddEvent("Failed to find customer", trace.WithAttributes(
-			attribute.String("error", err.Error()),
-			attribute.String("id", id),
-		))
+	customer, err := c.repo.FindUserByUserCode(ctx, id)
+	if err != nil {
 		return err
 	}
 
-	if !customer.Enabled {
-		log.Errorf("[CustomerSvc][Disable] already disabled")
-		span.AddEvent("Customer already disabled", trace.WithAttributes(
-			attribute.String("error", localization.ErrorCustomerAlreadyDisabled.Code),
-			attribute.String("id", id),
-		))
-		return fmt.Errorf("%s", localization.ErrorCustomerAlreadyDisabled.Code)
+	if disable.Channel == "BOTH" && !customer.ISuperappEnabled && !customer.IsUSSDEnabled {
+		return fmt.Errorf("Both channels are already disabled")
+	} else if disable.Channel == "SUPPERAPP" && !customer.ISuperappEnabled {
+		return fmt.Errorf("Supperapp channel is already disabled")
+	} else if disable.Channel == "USSD" && !customer.IsUSSDEnabled {
+		return fmt.Errorf("USSD channel is already disabled")
 	}
 
 	channel := disable.Channel
@@ -722,6 +708,7 @@ func (d *customerService) GetCustomerDetailByID(ctx context.Context, id string) 
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetCustomerDetailByID", "Customer", "GetCustomerDetailByID")
 	defer span.End()
+
 	log.Infof("[CustomerSvc][GetDetail] id: %s", id)
 	res, err := d.repo.FindCustomerDetailByID(ctx, id)
 	if err != nil {
