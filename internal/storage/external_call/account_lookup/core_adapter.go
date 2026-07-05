@@ -245,6 +245,8 @@ func (s *CoreAccountLookupAdapter) SearchCustomerServiceLimitByCIF(ctx context.C
 		return nil, localization.ErrorUnexpectedError
 	}
 
+	s.Logger.Infof("[AccountLookup][SearchCustomerServiceLimitByCIF] successfully searched customer service limit by CIF: %s", cif)
+	s.Logger.Infof("[AccountLookup][SearchCustomerServiceLimitByCIF] result: %+v", res)
 	return res, nil
 
 }
