@@ -535,6 +535,7 @@ func (c customerAdapter) SearchCustomerByCIForAccountNumber(w http.ResponseWrite
 func (c *customerAdapter) SetBlockCustomerSession(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "blockCustomer", "handler", "customer")
 	defer span.End()
+
 	log := local_util.LoggerFromCtx(ctx, c.logger)
 	req := &dto.BlockCustomerRequest{}
 	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
