@@ -714,29 +714,53 @@ func (s *customerService) SearchCustomerServiceLimitByCIF(ctx context.Context, c
 
 	data := make([]customer_dto.CustomerServiceLimitResponses, 0)
 	indexByServiceCode := make(map[string]int)
+	channel_name := ""
+
+	res_cif := ""
+	serviceCode := ""
+	serviceName := ""
+	limit := ""
+	count := ""
 
 	for _, detail := range res.Detail {
 		log.Infof("[CustomerSvc][SearchCustomerServiceLimitByCIF] detail: %v", detail)
-		channelData := customer_dto.CustomerServiceLimitResponse{
-			CIF:         detail.CIF,
-			Channel:     detail.Channel,
-			ServiceCode: detail.ServiceCode,
-			ServiceName: detail.ServiceName,
-			Limit:       detail.Limit,
-			Count:       detail.Count,
+		if detail.CIF != "" {
+			res_cif = detail.CIF
+		}
+		if detail.ServiceCode != "" {
+			serviceCode = detail.ServiceCode
+		}
+		if detail.ServiceName != "" {
+			serviceName = detail.ServiceName
 		}
 
-		if idx, exists := indexByServiceCode[detail.ServiceCode]; exists {
+		if detail.Limit != "" {
+			limit = detail.Limit
+		}
+		if detail.Count != "" {
+			count = detail.Count
+		}
+
+		channelData := customer_dto.CustomerServiceLimitResponse{
+			CIF:         res_cif,
+			Channel:     channel_name,
+			ServiceCode: serviceCode,
+			ServiceName: serviceName,
+			Limit:       limit,
+			Count:       count,
+		}
+
+		if idx, exists := indexByServiceCode[serviceCode]; exists {
 			data[idx].CustomerServiceLimitResponse = append(data[idx].CustomerServiceLimitResponse, channelData)
 			continue
 		}
 
 		data = append(data, customer_dto.CustomerServiceLimitResponses{
-			ServiceCode:                  detail.ServiceCode,
-			ServiceName:                  detail.ServiceName,
+			ServiceCode:                  serviceCode,
+			ServiceName:                  serviceName,
 			CustomerServiceLimitResponse: []customer_dto.CustomerServiceLimitResponse{channelData},
 		})
-		indexByServiceCode[detail.ServiceCode] = len(data) - 1
+		indexByServiceCode[serviceCode] = len(data) - 1
 	}
 
 	filteredData := data
