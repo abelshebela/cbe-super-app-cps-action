@@ -365,13 +365,12 @@ func (c *customerService) DisableCustomerByID(ctx context.Context, id string, di
 		return err
 	}
 
-	if !customer.IsBlocked {
-		log.Errorf("[CustomerSvc][Disable] already disabled")
-		span.AddEvent("Customer already disabled", trace.WithAttributes(
-			attribute.String("error", localization.ErrorCustomerAlreadyDisabled.Code),
-			attribute.String("id", id),
-		))
-		return fmt.Errorf("%s", localization.ErrorCustomerAlreadyDisabled.Code)
+	if disable.Channel == "BOTH" && !customer.ISuperappEnabled && !customer.IsUSSDEnabled {
+		return fmt.Errorf("Both channels are already disabled")
+	} else if disable.Channel == "SUPPERAPP" && !customer.ISuperappEnabled {
+		return fmt.Errorf("Supperapp channel is already disabled")
+	} else if disable.Channel == "USSD" && !customer.IsUSSDEnabled {
+		return fmt.Errorf("USSD channel is already disabled")
 	}
 
 	channel := disable.Channel
