@@ -90,7 +90,17 @@ func InitRoute(ctx context.Context, router *chi.Mux, encryptionMiddleware shared
 
 	router.Use(customeMiddleware.CORS(cfg))
 	// middleware for encryption and decryption of request and response body
-	router.Use(encryptionMiddleware.SecureTunnelMiddleware())
+	// router.Use(encryptionMiddleware.SecureTunnelMiddleware())
+	r.Use(func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+			header := sharedMiddleware.ExtractHeader(req)
+			if header.EnableEncryption.IsValid() && header.EnableEncryption == sharedMiddleware.Enabled {
+				encryptionMiddleware.SecureTunnelMiddleware()(next).ServeHTTP(w, req)
+				return
+			}
+			next.ServeHTTP(w, req)
+		})
+	})
 
 	router.Use(chiMiddleware.RequestID)
 	router.Use(chiMiddleware.RealIP)

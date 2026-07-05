@@ -58,7 +58,7 @@ func (c *customerAdapter) SearchCustomerServiceLimitByCIF(w http.ResponseWriter,
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessCustomerDetailSuccessfullyFetched, res)
+	localization.SendSuccessResponse(w, localization.CustomerServiceLimitSuccessfullyFetched, res)
 }
 
 // GetCustomerActionLogByID retrieves action logs for a specific customer
