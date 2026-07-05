@@ -108,6 +108,8 @@ func (c *customerOracleRepository) FindUserByUserCode(ctx context.Context, userC
 			CONTACT_PHONE,
 			CONTACT_EMAIL,
 			CUSTOMER_NUMBER,
+			IS_SUPERAPP_ENABLED,
+			IS_USSD_ENABLED,
 			IS_BLOCKED
 		FROM USERS
 		WHERE USER_CODE = :1
@@ -121,6 +123,8 @@ func (c *customerOracleRepository) FindUserByUserCode(ctx context.Context, userC
 		&user.PhoneNumber,
 		&user.Email,
 		&user.CustomerNumber,
+		&user.ISuperappEnabled,
+		&user.IsUSSDEnabled,
 		&user.IsBlocked,
 	)
 
