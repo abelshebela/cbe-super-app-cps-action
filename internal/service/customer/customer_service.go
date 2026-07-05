@@ -13,6 +13,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sort"
+	"strings"
 	"time"
 
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -678,29 +680,100 @@ func (d *customerService) SearchCustomerByCIForAccountNumber(ctx context.Context
 }
 
 // SearchCustomerServiceLimitByCIF implements [service.CustomerService].
-func (s *customerService) SearchCustomerServiceLimitByCIF(ctx context.Context, cif string) ([]customer_dto.CustomerServiceLimitResponse, error) {
+func (s *customerService) SearchCustomerServiceLimitByCIF(ctx context.Context, cif string, filterParam *types.Filter) (types.PaginatedResponse[[]customer_dto.CustomerServiceLimitResponses], error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 	log.Infof("[CustomerSvc][SearchCustomerServiceLimitByCIF] cif: %s", cif)
 
 	res, err := s.core.SearchCustomerServiceLimitByCIF(ctx, cif)
 	if err != nil {
 		log.Errorf("[CustomerSvc][SearchCustomerServiceLimitByCIF] core search err: %v", err)
-		return nil, err
+		return types.PaginatedResponse[[]customer_dto.CustomerServiceLimitResponses]{}, err
 	}
 
-	data := []customer_dto.CustomerServiceLimitResponse{}
+	// Sort by service code first, then channel, so merged output stays deterministic.
+	sort.Slice(res.Detail, func(i, j int) bool {
+		if res.Detail[i].ServiceCode == res.Detail[j].ServiceCode {
+			return res.Detail[i].Channel < res.Detail[j].Channel
+		}
+		return res.Detail[i].ServiceCode < res.Detail[j].ServiceCode
+	})
+
+	data := make([]customer_dto.CustomerServiceLimitResponses, 0)
+	indexByServiceCode := make(map[string]int)
+
 	for _, detail := range res.Detail {
 		log.Infof("[CustomerSvc][SearchCustomerServiceLimitByCIF] detail: %v", detail)
-		data = append(data, customer_dto.CustomerServiceLimitResponse{
+		channelData := customer_dto.CustomerServiceLimitResponse{
 			CIF:         detail.CIF,
 			Channel:     detail.Channel,
 			ServiceCode: detail.ServiceCode,
 			ServiceName: detail.ServiceName,
 			Limit:       detail.Limit,
 			Count:       detail.Count,
+		}
+
+		if idx, exists := indexByServiceCode[detail.ServiceCode]; exists {
+			data[idx].CustomerServiceLimitResponse = append(data[idx].CustomerServiceLimitResponse, channelData)
+			continue
+		}
+
+		data = append(data, customer_dto.CustomerServiceLimitResponses{
+			ServiceCode:                  detail.ServiceCode,
+			ServiceName:                  detail.ServiceName,
+			CustomerServiceLimitResponse: []customer_dto.CustomerServiceLimitResponse{channelData},
 		})
+		indexByServiceCode[detail.ServiceCode] = len(data) - 1
 	}
-	return data, nil
+
+	filteredData := data
+	page := 1
+	perPage := 10
+	search := ""
+	if filterParam != nil {
+		page = filterParam.Page
+		perPage = filterParam.PerPage
+		search = filterParam.Search
+	}
+	if page <= 0 {
+		page = 1
+	}
+	if perPage <= 0 {
+		perPage = 10
+	}
+
+	search = strings.TrimSpace(strings.ToLower(search))
+	if search != "" {
+		filtered := make([]customer_dto.CustomerServiceLimitResponses, 0, len(data))
+		for _, item := range data {
+			if strings.Contains(strings.ToLower(item.ServiceCode), search) || strings.Contains(strings.ToLower(item.ServiceName), search) {
+				filtered = append(filtered, item)
+			}
+		}
+		filteredData = filtered
+	}
+
+	totalDocs := int64(len(filteredData))
+	meta := local_util.BuildPaginationMeta(totalDocs, page, perPage)
+
+	start := (page - 1) * perPage
+	if start >= len(filteredData) {
+		return types.PaginatedResponse[[]customer_dto.CustomerServiceLimitResponses]{
+			Data: []customer_dto.CustomerServiceLimitResponses{},
+			Meta: meta,
+		}, nil
+	}
+
+	end := start + perPage
+	if end > len(filteredData) {
+		end = len(filteredData)
+	}
+
+	filteredData = filteredData[start:end]
+
+	return types.PaginatedResponse[[]customer_dto.CustomerServiceLimitResponses]{
+		Data: filteredData,
+		Meta: meta,
+	}, nil
 }
 
 func (d *customerService) GetCustomerDetailByID(ctx context.Context, id string) (*customer_dto.CustomerDetailResponse, error) {

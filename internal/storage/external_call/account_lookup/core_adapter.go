@@ -100,35 +100,35 @@ func (a *CoreAccountLookupAdapter) LookupAccountByAccountNumber(ctx context.Cont
 	// 	return nil, errors.New(localization.ErrorAccountNotFound.Code)
 	// }
 	/*
-	   	type AccountDetail struct {
-			AccountNumber  string `json:"account_number"`
-			CustomerName   string `json:"customer_name"`
-			CustomerNumber string `json:"customer_number"`
-			PhoneNumber    string `json:"phone_number"`
-			BranchCode     string `json:"branch_code"`
-			BranchName     string `json:"branch_name"`
-			Restriction    string `json:"restriction"`
-			Currency       string `json:"currency"`
-			WorkingBalance string `json:"working_balance"`
-			CustomerID     string `json:"customer_id"`
-			AccountType    string `json:"account_type"`
-	   }
+		   	type AccountDetail struct {
+				AccountNumber  string `json:"account_number"`
+				CustomerName   string `json:"customer_name"`
+				CustomerNumber string `json:"customer_number"`
+				PhoneNumber    string `json:"phone_number"`
+				BranchCode     string `json:"branch_code"`
+				BranchName     string `json:"branch_name"`
+				Restriction    string `json:"restriction"`
+				Currency       string `json:"currency"`
+				WorkingBalance string `json:"working_balance"`
+				CustomerID     string `json:"customer_id"`
+				AccountType    string `json:"account_type"`
+		   }
 
-	   type NameLookupResultDetail struct {
-	   	AccountNumber   string `xml:"AccountNumber"`
-	   	AccountName     string `xml:"AccountName"`
-	   	CustomerNumber  string `xml:"CIF"`
-	   	Currency        string `xml:"Currency"`
-	   	RestrictionType string `xml:"RestrictionType"`
-	   	InactiveFlag    string `xml:"InactiveFlag"`
-	   	Industry        string `xml:"Industry"`
-	   	CustomerSegment string `xml:"CustomerSegment"`
-	   	SubSegment      string `xml:"SubSegment"`
-	   	CustomerGroup   string `xml:"CustomerGroup"`
-	   	Category        string `xml:"Category"`
-	   	Sector          string `xml:"Sector"`
-	   	TinNumber       string `xml:"TINNo"`
-	   }
+		   type NameLookupResultDetail struct {
+		   	AccountNumber   string `xml:"AccountNumber"`
+		   	AccountName     string `xml:"AccountName"`
+		   	CustomerNumber  string `xml:"CIF"`
+		   	Currency        string `xml:"Currency"`
+		   	RestrictionType string `xml:"RestrictionType"`
+		   	InactiveFlag    string `xml:"InactiveFlag"`
+		   	Industry        string `xml:"Industry"`
+		   	CustomerSegment string `xml:"CustomerSegment"`
+		   	SubSegment      string `xml:"SubSegment"`
+		   	CustomerGroup   string `xml:"CustomerGroup"`
+		   	Category        string `xml:"Category"`
+		   	Sector          string `xml:"Sector"`
+		   	TinNumber       string `xml:"TINNo"`
+		   }
 	*/
 
 	detail := response.Detail
