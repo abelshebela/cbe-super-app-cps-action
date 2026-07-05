@@ -105,6 +105,7 @@ func (c *customerOracleRepository) FindUserByUserCode(ctx context.Context, userC
 		SELECT
 			USER_CODE,
 			FULL_NAME,
+			USERNAME,
 			CONTACT_PHONE,
 			CONTACT_EMAIL,
 			CUSTOMER_NUMBER,
@@ -120,6 +121,7 @@ func (c *customerOracleRepository) FindUserByUserCode(ctx context.Context, userC
 	err := c.db.QueryRowContext(ctx, query, userCode).Scan(
 		&user.UserCode,
 		&user.FullName,
+		&user.Username,
 		&user.PhoneNumber,
 		&user.Email,
 		&user.CustomerNumber,
