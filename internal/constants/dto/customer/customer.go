@@ -123,16 +123,16 @@ type CustomerListResponse struct {
 	AccountNumber      string `json:"account_number" bson:"account_number"`
 	Avatar             string `json:"avatar" bson:"avatar"`
 	CreatedAt          string `json:"created_at" bson:"created_at"`
-	IsBlocked           bool   `json:"is_blocked" bson:"is_blocked"`
-	IsSupperAppEnabled  bool   `json:"is_supper_app_enabled" bson:"is_superapp_enabled"`
-	IsUssdEnabled       bool   `json:"is_ussd_enabled" bson:"is_ussd_enabled"`
-	BranchName          string `json:"branch_name"`
-	AccountType         string `json:"account_type"`
-	DistrictName        string `json:"district_name"`
-	RegionName          string `json:"region_name"`
-	FederalRegionName   string `json:"federal_region_name"`
-	DaoCode             string `json:"dao_code"`
-	Restriction         string `json:"restriction"`
+	IsBlocked          bool   `json:"is_blocked" bson:"is_blocked"`
+	IsSupperAppEnabled bool   `json:"is_supper_app_enabled" bson:"is_superapp_enabled"`
+	IsUssdEnabled      bool   `json:"is_ussd_enabled" bson:"is_ussd_enabled"`
+	BranchName         string `json:"branch_name"`
+	AccountType        string `json:"account_type"`
+	DistrictName       string `json:"district_name"`
+	RegionName         string `json:"region_name"`
+	FederalRegionName  string `json:"federal_region_name"`
+	DaoCode            string `json:"dao_code"`
+	Restriction        string `json:"restriction"`
 }
 
 type CustomerServiceLimitResponse struct {
@@ -144,6 +144,11 @@ type CustomerServiceLimitResponse struct {
 	Count       string `json:"Count"`
 }
 
+type CustomerServiceLimitResponses struct {
+	ServiceCode                  string                         `json:"service_code"`
+	ServiceName                  string                         `json:"service_name"`
+	CustomerServiceLimitResponse []CustomerServiceLimitResponse `json:"customer_service_limit_response"`
+}
 type FindCustomerByIDResponse struct {
 	ID                   bson.ObjectID              `json:"id,omitempty" bson:"_id,omitempty"`
 	UserCode             string                     `json:"user_code" bson:"user_code"`
