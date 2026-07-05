@@ -13,7 +13,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"sort"
 	"strings"
 
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -664,12 +663,12 @@ func (s *customerService) SearchCustomerServiceLimitByCIF(ctx context.Context, c
 	}
 
 	// Sort by service code first, then channel, so merged output stays deterministic.
-	sort.Slice(res.Detail, func(i, j int) bool {
-		if res.Detail[i].ServiceCode == res.Detail[j].ServiceCode {
-			return res.Detail[i].Channel < res.Detail[j].Channel
-		}
-		return res.Detail[i].ServiceCode < res.Detail[j].ServiceCode
-	})
+	// sort.Slice(res.Detail, func(i, j int) bool {
+	// 	if res.Detail[i].ServiceCode == res.Detail[j].ServiceCode {
+	// 		return res.Detail[i].Channel < res.Detail[j].Channel
+	// 	}
+	// 	return res.Detail[i].ServiceCode < res.Detail[j].ServiceCode
+	// })
 
 	data := make([]customer_dto.CustomerServiceLimitResponses, 0)
 	indexByServiceCode := make(map[string]int)
