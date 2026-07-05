@@ -10,6 +10,7 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
+	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
@@ -110,7 +111,7 @@ func (r *BPSActionRoleRepository) UpdateByActionCode(ctx context.Context, action
 		"is_maker_only":           actionRole.IsMakerOnly,
 		"is_view_only":            actionRole.IsViweOnly,
 		"enabled":                 actionRole.Enabled,
-		"updated_at":              actionRole.UpdatedAt,
+		"updated_at":              time.Now(),
 	}
 	_, err := r.mongoDal.UpdateOne(ctx, bson.M{"action_code": actionCode}, update)
 	if err != nil {

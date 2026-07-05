@@ -676,6 +676,18 @@ func (d *customerService) SearchCustomerByCIForAccountNumber(ctx context.Context
 		))
 		return nil, err
 	}
+
+	if customer.AccountNumber != "" {
+		accountDetail, lookupErr := d.core.LookupAccountByAccountNumber(ctx, model.AccountLookUpRequest{
+			AccountNumber: customer.AccountNumber,
+		})
+		if lookupErr != nil {
+			log.Errorf("[CustomerSvc][SearchByCI] account lookup failed (restriction skipped): %v", lookupErr)
+		} else if accountDetail != nil {
+			customer.Restriction = accountDetail.Restriction
+		}
+	}
+
 	return customer, nil
 }
 
