@@ -713,9 +713,9 @@ func (s *customerService) SearchCustomerServiceLimitByCIF(ctx context.Context, c
 
 	data := make([]customer_dto.CustomerServiceLimitResponses, 0)
 	indexByServiceCode := make(map[string]int)
-	channel_name := ""
 
 	res_cif := ""
+	channel_name := ""
 	serviceCode := ""
 	serviceName := ""
 	limit := ""
@@ -725,6 +725,9 @@ func (s *customerService) SearchCustomerServiceLimitByCIF(ctx context.Context, c
 		log.Infof("[CustomerSvc][SearchCustomerServiceLimitByCIF] detail: %v", detail)
 		if detail.CIF != "" {
 			res_cif = detail.CIF
+		}
+		if detail.Channel != "" {
+			channel_name = detail.Channel
 		}
 		if detail.ServiceCode != "" {
 			serviceCode = detail.ServiceCode
