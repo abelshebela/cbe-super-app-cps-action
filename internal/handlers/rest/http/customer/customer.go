@@ -159,8 +159,10 @@ func (c *customerAdapter) SetEnableCustomerSession(w http.ResponseWriter, r *htt
 func (c *customerAdapter) DisableCustomer(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableCustomer", "handler", "customer")
 	defer span.End()
+
 	log := local_util.LoggerFromCtx(ctx, c.logger)
 	md := &types.ContextMetadata{}
+
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	localization.UpdateWriterContext(w, ctx)
 	id := chi.URLParam(r, "id")
@@ -198,9 +200,16 @@ func (c *customerAdapter) DisableCustomer(w http.ResponseWriter, r *http.Request
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+
 	log.Infof("[DisableCustomer] request sent successfully for customer id: %s", id)
 	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
-	localization.SendSuccessResponse(w, localization.CustomerDisableRequestCreatedSuccessfully, nil)
+
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.CustomerSegmentationCreated, nil)
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.CustomerDisableRequestSubmittedSuccessfully, nil)
 }
 
 // EnableCustomer enables a customer by ID using OTP verification
