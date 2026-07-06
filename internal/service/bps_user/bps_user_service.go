@@ -589,7 +589,7 @@ func (b *bpsUserService) UpdateBPSUser(ctx context.Context, userID string, updat
 	}
 
 	if len(updatedUser.BranchCode) > 0 {
-		branch_detail, err := b.Branch_blocks.FindByFilterKey(ctx, "doa_code", strings.TrimSpace(updatedUser.BranchCode[0]))
+		branch_detail, err := b.Branch_blocks.FindByFilterKey(ctx, "dao_code", strings.TrimSpace(updatedUser.BranchCode[0]))
 		if err != nil {
 			if err.Error() != localization.ErrorResourceNotFound.Code {
 				b.logger.Errorf("[UpdateBPSUser] branch not found")
