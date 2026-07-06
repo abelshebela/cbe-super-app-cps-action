@@ -331,11 +331,14 @@ func (s *bpsActionRoleService) buildUpdatePayload(
 		payload.AssignedMakersRoles = []string{}
 		payload.AssignedAuditorRoles = []string{}
 		payload.AssignedCheckerRoles = [][]string{}
+		payload.AssignedViewersRoles = coalesceStringSlice(req.AssignedViewersRoles, rawOld.AssignedViewersRoles)
 	case isMakerOnly:
+		payload.AssignedViewersRoles = coalesceStringSlice(req.AssignedViewersRoles, rawOld.AssignedViewersRoles)
 		payload.AssignedMakersRoles = coalesceStringSlice(req.AssignedMakersRoles, rawOld.AssignedMakersRoles)
 		payload.AssignedAuditorRoles = coalesceStringSlice(req.AssignedAuditorRoles, rawOld.AssignedAuditorRoles)
 		payload.AssignedCheckerRoles = [][]string{}
 	default:
+		payload.AssignedViewersRoles = coalesceStringSlice(req.AssignedViewersRoles, rawOld.AssignedViewersRoles)
 		payload.AssignedMakersRoles = coalesceStringSlice(req.AssignedMakersRoles, rawOld.AssignedMakersRoles)
 		payload.AssignedAuditorRoles = coalesceStringSlice(req.AssignedAuditorRoles, rawOld.AssignedAuditorRoles)
 		payload.AssignedCheckerRoles = coalesceCheckerSlice(req.AssignedCheckerRoles, rawOld.AssignedCheckerRoles)
@@ -520,7 +523,7 @@ func (s *bpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 
 	case string(constants.UPDATE):
 		// Handle enable/disable separately to avoid corrupting data with partial payload
-		if action.RequestAction == string(constants.RequestEnableCpsActionRole) {
+		if action.RequestAction == string(constants.RequestEnableActionRole) {
 			if err := s.repo.EnableOrDisableByActionCode(ctx, action.UniqueId, true); err != nil {
 				span.AddEvent("failed to enable action role", trace.WithAttributes(attribute.String("error", err.Error())))
 				return nil, err
@@ -555,7 +558,7 @@ func (s *bpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 		}
 
 		log.Infof("[BpsActRoleSvc][Authorize] sync update makers: %d, checkers: %d, auditors: %d", len(new.AssignedMakersRoles), len(new.AssignedCheckerRoles), len(new.AssignedAuditorRoles))
-		if err := s.syncIndices(ctx, new.ActionCode, new); err != nil {
+		if err := s.syncIndices(ctx, new.ActionName, new); err != nil {
 			span.AddEvent("failed to sync indices for create", trace.WithAttributes(attribute.String("error", err.Error())))
 			return nil, err
 		}

@@ -795,11 +795,11 @@ const (
 	RequestDisableBank    RequestAction = "DISABLE_BANK"
 
 	// Device Version
-	RequestCreateDeviceVersion        RequestAction = "CREATE_DEVICE_VERSION"
-	RequestUpdateDeviceVersion        RequestAction = "UPDATE_DEVICE_VERSION"
-	RequestEnableDeviceVersion        RequestAction = "ENABLE_DEVICE_VERSION"
-	RequestDisableDeviceVersion       RequestAction = "DISABLE_DEVICE_VERSION"
-	RequestDeleteDeviceVersion        RequestAction = "DELETE_DEVICE_VERSION"
+	RequestCreateDeviceVersion         RequestAction = "CREATE_DEVICE_VERSION"
+	RequestUpdateDeviceVersion         RequestAction = "UPDATE_DEVICE_VERSION"
+	RequestEnableDeviceVersion         RequestAction = "ENABLE_DEVICE_VERSION"
+	RequestDisableDeviceVersion        RequestAction = "DISABLE_DEVICE_VERSION"
+	RequestDeleteDeviceVersion         RequestAction = "DELETE_DEVICE_VERSION"
 	RequestEnableDisableDeviceVersion  RequestAction = "ENABLE_DISABLE_DEVICE_VERSION"
 	RequestSetDeviceStateDeviceVersion RequestAction = "SET_DEVICE_STATE_DEVICE_VERSION"
 
@@ -808,6 +808,8 @@ const (
 	RequestApproveFaydaCustomer  RequestAction = "APPROVE_FAYDA_CUSTOMER"
 	RequestDisableFaydaAccount   RequestAction = "DISABLE_FAYDA_ACCOUNT"
 	RequestEnableFaydaAccount    RequestAction = "ENABLE_FAYDA_ACCOUNT"
+	RequestUnblockCustomer       RequestAction = "UNBLOCK_CUSTOMER"
+	RequestBlockCustomer         RequestAction = "BLOCK_CUSTOMER"
 
 	// Wallet
 	RequestCreateWallet         RequestAction = "CREATE_WALLET"
