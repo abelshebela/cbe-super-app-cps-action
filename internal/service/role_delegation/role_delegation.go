@@ -58,12 +58,29 @@ func (r *roleDelegation) Authorize(ctx context.Context, cpsAction *model.CPSActi
 	// 	return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	// }
 	// log.Infof("[RoleDelegation Service][Authorize] CPS action data as any: %v", asAny)
-
 	// raw2, _ := json.Marshal(asAny)
-	var roleDelegation imodel.RoleDelegation
+
+	roleDelegation := imodel.RoleDelegation{}
 	if err := json.Unmarshal(raw, &roleDelegation); err != nil {
 		log.Errorf("[RoleDelegation Service][Authorize] map to RoleDelegation failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	// CurrentAction payload may send Mongo id as "_id" while model tag is "id".
+	var rawAction struct {
+		RawID string `json:"_id"`
+	}
+	if err := json.Unmarshal(raw, &rawAction); err != nil {
+		log.Errorf("[RoleDelegation Service][Authorize] map raw _id failed: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	if rawAction.RawID != "" {
+		oid, oidErr := bson.ObjectIDFromHex(rawAction.RawID)
+		if oidErr != nil {
+			log.Errorf("[RoleDelegation Service][Authorize] invalid _id in CurrentAction: %v", oidErr)
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		}
+		roleDelegation.ID = oid
 	}
 
 	log.Infof("[RoleDelegation Service][Authorize] CPS action data as RoleDelegation: %+v", roleDelegation)
