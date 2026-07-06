@@ -194,7 +194,11 @@ func (h *handler) FindAllVaultCategories(w http.ResponseWriter, r *http.Request)
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, h.logger)
 
-	params := local_util.ExtractFilterParams(r)
+	params, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")

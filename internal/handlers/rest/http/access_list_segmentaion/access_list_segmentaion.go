@@ -221,7 +221,11 @@ func (a *accessListSegmentation) GetAccessListSegmentationForBlockByID(w http.Re
 //	@Router			/access_list_segmentation [get]
 func (a *accessListSegmentation) GetAllAccessListSegmentation(w http.ResponseWriter, r *http.Request) {
 	log := local_util.LoggerFromCtx(r.Context(), a.logger)
-	filterParams := local_util.ExtractFilterParams(r)
+	filterParams, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")

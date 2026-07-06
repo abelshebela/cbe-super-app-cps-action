@@ -51,7 +51,12 @@ func InitKYCAdapter(app service.KYCVerifierService, logger utils.Logger) inbound
 func (h *kycAdapter) GetKYCList(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getKycList", "handler", "kyc")
 	defer span.End()
-	filterParams := local_util.ExtractFilterParams(r)
+
+	filterParams, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")

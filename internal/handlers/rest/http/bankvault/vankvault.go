@@ -97,8 +97,13 @@ func (h *handler) CreateBankVault(w http.ResponseWriter, r *http.Request) {
 func (h *handler) FindAllBankVaults(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "findAllBankVaults", "handler", "bankVault")
 	defer span.End()
+
 	log := local_util.LoggerFromCtx(ctx, h.logger)
-	params := local_util.ExtractFilterParams(r)
+	params, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
@@ -415,8 +420,12 @@ func (h *handler) GetAllLockedBankVaults(w http.ResponseWriter, r *http.Request)
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllLockedBankVaults", "handler", "bankVault")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, h.logger)
-	params := local_util.ExtractFilterParams(r)
+	params, err := local_util.ExtractFilterParams(r)
 
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
 
@@ -486,8 +495,12 @@ func (h *handler) GetAllGroupVaults(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllGroupVaults", "handler", "bankVault")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, h.logger)
-	params := local_util.ExtractFilterParams(r)
+	params, err := local_util.ExtractFilterParams(r)
 
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
 

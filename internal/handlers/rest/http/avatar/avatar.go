@@ -286,7 +286,12 @@ func (a *avatarAdapter) FetchAvatars(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "fetchAvatars", "handler", "avatar")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, a.logger)
-	filterParam := local_util.ExtractFilterParams(r)
+
+	filterParam, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")

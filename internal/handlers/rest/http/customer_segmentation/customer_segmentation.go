@@ -162,7 +162,12 @@ func (c *CustomerSegmentationAdapter) UpdateCustomerSegmentation(w http.Response
 //	@Router			/customer-segmentations [get]
 func (c *CustomerSegmentationAdapter) GetAllCustomerSegmentations(w http.ResponseWriter, r *http.Request) {
 	log := local_util.LoggerFromCtx(r.Context(), c.logger)
-	filterParams := local_util.ExtractFilterParams(r)
+
+	filterParams, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")

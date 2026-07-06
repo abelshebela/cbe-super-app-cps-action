@@ -104,7 +104,12 @@ func (c *cpsRolesHandler) UpdateCPSRole(w http.ResponseWriter, r *http.Request) 
 
 func (c *cpsRolesHandler) GetAllCPSRoles(w http.ResponseWriter, r *http.Request) {
 	log := local_util.LoggerFromCtx(r.Context(), c.logger)
-	filterParams := local_util.ExtractFilterParams(r)
+
+	filterParams, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
@@ -320,7 +325,12 @@ func (c *cpsRolesHandler) GetServiceLevelLimits(w http.ResponseWriter, r *http.R
 	log := local_util.LoggerFromCtx(r.Context(), c.logger)
 
 	roleCode := chi.URLParam(r, "role_code")
-	filterParams := local_util.ExtractFilterParams(r)
+
+	filterParams, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	serviceLevelLimits, err := c.svc.GetServiceLevelLimits(r.Context(), roleCode, filterParams)
 	if err != nil {

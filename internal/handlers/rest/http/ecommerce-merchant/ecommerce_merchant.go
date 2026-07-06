@@ -418,7 +418,12 @@ func (h *ecommerceMerchantAdapter) FindAllWithPagination(w http.ResponseWriter, 
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, h.logger)
 	_ = log
-	filterParams := local_util.ExtractFilterParams(r)
+
+	filterParams, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
