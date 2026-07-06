@@ -110,6 +110,7 @@ func (a *AccountBlockStorage) FindByFilterKey(ctx context.Context, field, value 
 		"branch_code":         "branch_code",
 		"district_name":       "district_name",
 		"federal_region_name": "federal_region_name",
+		"dao_code":            "dao_code",
 	}
 	column, ok := allowed[field]
 	if !ok {
