@@ -24,7 +24,7 @@ type RoleDelegationRequest struct {
 	DelegatorUserUserType string `json:"delegator_user_user_type" bson:"delegator_user_user_type"`
 
 	NewRoleID             string `json:"new_role_id" bson:"new_role_id"`
-	NewDepartmentOrBranch string `json:"new_department_or_branch" bson:"new_department_or_branch"`
+	NewDepartmentOrBranch int    `json:"new_department_or_branch" bson:"new_department_or_branch"`
 
 	StartAt                  time.Time `json:"start_at" bson:"start_at"`
 	EndAt                    time.Time `json:"end_at" bson:"end_at"`
