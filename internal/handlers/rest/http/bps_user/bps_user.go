@@ -9,6 +9,7 @@ import (
 	"cbe-super-app-cps-action/internal/service"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -346,13 +347,18 @@ func (h BPSUserHandler) CreateBPSUser(w http.ResponseWriter, r *http.Request) {
 	userCodeGenerated := local_utils.RandomGenerator(8)
 	phoneNumber := common_utils.FormatPhoneNumber(req.PhoneNumber)
 
+	string_branches := make([]string, len(req.BranchCode))
+	for i, branch := range req.BranchCode {
+		string_branches[i] = fmt.Sprintf("%d", branch)
+	}
+
 	NewUser := bps_model.BPSUser{
 		Username:         req.UserID,
 		FullName:         req.FullName,
 		JobTitle:         req.JobTitle,
 		UserCode:         userCodeGenerated,
 		PhoneNumber:      phoneNumber,
-		BranchCode:       req.BranchCode,
+		BranchCode:       string_branches,
 		Email:            req.Email,
 		FirstPasswordSet: true,
 		IsFirstTimeLogin: true,
@@ -442,8 +448,12 @@ func (h BPSUserHandler) UpdateBPSUser(w http.ResponseWriter, r *http.Request) {
 	if req.Email != nil {
 		updatedUser.Email = *req.Email
 	}
+	string_branches := make([]string, len(req.BranchCode))
+	for i, branch := range req.BranchCode {
+		string_branches[i] = fmt.Sprintf("%d", branch)
+	}
 	if len(req.BranchCode) > 0 {
-		updatedUser.BranchCode = req.BranchCode
+		updatedUser.BranchCode = string_branches
 	}
 
 	err := h.Service.UpdateBPSUser(ctx, id, updatedUser)
