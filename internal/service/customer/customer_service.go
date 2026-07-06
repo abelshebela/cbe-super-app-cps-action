@@ -13,7 +13,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
+	"strings"
 
 	"cbe-super-app-cps-action/internal/constants/types"
 
@@ -360,31 +360,17 @@ func (c *customerService) DisableCustomerByID(ctx context.Context, id string, di
 		return fmt.Errorf(constants.IncompleteUserInfo)
 	}
 
-	customer, err := c.repo.FindByID(ctx, id)
-	code, _ := local_util.HandleMongoError(err)
-	if code == localization.ErrorResourceNotFound.Code {
-		log.Errorf("[CustomerSvc][Disable] not found")
-		span.AddEvent("Customer not found", trace.WithAttributes(
-			attribute.String("error", code),
-			attribute.String("id", id),
-		))
-		return fmt.Errorf("%s", code)
-	} else if err != nil {
-		log.Errorf("[CustomerSvc][Disable] find err: %v", err)
-		span.AddEvent("Failed to find customer", trace.WithAttributes(
-			attribute.String("error", err.Error()),
-			attribute.String("id", id),
-		))
+	customer, err := c.repo.FindUserByUserCode(ctx, id)
+	if err != nil {
 		return err
 	}
 
-	if !customer.Enabled {
-		log.Errorf("[CustomerSvc][Disable] already disabled")
-		span.AddEvent("Customer already disabled", trace.WithAttributes(
-			attribute.String("error", localization.ErrorCustomerAlreadyDisabled.Code),
-			attribute.String("id", id),
-		))
-		return fmt.Errorf("%s", localization.ErrorCustomerAlreadyDisabled.Code)
+	if disable.Channel == "BOTH" && !customer.ISuperappEnabled && !customer.IsUSSDEnabled {
+		return fmt.Errorf("Both channels are already disabled")
+	} else if disable.Channel == "SUPPERAPP" && !customer.ISuperappEnabled {
+		return fmt.Errorf("Supperapp channel is already disabled")
+	} else if disable.Channel == "USSD" && !customer.IsUSSDEnabled {
+		return fmt.Errorf("USSD channel is already disabled")
 	}
 
 	channel := disable.Channel
@@ -440,21 +426,8 @@ func (c *customerService) BlockCustomerSession(ctx context.Context, id, BlockedR
 		return fmt.Errorf(constants.IncompleteUserInfo)
 	}
 
-	customer, err := c.repo.FindByID(ctx, id)
-	code, _ := local_util.HandleMongoError(err)
-	if code == localization.ErrorResourceNotFound.Code {
-		log.Errorf("[CustomerSvc][BlockCustomerSession] not found")
-		span.AddEvent("Customer not found", trace.WithAttributes(
-			attribute.String("error", code),
-			attribute.String("id", id),
-		))
-		return fmt.Errorf("%s", code)
-	} else if err != nil {
-		log.Errorf("[CustomerSvc][BlockCustomerSession] find err: %v", err)
-		span.AddEvent("Failed to find customer", trace.WithAttributes(
-			attribute.String("error", err.Error()),
-			attribute.String("id", id),
-		))
+	customer, err := c.repo.FindUserByUserCode(ctx, id)
+	if err != nil {
 		return err
 	}
 
@@ -483,22 +456,22 @@ func (c *customerService) BlockCustomerSession(ctx context.Context, id, BlockedR
 		return err
 	}
 
-	entry := &imodel.CustomerBarUnBarReason{
-		UserID:    id,
-		Reason:    BlockedReason,
-		IsBarred:  true,
-		CreatedBy: makerData.UserCode,
-		CreatedAt: time.Now(),
-	}
-	if saveErr := c.repo.SaveBarUnBarReason(ctx, entry); saveErr != nil {
-		log.Errorf("[CustomerSvc][BlockCustomerSession] save reason err: %v", saveErr)
-	}
+	// entry := &imodel.CustomerBarUnBarReason{
+	// 	UserID:    id,
+	// 	Reason:    BlockedReason,
+	// 	IsBarred:  true,
+	// 	CreatedBy: makerData.UserCode,
+	// 	CreatedAt: time.Now(),
+	// }
+	// if saveErr := c.repo.SaveBarUnBarReason(ctx, entry); saveErr != nil {
+	// 	log.Errorf("[CustomerSvc][BlockCustomerSession] save reason err: %v", saveErr)
+	// }
 
 	log.Infof("[CustomerSvc][BlockCustomerSession] request created id: %s", id)
 	return nil
 }
 
-func (c *customerService) UnBlockCustomerSession(ctx context.Context, id string) error {
+func (c *customerService) UnBlockCustomerSession(ctx context.Context, id, reason string) error {
 	log := local_util.LoggerFromCtx(ctx, c.logger)
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "BlockCustomerSession", "Customer", "BlockCustomerSession")
@@ -515,21 +488,8 @@ func (c *customerService) UnBlockCustomerSession(ctx context.Context, id string)
 		return fmt.Errorf(constants.IncompleteUserInfo)
 	}
 
-	customer, err := c.repo.FindByID(ctx, id)
-	code, _ := local_util.HandleMongoError(err)
-	if code == localization.ErrorResourceNotFound.Code {
-		log.Errorf("[CustomerSvc][BlockCustomerSession] not found")
-		span.AddEvent("Customer not found", trace.WithAttributes(
-			attribute.String("error", code),
-			attribute.String("id", id),
-		))
-		return fmt.Errorf("%s", code)
-	} else if err != nil {
-		log.Errorf("[CustomerSvc][BlockCustomerSession] find err: %v", err)
-		span.AddEvent("Failed to find customer", trace.WithAttributes(
-			attribute.String("error", err.Error()),
-			attribute.String("id", id),
-		))
+	customer, err := c.repo.FindUserByUserCode(ctx, id)
+	if err != nil {
 		return err
 	}
 
@@ -544,7 +504,7 @@ func (c *customerService) UnBlockCustomerSession(ctx context.Context, id string)
 
 	new_customer := *customer
 	new_customer.IsBlocked = false
-	new_customer.BlockedReason = ""
+	new_customer.BlockedReason = reason
 
 	action := lib.CpsModelBuilder(customer.UserCode, makerData, customer, new_customer, string(constants.RequestUnblockCustomer), constants.UPDATE)
 
@@ -558,16 +518,16 @@ func (c *customerService) UnBlockCustomerSession(ctx context.Context, id string)
 		return err
 	}
 
-	entry := &imodel.CustomerBarUnBarReason{
-		UserID:    id,
-		Reason:    "",
-		IsBarred:  false,
-		CreatedBy: makerData.UserCode,
-		CreatedAt: time.Now(),
-	}
-	if saveErr := c.repo.SaveBarUnBarReason(ctx, entry); saveErr != nil {
-		log.Errorf("[CustomerSvc][UnBlockCustomerSession] save reason err: %v", saveErr)
-	}
+	// entry := &imodel.CustomerBarUnBarReason{
+	// 	UserID:    id,
+	// 	Reason:    "",
+	// 	IsBarred:  false,
+	// 	CreatedBy: makerData.UserCode,
+	// 	CreatedAt: time.Now(),
+	// }
+	// if saveErr := c.repo.SaveBarUnBarReason(ctx, entry); saveErr != nil {
+	// 	log.Errorf("[CustomerSvc][UnBlockCustomerSession] save reason err: %v", saveErr)
+	// }
 
 	log.Infof("[CustomerSvc][UnBlockCustomerSession] request created id: %s", id)
 	return nil
@@ -692,29 +652,131 @@ func (d *customerService) SearchCustomerByCIForAccountNumber(ctx context.Context
 }
 
 // SearchCustomerServiceLimitByCIF implements [service.CustomerService].
-func (s *customerService) SearchCustomerServiceLimitByCIF(ctx context.Context, cif string) ([]customer_dto.CustomerServiceLimitResponse, error) {
+func (s *customerService) SearchCustomerServiceLimitByCIF(ctx context.Context, cif string, filterParam *types.Filter) (types.PaginatedResponse[[]customer_dto.CustomerServiceLimitResponses], error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 	log.Infof("[CustomerSvc][SearchCustomerServiceLimitByCIF] cif: %s", cif)
+
+	// userData, err := s.core.CifSearch(ctx, cif)
+	// if err != nil {
+	// 	log.Errorf("[CustomerSrv][CifSearch] error while searching user by cif:%s", cif)
+	// 	return types.PaginatedResponse[[]customer_dto.CustomerServiceLimitResponses]{}, localization.ErrorCustomerFetchFailed
+	// }
 
 	res, err := s.core.SearchCustomerServiceLimitByCIF(ctx, cif)
 	if err != nil {
 		log.Errorf("[CustomerSvc][SearchCustomerServiceLimitByCIF] core search err: %v", err)
-		return nil, err
+		return types.PaginatedResponse[[]customer_dto.CustomerServiceLimitResponses]{}, err
 	}
 
-	data := []customer_dto.CustomerServiceLimitResponse{}
+	// service_res, err := s.core.SearchTransferLimitByService(ctx, "GLOBAL-")
+	// if err != nil {
+	// 	log.Errorf("[CustomerSvc][SearchCustomerServiceLimitByCIF] core search err: %v", err)
+	// 	return types.PaginatedResponse[[]customer_dto.CustomerServiceLimitResponses]{}, err
+	// }
+
+	data := make([]customer_dto.CustomerServiceLimitResponses, 0)
+	indexByServiceCode := make(map[string]int)
+
+	res_cif := ""
+	channel_name := ""
+	serviceCode := ""
+	serviceName := ""
+	limit := ""
+	count := ""
+
 	for _, detail := range res.Detail {
 		log.Infof("[CustomerSvc][SearchCustomerServiceLimitByCIF] detail: %v", detail)
-		data = append(data, customer_dto.CustomerServiceLimitResponse{
-			CIF:         detail.CIF,
-			Channel:     detail.Channel,
-			ServiceCode: detail.ServiceCode,
-			ServiceName: detail.ServiceName,
-			Limit:       detail.Limit,
-			Count:       detail.Count,
+		if detail.CIF != "" {
+			res_cif = detail.CIF
+		}
+		if detail.Channel != "" {
+			channel_name = detail.Channel
+		}
+		if detail.ServiceCode != "" {
+			serviceCode = detail.ServiceCode
+		}
+		if detail.ServiceName != "" {
+			serviceName = detail.ServiceName
+		}
+
+		if detail.Limit != "" {
+			limit = detail.Limit
+		}
+		if detail.Count != "" {
+			count = detail.Count
+		}
+
+		channelData := customer_dto.CustomerServiceLimitResponse{
+			CIF:         res_cif,
+			Channel:     channel_name,
+			ServiceCode: serviceCode,
+			ServiceName: serviceName,
+			Limit:       limit,
+			Count:       count,
+		}
+
+		if idx, exists := indexByServiceCode[serviceCode]; exists {
+			data[idx].CustomerServiceLimitResponse = append(data[idx].CustomerServiceLimitResponse, channelData)
+			continue
+		}
+
+		data = append(data, customer_dto.CustomerServiceLimitResponses{
+			ServiceCode:                  serviceCode,
+			ServiceName:                  serviceName,
+			CustomerServiceLimitResponse: []customer_dto.CustomerServiceLimitResponse{channelData},
 		})
+		indexByServiceCode[serviceCode] = len(data) - 1
 	}
-	return data, nil
+
+	filteredData := data
+	page := 1
+	perPage := 10
+	search := ""
+	if filterParam != nil {
+		page = filterParam.Page
+		perPage = filterParam.PerPage
+		search = filterParam.Search
+	}
+	if page <= 0 {
+		page = 1
+	}
+	if perPage <= 0 {
+		perPage = 10
+	}
+
+	search = strings.TrimSpace(strings.ToLower(search))
+	if search != "" {
+		filtered := make([]customer_dto.CustomerServiceLimitResponses, 0, len(data))
+		for _, item := range data {
+			if strings.Contains(strings.ToLower(item.ServiceCode), search) || strings.Contains(strings.ToLower(item.ServiceName), search) {
+				filtered = append(filtered, item)
+			}
+		}
+		filteredData = filtered
+	}
+
+	totalDocs := int64(len(filteredData))
+	meta := local_util.BuildPaginationMeta(totalDocs, page, perPage)
+
+	start := (page - 1) * perPage
+	if start >= len(filteredData) {
+		return types.PaginatedResponse[[]customer_dto.CustomerServiceLimitResponses]{
+			Data: []customer_dto.CustomerServiceLimitResponses{},
+			Meta: meta,
+		}, nil
+	}
+
+	end := start + perPage
+	if end > len(filteredData) {
+		end = len(filteredData)
+	}
+
+	filteredData = filteredData[start:end]
+
+	return types.PaginatedResponse[[]customer_dto.CustomerServiceLimitResponses]{
+		Data: filteredData,
+		Meta: meta,
+	}, nil
 }
 
 func (d *customerService) GetCustomerDetailByID(ctx context.Context, id string) (*customer_dto.CustomerDetailResponse, error) {
@@ -722,6 +784,7 @@ func (d *customerService) GetCustomerDetailByID(ctx context.Context, id string) 
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetCustomerDetailByID", "Customer", "GetCustomerDetailByID")
 	defer span.End()
+
 	log.Infof("[CustomerSvc][GetDetail] id: %s", id)
 	res, err := d.repo.FindCustomerDetailByID(ctx, id)
 	if err != nil {

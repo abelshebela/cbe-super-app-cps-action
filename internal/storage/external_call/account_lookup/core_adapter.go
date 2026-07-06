@@ -28,6 +28,7 @@ type Account interface {
 	CreateAccountWithFayda(ctx context.Context, account accountLookup.AccountCreateParams) (types.Account, error)
 	CifSearch(ctx context.Context, cif string) ([]imodel.AccountData, error)
 	SearchCustomerServiceLimitByCIF(ctx context.Context, cif string) (*core.CustomerLimitFetchByCIFReturnServiceResult, error)
+	SearchTransferLimitByService(ctx context.Context, service string) (*core.CustomerLimitFetchByServiceResult, error)
 }
 
 type CoreAccountLookupAdapter struct {
@@ -100,35 +101,35 @@ func (a *CoreAccountLookupAdapter) LookupAccountByAccountNumber(ctx context.Cont
 	// 	return nil, errors.New(localization.ErrorAccountNotFound.Code)
 	// }
 	/*
-	   	type AccountDetail struct {
-			AccountNumber  string `json:"account_number"`
-			CustomerName   string `json:"customer_name"`
-			CustomerNumber string `json:"customer_number"`
-			PhoneNumber    string `json:"phone_number"`
-			BranchCode     string `json:"branch_code"`
-			BranchName     string `json:"branch_name"`
-			Restriction    string `json:"restriction"`
-			Currency       string `json:"currency"`
-			WorkingBalance string `json:"working_balance"`
-			CustomerID     string `json:"customer_id"`
-			AccountType    string `json:"account_type"`
-	   }
+		   	type AccountDetail struct {
+				AccountNumber  string `json:"account_number"`
+				CustomerName   string `json:"customer_name"`
+				CustomerNumber string `json:"customer_number"`
+				PhoneNumber    string `json:"phone_number"`
+				BranchCode     string `json:"branch_code"`
+				BranchName     string `json:"branch_name"`
+				Restriction    string `json:"restriction"`
+				Currency       string `json:"currency"`
+				WorkingBalance string `json:"working_balance"`
+				CustomerID     string `json:"customer_id"`
+				AccountType    string `json:"account_type"`
+		   }
 
-	   type NameLookupResultDetail struct {
-	   	AccountNumber   string `xml:"AccountNumber"`
-	   	AccountName     string `xml:"AccountName"`
-	   	CustomerNumber  string `xml:"CIF"`
-	   	Currency        string `xml:"Currency"`
-	   	RestrictionType string `xml:"RestrictionType"`
-	   	InactiveFlag    string `xml:"InactiveFlag"`
-	   	Industry        string `xml:"Industry"`
-	   	CustomerSegment string `xml:"CustomerSegment"`
-	   	SubSegment      string `xml:"SubSegment"`
-	   	CustomerGroup   string `xml:"CustomerGroup"`
-	   	Category        string `xml:"Category"`
-	   	Sector          string `xml:"Sector"`
-	   	TinNumber       string `xml:"TINNo"`
-	   }
+		   type NameLookupResultDetail struct {
+		   	AccountNumber   string `xml:"AccountNumber"`
+		   	AccountName     string `xml:"AccountName"`
+		   	CustomerNumber  string `xml:"CIF"`
+		   	Currency        string `xml:"Currency"`
+		   	RestrictionType string `xml:"RestrictionType"`
+		   	InactiveFlag    string `xml:"InactiveFlag"`
+		   	Industry        string `xml:"Industry"`
+		   	CustomerSegment string `xml:"CustomerSegment"`
+		   	SubSegment      string `xml:"SubSegment"`
+		   	CustomerGroup   string `xml:"CustomerGroup"`
+		   	Category        string `xml:"Category"`
+		   	Sector          string `xml:"Sector"`
+		   	TinNumber       string `xml:"TINNo"`
+		   }
 	*/
 
 	detail := response.Detail
@@ -232,19 +233,63 @@ func (s *CoreAccountLookupAdapter) CifSearch(ctx context.Context, cif string) ([
 
 func (s *CoreAccountLookupAdapter) SearchCustomerServiceLimitByCIF(ctx context.Context, cif string) (*core.CustomerLimitFetchByCIFReturnServiceResult, error) {
 	log := local_util.LoggerFromCtx(ctx, s.Logger)
-	log.Infof("[AccountLookup][SearchCustomerServiceLimitByCIF] Searching customer service limit by CIF: %s", cif)
+	log.Infof("[coreLookup][SearchCustomerServiceLimitByCIF] Searching customer service limit by CIF: %s", cif)
 
 	if s.coreAPI == nil {
-		log.Errorf("[AccountLookup][SearchCustomerServiceLimitByCIF] coreAPI is nil")
+		log.Errorf("[coreLookup][SearchCustomerServiceLimitByCIF] coreAPI is nil")
 		return nil, localization.ErrorUnexpectedError
 	}
 	res, err := s.coreAPI.CustomerLimitFetchByCIFReturnService(ctx, core.CustomerLimitFetchByCIFReturnServiceParam{CustomerNumber: cif})
 	if err != nil {
-		s.Logger.Errorf("[AccountLookup][SearchCustomerServiceLimitByCIF] failed to search customer service limit by CIF: %v", err)
-		log.Errorf("[AccountLookup][SearchCustomerServiceLimitByCIF] failed to search customer service limit by CIF: %v", err)
+		s.Logger.Errorf("[coreLookup][SearchCustomerServiceLimitByCIF] failed to search customer service limit by CIF: %v", err)
+		log.Errorf("[coreLookup][SearchCustomerServiceLimitByCIF] failed to search customer service limit by CIF: %v", err)
 		return nil, localization.ErrorUnexpectedError
 	}
 
+	s.Logger.Infof("[coreLookup][SearchCustomerServiceLimitByCIF] successfully searched customer service limit by CIF: %s", cif)
+	s.Logger.Infof("[coreLookup][SearchCustomerServiceLimitByCIF] result: %+v", res)
+	return res, nil
+}
+
+func (s *CoreAccountLookupAdapter) SearchTransferLimitByService(ctx context.Context, service string) (*core.CustomerLimitFetchByServiceResult, error) {
+	log := local_util.LoggerFromCtx(ctx, s.Logger)
+	log.Infof("[coreCall][SearchTransferLimitByService] Searching transfer limit by Service Code: %s", service)
+
+	if s.coreAPI == nil {
+		log.Errorf("[coreLookup][SearchTransferLimitByService] coreAPI is nil")
+		return nil, localization.ErrorUnexpectedError
+	}
+	res, err := s.coreAPI.CustomerLimitFetchByService(ctx, core.CustomerLimitFetchByServiceParam{ServiceCode: service})
+
+	if err != nil {
+		s.Logger.Errorf("[coreLookup][SearchTransferLimitByService] failed to search customer service limit by CIF: %v", err)
+		log.Errorf("[coreLookup][SearchTransferLimitByService] failed to search customer service limit by CIF: %v", err)
+		return nil, localization.ErrorUnexpectedError
+	}
+
+	s.Logger.Infof("[coreLookup][SearchTransferLimitByService] successfully fetched transfer limit by service: %s", service)
+	return res, nil
+
+}
+
+func (s *CoreAccountLookupAdapter) CustomerCifSearch(ctx context.Context, cif string) (*core.CustomerFetchResult, error) {
+	log := local_util.LoggerFromCtx(ctx, s.Logger)
+	log.Infof("[coreCall][CustomerCifSearch] Searching customer by cif: %s", cif)
+
+	if s.coreAPI == nil {
+		log.Errorf("[coreLookup][CustomerCifSearch] coreAPI is nil")
+		return nil, localization.ErrorUnexpectedError
+	}
+
+	res, err := s.coreAPI.CustomerFetch(ctx, core.CustomerFetchParam{CustomerNumber: cif, FetchBy: ""})
+
+	if err != nil {
+		s.Logger.Errorf("[coreLookup][CustomerCifSearch] failed to search customer by CIF: %v", err)
+		log.Errorf("[coreLookup][CustomerCifSearch] failed to search customer by CIF: %v", err)
+		return nil, localization.ErrorUnexpectedError
+	}
+
+	s.Logger.Infof("[coreLookup][CustomerCifSearch] successfully fetched customer by cif: %s", cif)
 	return res, nil
 
 }

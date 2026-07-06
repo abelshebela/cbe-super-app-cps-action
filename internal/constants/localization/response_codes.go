@@ -674,6 +674,7 @@ var ResponseCodesList = []ResponseCode{
 	CustomerEnableRequestSessionCreatedSuccessfully,
 	CustomerActionLogRetrievedSuccessfully,
 	CustomerDisableRequestCreatedSuccessfully,
+	CustomerDisableRequestSubmittedSuccessfully,
 	CustomerEnableRequestCreatedSuccessfully,
 	ErrorCustomerAlreadyDisabled,
 	ErrorCustomerAlreadyEnabled,
@@ -947,6 +948,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAccessListSegmentationNameAlreadyExists,
 	ErrorCustomerSegmentationCodeNotFound,
 	ErrorAccessListKeysRequired,
+	ErrorCustomerAlreadyBlocked,
 	ErrorSegmentationTypeRequired,
 	ErrorBranchNotFoundRequired,
 
@@ -9008,6 +9010,13 @@ var (
 		Code:       "SUCCESS_CUSTOMER_ACTION_LOG_RETRIEVED",
 		StatusCode: StatusOK,
 		Message:    "Customer action log retrieved successfully",
+		Type:       "success",
+	}
+
+	CustomerDisableRequestSubmittedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_CUSTOMER_DISABLE_REQUEST_SUBMITTED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "Customer Disable request submitted successfully",
 		Type:       "success",
 	}
 

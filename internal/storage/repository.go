@@ -344,6 +344,7 @@ type AccountBlockRepository interface {
 	EnableOrDisableBranches(ctx context.Context, ids []string, reason *types.Reason, enabled bool) error
 	GetBranchesByIds(ctx context.Context, ids []string) ([]*local_model.AccountBlock, error)
 	GetBranchByCode(ctx context.Context, code string) (*imodel.AccountBlock, error)
+	GetBranchByDAOCode(ctx context.Context, code string) (*imodel.AccountBlock, error)
 	GetAllBranchesByDistrictOrRegion(ctx context.Context, id string) ([]local_model.AccountBlock, error)
 	FindByFilterKey(ctx context.Context, field, value string) (*local_model.AccountBlock, error)
 
@@ -655,6 +656,7 @@ type FaydaRepository interface {
 
 type CustomerRepository interface {
 	FindByID(ctx context.Context, id string) (*member.User, error)
+	FindUserByUserCode(ctx context.Context, userCode string) (*member.User, error)
 	Update(ctx context.Context, id string, data member.User) error
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*customer_dto.CustomerListResponse], error)
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
