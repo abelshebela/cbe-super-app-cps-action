@@ -7,20 +7,19 @@ import (
 )
 
 type RoleDelegation struct {
-	ID bson.ObjectID `json:"id" bson:"_id,omitempty"`
-
-	DelegatedUserID                     string `json:"delegated_user_id" bson:"delegated_user_id"`
-	DelegatedUserUserCode               string `json:"delegated_user_user_code" bson:"delegated_user_user_code"`
-	DelegatedUserFullName               string `json:"delegated_user_full_name" bson:"delegated_user_full_name"`
-	DelegatedUserUserType               string `json:"delegated_user_user_type" bson:"delegated_user_user_type"`
-	DelegatedUserDepartmentOrBranch     string `json:"delegated_user_department_or_branch" bson:"delegated_user_department_or_branch"`
-	DelegatedUserDepartmentOrBranchName string `json:"delegated_user_department_or_branch_name" bson:"delegated_user_department_or_branch_name"`
-	DelegatedUserJobTitle               string `json:"delegated_user_job_title" bson:"delegated_user_job_title"`
-	DelegatedUserExistingRole           string `json:"delegated_user_existing_role" bson:"delegated_user_existing_role"`
-	DelegatedUserExistingRoleName       string `json:"delegated_user_existing_role_name" bson:"delegated_user_existing_role_name"`
-	DelegationType                      string `json:"delegation_type" bson:"delegation_type"`
-	DelegatedUserPhoneNumber            string `json:"delegated_user_phone_number" bson:"delegated_user_phone_number"`
-	DelegatedUserEmail                  string `json:"delegated_user_email" bson:"delegated_user_email"`
+	ID                                  bson.ObjectID `json:"id" bson:"_id,omitempty"`
+	DelegatedUserID                     string        `json:"delegated_user_id" bson:"delegated_user_id"`
+	DelegatedUserUserCode               string        `json:"delegated_user_user_code" bson:"delegated_user_user_code"`
+	DelegatedUserFullName               string        `json:"delegated_user_full_name" bson:"delegated_user_full_name"`
+	DelegatedUserUserType               string        `json:"delegated_user_user_type" bson:"delegated_user_user_type"`
+	DelegatedUserDepartmentOrBranch     string        `json:"delegated_user_department_or_branch" bson:"delegated_user_department_or_branch"`
+	DelegatedUserDepartmentOrBranchName string        `json:"delegated_user_department_or_branch_name" bson:"delegated_user_department_or_branch_name"`
+	DelegatedUserJobTitle               string        `json:"delegated_user_job_title" bson:"delegated_user_job_title"`
+	DelegatedUserExistingRole           string        `json:"delegated_user_existing_role" bson:"delegated_user_existing_role"`
+	DelegatedUserExistingRoleName       string        `json:"delegated_user_existing_role_name" bson:"delegated_user_existing_role_name"`
+	DelegationType                      string        `json:"delegation_type" bson:"delegation_type"`
+	DelegatedUserPhoneNumber            string        `json:"delegated_user_phone_number" bson:"delegated_user_phone_number"`
+	DelegatedUserEmail                  string        `json:"delegated_user_email" bson:"delegated_user_email"`
 
 	// taken as value with out modification
 	DelegatorUserID                 string `json:"delegator_user_id" bson:"delegator_user_id"`

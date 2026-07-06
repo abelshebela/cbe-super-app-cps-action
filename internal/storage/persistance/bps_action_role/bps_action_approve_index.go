@@ -11,6 +11,7 @@ import (
 	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -113,11 +114,17 @@ func (r *BPSActionApproveIndexRepository) SyncIndices(ctx context.Context, oldAc
 
 	if _, err := r.collection.DeleteMany(ctx, bson.M{"action_name": oldActionName}); err != nil {
 		log.Errorf("SyncIndices: DeleteMany failed: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		errData := local_util.HandleDBError(err)
+		if errData.Error() == localization.ErrorResourceNotFound.Code {
+			log.Errorf("SyncIndices: Data not found on DeleteMany action: %v", err)
+		} else {
+			return errors.New(localization.ErrorUnexpectedError.Code)
+		}
 	}
 
 	if err := r.SaveIndices(ctx, newIndices); err != nil {
-		return err
+		log.Errorf("SyncIndices: SaveIndices failed: %v", err)
+		return local_util.HandleDBError(err)
 	}
 
 	return nil
