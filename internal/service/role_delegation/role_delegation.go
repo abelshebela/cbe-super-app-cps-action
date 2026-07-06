@@ -59,8 +59,7 @@ func (r *roleDelegation) Authorize(ctx context.Context, cpsAction *model.CPSActi
 	// }
 	// log.Infof("[RoleDelegation Service][Authorize] CPS action data as any: %v", asAny)
 
-	// raw2, _ := json.Marshal(asAny)
-	var roleDelegation imodel.RoleDelegation
+	roleDelegation := imodel.RoleDelegation{}
 	if err := json.Unmarshal(raw, &roleDelegation); err != nil {
 		log.Errorf("[RoleDelegation Service][Authorize] map to RoleDelegation failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
