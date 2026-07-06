@@ -98,15 +98,15 @@ type ValidationError struct {
 }
 
 type ErrorResponse struct {
-	Status    int         `json:"status"`
-	Error     string      `json:"error"`
-	Message   string      `json:"message"`
-	Details   interface{} `json:"details"`
-	RequestID string      `json:"request_id,omitempty"`
-	Timestamp time.Time   `json:"timestamp"`
-	Path      string      `json:"path,omitempty"`
-	Operation string      `json:"operation"`
-	Method    string      `json:"method,omitempty"`
+	Status  int    `json:"status"`
+	Error   string `json:"error"`
+	Message string `json:"message"`
+	// Details   interface{} `json:"details,omitempty"`
+	// RequestID string      `json:"request_id,omitempty"`
+	// Timestamp time.Time   `json:"timestamp"`
+	// Path      string      `json:"path,omitempty"`
+	// Operation string      `json:"operation"`
+	// Method    string      `json:"method,omitempty"`
 }
 
 func (e *AppError) Error() string {
@@ -311,7 +311,6 @@ func convertToAppErr(err error, requestID string) *AppError {
 				details := make(map[string]interface{})
 				for _, fieldErr := range validationErrs {
 					details[fieldErr.Field()] = fieldErr.Error()
-					// details[fieldErr.Field()] =fmt.Sprintf("failed on '%s' tag", fieldErr.Tag())
 				}
 
 				appErr.Details = details
@@ -325,7 +324,6 @@ func convertToAppErr(err error, requestID string) *AppError {
 		details := make(map[string]interface{})
 		for _, fieldErr := range validationErrs {
 			details[fieldErr.Field()] = fieldErr.Error()
-			// details[fieldErr.Field()] =fmt.Sprintf("failed on '%s' tag", fieldErr.Tag())
 		}
 
 		return NewValidationError("Validation failed", details).
@@ -339,27 +337,26 @@ func convertToAppErr(err error, requestID string) *AppError {
 			WithUserMessage("Invalid request format")
 	}
 
-	return NewInternalError("Internal server error", err).
-		WithDetail("request_id", requestID)
+	appErr := NewInternalError("Internal server error", err)
+	appErr.RequestID = requestID
+	return appErr
 }
 
 func handlePanic(w http.ResponseWriter, r *http.Request, panicErr interface{}, logger utils.Logger) {
 	requestID := getRequestID(r)
+	stackTrace := string(debug.Stack())
 
-	// Create panic error
-	appErr := NewInternalError("Panic occurred during request processing",
-		fmt.Errorf("panic: %v", panicErr)).
-		WithDetail("request_id", requestID).
-		WithDetail("stack_trace", string(debug.Stack()))
-
-		// Log the panic with stack trace
 	logger.Errorf("[Panic recovered]",
 		zap.String("request_id", requestID),
 		zap.String("method", r.Method),
 		zap.String("path", r.URL.Path),
 		zap.Any("panic", panicErr),
-		zap.String("stack_trace", string(debug.Stack())),
+		zap.String("stack_trace", stackTrace),
 	)
+
+	appErr := NewInternalError("Panic occurred during request processing",
+		fmt.Errorf("panic: %v", panicErr))
+	appErr.RequestID = requestID
 
 	writeErrorResponse(w, r, appErr)
 }
@@ -369,15 +366,9 @@ func writeErrorResponse(w http.ResponseWriter, r *http.Request, appErr *AppError
 	w.WriteHeader(appErr.StatusCode)
 
 	response := ErrorResponse{
-		Status:    appErr.StatusCode,
-		Error:     string(appErr.Type),
-		Message:   appErr.UserMessage,
-		Details:   appErr.Details,
-		RequestID: appErr.RequestID,
-		Timestamp: appErr.Timestamp,
-		Path:      r.URL.Path,
-		Method:    r.Method,
-		Operation: appErr.Operation,
+		Status:  appErr.StatusCode,
+		Error:   string(appErr.Type),
+		Message: appErr.UserMessage,
 	}
 
 	if response.Message == "" {
@@ -393,13 +384,11 @@ func writeErrorResponse(w http.ResponseWriter, r *http.Request, appErr *AppError
 }
 
 func getRequestID(r *http.Request) string {
-	// Try to get from context first
 	if requestID := r.Context().Value(middleware.RequestIDKey); requestID != nil {
 		if id, ok := requestID.(string); ok {
 			return id
 		}
 	}
 
-	// Generate a new one if not found
 	return fmt.Sprintf("req-%d", time.Now().UnixNano())
 }
