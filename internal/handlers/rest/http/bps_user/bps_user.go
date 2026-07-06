@@ -179,7 +179,12 @@ func (h BPSUserHandler) GetAllBPSUsers(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "getAllBpsUsers", "handler", "bpsUser")
 	defer span.End()
 	log := common_utils.LoggerFromCtx(ctx, h.logger)
-	filterParams := common_utils.ExtractFilterParams(r)
+
+	filterParams, err := common_utils.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")

@@ -43,7 +43,11 @@ func (c *customerAdapter) SearchCustomerServiceLimitByCIF(w http.ResponseWriter,
 	log := local_util.LoggerFromCtx(ctx, c.logger)
 	log.Infof("[CustomerH][SearchCustomerServiceLimitByCIF] request received")
 
-	filterParam := local_util.ExtractFilterParams(r)
+	filterParam, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	search := filterParam.Search
 	if err := local_util.NoSpecialChars(search); err != nil {
@@ -96,7 +100,12 @@ func (c *customerAdapter) GetCustomerActionLogByID(w http.ResponseWriter, r *htt
 		localization.SendBadRequestResponse(w, localization.ErrorIdNotSetOnQueryParam.Code)
 		return
 	}
-	filterParams := local_util.ExtractFilterParams(r)
+
+	filterParams, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	span.SetAttributes(attribute.String("customer.id", id))
 	actionLogs, err := c.customerService.GetCustomerActionLogByID(ctx, id, *filterParams)
@@ -292,7 +301,12 @@ func (c customerAdapter) GetCustomerDetail(w http.ResponseWriter, r *http.Reques
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getCustomerDetail", "handler", "customer")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, c.logger)
-	filterParams := local_util.ExtractFilterParams(r)
+
+	filterParams, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
@@ -384,7 +398,12 @@ func (c customerAdapter) GetBlockedCustomer(w http.ResponseWriter, r *http.Reque
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getBlockedCustomer", "handler", "customer")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, c.logger)
-	filterParams := local_util.ExtractFilterParams(r)
+
+	filterParams, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")

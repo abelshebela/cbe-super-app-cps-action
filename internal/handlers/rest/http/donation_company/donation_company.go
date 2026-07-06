@@ -49,8 +49,12 @@ func InitDonationCompanyAdapter(donationCompanyApp service.DonationCompanyServic
 func (d *donationCompanyAdapter) FetchDonationCompany(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "fetchDonationCompany", "handler", "donationCompany")
 	defer span.End()
-	filterParams := local_util.ExtractFilterParams(r)
+	filterParams, err := local_util.ExtractFilterParams(r)
 
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
 

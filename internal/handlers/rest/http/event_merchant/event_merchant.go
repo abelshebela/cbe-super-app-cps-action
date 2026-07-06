@@ -286,7 +286,11 @@ func (e *EventMerchantHandler) GetEventMerchantByID(w http.ResponseWriter, r *ht
 //	@Security		BearerAuth
 //	@Router			/event_merchants [get]
 func (e *EventMerchantHandler) GetEventMerchants(w http.ResponseWriter, r *http.Request) {
-	filterParams := local_util.ExtractFilterParams(r)
+	filterParams, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
