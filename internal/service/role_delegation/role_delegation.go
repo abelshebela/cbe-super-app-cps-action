@@ -46,22 +46,22 @@ type roleDelegation struct {
 func (r *roleDelegation) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
-	var asAny any
+	// var asAny any
 	raw, err := json.Marshal(cpsAction.CurrentAction)
 	log.Infof("[RoleDelegation Service][Authorize] raw CPS action data: %s", string(raw))
 	if err != nil {
 		log.Errorf("[RoleDelegation Service][Authorize] marshal CurrentAction failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	if err := json.Unmarshal(raw, &asAny); err != nil {
-		log.Errorf("[RoleDelegation Service][Authorize] unmarshal CurrentAction failed: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
-	}
-	log.Infof("[RoleDelegation Service][Authorize] CPS action data as any: %v", asAny)
+	// if err := json.Unmarshal(raw, &asAny); err != nil {
+	// 	log.Errorf("[RoleDelegation Service][Authorize] unmarshal CurrentAction failed: %v", err)
+	// 	return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	// }
+	// log.Infof("[RoleDelegation Service][Authorize] CPS action data as any: %v", asAny)
 
-	raw2, _ := json.Marshal(asAny)
+	// raw2, _ := json.Marshal(asAny)
 	var roleDelegation imodel.RoleDelegation
-	if err := json.Unmarshal(raw2, &roleDelegation); err != nil {
+	if err := json.Unmarshal(raw, &roleDelegation); err != nil {
 		log.Errorf("[RoleDelegation Service][Authorize] map to RoleDelegation failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
@@ -291,7 +291,7 @@ func (r *roleDelegation) CreateWithNewUser(ctx context.Context, roleDelegation i
 
 	// handle new department/branch validation based on delegation type
 	if roleDelegation.DelegationType == "BPS" {
-		if branch, err := r.branchRepo.GetBranchByCode(ctx, roleDelegation.NewDepartmentOrBranch); err != nil || branch == nil {
+		if branch, err := r.branchRepo.GetBranchByDAOCode(ctx, roleDelegation.NewDepartmentOrBranch); err != nil || branch == nil {
 			r.logger.Errorf("[RoleDelegation/Create] Branch not found: %s", roleDelegation.NewDepartmentOrBranch)
 			return localization.ErrorInvalidDelegationBranch
 		}
@@ -506,7 +506,7 @@ func (r *roleDelegation) FindById(ctx context.Context, id string) (*imodel.RoleD
 
 	// for the new passed data
 	if roleDelegation.DelegationType == "BPS" {
-		branch, err := r.branchRepo.GetBranchByCode(ctx, roleDelegation.NewDepartmentOrBranch)
+		branch, err := r.branchRepo.GetBranchByDAOCode(ctx, roleDelegation.NewDepartmentOrBranch)
 		r.logger.Infof("[RoleDelegation/FindById] found branch for code %s: %v", roleDelegation.NewDepartmentOrBranch, branch)
 		if err != nil || branch == nil {
 			r.logger.Errorf("[RoleDelegation/FindById] failed to find branch by code: %v", err)
