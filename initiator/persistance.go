@@ -64,7 +64,6 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/wallet"
 
 	"cbe-super-app-cps-action/internal/storage/persistance/bulk_service"
-	"cbe-super-app-cps-action/internal/storage/persistance/customer"
 	user_action_log_repo "cbe-super-app-cps-action/internal/storage/persistance/user_action_log"
 	ussd_merchant_repo "cbe-super-app-cps-action/internal/storage/persistance/ussd_merchant"
 
@@ -101,8 +100,8 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreInterface cor
 		AuthTierPersistence:              auth_tier.NewAuthTierRepository(client, cfg, dbName, AuthTierCollection, logger),
 		BankPersistence:                  bank.NewBankRepository(client, cfg, dbName, BanksCollection, logger),
 		// BudgetCategoryPersistence:         budget_category.NewBudgetCategoryRepository(client, cfg, dbName, BudgetCategoryCollection, clientOrchestrationProducer, logger),
-		BulkService:              bulk_service.InitBulkServicePersistence(client, cfg, dbName, []string{CPSActionsCollection, AccessListCollection}, clientOrchestrationProducer, notificationProducer, logger),
-		CustomerService:          customer.InitCustomerDetail(client, cfg, dbName, []string{MembersCollection, LinkedAccountsCollection}, clientOrchestrationProducer, logger),
+		BulkService: bulk_service.InitBulkServicePersistence(client, cfg, dbName, []string{CPSActionsCollection, AccessListCollection}, clientOrchestrationProducer, notificationProducer, logger),
+		// CustomerService:          customer.InitCustomerDetail(client, cfg, dbName, []string{MembersCollection, LinkedAccountsCollection}, clientOrchestrationProducer, logger),
 		CpsUserPersistence:       cps_user.NewCPSUserRepository(client, redisRepository, cfg, dbName, CPSUsersCollection, []string{DepartmentsCollection, PermissionCollection, PermissionCategoryCollection, PermissionGroupsCollection, RolesCollection, JobRolesCollection}, logger),
 		ArchivedUserPersistence:  archived_user.NewArchivedUserRepository(client, cfg, dbName, ArchievedUsersCollection, logger),
 		EventPersistence:         event.NewEventRepository(client, cfg, dbName, EventsCollection, logger),

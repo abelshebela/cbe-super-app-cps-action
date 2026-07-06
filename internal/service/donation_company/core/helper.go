@@ -32,7 +32,7 @@ func CompanyNameExists(ctx context.Context, companyName string, donationCompanyR
 	return len(companies.Data) > 0, nil
 }
 
-func ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber string, accountLookupService account_lookup.Account, logger utils.Logger) (*model.AccountDetail, error) {
+func ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber string, accountLookupService account_lookup.Account, logger utils.Logger) (*imodel.AccountDetail, error) {
 	accountRequest := model.AccountLookUpRequest{
 		AccountNumber: accountNumber,
 	}

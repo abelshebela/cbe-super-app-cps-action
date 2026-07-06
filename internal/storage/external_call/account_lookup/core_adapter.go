@@ -5,6 +5,7 @@ import (
 	accountLookup "cbe-super-app-cps-action/internal/constants/dto/account_lookup"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
 	"fmt"
@@ -22,10 +23,11 @@ import (
 
 type Account interface {
 	LookupAccountByPhone(ctx context.Context, phone string) (bool, error)
-	LookupAccountByAccountNumber(ctx context.Context, account model.AccountLookUpRequest) (*model.AccountDetail, error)
+	LookupAccountByAccountNumber(ctx context.Context, account model.AccountLookUpRequest) (*imodel.AccountDetail, error)
 	LookupAccountByAccountNumberFromBps(ctx context.Context, accountNumber string) (accountLookup.AccountResponse, error)
 	CreateAccountWithFayda(ctx context.Context, account accountLookup.AccountCreateParams) (types.Account, error)
 	CifSearch(ctx context.Context, cif string) ([]imodel.AccountData, error)
+	SearchCustomerServiceLimitByCIF(ctx context.Context, cif string) (*core.CustomerLimitFetchByCIFReturnServiceResult, error)
 }
 
 type CoreAccountLookupAdapter struct {
@@ -68,7 +70,7 @@ func (a *CoreAccountLookupAdapter) LookupAccountByPhone(ctx context.Context, pho
 	return true, nil
 }
 
-func (a *CoreAccountLookupAdapter) LookupAccountByAccountNumber(ctx context.Context, account model.AccountLookUpRequest) (accountDetail *model.AccountDetail, err error) {
+func (a *CoreAccountLookupAdapter) LookupAccountByAccountNumber(ctx context.Context, account model.AccountLookUpRequest) (accountDetail *imodel.AccountDetail, err error) {
 	a.Logger.Infof("Looking up account by number: %s", account.AccountNumber)
 	defer func() {
 		if recovered := recover(); recovered != nil {
@@ -97,16 +99,47 @@ func (a *CoreAccountLookupAdapter) LookupAccountByAccountNumber(ctx context.Cont
 	// 	a.Logger.Errorf("Account not found for number: %s", account.AccountNumber)
 	// 	return nil, errors.New(localization.ErrorAccountNotFound.Code)
 	// }
+	/*
+		   	type AccountDetail struct {
+				AccountNumber  string `json:"account_number"`
+				CustomerName   string `json:"customer_name"`
+				CustomerNumber string `json:"customer_number"`
+				PhoneNumber    string `json:"phone_number"`
+				BranchCode     string `json:"branch_code"`
+				BranchName     string `json:"branch_name"`
+				Restriction    string `json:"restriction"`
+				Currency       string `json:"currency"`
+				WorkingBalance string `json:"working_balance"`
+				CustomerID     string `json:"customer_id"`
+				AccountType    string `json:"account_type"`
+		   }
+
+		   type NameLookupResultDetail struct {
+		   	AccountNumber   string `xml:"AccountNumber"`
+		   	AccountName     string `xml:"AccountName"`
+		   	CustomerNumber  string `xml:"CIF"`
+		   	Currency        string `xml:"Currency"`
+		   	RestrictionType string `xml:"RestrictionType"`
+		   	InactiveFlag    string `xml:"InactiveFlag"`
+		   	Industry        string `xml:"Industry"`
+		   	CustomerSegment string `xml:"CustomerSegment"`
+		   	SubSegment      string `xml:"SubSegment"`
+		   	CustomerGroup   string `xml:"CustomerGroup"`
+		   	Category        string `xml:"Category"`
+		   	Sector          string `xml:"Sector"`
+		   	TinNumber       string `xml:"TINNo"`
+		   }
+	*/
 
 	detail := response.Detail
-	return &model.AccountDetail{
+	return &imodel.AccountDetail{
 		AccountNumber:  detail.AccountNumber,
 		CustomerName:   detail.AccountName,
+		CustomerNumber: detail.CustomerNumber,
 		Restriction:    detail.RestrictionType,
 		Currency:       detail.Currency,
 		WorkingBalance: "",
 		CustomerID:     detail.CustomerNumber,
-		AccountType:    detail.RestrictionType,
 	}, nil
 }
 
@@ -195,4 +228,25 @@ func (s *CoreAccountLookupAdapter) CifSearch(ctx context.Context, cif string) ([
 
 	s.Logger.Infof("CIF search completed successfully")
 	return accounts, nil
+}
+
+func (s *CoreAccountLookupAdapter) SearchCustomerServiceLimitByCIF(ctx context.Context, cif string) (*core.CustomerLimitFetchByCIFReturnServiceResult, error) {
+	log := local_util.LoggerFromCtx(ctx, s.Logger)
+	log.Infof("[AccountLookup][SearchCustomerServiceLimitByCIF] Searching customer service limit by CIF: %s", cif)
+
+	if s.coreAPI == nil {
+		log.Errorf("[AccountLookup][SearchCustomerServiceLimitByCIF] coreAPI is nil")
+		return nil, localization.ErrorUnexpectedError
+	}
+	res, err := s.coreAPI.CustomerLimitFetchByCIFReturnService(ctx, core.CustomerLimitFetchByCIFReturnServiceParam{CustomerNumber: cif})
+	if err != nil {
+		s.Logger.Errorf("[AccountLookup][SearchCustomerServiceLimitByCIF] failed to search customer service limit by CIF: %v", err)
+		log.Errorf("[AccountLookup][SearchCustomerServiceLimitByCIF] failed to search customer service limit by CIF: %v", err)
+		return nil, localization.ErrorUnexpectedError
+	}
+
+	s.Logger.Infof("[AccountLookup][SearchCustomerServiceLimitByCIF] successfully searched customer service limit by CIF: %s", cif)
+	s.Logger.Infof("[AccountLookup][SearchCustomerServiceLimitByCIF] result: %+v", res)
+	return res, nil
+
 }

@@ -5,6 +5,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/dto/customer"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
@@ -12,6 +13,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"cbe-super-app-cps-action/internal/constants/types"
 
@@ -358,45 +360,41 @@ func (c *customerService) DisableCustomerByID(ctx context.Context, id string, di
 		return fmt.Errorf(constants.IncompleteUserInfo)
 	}
 
-	customer, err := c.repo.FindByID(ctx, id)
-	code, _ := local_util.HandleMongoError(err)
-	if code == localization.ErrorResourceNotFound.Code {
-		log.Errorf("[CustomerSvc][Disable] not found")
-		span.AddEvent("Customer not found", trace.WithAttributes(
-			attribute.String("error", code),
-			attribute.String("id", id),
-		))
-		return fmt.Errorf("%s", code)
-	} else if err != nil {
-		log.Errorf("[CustomerSvc][Disable] find err: %v", err)
-		span.AddEvent("Failed to find customer", trace.WithAttributes(
-			attribute.String("error", err.Error()),
-			attribute.String("id", id),
-		))
+	customer, err := c.repo.FindUserByUserCode(ctx, id)
+	if err != nil {
 		return err
 	}
 
-	if !customer.Enabled {
-		log.Errorf("[CustomerSvc][Disable] already disabled")
-		span.AddEvent("Customer already disabled", trace.WithAttributes(
-			attribute.String("error", localization.ErrorCustomerAlreadyDisabled.Code),
-			attribute.String("id", id),
+	if disable.Channel == "BOTH" && !customer.ISuperappEnabled && !customer.IsUSSDEnabled {
+		return fmt.Errorf("Both channels are already disabled")
+	} else if disable.Channel == "SUPPERAPP" && !customer.ISuperappEnabled {
+		return fmt.Errorf("Supperapp channel is already disabled")
+	} else if disable.Channel == "USSD" && !customer.IsUSSDEnabled {
+		return fmt.Errorf("USSD channel is already disabled")
+	}
+
+	channel := disable.Channel
+	if channel != "BOTH" && channel != "SUPPERAPP" && channel != "USSD" {
+		log.Errorf("[CustomerSvc][Disable] invalid channel: %s", channel)
+		span.AddEvent("Invalid channel", trace.WithAttributes(
+			attribute.String("error", localization.ErrorInvalidInputParameter.Code),
+			attribute.String("channel", channel),
 		))
-		return fmt.Errorf("%s", localization.ErrorCustomerAlreadyDisabled.Code)
+		return fmt.Errorf("%s", localization.ErrorInvalidInputParameter.Code)
 	}
 
 	new_customer := *customer
 	new_customer.Enabled = false
 	new_customer.IsBlocked = true
 	new_customer.BlockedReason = disable.DisableReason
+	new_customer.BlockedOn = member.BlockedOn(constants.CPS)
 
-	if *disable.IsTemporary {
-		new_customer.BlockedOn = member.BlockedOn(constants.BPS)
-	} else {
-		new_customer.BlockedOn = member.BlockedOn(constants.CPS)
+	currentAction := imodel.DisableCustomerCurrentAction{
+		User:    new_customer,
+		Channel: channel,
 	}
 
-	action := lib.CpsModelBuilder(id, makerData, customer, new_customer, string(constants.RequestEnableDisableCustomer), constants.UPDATE)
+	action := lib.CpsModelBuilder(id, makerData, customer, currentAction, string(constants.RequestEnableDisableCustomer), constants.UPDATE)
 
 	err = c.cpsService.CreateCPSAction(ctx, &action)
 	if err != nil {
@@ -408,6 +406,130 @@ func (c *customerService) DisableCustomerByID(ctx context.Context, id string, di
 		return err
 	}
 	log.Infof("[CustomerSvc][Disable] request created id: %s", id)
+	return nil
+}
+
+func (c *customerService) BlockCustomerSession(ctx context.Context, id, BlockedReason string) error {
+	log := local_util.LoggerFromCtx(ctx, c.logger)
+
+	ctx, span := local_util.TraceLogger(ctx, "service", "BlockCustomerSession", "Customer", "BlockCustomerSession")
+	defer span.End()
+
+	log.Infof("[CustomerSvc][BlockCustomerSession] id: %s", id)
+	makerData := local_util.ExtractUserFromContext(ctx)
+	if local_util.IsIncomplete(makerData) {
+		log.Errorf("[CustomerSvc][BlockCustomerSession] incomplete user")
+		span.AddEvent("Incomplete user data", trace.WithAttributes(
+			attribute.String("error", constants.IncompleteUserInfo),
+			attribute.String("id", id),
+		))
+		return fmt.Errorf(constants.IncompleteUserInfo)
+	}
+
+	customer, err := c.repo.FindUserByUserCode(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	if customer.IsBlocked {
+		log.Errorf("[CustomerSvc][BlockCustomerSession] already blocked")
+		span.AddEvent("Customer already blocked", trace.WithAttributes(
+			attribute.String("error", localization.ErrorCustomerAlreadyBlocked.Code),
+			attribute.String("id", id),
+		))
+		return fmt.Errorf("%s", localization.ErrorCustomerAlreadyBlocked.Code)
+	}
+
+	new_customer := *customer
+	new_customer.IsBlocked = true
+	new_customer.BlockedReason = BlockedReason
+
+	action := lib.CpsModelBuilder(new_customer.UserCode, makerData, customer, new_customer, string(constants.RequestBlockCustomer), constants.UPDATE)
+
+	err = c.cpsService.CreateCPSAction(ctx, &action)
+	if err != nil {
+		log.Errorf("[CustomerSvc][BlockCustomerSession] cps action err: %v", err)
+		span.AddEvent("Failed to create CPS action", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
+		return err
+	}
+
+	// entry := &imodel.CustomerBarUnBarReason{
+	// 	UserID:    id,
+	// 	Reason:    BlockedReason,
+	// 	IsBarred:  true,
+	// 	CreatedBy: makerData.UserCode,
+	// 	CreatedAt: time.Now(),
+	// }
+	// if saveErr := c.repo.SaveBarUnBarReason(ctx, entry); saveErr != nil {
+	// 	log.Errorf("[CustomerSvc][BlockCustomerSession] save reason err: %v", saveErr)
+	// }
+
+	log.Infof("[CustomerSvc][BlockCustomerSession] request created id: %s", id)
+	return nil
+}
+
+func (c *customerService) UnBlockCustomerSession(ctx context.Context, id, reason string) error {
+	log := local_util.LoggerFromCtx(ctx, c.logger)
+
+	ctx, span := local_util.TraceLogger(ctx, "service", "BlockCustomerSession", "Customer", "BlockCustomerSession")
+	defer span.End()
+
+	log.Infof("[CustomerSvc][BlockCustomerSession] id: %s", id)
+	makerData := local_util.ExtractUserFromContext(ctx)
+	if local_util.IsIncomplete(makerData) {
+		log.Errorf("[CustomerSvc][BlockCustomerSession] incomplete user")
+		span.AddEvent("Incomplete user data", trace.WithAttributes(
+			attribute.String("error", constants.IncompleteUserInfo),
+			attribute.String("id", id),
+		))
+		return fmt.Errorf(constants.IncompleteUserInfo)
+	}
+
+	customer, err := c.repo.FindUserByUserCode(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	if !customer.IsBlocked {
+		log.Errorf("[CustomerSvc][UnBlockCustomerSession] already unblocked")
+		span.AddEvent("Customer already unblocked", trace.WithAttributes(
+			attribute.String("error", localization.ErrorCustomerAlreadyUnBlocked.Code),
+			attribute.String("id", id),
+		))
+		return fmt.Errorf("%s", localization.ErrorCustomerAlreadyUnBlocked.Code)
+	}
+
+	new_customer := *customer
+	new_customer.IsBlocked = false
+	new_customer.BlockedReason = reason
+
+	action := lib.CpsModelBuilder(customer.UserCode, makerData, customer, new_customer, string(constants.RequestUnblockCustomer), constants.UPDATE)
+
+	err = c.cpsService.CreateCPSAction(ctx, &action)
+	if err != nil {
+		log.Errorf("[CustomerSvc][UnBlockCustomerSession] cps action err: %v", err)
+		span.AddEvent("Failed to create CPS action", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
+		return err
+	}
+
+	// entry := &imodel.CustomerBarUnBarReason{
+	// 	UserID:    id,
+	// 	Reason:    "",
+	// 	IsBarred:  false,
+	// 	CreatedBy: makerData.UserCode,
+	// 	CreatedAt: time.Now(),
+	// }
+	// if saveErr := c.repo.SaveBarUnBarReason(ctx, entry); saveErr != nil {
+	// 	log.Errorf("[CustomerSvc][UnBlockCustomerSession] save reason err: %v", saveErr)
+	// }
+
+	log.Infof("[CustomerSvc][UnBlockCustomerSession] request created id: %s", id)
 	return nil
 }
 
@@ -430,16 +552,51 @@ func (d *customerService) Authorize(ctx context.Context, cpsAction *model.CPSAct
 
 	switch string(cpsAction.RequestAction) {
 	case string(constants.RequestEnableDisableCustomer):
-		err := d.repo.EnableOrDisable(ctx, cpsAction.UniqueId, actionData.Enabled)
+		disableAction, unmarshalErr := local_util.JsonUnmarshal[imodel.DisableCustomerCurrentAction](cpsAction.CurrentAction)
+		if unmarshalErr != nil || disableAction == nil || disableAction.Channel == "" {
+			err := d.repo.EnableOrDisable(ctx, cpsAction.UniqueId, actionData.Enabled)
+			if err != nil {
+				log.Errorf("[CustomerSvc][Authorize] enable/disable err: %v", err)
+				span.AddEvent("Customer enable/disable action failed", trace.WithAttributes(
+					attribute.String("error", err.Error()),
+					attribute.String("unique_id", cpsAction.UniqueId),
+				))
+				return nil, err
+			}
+		} else {
+			if err := d.repo.DisableCustomerByChannel(ctx, cpsAction.UniqueId, disableAction.Channel); err != nil {
+				log.Errorf("[CustomerSvc][Authorize] disable by channel err: %v", err)
+				span.AddEvent("Customer disable by channel failed", trace.WithAttributes(
+					attribute.String("error", err.Error()),
+					attribute.String("unique_id", cpsAction.UniqueId),
+					attribute.String("channel", disableAction.Channel),
+				))
+				return nil, err
+			}
+		}
+		log.Infof("[CustomerSvc][Authorize] enable/disable done id: %s", cpsAction.UniqueId)
+	case string(constants.RequestBlockCustomer):
+		err := d.repo.BlockCustomerByUserCode(ctx, cpsAction.UniqueId)
 		if err != nil {
-			log.Errorf("[CustomerSvc][Authorize] enable/disable err: %v", err)
-			span.AddEvent("Customer enable/disable action failed", trace.WithAttributes(
+			log.Errorf("[CustomerSvc][Authorize] block err: %v", err)
+			span.AddEvent("Customer block action failed", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
 			return nil, err
 		}
-		log.Infof("[CustomerSvc][Authorize] enable/disable done id: %s", cpsAction.UniqueId)
+		log.Infof("[CustomerSvc][Authorize] block done id: %s", cpsAction.UniqueId)
+	case string(constants.RequestUnblockCustomer):
+		err := d.repo.UNBlockCustomerByUserCode(ctx, cpsAction.UniqueId)
+		if err != nil {
+			log.Errorf("[CustomerSvc][Authorize] unblock err: %v", err)
+			span.AddEvent("Customer unblock action failed", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
+			return nil, err
+		}
+		log.Infof("[CustomerSvc][Authorize] unblock done id: %s", cpsAction.UniqueId)
 	case string(constants.RequestApproveFaydaCustomer):
 		err := d.repo.Update(ctx, cpsAction.UniqueId, *actionData)
 		if err != nil {
@@ -479,7 +636,143 @@ func (d *customerService) SearchCustomerByCIForAccountNumber(ctx context.Context
 		))
 		return nil, err
 	}
+
+	if customer.AccountNumber != "" {
+		accountDetail, lookupErr := d.core.LookupAccountByAccountNumber(ctx, model.AccountLookUpRequest{
+			AccountNumber: customer.AccountNumber,
+		})
+		if lookupErr != nil {
+			log.Errorf("[CustomerSvc][SearchByCI] account lookup failed (restriction skipped): %v", lookupErr)
+		} else if accountDetail != nil {
+			customer.Restriction = accountDetail.Restriction
+		}
+	}
+
 	return customer, nil
+}
+
+// SearchCustomerServiceLimitByCIF implements [service.CustomerService].
+func (s *customerService) SearchCustomerServiceLimitByCIF(ctx context.Context, cif string, filterParam *types.Filter) (types.PaginatedResponse[[]customer_dto.CustomerServiceLimitResponses], error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+	log.Infof("[CustomerSvc][SearchCustomerServiceLimitByCIF] cif: %s", cif)
+
+	res, err := s.core.SearchCustomerServiceLimitByCIF(ctx, cif)
+	if err != nil {
+		log.Errorf("[CustomerSvc][SearchCustomerServiceLimitByCIF] core search err: %v", err)
+		return types.PaginatedResponse[[]customer_dto.CustomerServiceLimitResponses]{}, err
+	}
+
+	// Sort by service code first, then channel, so merged output stays deterministic.
+	// sort.Slice(res.Detail, func(i, j int) bool {
+	// 	if res.Detail[i].ServiceCode == res.Detail[j].ServiceCode {
+	// 		return res.Detail[i].Channel < res.Detail[j].Channel
+	// 	}
+	// 	return res.Detail[i].ServiceCode < res.Detail[j].ServiceCode
+	// })
+
+	data := make([]customer_dto.CustomerServiceLimitResponses, 0)
+	indexByServiceCode := make(map[string]int)
+
+	res_cif := ""
+	channel_name := ""
+	serviceCode := ""
+	serviceName := ""
+	limit := ""
+	count := ""
+
+	for _, detail := range res.Detail {
+		log.Infof("[CustomerSvc][SearchCustomerServiceLimitByCIF] detail: %v", detail)
+		if detail.CIF != "" {
+			res_cif = detail.CIF
+		}
+		if detail.Channel != "" {
+			channel_name = detail.Channel
+		}
+		if detail.ServiceCode != "" {
+			serviceCode = detail.ServiceCode
+		}
+		if detail.ServiceName != "" {
+			serviceName = detail.ServiceName
+		}
+
+		if detail.Limit != "" {
+			limit = detail.Limit
+		}
+		if detail.Count != "" {
+			count = detail.Count
+		}
+
+		channelData := customer_dto.CustomerServiceLimitResponse{
+			CIF:         res_cif,
+			Channel:     channel_name,
+			ServiceCode: serviceCode,
+			ServiceName: serviceName,
+			Limit:       limit,
+			Count:       count,
+		}
+
+		if idx, exists := indexByServiceCode[serviceCode]; exists {
+			data[idx].CustomerServiceLimitResponse = append(data[idx].CustomerServiceLimitResponse, channelData)
+			continue
+		}
+
+		data = append(data, customer_dto.CustomerServiceLimitResponses{
+			ServiceCode:                  serviceCode,
+			ServiceName:                  serviceName,
+			CustomerServiceLimitResponse: []customer_dto.CustomerServiceLimitResponse{channelData},
+		})
+		indexByServiceCode[serviceCode] = len(data) - 1
+	}
+
+	filteredData := data
+	page := 1
+	perPage := 10
+	search := ""
+	if filterParam != nil {
+		page = filterParam.Page
+		perPage = filterParam.PerPage
+		search = filterParam.Search
+	}
+	if page <= 0 {
+		page = 1
+	}
+	if perPage <= 0 {
+		perPage = 10
+	}
+
+	search = strings.TrimSpace(strings.ToLower(search))
+	if search != "" {
+		filtered := make([]customer_dto.CustomerServiceLimitResponses, 0, len(data))
+		for _, item := range data {
+			if strings.Contains(strings.ToLower(item.ServiceCode), search) || strings.Contains(strings.ToLower(item.ServiceName), search) {
+				filtered = append(filtered, item)
+			}
+		}
+		filteredData = filtered
+	}
+
+	totalDocs := int64(len(filteredData))
+	meta := local_util.BuildPaginationMeta(totalDocs, page, perPage)
+
+	start := (page - 1) * perPage
+	if start >= len(filteredData) {
+		return types.PaginatedResponse[[]customer_dto.CustomerServiceLimitResponses]{
+			Data: []customer_dto.CustomerServiceLimitResponses{},
+			Meta: meta,
+		}, nil
+	}
+
+	end := start + perPage
+	if end > len(filteredData) {
+		end = len(filteredData)
+	}
+
+	filteredData = filteredData[start:end]
+
+	return types.PaginatedResponse[[]customer_dto.CustomerServiceLimitResponses]{
+		Data: filteredData,
+		Meta: meta,
+	}, nil
 }
 
 func (d *customerService) GetCustomerDetailByID(ctx context.Context, id string) (*customer_dto.CustomerDetailResponse, error) {
@@ -487,6 +780,7 @@ func (d *customerService) GetCustomerDetailByID(ctx context.Context, id string) 
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetCustomerDetailByID", "Customer", "GetCustomerDetailByID")
 	defer span.End()
+
 	log.Infof("[CustomerSvc][GetDetail] id: %s", id)
 	res, err := d.repo.FindCustomerDetailByID(ctx, id)
 	if err != nil {
@@ -542,4 +836,19 @@ func (d *customerService) GetCustomerDetailByID(ctx context.Context, id string) 
 		}
 	}
 	return res, nil
+}
+
+func (c *customerService) GetCustomerBarUnBarReasons(ctx context.Context, userID string) ([]*imodel.CustomerBarUnBarReason, error) {
+	log := local_util.LoggerFromCtx(ctx, c.logger)
+
+	ctx, span := local_util.TraceLogger(ctx, "service", "GetCustomerBarUnBarReasons", "Customer", "GetCustomerBarUnBarReasons")
+	defer span.End()
+
+	log.Infof("[CustomerSvc][GetCustomerBarUnBarReasons] userID: %s", userID)
+	reasons, err := c.repo.GetBarUnBarReasons(ctx, userID)
+	if err != nil {
+		log.Errorf("[CustomerSvc][GetCustomerBarUnBarReasons] err: %v", err)
+		return nil, err
+	}
+	return reasons, nil
 }

@@ -19,7 +19,7 @@ import (
 
 	"github.com/hugokessem/coreio/core"
 	cifLimit "github.com/hugokessem/coreio/lib/core/customer/customer_limit_fetch_by_cif"
-	climit "github.com/hugokessem/coreio/lib/core/customer/customer_limit_fetch_by_service"
+	customerlimitfetchbyservice "github.com/hugokessem/coreio/lib/core/customer/customer_limit_fetch_by_service"
 	shared_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -82,10 +82,14 @@ func buildLimitResults(response *core.CustomerLimitFetchByServiceResult, search 
 	serviceMap := make(map[string]*cps_roles_dto.ServiceLevelLimitResponse)
 	needle := strings.ToLower(strings.TrimSpace(search))
 
-	if response.Detail != nil && response.Detail.GChannelType != nil {
-		for _, ch := range response.Detail.GChannelType.MChannelType {
-			applyChannelToMap(serviceMap, ch, needle)
-		}
+	// if response.Detail != nil && response.Detail.GChannelType != nil {
+	// 	for _, ch := range response.Detail.GChannelType.MChannelType {
+	// 		applyChannelToMap(serviceMap, ch, needle)
+	// 	}
+	// }
+
+	for _, limit := range response.Detail {
+		applyChannelToMap(serviceMap, limit, needle)
 	}
 
 	results := make([]cps_roles_dto.ServiceLevelLimitResponse, 0, len(serviceMap))
@@ -95,26 +99,44 @@ func buildLimitResults(response *core.CustomerLimitFetchByServiceResult, search 
 	return results
 }
 
-func applyChannelToMap(serviceMap map[string]*cps_roles_dto.ServiceLevelLimitResponse, ch climit.MChannelType, needle string) {
-	if ch.SGServiceTypes == nil {
+func applyChannelToMap(serviceMap map[string]*cps_roles_dto.ServiceLevelLimitResponse, limit customerlimitfetchbyservice.CustomerLimit, needle string) {
+	// if ch.SGServiceTypes == nil {
+	// 	return
+	// }
+	// for _, svc := range ch.SGServiceTypes.GServiceType {
+	// 	if needle != "" && !strings.Contains(strings.ToLower(svc.Name), needle) {
+	// 		continue
+	// 	}
+	// 	if _, exists := serviceMap[svc.Name]; !exists {
+	// 		serviceMap[svc.Name] = &cps_roles_dto.ServiceLevelLimitResponse{Name: svc.Name}
+	// 	}
+	// 	entry := serviceMap[svc.Name]
+	// 	switch ch.ChannelType {
+	// 	case "APP":
+	// 		entry.SuperAppMaxLimit = svc.CHANNELMAXLIMIT
+	// 		entry.SuperAppTranFreq = svc.CHANNELCOUNT
+	// 	case "USSD":
+	// 		entry.USSDMaxLimit = svc.CHANNELMAXLIMIT
+	// 		entry.USSDTranFreq = svc.CHANNELCOUNT
+	// 	}
+	// }
+	if needle != "" && !strings.Contains(strings.ToLower(limit.ServiceName), needle) {
 		return
 	}
-	for _, svc := range ch.SGServiceTypes.GServiceType {
-		if needle != "" && !strings.Contains(strings.ToLower(svc.Name), needle) {
-			continue
-		}
-		if _, exists := serviceMap[svc.Name]; !exists {
-			serviceMap[svc.Name] = &cps_roles_dto.ServiceLevelLimitResponse{Name: svc.Name}
-		}
-		entry := serviceMap[svc.Name]
-		switch ch.ChannelType {
-		case "APP":
-			entry.SuperAppMaxLimit = svc.CHANNELMAXLIMIT
-			entry.SuperAppTranFreq = svc.CHANNELCOUNT
-		case "USSD":
-			entry.USSDMaxLimit = svc.CHANNELMAXLIMIT
-			entry.USSDTranFreq = svc.CHANNELCOUNT
-		}
+
+	if _, exists := serviceMap[limit.ServiceName]; !exists {
+		serviceMap[limit.ServiceName] = &cps_roles_dto.ServiceLevelLimitResponse{Name: limit.ServiceName}
+	}
+
+	entry := serviceMap[limit.ServiceName]
+	switch strings.ToUpper(limit.ChannelType) {
+	case "APP":
+		entry.SuperAppMaxLimit = limit.ServiceMaxAmount
+		entry.SuperAppTranFreq = limit.ServiceCount
+
+	case "USSD":
+		entry.USSDMaxLimit = limit.ServiceMaxAmount
+		entry.USSDTranFreq = limit.ServiceCount
 	}
 }
 

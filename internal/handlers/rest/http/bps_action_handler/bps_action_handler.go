@@ -628,7 +628,7 @@ func (a *bpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.
 		return
 	}
 
-	filterParams, reqs, err := bpsactioncore.ParameterProvider(ctx, filterParams, span, constants.Checker, idxRepo, log)
+	filterParams, reqs, err := bpsactioncore.ParameterProvider(ctx, filterParams, span, constants.Auditor, idxRepo, log)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return

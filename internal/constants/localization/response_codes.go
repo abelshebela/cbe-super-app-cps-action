@@ -670,14 +670,17 @@ var ResponseCodesList = []ResponseCode{
 	ErrorFailedToGetCustomerDetail,
 	ErrorKeyRequiredForBulkService,
 	SuccessCustomerDetailSuccessfullyFetched,
+	CustomerServiceLimitSuccessfullyFetched,
 	CustomerEnableRequestSessionCreatedSuccessfully,
 	CustomerActionLogRetrievedSuccessfully,
 	CustomerDisableRequestCreatedSuccessfully,
+	CustomerDisableRequestSubmittedSuccessfully,
 	CustomerEnableRequestCreatedSuccessfully,
 	ErrorCustomerAlreadyDisabled,
 	ErrorCustomerAlreadyEnabled,
 	ErrorCustomerNotFound,
 	ErrorIdNotSetOnQueryParam,
+	ErrorCustomerCifIsRequired,
 	CustomerDetailSuccessfullyFetched,
 	ErrorFailedToGetBlockedCustomer,
 	SuccessFullyFetchBlockCustomer,
@@ -945,6 +948,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAccessListSegmentationNameAlreadyExists,
 	ErrorCustomerSegmentationCodeNotFound,
 	ErrorAccessListKeysRequired,
+	ErrorCustomerAlreadyBlocked,
 	ErrorSegmentationTypeRequired,
 	ErrorBranchNotFoundRequired,
 
@@ -2241,6 +2245,34 @@ var (
 		Code:       "SUCCESS_CPS_USER_DISABLED",
 		StatusCode: StatusOK,
 		Message:    MsgCpsUserDisabledSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessCustomerBlockedSP = ResponseCode{
+		Code:       "SUCCESS_CUSTOMER_BLOCKED",
+		StatusCode: StatusOK,
+		Message:    MsgCustomerBlockedSuccessfulySP,
+		Type:       "success",
+	}
+
+	SuccessCustomerBlockedRequestSent = ResponseCode{
+		Code:       "SUCCESS_CUSTOMER_BLOCKED",
+		StatusCode: StatusOK,
+		Message:    MsgCustomerBlockRequestSentSuccessfuly,
+		Type:       "success",
+	}
+
+	SuccessCustomerUnBlocked = ResponseCode{
+		Code:       "SUCCESS_CUSTOMER_BLOCKED",
+		StatusCode: StatusOK,
+		Message:    MsgCustomerUnBlockedSuccessfulySP,
+		Type:       "success",
+	}
+
+	SuccessCustomerUnBlockedRequestSent = ResponseCode{
+		Code:       "SUCCESS_CUSTOMER_BLOCKED",
+		StatusCode: StatusOK,
+		Message:    MsgCustomerUnBlockRequestSentSuccessfuly,
 		Type:       "success",
 	}
 
@@ -8954,6 +8986,13 @@ var (
 		Type:       "success",
 	}
 
+	CustomerServiceLimitSuccessfullyFetched = ResponseCode{
+		Code:       "SUCCESS_CUSTOMER_SERVICE_LIMIT_FETCHED",
+		StatusCode: StatusOK,
+		Message:    "Customer service limit(s) fetched successfully",
+		Type:       "success",
+	}
+
 	CustomerEnableRequestCreatedSuccessfully = ResponseCode{
 		Code:       "SUCCESS_CUSTOMER_ENABLE_REQUEST_CREATED",
 		StatusCode: StatusOK,
@@ -8971,6 +9010,13 @@ var (
 		Code:       "SUCCESS_CUSTOMER_ACTION_LOG_RETRIEVED",
 		StatusCode: StatusOK,
 		Message:    "Customer action log retrieved successfully",
+		Type:       "success",
+	}
+
+	CustomerDisableRequestSubmittedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_CUSTOMER_DISABLE_REQUEST_SUBMITTED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "Customer Disable request submitted successfully",
 		Type:       "success",
 	}
 
@@ -8999,6 +9045,13 @@ var (
 		Code:       "ERROR_ID_NOT_SET_ON_QUERY_PARAM",
 		StatusCode: StatusBadRequest,
 		Message:    "ID not set on query parameter",
+		Type:       "error",
+	}
+
+	ErrorCustomerCifIsRequired = ResponseCode{
+		Code:       "ERROR_CUSTOMER_CIF_IS_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    "Customer cif is required",
 		Type:       "error",
 	}
 
@@ -9736,6 +9789,18 @@ var (
 		Code:       "ERROR_ACCEErrorSegmentationTypeRequired,SS_LIST_KEYS_REQUIRED",
 		StatusCode: StatusBadRequest,
 		Message:    MsgAccessListKeysRequired,
+		Type:       "error",
+	}
+	ErrorCustomerAlreadyBlocked = ResponseCode{
+		Code:       "ERROR_CUSTOMER_ALREADY_BLOCKED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCustomerAlreadyBlocked,
+		Type:       "error",
+	}
+	ErrorCustomerAlreadyUnBlocked = ResponseCode{
+		Code:       "ERROR_CUSTOMER_ALREADY_UNBLOCKED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCustomerAlreadyUnBlocked,
 		Type:       "error",
 	}
 	ErrorSegmentationTypeRequired = ResponseCode{
