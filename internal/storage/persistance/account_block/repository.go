@@ -992,3 +992,25 @@ func (a *AccountBlockStorage) GetBranchByCode(ctx context.Context, code string) 
 
 	return branch, nil
 }
+func (a *AccountBlockStorage) GetBranchByDAOCode(ctx context.Context, code string) (*imodel.AccountBlock, error) {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	log.Infof("[AccountBlockStorage][GetBranchByCode] fetching branch by Code: %s", code)
+
+	query := `SELECT ` + companySelectColumns + `
+		FROM COMPANY
+		WHERE dao_code = :code
+		  AND is_enabled = 1`
+
+	row := a.db.QueryRowContext(ctx, query, sql.Named("code", code))
+	branch, err := local_helper.ScanCompanyBranch(row)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			log.Infof("[AccountBlockStorage][GetBranchByCode] branch not found: %s", code)
+			return nil, nil
+		}
+		log.Errorf("[AccountBlockStorage][GetBranchByCode] failed to fetch branch: %v", err)
+		return nil, err
+	}
+
+	return branch, nil
+}

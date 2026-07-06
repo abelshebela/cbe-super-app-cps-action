@@ -190,7 +190,7 @@ func (r *roleDelegation) CreateWithExistingUser(ctx context.Context, roleDelegat
 	}
 
 	if roleDelegation.DelegationType == "BPS" {
-		if branch, err := r.branchRepo.GetBranchByCode(ctx, roleDelegation.NewDepartmentOrBranch); err != nil || branch == nil {
+		if branch, err := r.branchRepo.GetBranchByDAOCode(ctx, roleDelegation.NewDepartmentOrBranch); err != nil || branch == nil {
 			r.logger.Errorf("[RoleDelegation/Create] Branch not found: %s", roleDelegation.NewDepartmentOrBranch)
 			return localization.ErrorInvalidDelegationBranch
 		}
@@ -231,7 +231,7 @@ func (r *roleDelegation) CreateWithNewUser(ctx context.Context, roleDelegation i
 			return errors.New(localization.ErrorBpsUserAlreadyExists.Code)
 		}
 		// validate delegated user's branch existence for bps user type
-		if branch, err := r.branchRepo.GetBranchByCode(ctx, roleDelegation.DelegatedUserDepartmentOrBranch); err != nil || branch == nil {
+		if branch, err := r.branchRepo.GetBranchByDAOCode(ctx, roleDelegation.DelegatedUserDepartmentOrBranch); err != nil || branch == nil {
 			r.logger.Errorf("[RoleDelegation/Create] Branch not found: %s", roleDelegation.DelegatedUserDepartmentOrBranch)
 			return localization.ErrorInvalidDelegationBranch
 		}
@@ -291,7 +291,7 @@ func (r *roleDelegation) CreateWithNewUser(ctx context.Context, roleDelegation i
 
 	// handle new department/branch validation based on delegation type
 	if roleDelegation.DelegationType == "BPS" {
-		if branch, err := r.branchRepo.GetBranchByCode(ctx, roleDelegation.NewDepartmentOrBranch); err != nil || branch == nil {
+		if branch, err := r.branchRepo.GetBranchByDAOCode(ctx, roleDelegation.NewDepartmentOrBranch); err != nil || branch == nil {
 			r.logger.Errorf("[RoleDelegation/Create] Branch not found: %s", roleDelegation.NewDepartmentOrBranch)
 			return localization.ErrorInvalidDelegationBranch
 		}
@@ -506,7 +506,7 @@ func (r *roleDelegation) FindById(ctx context.Context, id string) (*imodel.RoleD
 
 	// for the new passed data
 	if roleDelegation.DelegationType == "BPS" {
-		branch, err := r.branchRepo.GetBranchByCode(ctx, roleDelegation.NewDepartmentOrBranch)
+		branch, err := r.branchRepo.GetBranchByDAOCode(ctx, roleDelegation.NewDepartmentOrBranch)
 		r.logger.Infof("[RoleDelegation/FindById] found branch for code %s: %v", roleDelegation.NewDepartmentOrBranch, branch)
 		if err != nil || branch == nil {
 			r.logger.Errorf("[RoleDelegation/FindById] failed to find branch by code: %v", err)
