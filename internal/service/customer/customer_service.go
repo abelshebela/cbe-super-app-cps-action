@@ -656,19 +656,23 @@ func (s *customerService) SearchCustomerServiceLimitByCIF(ctx context.Context, c
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 	log.Infof("[CustomerSvc][SearchCustomerServiceLimitByCIF] cif: %s", cif)
 
+	// userData, err := s.core.CifSearch(ctx, cif)
+	// if err != nil {
+	// 	log.Errorf("[CustomerSrv][CifSearch] error while searching user by cif:%s", cif)
+	// 	return types.PaginatedResponse[[]customer_dto.CustomerServiceLimitResponses]{}, localization.ErrorCustomerFetchFailed
+	// }
+
 	res, err := s.core.SearchCustomerServiceLimitByCIF(ctx, cif)
 	if err != nil {
 		log.Errorf("[CustomerSvc][SearchCustomerServiceLimitByCIF] core search err: %v", err)
 		return types.PaginatedResponse[[]customer_dto.CustomerServiceLimitResponses]{}, err
 	}
 
-	// Sort by service code first, then channel, so merged output stays deterministic.
-	// sort.Slice(res.Detail, func(i, j int) bool {
-	// 	if res.Detail[i].ServiceCode == res.Detail[j].ServiceCode {
-	// 		return res.Detail[i].Channel < res.Detail[j].Channel
-	// 	}
-	// 	return res.Detail[i].ServiceCode < res.Detail[j].ServiceCode
-	// })
+	// service_res, err := s.core.SearchTransferLimitByService(ctx, "GLOBAL-")
+	// if err != nil {
+	// 	log.Errorf("[CustomerSvc][SearchCustomerServiceLimitByCIF] core search err: %v", err)
+	// 	return types.PaginatedResponse[[]customer_dto.CustomerServiceLimitResponses]{}, err
+	// }
 
 	data := make([]customer_dto.CustomerServiceLimitResponses, 0)
 	indexByServiceCode := make(map[string]int)
