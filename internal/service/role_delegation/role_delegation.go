@@ -46,22 +46,22 @@ type roleDelegation struct {
 func (r *roleDelegation) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
-	var asAny any
+	// var asAny any
 	raw, err := json.Marshal(cpsAction.CurrentAction)
 	log.Infof("[RoleDelegation Service][Authorize] raw CPS action data: %s", string(raw))
 	if err != nil {
 		log.Errorf("[RoleDelegation Service][Authorize] marshal CurrentAction failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	if err := json.Unmarshal(raw, &asAny); err != nil {
-		log.Errorf("[RoleDelegation Service][Authorize] unmarshal CurrentAction failed: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
-	}
-	log.Infof("[RoleDelegation Service][Authorize] CPS action data as any: %v", asAny)
+	// if err := json.Unmarshal(raw, &asAny); err != nil {
+	// 	log.Errorf("[RoleDelegation Service][Authorize] unmarshal CurrentAction failed: %v", err)
+	// 	return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	// }
+	// log.Infof("[RoleDelegation Service][Authorize] CPS action data as any: %v", asAny)
 
-	raw2, _ := json.Marshal(asAny)
+	// raw2, _ := json.Marshal(asAny)
 	var roleDelegation imodel.RoleDelegation
-	if err := json.Unmarshal(raw2, &roleDelegation); err != nil {
+	if err := json.Unmarshal(raw, &roleDelegation); err != nil {
 		log.Errorf("[RoleDelegation Service][Authorize] map to RoleDelegation failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
