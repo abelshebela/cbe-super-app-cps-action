@@ -398,9 +398,10 @@ func (h BPSUserHandler) UpdateBPSUser(w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	localization.UpdateWriterContext(w, ctx)
 	log := common_utils.LoggerFromCtx(ctx, h.logger)
-
+	log.Infof("[UpdateBPSUser] request received for update")
 	id := chi.URLParam(r, "id")
 	if id == "" {
+		log.Warnf("[UpdateBPSUser] user code is required but not provided")
 		localization.SendBadRequestResponse(w, "user code required")
 		return
 	}
@@ -409,11 +410,13 @@ func (h BPSUserHandler) UpdateBPSUser(w http.ResponseWriter, r *http.Request) {
 
 	var req bps_user_dto.BPSUserUpdateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.Errorf("[UpdateBPSUser] failed to decode request body: %v", err)
 		localization.SendBadRequestResponse(w, "Invalid request payload")
 		return
 	}
 
 	if err := req.Validate(); err != nil {
+		log.Warnf("[UpdateBPSUser] validation failed: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
