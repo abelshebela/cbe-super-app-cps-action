@@ -344,6 +344,7 @@ type AccountBlockRepository interface {
 	EnableOrDisableBranches(ctx context.Context, ids []string, reason *types.Reason, enabled bool) error
 	GetBranchesByIds(ctx context.Context, ids []string) ([]*local_model.AccountBlock, error)
 	GetBranchByCode(ctx context.Context, code string) (*imodel.AccountBlock, error)
+	GetBranchByDAOCode(ctx context.Context, code string) (*imodel.AccountBlock, error)
 	GetAllBranchesByDistrictOrRegion(ctx context.Context, id string) ([]local_model.AccountBlock, error)
 	FindByFilterKey(ctx context.Context, field, value string) (*local_model.AccountBlock, error)
 
