@@ -103,7 +103,12 @@ func (h *PermissionHandler) GetPermissionGroups(w http.ResponseWriter, r *http.R
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "permission", "PermissionHandler", "GetPermissionGroups")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, h.logger)
-	filterparams := local_util.ExtractFilterParams(r)
+
+	filterparams, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
@@ -328,7 +333,12 @@ func (h *PermissionHandler) GetPermissionGroupsByDepartment(w http.ResponseWrite
 		localization.SendErrorByCodeResponse(w, localization.ErrorDepartmentIDRequired.Code)
 		return
 	}
-	filterParam := local_util.ExtractFilterParams(r)
+
+	filterParam, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	permissionGroups, err := h.PermissionService.GetPermissionGroupsByDepartment(ctx, departmentID, filterParam)
 	if err != nil {

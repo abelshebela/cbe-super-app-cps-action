@@ -2,7 +2,6 @@ package core
 
 import (
 	"errors"
-	"fmt"
 	"net/mail"
 	"strings"
 	"time"
@@ -73,7 +72,7 @@ func BuildRoleDelegationRequestWithExistingUser(body role_delegation_dto.RoleDel
 	delegatorUserRole := strings.TrimSpace(body.DelegatorUserRole)
 
 	newRoleID := strings.TrimSpace(body.NewRoleID)
-	newDepartmentOrBranch := body.NewDepartmentOrBranch
+	newDepartmentOrBranch := strings.TrimSpace(body.NewDepartmentOrBranch)
 
 	reason := strings.TrimSpace(body.Reason)
 	revoke := body.RevokeExistingDelegation
@@ -114,7 +113,7 @@ func BuildRoleDelegationRequestWithExistingUser(body role_delegation_dto.RoleDel
 	if newRoleID == "" {
 		return imodel.RoleDelegation{}, errors.New("New role ID is required")
 	}
-	if newDepartmentOrBranch == 0 {
+	if newDepartmentOrBranch == "" {
 		return imodel.RoleDelegation{}, errors.New("New department or branch is required")
 	}
 	if reason == "" {
@@ -158,7 +157,7 @@ func BuildRoleDelegationRequestWithExistingUser(body role_delegation_dto.RoleDel
 		DelegatorUserJobTitle:           delegatorUserJobTitle,
 		DelegatorUserRole:               delegatorUserRole,
 		NewRoleID:                       newRoleID,
-		NewDepartmentOrBranch:           fmt.Sprintf("%d", newDepartmentOrBranch),
+		NewDepartmentOrBranch:           newDepartmentOrBranch,
 		StartAt:                         parsedStart,
 		EndAt:                           parsedEnd,
 		Reason:                          reason,
@@ -183,7 +182,7 @@ func BuildRoleDelegationRequestWithNewUser(body role_delegation_dto.RoleDelegati
 	delegatorUserUserType := strings.TrimSpace(body.DelegatorUserUserType)
 
 	newRoleID := strings.TrimSpace(body.NewRoleID)
-	newDepartmentOrBranch := body.NewDepartmentOrBranch
+	newDepartmentOrBranch := strings.TrimSpace(body.NewDepartmentOrBranch)
 	reason := strings.TrimSpace(body.Reason)
 
 	if delegatedUserID == "" {
@@ -225,7 +224,7 @@ func BuildRoleDelegationRequestWithNewUser(body role_delegation_dto.RoleDelegati
 	if newRoleID == "" {
 		return imodel.RoleDelegation{}, errors.New("New role ID is required")
 	}
-	if newDepartmentOrBranch == 0 {
+	if newDepartmentOrBranch == "" {
 		return imodel.RoleDelegation{}, errors.New("New department or branch is required")
 	}
 	if reason == "" {
@@ -291,7 +290,7 @@ func BuildRoleDelegationRequestWithNewUser(body role_delegation_dto.RoleDelegati
 		DelegatorUserRole:     delegatorUserRole,
 		DelegatorUserUserType: delegatorUserUserType,
 		NewRoleID:             newRoleID,
-		NewDepartmentOrBranch: fmt.Sprintf("%d", newDepartmentOrBranch),
+		NewDepartmentOrBranch: newDepartmentOrBranch,
 		StartAt:               parsedStart,
 		EndAt:                 parsedEnd,
 		Reason:                reason,

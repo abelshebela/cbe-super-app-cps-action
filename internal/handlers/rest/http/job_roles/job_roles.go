@@ -54,7 +54,12 @@ func NewJobRoleHandler(service service.JobRoleService, logger utils.Logger) inbo
 //	@Router			/job_roles [get]
 func (j *JobRoleHandler) GetAllWithPagination(w http.ResponseWriter, r *http.Request) {
 	log := local_util.LoggerFromCtx(r.Context(), j.logger)
-	filterParams := local_util.ExtractFilterParams(r)
+
+	filterParams, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")

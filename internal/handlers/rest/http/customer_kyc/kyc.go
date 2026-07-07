@@ -92,7 +92,11 @@ func (c *customerKYCAdapter) GetAllKYCRequests(w http.ResponseWriter, r *http.Re
 	defer span.End()
 	log := util.LoggerFromCtx(ctx, c.logger)
 
-	filterParam := util.ExtractFilterParams(r)
+	filterParam, err := util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	if err := util.NoSpecialChars(filterParam.Search); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())

@@ -47,8 +47,14 @@ func (h *BPSActionRoleHandler) GetAllActionList(w http.ResponseWriter, r *http.R
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllBpsActionRoles", "handler", "bpsActionRole")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, h.logger)
-	filterParams := *local_util.ExtractFilterParams(r)
 
+	filterParams_ptr, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	filterParams := *filterParams_ptr
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
 
@@ -89,7 +95,14 @@ func (h *BPSActionRoleHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllBpsActionRoles", "handler", "bpsActionRole")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, h.logger)
-	filter := *local_util.ExtractFilterParams(r)
+
+	filter_ptr, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	filter := *filter_ptr
 	res, err := h.service.FindAllWithPagination(ctx, filter)
 	if err != nil {
 		span.RecordError(err)

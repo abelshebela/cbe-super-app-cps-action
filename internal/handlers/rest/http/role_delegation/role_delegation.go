@@ -325,7 +325,12 @@ func (j *RoleDelegationHandler) FindByUsername(w http.ResponseWriter, r *http.Re
 		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
 		return
 	}
-	filterParams := local_util.ExtractFilterParams(r)
+
+	filterParams, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	data, err := j.service.FindByUsername(ctx, id, *filterParams)
 	if err != nil {
@@ -359,7 +364,11 @@ func (j *RoleDelegationHandler) FindAllWithPagination(w http.ResponseWriter, r *
 	defer span.End()
 	log := common_utils.LoggerFromCtx(ctx, j.logger)
 
-	filterParams := local_util.ExtractFilterParams(r)
+	filterParams, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")

@@ -122,7 +122,12 @@ func (f *feedbackAdapter) GetFeedbacks(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getFeedbacks", "handler", "feedback")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, f.logger)
-	filterParams := local_util.ExtractFilterParams(r)
+
+	filterParams, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
@@ -224,7 +229,12 @@ func (f *feedbackAdapter) GetAllCustomerFeedbacks(w http.ResponseWriter, r *http
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllCustomerFeedbacks", "handler", "feedback")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, f.logger)
-	filterParams := local_util.ExtractFilterParams(r)
+
+	filterParams, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
@@ -255,7 +265,12 @@ func (f *feedbackAdapter) GetAllSurveyFeedbacks(w http.ResponseWriter, r *http.R
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllSurveyFeedbacks", "handler", "feedback")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, f.logger)
-	filterParams := local_util.ExtractFilterParams(r)
+
+	filterParams, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")

@@ -101,7 +101,12 @@ func (a *accountBlockAdapter) GetAllBranches(w http.ResponseWriter, r *http.Requ
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllBranches", "handler", "accountBlock")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, a.logger)
-	filterParams := local_util.ExtractFilterParams(r)
+
+	filterParams, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
@@ -194,7 +199,12 @@ func (a *accountBlockAdapter) GetAllRegions(w http.ResponseWriter, r *http.Reque
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllRegions", "handler", "accountBlock")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, a.logger)
-	filterParams := local_util.ExtractFilterParams(r)
+
+	filterParams, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
@@ -287,7 +297,12 @@ func (a *accountBlockAdapter) GetAllDistricts(w http.ResponseWriter, r *http.Req
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllDistricts", "handler", "accountBlock")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, a.logger)
-	filterParams := local_util.ExtractFilterParams(r)
+
+	filterParams, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
@@ -889,7 +904,12 @@ func (a *accountBlockAdapter) GetAccountBlockDetails(w http.ResponseWriter, r *h
 		return
 	}
 
-	filterParams := local_util.ExtractFilterParams(r)
+	filterParams, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+
+	}
 
 	data, err := a.accountBlockApplication.GetAccountBlockDetails(ctx, id, filterParams)
 	if err != nil {
