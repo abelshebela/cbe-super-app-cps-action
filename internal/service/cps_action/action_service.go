@@ -1492,7 +1492,9 @@ var uniqueFieldsRegistry = map[string][]string{
 	// NewsCategoryCPSAction : CategoryName→"category_name"
 	string(constants.RequestCreateNewsCategory): {"category_name"},
 	// shared NewsArticle : Title→"title"
-	string(constants.RequestCreateArticle): {"title"},
+	string(constants.RequestCreateArticle):                       {"title"},
+	string(constants.RequestCreateRoleDelegationForExistingUser): {"delegated_user_id", "delegated_user_full_name", "delegated_user_phone_number", "delegated_user_email"},
+	string(constants.RequestCreateRoleDelegationForNewUser):      {"delegated_user_id", "delegated_user_full_name", "delegated_user_phone_number", "delegated_user_email"},
 }
 
 func extractUniqueTokens(requestAction string, currentAction interface{}) []string {
