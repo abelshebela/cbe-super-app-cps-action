@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"cbe-super-app-cps-action/internal/constants"
@@ -117,8 +118,24 @@ func (a *AccountBlockStorage) FindByFilterKey(ctx context.Context, field, value 
 		return nil, errors.New("invalid filter key")
 	}
 
+	var int_value int
+	if field == "dao_code" {
+		log.Infof("[AccountBlockStorage][FindByFilterKey] converting dao_code value to integer: %s", value)
+		v, err := strconv.Atoi(value)
+		if err != nil {
+			log.Errorf("[AccountBlockStorage][FindByFilterKey] value is an not a valid integer: %s err:%v", value, err)
+			return &imodel.AccountBlock{}, localization.ErrorUnexpectedError
+		}
+		int_value = v
+	}
+
 	query := fmt.Sprintf(`SELECT %s FROM COMPANY WHERE %s = :val`, companySelectColumns, column)
-	row := a.db.QueryRowContext(ctx, query, sql.Named("val", value))
+	var row *sql.Row
+	if field == "dao_code" {
+		row = a.db.QueryRowContext(ctx, query, sql.Named("val", int_value))
+	} else {
+		row = a.db.QueryRowContext(ctx, query, sql.Named("val", value))
+	}
 	ab, err := local_helper.ScanCompanyBranch(row)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -1009,7 +1026,7 @@ func (a *AccountBlockStorage) GetBranchByDAOCode(ctx context.Context, code strin
 			return nil, nil
 		}
 		log.Errorf("[AccountBlockStorage][GetBranchByCode] failed to fetch branch: %v", err)
-		return nil, err
+		return nil, localization.ErrorUnexpectedError
 	}
 
 	return branch, nil
