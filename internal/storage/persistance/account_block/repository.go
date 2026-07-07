@@ -1009,7 +1009,7 @@ func (a *AccountBlockStorage) GetBranchByDAOCode(ctx context.Context, code strin
 			return nil, nil
 		}
 		log.Errorf("[AccountBlockStorage][GetBranchByCode] failed to fetch branch: %v", err)
-		return nil, err
+		return nil, localization.ErrorUnexpectedError
 	}
 
 	return branch, nil
