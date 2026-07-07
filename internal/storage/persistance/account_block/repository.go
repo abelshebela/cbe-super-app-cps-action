@@ -123,7 +123,7 @@ func (a *AccountBlockStorage) FindByFilterKey(ctx context.Context, field, value 
 		log.Infof("[AccountBlockStorage][FindByFilterKey] converting dao_code value to integer: %s", value)
 		v, err := strconv.Atoi(value)
 		if err != nil {
-			log.Errorf("[AccountBlockStorage][FindByFilterKey] value is an not a valid integer: %s", value)
+			log.Errorf("[AccountBlockStorage][FindByFilterKey] value is an not a valid integer: %s err:%v", value, err)
 			return &imodel.AccountBlock{}, localization.ErrorUnexpectedError
 		}
 		int_value = v
