@@ -9,7 +9,6 @@ import (
 	"cbe-super-app-cps-action/internal/service"
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -349,7 +348,7 @@ func (h BPSUserHandler) CreateBPSUser(w http.ResponseWriter, r *http.Request) {
 
 	string_branches := make([]string, len(req.BranchCode))
 	for i, branch := range req.BranchCode {
-		string_branches[i] = fmt.Sprintf("%d", branch)
+		string_branches[i] = strings.TrimSpace(branch)
 	}
 
 	NewUser := bps_model.BPSUser{
@@ -450,7 +449,7 @@ func (h BPSUserHandler) UpdateBPSUser(w http.ResponseWriter, r *http.Request) {
 	}
 	string_branches := make([]string, len(req.BranchCode))
 	for i, branch := range req.BranchCode {
-		string_branches[i] = fmt.Sprintf("%d", branch)
+		string_branches[i] = strings.TrimSpace(branch)
 	}
 	if len(req.BranchCode) > 0 {
 		updatedUser.BranchCode = string_branches
