@@ -365,7 +365,12 @@ func (u *UssdMerchantHandler) GetAllUssdMerchant(w http.ResponseWriter, r *http.
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, u.Logger)
 
-	filter := local_util.ExtractFilterParams(r)
+	filter, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
 	result, err := u.UssdMerchantService.FindAllWithPagination(ctx, filter)
 	if err != nil {
 		log.Errorf("[GetAllUssdMerchantHandler] failed to list ussd merchants: %v", err)

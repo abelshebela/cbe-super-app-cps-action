@@ -48,8 +48,13 @@ func (h *CPSActionRoleHandler) GetAllActionList(w http.ResponseWriter, r *http.R
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllCpsActionRoles", "handler", "cpsActionRole")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, h.logger)
-	filterParams := *local_util.ExtractFilterParams(r)
+	filterParams_ptr, err := local_util.ExtractFilterParams(r)
 
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	filterParams := *filterParams_ptr
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
 
@@ -94,8 +99,14 @@ func (h *CPSActionRoleHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllCpsActionRoles", "handler", "cpsActionRole")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, h.logger)
-	filterParams := *local_util.ExtractFilterParams(r)
 
+	filterParams_ptr, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	filterParams := *filterParams_ptr
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
 
