@@ -483,10 +483,13 @@ func (b *bpsUserService) CreateBPSUser(ctx context.Context, req bps_model.BPSUse
 		b.logger.Errorf("[CreateBPSUser] account block repository is not configured")
 		return errors.New(localization.ErrorInternalServerError.Code)
 	}
+	b.logger.Infof("[CreateBPSUser] branch code: %s", req.BranchCode)
+
 	if len(req.BranchCode) == 0 {
 		return errors.New(localization.ErrorBranchCodeRequired.Code)
 	}
 	branchCode := strings.TrimSpace(req.BranchCode[0])
+	b.logger.Infof("[CreateBPSUser] branch code: %s", branchCode)
 	if branchCode == "" {
 		return errors.New(localization.ErrorBranchCodeRequired.Code)
 	}
