@@ -277,7 +277,7 @@ func IsIncomplete(u types.UserContext) bool {
 	return strings.TrimSpace(u.UserID) == "" || strings.TrimSpace(u.FullName) == "" || strings.TrimSpace(u.PhoneNumber) == "" || strings.TrimSpace(u.Department) == ""
 }
 
-func ExtractFilterParams(r *http.Request) *types.Filter {
+func ExtractFilterParams(r *http.Request) (*types.Filter, error) {
 	query := r.URL.Query()
 
 	// --- Pagination defaults ---
@@ -294,7 +294,10 @@ func ExtractFilterParams(r *http.Request) *types.Filter {
 
 	perPage := constants.DefaultPerPage
 	if v := query.Get("per_page"); v != "" {
-		if n, err := strconv.Atoi(v); err == nil && n > 0 && n <= 100 {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+			if n > 100 {
+				return nil, errors.New("limit greater than 100 is not allowed")
+			}
 			perPage = n
 		} else {
 			perPage = 10
@@ -358,7 +361,7 @@ func ExtractFilterParams(r *http.Request) *types.Filter {
 		PerPage: perPage,
 		Search:  query.Get("search"),
 		Filters: filters,
-	}
+	}, nil
 }
 
 // StringFromFilterValue returns the first non-empty string from a filter value produced by

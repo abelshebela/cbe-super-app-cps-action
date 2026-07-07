@@ -164,7 +164,6 @@ func (r *roleDelegation) CreateWithExistingUser(ctx context.Context, roleDelegat
 		if err != nil {
 			r.logger.Errorf("[RoleDelegation/Create] Failed to find BPS user: %v", err)
 			return errors.New(localization.ErrorUserNotFoundOrDisabled.Code)
-
 		}
 		if user == nil || !user.Enabled {
 			r.logger.Warnf("[RoleDelegation/Create] BPS User not found: %s", roleDelegation.DelegatedUserID)
@@ -503,7 +502,7 @@ func (r *roleDelegation) FindById(ctx context.Context, id string) (*imodel.RoleD
 
 	// Populate existing delegated user's department/branch name.
 	if roleDelegation.DelegatedUserUserType == "BPS" {
-		if branch, err := r.branchRepo.GetBranchByCode(ctx, roleDelegation.DelegatedUserDepartmentOrBranch); err == nil && branch != nil {
+		if branch, err := r.branchRepo.GetBranchByDAOCode(ctx, roleDelegation.DelegatedUserDepartmentOrBranch); err == nil && branch != nil {
 			roleDelegation.DelegatedUserDepartmentOrBranchName = branch.Name
 		} else if err != nil {
 			r.logger.Errorf("[RoleDelegation/FindById] failed to find delegated user branch by code: %v", err)

@@ -37,7 +37,12 @@ func NewRoleHandler(service service.RoleService, logger utils.Logger) inbound.Ro
 
 func (j *RoleHandler) FindAllWithPagination(w http.ResponseWriter, r *http.Request) {
 	log := common_utils.LoggerFromCtx(r.Context(), j.logger)
-	filterParams := common_utils.ExtractFilterParams(r)
+
+	filterParams, err := common_utils.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
@@ -107,10 +112,10 @@ func (j *RoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	role := imodel.Role{
-		Name: strings.TrimSpace(body.Name),
-		Code: body.Code,
-		Type: strings.ToUpper(strings.TrimSpace(body.Type)),
-			Description: strings.TrimSpace(body.Description),
+		Name:        strings.TrimSpace(body.Name),
+		Code:        body.Code,
+		Type:        strings.ToUpper(strings.TrimSpace(body.Type)),
+		Description: strings.TrimSpace(body.Description),
 		CreatedAt:   time.Now(),
 	}
 

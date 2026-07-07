@@ -661,7 +661,11 @@ func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Reques
 //	@Security		BearerAuth
 //	@Router			/actions/ [get]
 func (a *cpsActionAdapter) GetCPSActionsByDepartment(w http.ResponseWriter, r *http.Request) {
-	filterParams := local_util.ExtractFilterParams(r)
+	filterParams, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
@@ -712,7 +716,11 @@ func (a *cpsActionAdapter) GetCPSActionsByDepartment(w http.ResponseWriter, r *h
 //	@Security		BearerAuth
 //	@Router			/actions/user/checked/actions [get]
 func (a *cpsActionAdapter) GetUserCheckedActions(w http.ResponseWriter, r *http.Request) {
-	filterParams := local_util.ExtractFilterParams(r)
+	filterParams, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
@@ -760,8 +768,12 @@ func (a *cpsActionAdapter) GetUserCheckedActions(w http.ResponseWriter, r *http.
 //	@Security		BearerAuth
 //	@Router			/actions/user/created/actions [get]
 func (a *cpsActionAdapter) GetUserCreatedActions(w http.ResponseWriter, r *http.Request) {
-	filterParams := local_util.ExtractFilterParams(r)
-	var err error
+	filterParams, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
 	services, _ := filterParams.Filters["services"].(string)
@@ -908,7 +920,12 @@ func (a *cpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getUserApproverPendingActions", "handler", "cpsAction")
 	defer span.End()
 	log := local_util.LoggerFromCtx(r.Context(), a.logger)
-	filterParams := local_util.ExtractFilterParams(r)
+
+	filterParams, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
@@ -1048,7 +1065,12 @@ func (a *cpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http
 func (a *cpsActionAdapter) GetListOfServiceForFilter(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getUserApproverPendingActions", "handler", "cpsAction")
 	defer span.End()
-	filterParams := local_util.ExtractFilterParams(r)
+
+	filterParams, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	log := local_util.LoggerFromCtx(r.Context(), a.logger)
 	var data []string
@@ -1125,8 +1147,12 @@ func (a *cpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.
 	defer span.End()
 	log := local_util.LoggerFromCtx(r.Context(), a.logger)
 
-	filterParams := local_util.ExtractFilterParams(r)
-	// var allocation []string
+	filterParams, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
 
@@ -1309,7 +1335,11 @@ func (a *cpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.
 }
 
 func (a *cpsActionAdapter) GetUserApproverApprovedActions(w http.ResponseWriter, r *http.Request) {
-	filterParams := local_util.ExtractFilterParams(r)
+	filterParams, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
@@ -1983,7 +2013,12 @@ func (a *cpsActionAdapter) ExportCPSActionData(w http.ResponseWriter, r *http.Re
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "exportCPSaction", "handler", "cpsAction")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, a.logger)
-	filterParams := local_util.ExtractFilterParams(r)
+
+	filterParams, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	fileType := r.URL.Query().Get("file_type")
 	from := r.URL.Query().Get("created_at_from")

@@ -364,8 +364,12 @@ func (h *handler) FetchNotifications(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "fetchNotifications", "handler", "notification")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, h.logger)
-	// Assuming a utility to parse query into types.Filter exists; pass empty for now
-	filterParams := local_util.ExtractFilterParams(r)
+
+	filterParams, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
