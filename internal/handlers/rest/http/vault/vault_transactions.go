@@ -14,7 +14,11 @@ func (h *handler) GetVaultTransactions(w http.ResponseWriter, r *http.Request) {
 	defer span.End()
 	log := common_utils.LoggerFromCtx(ctx, h.logger)
 
-	params := common_utils.ExtractFilterParams(r)
+	params, err := common_utils.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")

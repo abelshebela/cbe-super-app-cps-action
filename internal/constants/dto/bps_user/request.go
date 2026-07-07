@@ -23,7 +23,7 @@ type BPSUserCreateRequest struct {
 	Email       string `json:"email"`
 	JobTitle    string `json:"job_title"`
 	// Role        string   `json:"role"`
-	BranchCode []int `json:"branch_code"`
+	BranchCode []string `json:"branch_code"`
 	// HomeBranch  string   `json:"home_branch"`
 	// Realm       string   `json:"realm"`
 	// Enabled bool `json:"enabled"`
@@ -36,7 +36,7 @@ type BPSUserUpdateRequest struct {
 	Email       *string `json:"email"`
 	JobTitle    *string `json:"job_title"`
 	// Role        string   `json:"role"`
-	BranchCode []int `json:"branch_code"`
+	BranchCode []string `json:"branch_code"`
 	// HomeBranch  string   `json:"home_branch"`
 	// Realm       string   `json:"realm"`
 	// Enabled bool `json:"enabled"`

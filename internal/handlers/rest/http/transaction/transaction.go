@@ -89,7 +89,11 @@ func (t *TransactionHandler) FetchAllTransactions(w http.ResponseWriter, r *http
 	defer span.End()
 	log := local_utils.LoggerFromCtx(ctx, t.logger)
 
-	filterParams := local_utils.ExtractFilterParams(r)
+	filterParams, err := local_utils.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")

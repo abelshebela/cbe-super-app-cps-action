@@ -79,7 +79,7 @@ func getStatusCodeForErrorType(errorType ErrorType) int {
 
 type AppError struct {
 	Type        ErrorType              `json:"type"`
-	Message     string                 `josn:"message"`
+	Message     string                 `json:"message"`
 	StatusCode  int                    `json:"status_code"`
 	Details     map[string]interface{} `json:"details,omitempty"`
 	Cause       error                  `json:"-"`

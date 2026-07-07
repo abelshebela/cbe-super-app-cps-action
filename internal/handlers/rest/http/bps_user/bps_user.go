@@ -9,7 +9,6 @@ import (
 	"cbe-super-app-cps-action/internal/service"
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -179,7 +178,12 @@ func (h BPSUserHandler) GetAllBPSUsers(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "getAllBpsUsers", "handler", "bpsUser")
 	defer span.End()
 	log := common_utils.LoggerFromCtx(ctx, h.logger)
-	filterParams := common_utils.ExtractFilterParams(r)
+
+	filterParams, err := common_utils.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
@@ -349,7 +353,7 @@ func (h BPSUserHandler) CreateBPSUser(w http.ResponseWriter, r *http.Request) {
 
 	string_branches := make([]string, len(req.BranchCode))
 	for i, branch := range req.BranchCode {
-		string_branches[i] = fmt.Sprintf("%d", branch)
+		string_branches[i] = strings.TrimSpace(branch)
 	}
 
 	NewUser := bps_model.BPSUser{
@@ -450,7 +454,7 @@ func (h BPSUserHandler) UpdateBPSUser(w http.ResponseWriter, r *http.Request) {
 	}
 	string_branches := make([]string, len(req.BranchCode))
 	for i, branch := range req.BranchCode {
-		string_branches[i] = fmt.Sprintf("%d", branch)
+		string_branches[i] = strings.TrimSpace(branch)
 	}
 	if len(req.BranchCode) > 0 {
 		updatedUser.BranchCode = string_branches
