@@ -279,6 +279,10 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, usercode string,
 		span.AddEvent("failed to find user by id", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
 	}
+	if currentUser == nil {
+		span.AddEvent("user not found", trace.WithAttributes(attribute.String("user_code", usercode)))
+		return errors.New(localization.ErrorUserNotFound.Code)
+	}
 
 	if req.PhoneNumber != "" {
 		normalized := local_util.FormatPhoneNumber(req.PhoneNumber)
@@ -415,12 +419,27 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, usercode string,
 		return err
 	}
 
+	dateJoined := time.Time{}
+	if currentUser.DateJoined != nil {
+		dateJoined = *currentUser.DateJoined
+	}
+
+	lastModified := time.Time{}
+	if currentUser.LastModified != nil {
+		lastModified = *currentUser.LastModified
+	}
+
+	var departmentResp *cpsuser.DepartmentResponse
+	if curDpt != nil {
+		departmentResp = &cpsuser.DepartmentResponse{ID: curDpt.ID, Name: curDpt.Department}
+	}
+
 	prevUserData := cpsuser.CpsUserPopulatedResponse{
 		ID:                 currentUser.ID,
 		UserCode:           currentUser.UserCode,
 		FullName:           currentUser.FullName,
 		Role:               cpsuser.RoleResponse{Name: currentUser.Role},
-		Department:         &cpsuser.DepartmentResponse{ID: curDpt.ID, Name: curDpt.Department},
+		Department:         departmentResp,
 		JobTitle:           currentUser.JobTitle,
 		Gender:             currentUser.Gender,
 		PhoneNumber:        currentUser.PhoneNumber,
@@ -428,8 +447,8 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, usercode string,
 		UserName:           currentUser.UserName,
 		Realm:              currentUser.Realm,
 		Enabled:            currentUser.Enabled,
-		DateJoined:         *currentUser.DateJoined,
-		LastModified:       *currentUser.LastModified,
+		DateJoined:         dateJoined,
+		LastModified:       lastModified,
 		Country:            currentUser.Country,
 		Region:             currentUser.Region,
 		PermissionCategory: currentUser.PermissionCategory,
