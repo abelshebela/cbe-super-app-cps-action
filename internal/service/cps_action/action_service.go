@@ -605,9 +605,9 @@ func (ca *cpsActionService) ApproveCPSAction(ctx context.Context, action *model.
 		return nil
 	}
 
-	approve, err := ca.dispatcher.Authorize(ctx, data)
+	_, err = ca.dispatcher.Authorize(ctx, data)
 	// if err != nil && approve == nil {
-	if err != nil && approve.ActionCode == "" {
+	if err != nil {
 		span.AddEvent("failed to authorize cps action", trace.WithAttributes(attribute.String("error", err.Error())))
 		log.Errorf("[CpsActionSvc][Approve] authorize err: %v", err)
 		RollErr := ca.RollBack(ctx, data)
