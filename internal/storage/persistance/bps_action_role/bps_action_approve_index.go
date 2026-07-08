@@ -111,6 +111,7 @@ func (r *BPSActionApproveIndexRepository) SyncIndices(ctx context.Context, oldAc
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
 	log.Infof("SyncIndices: Syncing %d indices for oldActionName: %s", len(newIndices), oldActionName)
+	log.Infof("SyncIndices: Syncing %d indices for newIndexData: %s", len(newIndices), newIndices)
 
 	if _, err := r.collection.DeleteMany(ctx, bson.M{"action_name": oldActionName}); err != nil {
 		log.Errorf("SyncIndices: DeleteMany failed: %v", err)
