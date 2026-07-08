@@ -182,6 +182,8 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.EcommerceMerchantContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(constants.RequestAction(action), "CUSTOMERKYC"):
 		return d.app.CustomerKYCContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(constants.RequestAction(action), "SELFACTIVATEKYC"):
+		return d.app.SelfActivateKYCContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(constants.RequestAction(action), "CPSROLE"):
 		return d.app.SuperAppRoleContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(constants.RequestAction(action), "VAULTCATEGORIES"):
