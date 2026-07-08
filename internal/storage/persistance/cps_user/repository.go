@@ -237,7 +237,7 @@ func (r *CPSUserStorage) Update(ctx context.Context, userCode string, cpsUser *i
 		}
 
 		if _, err := r.role_delegations_dal.UpdateOne(sc, bson.M{"delegated_user_user_code": cpsUser.UserCode}, bson.M{
-			"delegated_user_department_or_branch": cpsUser.DelegationID,
+			"delegated_user_department_or_branch": cpsUser.DelegationID.Hex(),
 			"delegated_user_email":                cpsUser.Email,
 			"delegated_user_existing_role":        cpsUser.Role,
 			"delegated_user_full_name":            cpsUser.FullName,
