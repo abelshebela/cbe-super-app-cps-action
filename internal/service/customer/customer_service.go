@@ -657,12 +657,6 @@ func (s *customerService) SearchCustomerServiceLimitByCIF(ctx context.Context, c
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 	log.Infof("[CustomerSvc][SearchCustomerServiceLimitByCIF] cif: %s", cif)
 
-	// userData, err := s.core.CifSearch(ctx, cif)
-	// if err != nil {
-	// 	log.Errorf("[CustomerSrv][CifSearch] error while searching user by cif:%s", cif)
-	// 	return types.PaginatedResponse[[]customer_dto.CustomerServiceLimitResponses]{}, localization.ErrorCustomerFetchFailed
-	// }
-
 	res, err := s.core.SearchCustomerServiceLimitByCIF(ctx, cif)
 	if err != nil {
 		log.Errorf("[CustomerSvc][SearchCustomerServiceLimitByCIF] core search err: %v", err)
