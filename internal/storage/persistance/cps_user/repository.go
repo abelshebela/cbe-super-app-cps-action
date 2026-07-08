@@ -25,24 +25,26 @@ import (
 )
 
 type CPSUserStorage struct {
-	dal               dal.MongoDal[imodel.CPSUser, imodel.CPSUser]
-	cpsAction         dal.MongoDal[imodel.CPSAction, imodel.CPSAction]
-	client            *mongo.Client
-	collection        *mongo.Collection
-	redisRepository   storage.RedisRepository
-	relatedCollection []string
-	logger            utils.Logger
+	dal                  dal.MongoDal[imodel.CPSUser, imodel.CPSUser]
+	role_delegations_dal dal.MongoDal[imodel.RoleDelegation, imodel.RoleDelegation]
+	cpsAction            dal.MongoDal[imodel.CPSAction, imodel.CPSAction]
+	client               *mongo.Client
+	collection           *mongo.Collection
+	redisRepository      storage.RedisRepository
+	relatedCollection    []string
+	logger               utils.Logger
 }
 
 func NewCPSUserRepository(client *mongo.Client, redisRepository storage.RedisRepository, cfg *config.VaultConfig, dbName string, collection string, relatedCollection []string, logger utils.Logger) storage.CpsUserRepository {
 	return &CPSUserStorage{
-		dal:               dal.NewMongoDal[imodel.CPSUser, imodel.CPSUser](client, cfg, dbName, collection),
-		cpsAction:         dal.NewMongoDal[imodel.CPSAction, imodel.CPSAction](client, cfg, dbName, "cps_actions"),
-		client:            client,
-		redisRepository:   redisRepository,
-		collection:        client.Database(dbName).Collection(collection),
-		relatedCollection: relatedCollection,
-		logger:            logger,
+		dal:                  dal.NewMongoDal[imodel.CPSUser, imodel.CPSUser](client, cfg, dbName, collection),
+		role_delegations_dal: dal.NewMongoDal[imodel.RoleDelegation, imodel.RoleDelegation](client, cfg, dbName, relatedCollection[6]),
+		cpsAction:            dal.NewMongoDal[imodel.CPSAction, imodel.CPSAction](client, cfg, dbName, "cps_actions"),
+		client:               client,
+		redisRepository:      redisRepository,
+		collection:           client.Database(dbName).Collection(collection),
+		relatedCollection:    relatedCollection,
+		logger:               logger,
 	}
 }
 
@@ -221,10 +223,37 @@ func (r *CPSUserStorage) Update(ctx context.Context, userCode string, cpsUser *i
 	filter := bson.M{"user_code": userCode, "is_deleted": false}
 	update := CPSUserUpdateMapper(cpsUser)
 
-	_, err := r.dal.UpdateOne(ctx, filter, update)
+	session, err := r.client.StartSession()
 	if err != nil {
-		log.Errorf("[CPSUserStorage][Update] failed to update CPS user: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		log.Errorf("[CPSUserStorage][Update] failed to start session: %v", err)
+		return localization.ErrorUnexpectedError
+	}
+	defer session.EndSession(ctx)
+
+	_, err = session.WithTransaction(ctx, func(sc context.Context) (any, error) {
+		if _, err := r.dal.UpdateOne(sc, filter, update); err != nil {
+			log.Errorf("[CPSUserStorage][Update] failed to update CPS user: %v", err)
+			return nil, local_util.HandleDBError(err)
+		}
+
+		if _, err := r.role_delegations_dal.UpdateOne(sc, bson.M{"delegated_user_user_code": cpsUser.UserCode}, bson.M{
+			"delegated_user_department_or_branch": cpsUser.DelegationID.Hex(),
+			"delegated_user_email":                cpsUser.Email,
+			"delegated_user_existing_role":        cpsUser.Role,
+			"delegated_user_full_name":            cpsUser.FullName,
+			"delegated_user_id":                   cpsUser.UserName,
+			"delegated_user_job_title":            cpsUser.JobTitle,
+			"delegated_user_phone_number":         cpsUser.PhoneNumber,
+		}); err != nil {
+			log.Errorf("[CPSUserStorage][Update] failed to update role delegation: %v", err)
+			return nil, local_util.HandleDBError(err)
+		}
+
+		return nil, nil
+	})
+	if err != nil {
+		log.Errorf("[CPSUserStorage][Update] transaction failed: %v", err)
+		return local_util.HandleDBError(err)
 	}
 	log.Infof("[CPSUserStorage][Update] CPS user updated successfully")
 	return nil

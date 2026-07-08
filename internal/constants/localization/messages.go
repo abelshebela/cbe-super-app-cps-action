@@ -359,7 +359,7 @@ const (
 	// BPS User related success messages
 	MsgBPSUserApprovedSuccessfully  = "BPS user approved successfully"
 	MsgBPSUserUpdatedSuccessfully   = "BPS user update successfully submitted"
-	MsgBPSUserUpdatedSuccessfullySP = "BPS user updated successfully submitted"
+	MsgBPSUserUpdatedSuccessfullySP = "BPS user updated"
 	MsgBPSUserDeletedSuccessfullySP = "BPS user deleted successfully"
 	MsgBPSUserDeleteRequestSent     = "BPS user delete request sent successfully"
 

@@ -50,6 +50,11 @@ const (
 	// RequestUpdateCustomerKYC  constants.RequestAction = "UPDATE_CUSTOMER_KYC"
 	// RequestDeleteCustomerKYC  constants.RequestAction = "DELETE_CUSTOMER_KYC"
 
+	RequestStartSelfActivateKy       constants.RequestAction = "START_SELF_ACTIVATE_KYC"
+	RequestApproveSelfActivateKyc    constants.RequestAction = "APPROVE_SELF_ACTIVATE_KYC"
+	RequestRejectSelfActivateKyc     constants.RequestAction = "REJECT_SELF_ACTIVATE_KYC"
+	RequestPickSelfActivateKycReview constants.RequestAction = "PICK_SELF_ACTIVATE_KYC_REVIEW"
+
 	RequestCreateCpsRole     constants.RequestAction = "CREATE_CPS_ROLE"
 	RequestUpdateCpsRole     constants.RequestAction = "UPDATE_CPS_ROLE"
 	RequestDeleteCpsRole     constants.RequestAction = "DELETE_CPS_ROLE"
@@ -804,6 +809,11 @@ var validRequestActions = map[constants.RequestAction]struct{}{
 	// RequestUpdateCustomerKYC: {},
 	// RequestDeleteCustomerKYC: {},
 
+	RequestStartSelfActivateKy:       {},
+	RequestApproveSelfActivateKyc:    {},
+	RequestRejectSelfActivateKyc:     {},
+	RequestPickSelfActivateKycReview: {},
+
 	RequestEnableDisableBank: {},
 
 	RequestCreateAccountSubType:  {},
@@ -1368,6 +1378,13 @@ var RequestActionGroups = map[string][]constants.RequestAction{
 		// RequestCreateCustomerKYC,
 		// RequestUpdateCustomerKYC,
 		// RequestDeleteCustomerKYC,
+	},
+
+	"SELFACTIVATEKYC": {
+		RequestStartSelfActivateKy,
+		RequestApproveSelfActivateKyc,
+		RequestRejectSelfActivateKyc,
+		RequestPickSelfActivateKycReview,
 	},
 }
 
