@@ -641,6 +641,7 @@ func (d *customerService) SearchCustomerByCIForAccountNumber(ctx context.Context
 		accountDetail, lookupErr := d.core.LookupAccountByAccountNumber(ctx, model.AccountLookUpRequest{
 			AccountNumber: customer.AccountNumber,
 		})
+		log.Infof("[CustomerSvc][SearchByCI] account lookup result: %v", accountDetail)
 		if lookupErr != nil {
 			log.Errorf("[CustomerSvc][SearchByCI] account lookup failed (restriction skipped): %v", lookupErr)
 		} else if accountDetail != nil {
@@ -655,12 +656,6 @@ func (d *customerService) SearchCustomerByCIForAccountNumber(ctx context.Context
 func (s *customerService) SearchCustomerServiceLimitByCIF(ctx context.Context, cif string, filterParam *types.Filter) (types.PaginatedResponse[[]customer_dto.CustomerServiceLimitResponses], error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 	log.Infof("[CustomerSvc][SearchCustomerServiceLimitByCIF] cif: %s", cif)
-
-	// userData, err := s.core.CifSearch(ctx, cif)
-	// if err != nil {
-	// 	log.Errorf("[CustomerSrv][CifSearch] error while searching user by cif:%s", cif)
-	// 	return types.PaginatedResponse[[]customer_dto.CustomerServiceLimitResponses]{}, localization.ErrorCustomerFetchFailed
-	// }
 
 	res, err := s.core.SearchCustomerServiceLimitByCIF(ctx, cif)
 	if err != nil {
