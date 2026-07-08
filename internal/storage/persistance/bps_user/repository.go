@@ -501,9 +501,7 @@ func (b *BPSUserStorage) Update(ctx context.Context, BpsUser *bps_model.BPSUser)
 			log.Errorf("[BPSUserStorage][Update] failed to update BPS user: %v", err)
 			return nil, local_util.HandleDBError(err)
 		}
-
-		if _, err := b.role_delegations_dal.UpdateOne(sc, bson.M{"delegated_user_user_code": BpsUser.UserCode}, bson.M{
-			"delegated_user_department_or_branch":      BpsUser.BranchCode,
+		update := bson.M{
 			"delegated_user_department_or_branch_name": BpsUser.BranchName,
 			"delegated_user_email":                     BpsUser.Email,
 			"delegated_user_existing_role":             BpsUser.Role,
@@ -511,7 +509,12 @@ func (b *BPSUserStorage) Update(ctx context.Context, BpsUser *bps_model.BPSUser)
 			"delegated_user_id":                        BpsUser.Username,
 			"delegated_user_job_title":                 BpsUser.JobTitle,
 			"delegated_user_phone_number":              BpsUser.PhoneNumber,
-		}); err != nil {
+		}
+		if len(BpsUser.BranchCode) > 0 {
+			update["delegated_user_department_or_branch_code"] = BpsUser.BranchCode[0]
+		}
+
+		if _, err := b.role_delegations_dal.UpdateOne(sc, bson.M{"delegated_user_user_code": BpsUser.UserCode}, update); err != nil {
 			log.Errorf("[BPSUserStorage][Update] failed to update role delegation: %v", err)
 			return nil, local_util.HandleDBError(err)
 		}
