@@ -511,7 +511,7 @@ func (b *BPSUserStorage) Update(ctx context.Context, BpsUser *bps_model.BPSUser)
 			"delegated_user_phone_number":              BpsUser.PhoneNumber,
 		}
 		if len(BpsUser.BranchCode) > 0 {
-			update["delegated_user_department_or_branch_code"] = BpsUser.BranchCode[0]
+			update["delegated_user_department_or_branch"] = BpsUser.BranchCode[0]
 		}
 
 		if _, err := b.role_delegations_dal.UpdateOne(sc, bson.M{"delegated_user_user_code": BpsUser.UserCode}, update); err != nil {
