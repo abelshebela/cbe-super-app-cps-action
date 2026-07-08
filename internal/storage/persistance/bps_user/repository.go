@@ -37,18 +37,20 @@ func bpsUserActiveFilter() bson.M {
 }
 
 type BPSUserStorage struct {
-	dal        dal.MongoDal[bps_model.BPSUser, bps_model.BPSUser]
-	client     *mongo.Client
-	logger     utils.Logger
-	collection *mongo.Collection
+	dal                  dal.MongoDal[bps_model.BPSUser, bps_model.BPSUser]
+	role_delegations_dal dal.MongoDal[imodel.RoleDelegation, imodel.RoleDelegation]
+	client               *mongo.Client
+	logger               utils.Logger
+	collection           *mongo.Collection
 }
 
-func NewBPSUserRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.BPSUserRepository {
+func NewBPSUserRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collections []string, logger utils.Logger) storage.BPSUserRepository {
 	return &BPSUserStorage{
-		dal:        dal.NewMongoDal[bps_model.BPSUser, bps_model.BPSUser](client, cfg, dbName, collection),
-		client:     client,
-		logger:     logger,
-		collection: client.Database(dbName).Collection(collection),
+		dal:                  dal.NewMongoDal[bps_model.BPSUser, bps_model.BPSUser](client, cfg, dbName, collections[0]),
+		role_delegations_dal: dal.NewMongoDal[imodel.RoleDelegation, imodel.RoleDelegation](client, cfg, dbName, collections[1]),
+		client:               client,
+		logger:               logger,
+		collection:           client.Database(dbName).Collection(collections[0]),
 	}
 }
 
@@ -486,11 +488,41 @@ func (b *BPSUserStorage) Update(ctx context.Context, BpsUser *bps_model.BPSUser)
 
 	log.Infof("[BPSUserStorage][Update] updating BPS user")
 	filter := bson.M{"user_code": BpsUser.UserCode, "is_deleted": bson.M{"$ne": true}}
-	_, err := b.dal.UpdateOne(ctx, filter, BPSUserMapper(*BpsUser))
+
+	session, err := b.client.StartSession()
 	if err != nil {
-		log.Errorf("[BPSUserStorage][Update] failed to update BPS user: %v", err)
+		log.Errorf("[BPSUserStorage][Update] failed to start session: %v", err)
+		return localization.ErrorUnexpectedError
+	}
+	defer session.EndSession(ctx)
+
+	_, err = session.WithTransaction(ctx, func(sc context.Context) (any, error) {
+		if _, err := b.dal.UpdateOne(sc, filter, BPSUserMapper(*BpsUser)); err != nil {
+			log.Errorf("[BPSUserStorage][Update] failed to update BPS user: %v", err)
+			return nil, local_util.HandleDBError(err)
+		}
+
+		if _, err := b.role_delegations_dal.UpdateOne(sc, bson.M{"delegated_user_user_code": BpsUser.UserCode}, bson.M{
+			"delegated_user_department_or_branch":      BpsUser.BranchCode,
+			"delegated_user_department_or_branch_name": BpsUser.BranchName,
+			"delegated_user_email":                     BpsUser.Email,
+			"delegated_user_existing_role":             BpsUser.Role,
+			"delegated_user_full_name":                 BpsUser.FullName,
+			"delegated_user_id":                        BpsUser.Username,
+			"delegated_user_job_title":                 BpsUser.JobTitle,
+			"delegated_user_phone_number":              BpsUser.PhoneNumber,
+		}); err != nil {
+			log.Errorf("[BPSUserStorage][Update] failed to update role delegation: %v", err)
+			return nil, local_util.HandleDBError(err)
+		}
+
+		return nil, nil
+	})
+	if err != nil {
+		log.Errorf("[BPSUserStorage][Update] transaction failed: %v", err)
 		return local_util.HandleDBError(err)
 	}
+
 	log.Infof("[BPSUserStorage][Update] BPS user updated successfully")
 	return nil
 

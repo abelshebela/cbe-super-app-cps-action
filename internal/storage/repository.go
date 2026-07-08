@@ -947,6 +947,16 @@ type CustomerKYCRepository interface {
 	// Delete(ctx context.Context, id string) error
 }
 
+type SelfActivationKYCRepository interface {
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.CustomerKYC], error)
+	FindByID(ctx context.Context, id string) (*imodel.CustomerKYC, error)
+	CreateAndLinkUser(ctx context.Context, userAccount *coreio.PhoneLookupResult, userData imodel.CustomerKYC) error
+	UpdateKYCStatus(ctx context.Context, id, status, rejectionReason string, approved bool) error
+	FindKycInReview(ctx context.Context, kycID string) (*imodel.StartedKycReview, error)
+	StartKycReview(ctx context.Context, reviewData *imodel.StartedKycReview) (*imodel.StartedKycReview, error)
+	UpdateKycReview(ctx context.Context, kycID string, reviewData *imodel.StartedKycReview) (*imodel.StartedKycReview, error)
+}
+
 type BankOracleRepository interface {
 	Create(ctx context.Context, bank *imodel.BankOracle) error
 	Update(ctx context.Context, id string, bank *imodel.BankOracle) error
