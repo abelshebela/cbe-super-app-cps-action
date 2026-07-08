@@ -637,7 +637,7 @@ func (s *bpsActionRoleService) syncIndices(ctx context.Context, oldActionName st
 	defer span.End()
 	span.SetAttributes(attribute.String("old_action_name", oldActionName))
 	indices := s.generateIndices(role)
-	log.Infof("[BpsActRoleSvc][SyncIndices] generated %d for action: %s (old: %s)", len(indices), role.ActionName, oldActionName)
+	log.Infof("[BpsActRoleSvc][SyncIndices] generated %d for action: %s (old: %s)", len(indices), role.ActionCode, oldActionName)
 
 	if oldActionName == "" {
 		return s.indexRepo.SaveIndices(ctx, indices)
@@ -656,7 +656,7 @@ func (s *bpsActionRoleService) generateIndices(role *imodel.BPSActionRole) []imo
 
 	var indices []imodel.BPSActionApproveIndex
 	now := time.Now()
-	s.logger.Infof("[BpsActRoleSvc][GenIndices] action: %s viewers: %d makers: %d checkers: %d auditors: %d", role.ActionName, len(role.AssignedViewersRoles), len(role.AssignedMakersRoles), len(role.AssignedCheckerRoles), len(role.AssignedAuditorRoles))
+	s.logger.Infof("[BpsActRoleSvc][GenIndices] action: %s viewers: %d makers: %d checkers: %d auditors: %d", role.ActionCode, len(role.AssignedViewersRoles), len(role.AssignedMakersRoles), len(role.AssignedCheckerRoles), len(role.AssignedAuditorRoles))
 
 	// Makers
 	if len(role.AssignedMakersRoles) > 0 {
@@ -665,7 +665,7 @@ func (s *bpsActionRoleService) generateIndices(role *imodel.BPSActionRole) []imo
 			indices = append(indices, imodel.BPSActionApproveIndex{
 				ID:         bson.NewObjectID(),
 				RoleId:     makerID,
-				ActionName: role.ActionName,
+				ActionName: role.ActionCode,
 				MakerIndex: &idx,
 				UpdatedAt:  now,
 				CreatedAt:  now,
@@ -691,7 +691,7 @@ func (s *bpsActionRoleService) generateIndices(role *imodel.BPSActionRole) []imo
 				indices = append(indices, imodel.BPSActionApproveIndex{
 					ID:          bson.NewObjectID(),
 					RoleId:      viewerID,
-					ActionName:  role.ActionName,
+					ActionName:  role.ActionCode,
 					ViewerIndex: &idx,
 					UpdatedAt:   now,
 					CreatedAt:   now,
@@ -722,7 +722,7 @@ func (s *bpsActionRoleService) generateIndices(role *imodel.BPSActionRole) []imo
 				indices = append(indices, imodel.BPSActionApproveIndex{
 					ID:           bson.NewObjectID(),
 					RoleId:       auditorID,
-					ActionName:   role.ActionName,
+					ActionName:   role.ActionCode,
 					AuditorIndex: &idx,
 					UpdatedAt:    now,
 					CreatedAt:    now,
@@ -754,7 +754,7 @@ func (s *bpsActionRoleService) generateIndices(role *imodel.BPSActionRole) []imo
 					indices = append(indices, imodel.BPSActionApproveIndex{
 						ID:           bson.NewObjectID(),
 						RoleId:       checkerID,
-						ActionName:   role.ActionName,
+						ActionName:   role.ActionCode,
 						CheckerIndex: &val,
 						UpdatedAt:    now,
 						CreatedAt:    now,
