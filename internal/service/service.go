@@ -710,6 +710,7 @@ type ServiceLayer struct {
 	CustomerGroup                 CustomerGroupService
 	CPSRoles                      CPSRolesService
 	CustomerKYC                   CustomerKYCService
+	SelfActivateKYCService        SelfActivateKYCService
 	UssdMerchantService           UssdMerchantService
 	BPSActionService              BPSActionService
 	SuperAppRole                  SuperAppRoleService
@@ -786,6 +787,7 @@ type ServiceContainer struct {
 	CustomerGroupContainer             CustomerGroupService
 	CPSRolesContainer                  CPSRolesService
 	CustomerKYCContainer               CustomerKYCService
+	SelfActivateKYCContainer           SelfActivateKYCService
 	UssdMerchantContainer              UssdMerchantService
 	BPSActionContainer                 BPSActionService
 	SuperAppRoleContainer              SuperAppRoleService
@@ -945,6 +947,15 @@ type CustomerKYCService interface {
 	PickKycReview(ctx context.Context, id string, reason string) error
 	// UpdateKYCStatus(ctx context.Context, id, status string) error
 	// Delete(ctx context.Context, id string) error
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+}
+
+type SelfActivateKYCService interface {
+	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]cust_kyc_dto.CustomerKYCResponse], error)
+	FindByID(ctx context.Context, id string) (*cust_kyc_dto.CustomerKYCResponse, error)
+	EnableOrDisable(ctx context.Context, id, reason string, enable bool) error
+	StartKycReview(ctx context.Context, id string) (*imodel.StartedKycReview, error)
+	PickKycReview(ctx context.Context, id string, reason string) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 

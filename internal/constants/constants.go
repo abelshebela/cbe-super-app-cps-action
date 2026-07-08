@@ -1138,6 +1138,12 @@ const (
 	RequestPickKycReview RequestAction = "PICK_KYC_REVIEW"
 	// RequestUpdateCustomerKYC RequestAction = "UPDATE_CUSTOMER_KYC"
 	// RequestDeleteCustomerKYC RequestAction = "DELETE_CUSTOMER_KYC"
+
+	// Self Activate KYC
+	RequestStartSelfActivateKy       RequestAction = "START_SELF_ACTIVATE_KYC"
+	RequestApproveSelfActivateKyc    RequestAction = "APPROVE_SELF_ACTIVATE_KYC"
+	RequestRejectSelfActivateKyc     RequestAction = "REJECT_SELF_ACTIVATE_KYC"
+	RequestPickSelfActivateKycReview RequestAction = "PICK_SELF_ACTIVATE_KYC_REVIEW"
 )
 
 const (
