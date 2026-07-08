@@ -24,6 +24,7 @@ import (
 type roleDelegationRepository struct {
 	repo              dal.MongoDal[imodel.RoleDelegation, imodel.RoleDelegation]
 	cpsRepo           dal.MongoDal[imodel.CPSUser, imodel.CPSUser]
+	bpsRepo           dal.MongoDal[imodel.BPSUser, imodel.BPSUser]
 	logger            utils.Logger
 	collection        *mongo.Collection
 	cpsUserCollection *mongo.Collection
@@ -147,6 +148,7 @@ func (r *roleDelegationRepository) CreateWithNewUser(ctx context.Context, role *
 				CreatedAt:          now,
 				IsDelegationActive: true,
 				DelegationID:       insertedID,
+				CreatedBy:          "CPS Portal",
 			})
 			if err != nil {
 				log.Errorf("[RoleDelegationRepository][Create] failed to update cps user delegate: %v", err)
@@ -165,6 +167,7 @@ func (r *roleDelegationRepository) CreateWithNewUser(ctx context.Context, role *
 				Enabled:          true,
 				CreatedAt:        now,
 				IsFirstTimeLogin: true,
+				ChangedBy:        "CPS Portal",
 			})
 			if err != nil {
 				log.Errorf("[RoleDelegationRepository][Create] failed to update bps user delegate: %v", err)
@@ -1006,6 +1009,38 @@ func (r *roleDelegationRepository) FindByID(ctx context.Context, id string) (*im
 		log.Errorf("[RoleDelegationRepository][FindByID] failed to find role delegation: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
+
+	if result.DelegatedUserUserType == "CPS" {
+		cpsUser, err := r.cpsRepo.FindOne(ctx, bson.M{"user_code": result.DelegatedUserUserCode}, bson.M{})
+		if err != nil {
+			log.Errorf("[RoleDelegationRepository][FindByID] failed to fetch cps user user_code %s err: %v", result.DelegatedUserUserCode, err)
+			return nil, localization.ErrorUnexpectedError
+		}
+		result.DelegatedUserFullName = cpsUser.FullName
+		result.DelegatedUserDepartmentOrBranch = cpsUser.Department.Hex()
+		result.DelegatedUserEmail = cpsUser.Email
+		result.DelegatedUserExistingRole = cpsUser.Role
+		result.DelegatedUserID = cpsUser.UserName
+		result.DelegatedUserJobTitle = cpsUser.JobTitle
+		result.DelegatedUserPhoneNumber = cpsUser.PhoneNumber
+	} else {
+		bpsUser, err := r.bpsRepo.FindOne(ctx, bson.M{"user_code": result.DelegatedUserUserCode}, bson.M{})
+		if err != nil {
+			log.Errorf("[RoleDelegationRepository][FindByID] failed to fetch bps user user_code %s err: %v", result.DelegatedUserUserCode, err)
+			return nil, localization.ErrorUnexpectedError
+		}
+		result.DelegatedUserFullName = bpsUser.FullName
+		if len(bpsUser.BranchCode) > 0 {
+			result.DelegatedUserDepartmentOrBranch = bpsUser.BranchCode[0]
+		}
+		result.DelegatedUserDepartmentOrBranchName = bpsUser.BranchName
+		result.DelegatedUserEmail = bpsUser.Email
+		result.DelegatedUserExistingRole = bpsUser.Role
+		result.DelegatedUserExistingRoleName = bpsUser.RoleName
+		result.DelegatedUserID = bpsUser.UserName
+		result.DelegatedUserJobTitle = bpsUser.JobTitle
+		result.DelegatedUserPhoneNumber = bpsUser.PhoneNumber
+	}
 	return result, nil
 }
 
@@ -1079,6 +1114,7 @@ func NewRoleDelegationRepository(client *mongo.Client, cfg *config.VaultConfig, 
 	return &roleDelegationRepository{
 		repo:              dal.NewMongoDal[imodel.RoleDelegation, imodel.RoleDelegation](client, cfg, database, collection[0]),
 		cpsRepo:           dal.NewMongoDal[imodel.CPSUser, imodel.CPSUser](client, cfg, database, collection[1]),
+		bpsRepo:           dal.NewMongoDal[imodel.BPSUser, imodel.BPSUser](client, cfg, database, collection[2]),
 		logger:            logger,
 		collection:        client.Database(database).Collection(collection[0]),
 		cpsUserCollection: client.Database(database).Collection(collection[1]),
