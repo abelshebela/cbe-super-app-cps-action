@@ -43,7 +43,11 @@ func (c *customerAdapter) SearchCustomerServiceLimitByCIF(w http.ResponseWriter,
 	log := local_util.LoggerFromCtx(ctx, c.logger)
 	log.Infof("[CustomerH][SearchCustomerServiceLimitByCIF] request received")
 
-	filterParam := local_util.ExtractFilterParams(r)
+	filterParam, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	search := filterParam.Search
 	if err := local_util.NoSpecialChars(search); err != nil {
@@ -96,7 +100,12 @@ func (c *customerAdapter) GetCustomerActionLogByID(w http.ResponseWriter, r *htt
 		localization.SendBadRequestResponse(w, localization.ErrorIdNotSetOnQueryParam.Code)
 		return
 	}
-	filterParams := local_util.ExtractFilterParams(r)
+
+	filterParams, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	span.SetAttributes(attribute.String("customer.id", id))
 	actionLogs, err := c.customerService.GetCustomerActionLogByID(ctx, id, *filterParams)
@@ -168,8 +177,10 @@ func (c *customerAdapter) SetEnableCustomerSession(w http.ResponseWriter, r *htt
 func (c *customerAdapter) DisableCustomer(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableCustomer", "handler", "customer")
 	defer span.End()
+
 	log := local_util.LoggerFromCtx(ctx, c.logger)
 	md := &types.ContextMetadata{}
+
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	localization.UpdateWriterContext(w, ctx)
 	id := chi.URLParam(r, "id")
@@ -207,9 +218,16 @@ func (c *customerAdapter) DisableCustomer(w http.ResponseWriter, r *http.Request
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+
 	log.Infof("[DisableCustomer] request sent successfully for customer id: %s", id)
 	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
-	localization.SendSuccessResponse(w, localization.CustomerDisableRequestCreatedSuccessfully, nil)
+
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.CustomerSegmentationCreated, nil)
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.CustomerDisableRequestSubmittedSuccessfully, nil)
 }
 
 // EnableCustomer enables a customer by ID using OTP verification
@@ -283,7 +301,12 @@ func (c customerAdapter) GetCustomerDetail(w http.ResponseWriter, r *http.Reques
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getCustomerDetail", "handler", "customer")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, c.logger)
-	filterParams := local_util.ExtractFilterParams(r)
+
+	filterParams, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
@@ -375,7 +398,12 @@ func (c customerAdapter) GetBlockedCustomer(w http.ResponseWriter, r *http.Reque
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getBlockedCustomer", "handler", "customer")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, c.logger)
-	filterParams := local_util.ExtractFilterParams(r)
+
+	filterParams, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
@@ -535,6 +563,7 @@ func (c customerAdapter) SearchCustomerByCIForAccountNumber(w http.ResponseWrite
 func (c *customerAdapter) SetBlockCustomerSession(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "blockCustomer", "handler", "customer")
 	defer span.End()
+
 	log := local_util.LoggerFromCtx(ctx, c.logger)
 	req := &dto.BlockCustomerRequest{}
 	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
@@ -582,13 +611,21 @@ func (c *customerAdapter) SetUnBlockCustomerSession(w http.ResponseWriter, r *ht
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	localization.UpdateWriterContext(w, ctx)
 
+	req := &dto.BlockCustomerRequest{}
+	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
+		span.RecordError(err)
+		log.Errorf("[BlockCustomer] invalid request body: %v", err)
+		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidRequestBody.Code)
+		return
+	}
+
 	id := strings.TrimSpace(chi.URLParam(r, "id"))
 	if id == "" {
 		localization.SendErrorByCodeResponse(w, localization.ErrorIdNotSetOnQueryParam.Code)
 		return
 	}
 
-	if err := c.customerService.UnBlockCustomerSession(ctx, id); err != nil {
+	if err := c.customerService.UnBlockCustomerSession(ctx, id, req.BlockedReason); err != nil {
 		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[BlockCustomer] service error: %v", err)

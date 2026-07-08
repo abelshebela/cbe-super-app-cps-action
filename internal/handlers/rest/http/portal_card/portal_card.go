@@ -44,7 +44,12 @@ func (s *portalCardAdapter) GetAllPortalCard(w http.ResponseWriter, r *http.Requ
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "portalCard", "portalCardAdapter", "GetAllPortalCard")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, s.logger)
-	filterParams := local_util.ExtractFilterParams(r)
+
+	filterParams, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")

@@ -557,8 +557,8 @@ func (s *bpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 			return nil, err
 		}
 
-		log.Infof("[BpsActRoleSvc][Authorize] sync update makers: %d, checkers: %d, auditors: %d", len(new.AssignedMakersRoles), len(new.AssignedCheckerRoles), len(new.AssignedAuditorRoles))
-		if err := s.syncIndices(ctx, new.ActionName, new); err != nil {
+		log.Infof("[BpsActRoleSvc][Authorize] sync update makers: %d, checkers: %d, auditors: %d, action_name: %s ", len(new.AssignedMakersRoles), len(new.AssignedCheckerRoles), len(new.AssignedAuditorRoles), new.ActionName)
+		if err := s.syncIndices(ctx, prev.ActionCode, new); err != nil {
 			span.AddEvent("failed to sync indices for create", trace.WithAttributes(attribute.String("error", err.Error())))
 			return nil, err
 		}

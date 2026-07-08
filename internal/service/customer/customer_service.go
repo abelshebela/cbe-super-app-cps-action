@@ -14,7 +14,6 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"time"
 
 	"cbe-super-app-cps-action/internal/constants/types"
 
@@ -361,31 +360,17 @@ func (c *customerService) DisableCustomerByID(ctx context.Context, id string, di
 		return fmt.Errorf(constants.IncompleteUserInfo)
 	}
 
-	customer, err := c.repo.FindByID(ctx, id)
-	code, _ := local_util.HandleMongoError(err)
-	if code == localization.ErrorResourceNotFound.Code {
-		log.Errorf("[CustomerSvc][Disable] not found")
-		span.AddEvent("Customer not found", trace.WithAttributes(
-			attribute.String("error", code),
-			attribute.String("id", id),
-		))
-		return fmt.Errorf("%s", code)
-	} else if err != nil {
-		log.Errorf("[CustomerSvc][Disable] find err: %v", err)
-		span.AddEvent("Failed to find customer", trace.WithAttributes(
-			attribute.String("error", err.Error()),
-			attribute.String("id", id),
-		))
+	customer, err := c.repo.FindUserByUserCode(ctx, id)
+	if err != nil {
 		return err
 	}
 
-	if !customer.Enabled {
-		log.Errorf("[CustomerSvc][Disable] already disabled")
-		span.AddEvent("Customer already disabled", trace.WithAttributes(
-			attribute.String("error", localization.ErrorCustomerAlreadyDisabled.Code),
-			attribute.String("id", id),
-		))
-		return fmt.Errorf("%s", localization.ErrorCustomerAlreadyDisabled.Code)
+	if disable.Channel == "BOTH" && !customer.ISuperappEnabled && !customer.IsUSSDEnabled {
+		return fmt.Errorf("Both channels are already disabled")
+	} else if disable.Channel == "SUPPERAPP" && !customer.ISuperappEnabled {
+		return fmt.Errorf("Supperapp channel is already disabled")
+	} else if disable.Channel == "USSD" && !customer.IsUSSDEnabled {
+		return fmt.Errorf("USSD channel is already disabled")
 	}
 
 	channel := disable.Channel
@@ -441,21 +426,8 @@ func (c *customerService) BlockCustomerSession(ctx context.Context, id, BlockedR
 		return fmt.Errorf(constants.IncompleteUserInfo)
 	}
 
-	customer, err := c.repo.FindByID(ctx, id)
-	code, _ := local_util.HandleMongoError(err)
-	if code == localization.ErrorResourceNotFound.Code {
-		log.Errorf("[CustomerSvc][BlockCustomerSession] not found")
-		span.AddEvent("Customer not found", trace.WithAttributes(
-			attribute.String("error", code),
-			attribute.String("id", id),
-		))
-		return fmt.Errorf("%s", code)
-	} else if err != nil {
-		log.Errorf("[CustomerSvc][BlockCustomerSession] find err: %v", err)
-		span.AddEvent("Failed to find customer", trace.WithAttributes(
-			attribute.String("error", err.Error()),
-			attribute.String("id", id),
-		))
+	customer, err := c.repo.FindUserByUserCode(ctx, id)
+	if err != nil {
 		return err
 	}
 
@@ -484,22 +456,22 @@ func (c *customerService) BlockCustomerSession(ctx context.Context, id, BlockedR
 		return err
 	}
 
-	entry := &imodel.CustomerBarUnBarReason{
-		UserID:    id,
-		Reason:    BlockedReason,
-		IsBarred:  true,
-		CreatedBy: makerData.UserCode,
-		CreatedAt: time.Now(),
-	}
-	if saveErr := c.repo.SaveBarUnBarReason(ctx, entry); saveErr != nil {
-		log.Errorf("[CustomerSvc][BlockCustomerSession] save reason err: %v", saveErr)
-	}
+	// entry := &imodel.CustomerBarUnBarReason{
+	// 	UserID:    id,
+	// 	Reason:    BlockedReason,
+	// 	IsBarred:  true,
+	// 	CreatedBy: makerData.UserCode,
+	// 	CreatedAt: time.Now(),
+	// }
+	// if saveErr := c.repo.SaveBarUnBarReason(ctx, entry); saveErr != nil {
+	// 	log.Errorf("[CustomerSvc][BlockCustomerSession] save reason err: %v", saveErr)
+	// }
 
 	log.Infof("[CustomerSvc][BlockCustomerSession] request created id: %s", id)
 	return nil
 }
 
-func (c *customerService) UnBlockCustomerSession(ctx context.Context, id string) error {
+func (c *customerService) UnBlockCustomerSession(ctx context.Context, id, reason string) error {
 	log := local_util.LoggerFromCtx(ctx, c.logger)
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "BlockCustomerSession", "Customer", "BlockCustomerSession")
@@ -516,21 +488,8 @@ func (c *customerService) UnBlockCustomerSession(ctx context.Context, id string)
 		return fmt.Errorf(constants.IncompleteUserInfo)
 	}
 
-	customer, err := c.repo.FindByID(ctx, id)
-	code, _ := local_util.HandleMongoError(err)
-	if code == localization.ErrorResourceNotFound.Code {
-		log.Errorf("[CustomerSvc][BlockCustomerSession] not found")
-		span.AddEvent("Customer not found", trace.WithAttributes(
-			attribute.String("error", code),
-			attribute.String("id", id),
-		))
-		return fmt.Errorf("%s", code)
-	} else if err != nil {
-		log.Errorf("[CustomerSvc][BlockCustomerSession] find err: %v", err)
-		span.AddEvent("Failed to find customer", trace.WithAttributes(
-			attribute.String("error", err.Error()),
-			attribute.String("id", id),
-		))
+	customer, err := c.repo.FindUserByUserCode(ctx, id)
+	if err != nil {
 		return err
 	}
 
@@ -545,7 +504,7 @@ func (c *customerService) UnBlockCustomerSession(ctx context.Context, id string)
 
 	new_customer := *customer
 	new_customer.IsBlocked = false
-	new_customer.BlockedReason = ""
+	new_customer.BlockedReason = reason
 
 	action := lib.CpsModelBuilder(customer.UserCode, makerData, customer, new_customer, string(constants.RequestUnblockCustomer), constants.UPDATE)
 
@@ -559,16 +518,16 @@ func (c *customerService) UnBlockCustomerSession(ctx context.Context, id string)
 		return err
 	}
 
-	entry := &imodel.CustomerBarUnBarReason{
-		UserID:    id,
-		Reason:    "",
-		IsBarred:  false,
-		CreatedBy: makerData.UserCode,
-		CreatedAt: time.Now(),
-	}
-	if saveErr := c.repo.SaveBarUnBarReason(ctx, entry); saveErr != nil {
-		log.Errorf("[CustomerSvc][UnBlockCustomerSession] save reason err: %v", saveErr)
-	}
+	// entry := &imodel.CustomerBarUnBarReason{
+	// 	UserID:    id,
+	// 	Reason:    "",
+	// 	IsBarred:  false,
+	// 	CreatedBy: makerData.UserCode,
+	// 	CreatedAt: time.Now(),
+	// }
+	// if saveErr := c.repo.SaveBarUnBarReason(ctx, entry); saveErr != nil {
+	// 	log.Errorf("[CustomerSvc][UnBlockCustomerSession] save reason err: %v", saveErr)
+	// }
 
 	log.Infof("[CustomerSvc][UnBlockCustomerSession] request created id: %s", id)
 	return nil
@@ -825,6 +784,7 @@ func (d *customerService) GetCustomerDetailByID(ctx context.Context, id string) 
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetCustomerDetailByID", "Customer", "GetCustomerDetailByID")
 	defer span.End()
+
 	log.Infof("[CustomerSvc][GetDetail] id: %s", id)
 	res, err := d.repo.FindCustomerDetailByID(ctx, id)
 	if err != nil {

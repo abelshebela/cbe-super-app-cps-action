@@ -56,8 +56,12 @@ func (d *DepartmentHandler) GetAllDepartments(w http.ResponseWriter, r *http.Req
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllDepartments", "handler", "department")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, d.logger)
-	filterParams := local_util.ExtractFilterParams(r)
+	filterParams, err := local_util.ExtractFilterParams(r)
 
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
 

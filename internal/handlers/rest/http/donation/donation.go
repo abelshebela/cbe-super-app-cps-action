@@ -216,8 +216,11 @@ func (d *donationAdapter) FetchDonation(w http.ResponseWriter, r *http.Request) 
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, d.logger)
 
-	filterParams := local_util.ExtractFilterParams(r)
-	fmt.Printf(">>> [HANDLER] FetchDonation - filterParams: page=%d, perPage=%d, search=%s\n", filterParams.Page, filterParams.PerPage, filterParams.Search)
+	filterParams, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
