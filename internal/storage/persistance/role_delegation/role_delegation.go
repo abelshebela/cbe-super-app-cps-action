@@ -59,7 +59,14 @@ func (r *roleDelegationRepository) CreateWithExistingUser(ctx context.Context, r
 		}
 
 		updatePipeline := mongo.Pipeline{
-			bson.D{{Key: "$set", Value: bson.M{"is_delegation_active": true, "delegation_id": insertedID}}},
+			bson.D{{
+				Key: "$set",
+				Value: bson.M{
+					"is_delegation_active": true,
+					"delegation_id":        insertedID,
+					"enabled":              true,
+				},
+			}},
 		}
 
 		if role.DelegatedUserUserType == "CPS" {
