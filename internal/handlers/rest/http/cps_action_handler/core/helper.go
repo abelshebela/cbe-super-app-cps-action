@@ -75,19 +75,27 @@ func DataFormatter(from string, to string, log utils.Logger) (time.Time, time.Ti
 }
 
 func ParameterProvider(ctx context.Context, filterParams *types.Filter, span trace.Span, role string, idxRepo storage.CPSActionApproveIndexRepository, log utils.Logger) (*types.Filter, []string, error) {
-
+	var actionData []string
 	rawRoleID, _ := ctx.Value(constants.ContextKey("role_code")).(string)
 	if rawRoleID == "" {
 		return nil, nil, errors.New(localization.ErrorOperationNotAllowed.Message)
 	}
 
-	_, _, checkerActions, _, _, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
+	_, makerActions, checkerActions, auditorActions, _, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
 	if err != nil {
 		span.RecordError(err)
 		return nil, nil, errors.New(err.Error())
 	}
 
-	if checkerActions == nil {
+	if role == constants.Maker {
+		actionData = makerActions
+	} else if role == constants.Checker {
+		actionData = checkerActions
+	} else if role == constants.Auditor {
+		actionData = auditorActions
+	}
+
+	if actionData == nil {
 		return nil, nil, errors.New(localization.ErrorOperationNotAllowed.Message)
 	}
 
@@ -98,11 +106,11 @@ func ParameterProvider(ctx context.Context, filterParams *types.Filter, span tra
 	services := local_util.ExtractStringSlice(filterParams.Filters, "services")
 	log.Infof("[CPSAction][GetUserApproverActions] list of service trying to filer ******** services:%s", services)
 
-	log.Infof("[CpsActionH][Approve] checker actions: %v", checkerActions)
+	log.Infof("[CpsActionH][Approve] checker actions: %v", actionData)
 
 	if len(services) != 0 {
 		for _, chk := range services {
-			if !slices.Contains(checkerActions, chk) {
+			if !slices.Contains(actionData, chk) {
 				return nil, nil, errors.New(localization.ErrorNotAllowedServicesIncluded.Message)
 			}
 		}
@@ -123,7 +131,7 @@ func ParameterProvider(ctx context.Context, filterParams *types.Filter, span tra
 	}
 
 	seen = map[string]struct{}{}
-	for _, mod := range checkerActions {
+	for _, mod := range actionData {
 		upper := strings.ToUpper(strings.TrimSpace(mod))
 		if lst, ok := cpsactionsvc.RequestActionGroups[upper]; ok {
 			for _, ra := range lst {

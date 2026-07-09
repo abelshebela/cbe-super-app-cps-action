@@ -3,6 +3,7 @@ package core
 import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/lib"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -131,7 +132,7 @@ func HandleCPSActionForEcommerceMerchant(ctx context.Context, cpsService service
 	return nil
 }
 
-func ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber string, accountLookupService account_lookup.Account) (*model.AccountDetail, error) {
+func ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber string, accountLookupService account_lookup.Account) (*imodel.AccountDetail, error) {
 	accountRequest := model.AccountLookUpRequest{
 		AccountNumber: accountNumber,
 	}

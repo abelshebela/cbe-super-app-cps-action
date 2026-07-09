@@ -178,7 +178,12 @@ func (h BPSUserHandler) GetAllBPSUsers(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "getAllBpsUsers", "handler", "bpsUser")
 	defer span.End()
 	log := common_utils.LoggerFromCtx(ctx, h.logger)
-	filterParams := common_utils.ExtractFilterParams(r)
+
+	filterParams, err := common_utils.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
@@ -346,13 +351,18 @@ func (h BPSUserHandler) CreateBPSUser(w http.ResponseWriter, r *http.Request) {
 	userCodeGenerated := local_utils.RandomGenerator(8)
 	phoneNumber := common_utils.FormatPhoneNumber(req.PhoneNumber)
 
+	string_branches := make([]string, len(req.BranchCode))
+	for i, branch := range req.BranchCode {
+		string_branches[i] = strings.TrimSpace(branch)
+	}
+
 	NewUser := bps_model.BPSUser{
 		Username:         req.UserID,
 		FullName:         req.FullName,
 		JobTitle:         req.JobTitle,
 		UserCode:         userCodeGenerated,
 		PhoneNumber:      phoneNumber,
-		BranchCode:       req.BranchCode,
+		BranchCode:       string_branches,
 		Email:            req.Email,
 		FirstPasswordSet: true,
 		IsFirstTimeLogin: true,
@@ -398,9 +408,10 @@ func (h BPSUserHandler) UpdateBPSUser(w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	localization.UpdateWriterContext(w, ctx)
 	log := common_utils.LoggerFromCtx(ctx, h.logger)
-
+	log.Infof("[UpdateBPSUser] request received for update")
 	id := chi.URLParam(r, "id")
 	if id == "" {
+		log.Warnf("[UpdateBPSUser] user code is required but not provided")
 		localization.SendBadRequestResponse(w, "user code required")
 		return
 	}
@@ -409,11 +420,13 @@ func (h BPSUserHandler) UpdateBPSUser(w http.ResponseWriter, r *http.Request) {
 
 	var req bps_user_dto.BPSUserUpdateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.Errorf("[UpdateBPSUser] failed to decode request body: %v", err)
 		localization.SendBadRequestResponse(w, "Invalid request payload")
 		return
 	}
 
 	if err := req.Validate(); err != nil {
+		log.Warnf("[UpdateBPSUser] validation failed: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
@@ -439,8 +452,12 @@ func (h BPSUserHandler) UpdateBPSUser(w http.ResponseWriter, r *http.Request) {
 	if req.Email != nil {
 		updatedUser.Email = *req.Email
 	}
+	string_branches := make([]string, len(req.BranchCode))
+	for i, branch := range req.BranchCode {
+		string_branches[i] = strings.TrimSpace(branch)
+	}
 	if len(req.BranchCode) > 0 {
-		updatedUser.BranchCode = req.BranchCode
+		updatedUser.BranchCode = string_branches
 	}
 
 	err := h.Service.UpdateBPSUser(ctx, id, updatedUser)

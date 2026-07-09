@@ -23,6 +23,7 @@ import (
 	bps_actionrole_routing "cbe-super-app-cps-action/internal/glue/routing/bps_action_role"
 	cps_actionrole_routing "cbe-super-app-cps-action/internal/glue/routing/cps_action_role"
 	customerkyc "cbe-super-app-cps-action/internal/glue/routing/customer_kyc"
+	selfActivationKYC "cbe-super-app-cps-action/internal/glue/routing/customer_kyc_self"
 	device_version "cbe-super-app-cps-action/internal/glue/routing/device_version"
 	ecommerce_merchant "cbe-super-app-cps-action/internal/glue/routing/ecommerce-merchant"
 	event_merchant_routing "cbe-super-app-cps-action/internal/glue/routing/event_merchant"
@@ -201,7 +202,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, encryptionMiddleware shared
 	// cps_roles.Init(r, handlerLayer.CPSRolesHandler, authMiddleware)
 	logistic_merchant_router.Init(r, handlerLayer.LogisticsMerchantHandler, authMiddleware)
 	customerkyc.Init(r, handlerLayer.CustomerKYCHandler, authMiddleware)
-
+	selfActivationKYC.Init(r, handlerLayer.SelfActivationKYCHandler, authMiddleware)
 	roles.Init(r, handlerLayer.RoleHandler, authMiddleware)
 	role_delegation.Init(r, handlerLayer.RoleDelegationHandler, authMiddleware)
 

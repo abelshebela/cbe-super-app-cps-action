@@ -331,11 +331,14 @@ func (s *bpsActionRoleService) buildUpdatePayload(
 		payload.AssignedMakersRoles = []string{}
 		payload.AssignedAuditorRoles = []string{}
 		payload.AssignedCheckerRoles = [][]string{}
+		payload.AssignedViewersRoles = coalesceStringSlice(req.AssignedViewersRoles, rawOld.AssignedViewersRoles)
 	case isMakerOnly:
+		payload.AssignedViewersRoles = coalesceStringSlice(req.AssignedViewersRoles, rawOld.AssignedViewersRoles)
 		payload.AssignedMakersRoles = coalesceStringSlice(req.AssignedMakersRoles, rawOld.AssignedMakersRoles)
 		payload.AssignedAuditorRoles = coalesceStringSlice(req.AssignedAuditorRoles, rawOld.AssignedAuditorRoles)
 		payload.AssignedCheckerRoles = [][]string{}
 	default:
+		payload.AssignedViewersRoles = coalesceStringSlice(req.AssignedViewersRoles, rawOld.AssignedViewersRoles)
 		payload.AssignedMakersRoles = coalesceStringSlice(req.AssignedMakersRoles, rawOld.AssignedMakersRoles)
 		payload.AssignedAuditorRoles = coalesceStringSlice(req.AssignedAuditorRoles, rawOld.AssignedAuditorRoles)
 		payload.AssignedCheckerRoles = coalesceCheckerSlice(req.AssignedCheckerRoles, rawOld.AssignedCheckerRoles)
@@ -520,7 +523,7 @@ func (s *bpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 
 	case string(constants.UPDATE):
 		// Handle enable/disable separately to avoid corrupting data with partial payload
-		if action.RequestAction == string(constants.RequestEnableCpsActionRole) {
+		if action.RequestAction == string(constants.RequestEnableActionRole) {
 			if err := s.repo.EnableOrDisableByActionCode(ctx, action.UniqueId, true); err != nil {
 				span.AddEvent("failed to enable action role", trace.WithAttributes(attribute.String("error", err.Error())))
 				return nil, err
@@ -554,8 +557,8 @@ func (s *bpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 			return nil, err
 		}
 
-		log.Infof("[BpsActRoleSvc][Authorize] sync update makers: %d, checkers: %d, auditors: %d", len(new.AssignedMakersRoles), len(new.AssignedCheckerRoles), len(new.AssignedAuditorRoles))
-		if err := s.syncIndices(ctx, new.ActionCode, new); err != nil {
+		log.Infof("[BpsActRoleSvc][Authorize] sync update makers: %d, checkers: %d, auditors: %d, action_name: %s ", len(new.AssignedMakersRoles), len(new.AssignedCheckerRoles), len(new.AssignedAuditorRoles), new.ActionName)
+		if err := s.syncIndices(ctx, prev.ActionCode, new); err != nil {
 			span.AddEvent("failed to sync indices for create", trace.WithAttributes(attribute.String("error", err.Error())))
 			return nil, err
 		}
@@ -634,7 +637,7 @@ func (s *bpsActionRoleService) syncIndices(ctx context.Context, oldActionName st
 	defer span.End()
 	span.SetAttributes(attribute.String("old_action_name", oldActionName))
 	indices := s.generateIndices(role)
-	log.Infof("[BpsActRoleSvc][SyncIndices] generated %d for action: %s (old: %s)", len(indices), role.ActionName, oldActionName)
+	log.Infof("[BpsActRoleSvc][SyncIndices] generated %d for action: %s (old: %s)", len(indices), role.ActionCode, oldActionName)
 
 	if oldActionName == "" {
 		return s.indexRepo.SaveIndices(ctx, indices)
@@ -653,7 +656,7 @@ func (s *bpsActionRoleService) generateIndices(role *imodel.BPSActionRole) []imo
 
 	var indices []imodel.BPSActionApproveIndex
 	now := time.Now()
-	s.logger.Infof("[BpsActRoleSvc][GenIndices] action: %s viewers: %d makers: %d checkers: %d auditors: %d", role.ActionName, len(role.AssignedViewersRoles), len(role.AssignedMakersRoles), len(role.AssignedCheckerRoles), len(role.AssignedAuditorRoles))
+	s.logger.Infof("[BpsActRoleSvc][GenIndices] action: %s viewers: %d makers: %d checkers: %d auditors: %d", role.ActionCode, len(role.AssignedViewersRoles), len(role.AssignedMakersRoles), len(role.AssignedCheckerRoles), len(role.AssignedAuditorRoles))
 
 	// Makers
 	if len(role.AssignedMakersRoles) > 0 {
@@ -662,7 +665,7 @@ func (s *bpsActionRoleService) generateIndices(role *imodel.BPSActionRole) []imo
 			indices = append(indices, imodel.BPSActionApproveIndex{
 				ID:         bson.NewObjectID(),
 				RoleId:     makerID,
-				ActionName: role.ActionName,
+				ActionName: role.ActionCode,
 				MakerIndex: &idx,
 				UpdatedAt:  now,
 				CreatedAt:  now,
@@ -688,7 +691,7 @@ func (s *bpsActionRoleService) generateIndices(role *imodel.BPSActionRole) []imo
 				indices = append(indices, imodel.BPSActionApproveIndex{
 					ID:          bson.NewObjectID(),
 					RoleId:      viewerID,
-					ActionName:  role.ActionName,
+					ActionName:  role.ActionCode,
 					ViewerIndex: &idx,
 					UpdatedAt:   now,
 					CreatedAt:   now,
@@ -719,7 +722,7 @@ func (s *bpsActionRoleService) generateIndices(role *imodel.BPSActionRole) []imo
 				indices = append(indices, imodel.BPSActionApproveIndex{
 					ID:           bson.NewObjectID(),
 					RoleId:       auditorID,
-					ActionName:   role.ActionName,
+					ActionName:   role.ActionCode,
 					AuditorIndex: &idx,
 					UpdatedAt:    now,
 					CreatedAt:    now,
@@ -751,7 +754,7 @@ func (s *bpsActionRoleService) generateIndices(role *imodel.BPSActionRole) []imo
 					indices = append(indices, imodel.BPSActionApproveIndex{
 						ID:           bson.NewObjectID(),
 						RoleId:       checkerID,
-						ActionName:   role.ActionName,
+						ActionName:   role.ActionCode,
 						CheckerIndex: &val,
 						UpdatedAt:    now,
 						CreatedAt:    now,

@@ -60,6 +60,7 @@ func BuildRoleDelegationRequestForUpdate(
 // BuildRoleDelegationRequest validates and converts the request payload into a service model.
 func BuildRoleDelegationRequestWithExistingUser(body role_delegation_dto.RoleDelegationRequest) (imodel.RoleDelegation, error) {
 	delegatedUserID := strings.TrimSpace(body.DelegatedUserID)
+	delegatedUserUserCode := strings.TrimSpace(body.DelegatedUserUserCode)
 	delegatedUserUserType := strings.TrimSpace(body.DelegatedUserUserType)
 	delegationType := strings.TrimSpace(body.DelegationType)
 	delegatedUserDepartmentOrBranch := strings.TrimSpace(body.DelegatedUserDepartmentOrBranch)
@@ -78,6 +79,10 @@ func BuildRoleDelegationRequestWithExistingUser(body role_delegation_dto.RoleDel
 
 	if delegatedUserID == "" {
 		return imodel.RoleDelegation{}, errors.New("Delegated user ID is required")
+	}
+
+	if delegatedUserUserCode == "" {
+		return imodel.RoleDelegation{}, errors.New("Delegated user user code is required")
 	}
 	if delegatedUserUserType == "" {
 		return imodel.RoleDelegation{}, errors.New("Delegated user type is required")
@@ -142,6 +147,7 @@ func BuildRoleDelegationRequestWithExistingUser(body role_delegation_dto.RoleDel
 
 	return imodel.RoleDelegation{
 		DelegatedUserID:                 delegatedUserID,
+		DelegatedUserUserCode:           delegatedUserUserCode,
 		DelegatedUserUserType:           delegatedUserUserType,
 		DelegatedUserDepartmentOrBranch: delegatedUserDepartmentOrBranch,
 		DelegatedUserExistingRole:       delegatedUserExistingRole,
@@ -159,7 +165,7 @@ func BuildRoleDelegationRequestWithExistingUser(body role_delegation_dto.RoleDel
 	}, nil
 }
 func BuildRoleDelegationRequestWithNewUser(body role_delegation_dto.RoleDelegationRequest) (imodel.RoleDelegation, error) {
-	delegatedUserID := strings.TrimSpace(body.DelegatedUserID)
+	delegatedUserID := strings.ToUpper(strings.TrimSpace(body.DelegatedUserID))
 	delegatedUserFullName := strings.TrimSpace(body.DelegatedUserFullName)
 	delegatedUserUserType := strings.TrimSpace(body.DelegatedUserUserType)
 	delegatedUserDepartmentOrBranch := strings.TrimSpace(body.DelegatedUserDepartmentOrBranch)

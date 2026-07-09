@@ -1,13 +1,13 @@
 package notification
 
 import (
-	shared_notification "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/notification/dto"
+	local_model "cbe-super-app-cps-action/internal/constants/model"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 // NotificationMapper maps a Notification model to a bson.M for updates
-func NotificationMapper(notification shared_notification.BroadcastInAppNotificationMessage) bson.M {
+func NotificationMapper(notification local_model.NotificationDocument) bson.M {
 	// 	 Title             string                      `json:"title" bson:"title"`
 	// Message           string                      `json:"message" bson:"message"`
 	// BroadcastCategory constants.BroadcastCategory `json:"category" bson:"category"`
@@ -36,10 +36,10 @@ func NotificationMapper(notification shared_notification.BroadcastInAppNotificat
 	// }
 
 	return bson.M{
-		"title":    notification.Title,
-		"message":  notification.Message,
-		"category": notification.Category,
-		"type":     notification.BroadcastType,
+		"title":             notification.Title,
+		"notification_body": notification.NotificationBody,
+		"category":          notification.Category,
+		"for":               notification.For,
 	}
 }
 

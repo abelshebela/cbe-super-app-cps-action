@@ -126,7 +126,12 @@ func (a *advertAdapter) FetchAdverts(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "fetchAdverts", "handler", "advert")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, a.logger)
-	filterParams := local_util.ExtractFilterParams(r)
+
+	filterParams, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")

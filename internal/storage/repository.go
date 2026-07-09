@@ -1,8 +1,6 @@
 package storage
 
 import (
-	shared_notification "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/notification/dto"
-
 	ussd_merchant_dto "cbe-super-app-cps-action/internal/constants/dto/ussd_merchant"
 	"context"
 	"time"
@@ -342,34 +340,28 @@ type AmountBasedAuthOracleRepository interface {
 
 // AccountBlock persistence
 type AccountBlockRepository interface {
-	CreateBranch(ctx context.Context, branch *local_model.AccountBlock) error
-	DeleteBranch(ctx context.Context, id string) error
 	FindAllBranchesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*local_model.AccountBlock], error)
 	EnableOrDisableBranches(ctx context.Context, ids []string, reason *types.Reason, enabled bool) error
 	GetBranchesByIds(ctx context.Context, ids []string) ([]*local_model.AccountBlock, error)
+	GetBranchByCode(ctx context.Context, code string) (*imodel.AccountBlock, error)
+	GetBranchByDAOCode(ctx context.Context, code string) (*imodel.AccountBlock, error)
+	GetAllBranchesByDistrictOrRegion(ctx context.Context, id string) ([]local_model.AccountBlock, error)
 	FindByFilterKey(ctx context.Context, field, value string) (*local_model.AccountBlock, error)
 
-	// CreateCity(ctx context.Context, city *local_model.AccountBlock) error
-	// DeleteCity(ctx context.Context, id string) error
 	// FindAllCitiesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*local_model.AccountBlock], error)
 	// EnableOrDisableCities(ctx context.Context, ids []string, reason *types.Reason, enabled bool) error
 	// GetCitiesByIds(ctx context.Context, ids []string) ([]*local_model.AccountBlock, error)
 
-	CreateRegion(ctx context.Context, region *local_model.AccountBlock) error
-	DeleteRegion(ctx context.Context, id string) error
 	FindAllRegionsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*local_model.AccountBlock], error)
 	EnableOrDisableRegions(ctx context.Context, ids []string, reason *types.Reason, enabled bool) error
 	GetRegionsByIds(ctx context.Context, ids []string) ([]*local_model.AccountBlock, error)
 
-	CreateDistrict(ctx context.Context, district *local_model.AccountBlock) error
-	DeleteDistrict(ctx context.Context, id string) error
 	FindAllDistrictsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*local_model.AccountBlock], error)
 	EnableOrDisableDistricts(ctx context.Context, ids []string, reason *types.Reason, enabled bool) error
 	GetDistrictsByIds(ctx context.Context, ids []string) ([]*local_model.AccountBlock, error)
+
 	GetAccountBlockDetails(ctx context.Context, id string, filterParam types.Filter) (*types.PaginatedResponse[[]account_block_dto.AccountBlockActionResponse], error)
 	GetPreviousReasons(ctx context.Context, entityType string, identifier string) ([]local_model.AccountBlockReason, error)
-	GetAllBranches(ctx context.Context, id string) ([]local_model.AccountBlock, error)
-	GetBranchByCode(ctx context.Context, code string) (*imodel.AccountBlock, error)
 }
 
 type AdvertRepository interface {
@@ -581,12 +573,12 @@ type EcommerceMerchantRepository interface {
 }
 
 type NotificationRepository interface {
-	Create(ctx context.Context, notification *shared_notification.BroadcastInAppNotificationMessage) error
-	Update(ctx context.Context, id string, notification *shared_notification.BroadcastInAppNotificationMessage) error
+	Create(ctx context.Context, notification *imodel.NotificationDocument) error
+	Update(ctx context.Context, id string, notification *imodel.NotificationDocument) error
 	Delete(ctx context.Context, id string) error
-	FindByID(ctx context.Context, id string) (*shared_notification.BroadcastInAppNotificationMessage, error)
+	FindByID(ctx context.Context, id string) (*imodel.NotificationDocument, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.NotificationDocument], error)
-	EnableDisableNotification(ctx context.Context, id string, enable bool) (*shared_notification.BroadcastInAppNotificationMessage, error)
+	EnableDisableNotification(ctx context.Context, id string, enable bool) (*imodel.NotificationDocument, error)
 	NotificationExists(ctx context.Context, notificationType string, forValue constants.NotificationFor, id *string) (bool, error)
 }
 
@@ -664,6 +656,7 @@ type FaydaRepository interface {
 
 type CustomerRepository interface {
 	FindByID(ctx context.Context, id string) (*member.User, error)
+	FindUserByUserCode(ctx context.Context, userCode string) (*member.User, error)
 	Update(ctx context.Context, id string, data member.User) error
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*customer_dto.CustomerListResponse], error)
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
@@ -676,6 +669,9 @@ type CustomerRepository interface {
 	FindCustomerLinkedAccountByUserID(ctx context.Context, userID string) (*model.LinkedAccount, error)
 	BlockCustomerByUserCode(ctx context.Context, userCode string) error
 	UNBlockCustomerByUserCode(ctx context.Context, userCode string) error
+	DisableCustomerByChannel(ctx context.Context, userCode, channel string) error
+	SaveBarUnBarReason(ctx context.Context, entry *imodel.CustomerBarUnBarReason) error
+	GetBarUnBarReasons(ctx context.Context, userID string) ([]*imodel.CustomerBarUnBarReason, error)
 }
 
 type BulkServiceRepository interface {
@@ -949,6 +945,16 @@ type CustomerKYCRepository interface {
 	StartKycReview(ctx context.Context, reviewData *imodel.StartedKycReview) (*imodel.StartedKycReview, error)
 	UpdateKycReview(ctx context.Context, kycID string, reviewData *imodel.StartedKycReview) (*imodel.StartedKycReview, error)
 	// Delete(ctx context.Context, id string) error
+}
+
+type SelfActivationKYCRepository interface {
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.CustomerKYC], error)
+	FindByID(ctx context.Context, id string) (*imodel.CustomerKYC, error)
+	CreateAndLinkUser(ctx context.Context, userAccount *coreio.PhoneLookupResult, userData imodel.CustomerKYC) error
+	UpdateKYCStatus(ctx context.Context, id, status, rejectionReason string, approved bool) error
+	FindKycInReview(ctx context.Context, kycID string) (*imodel.StartedKycReview, error)
+	StartKycReview(ctx context.Context, reviewData *imodel.StartedKycReview) (*imodel.StartedKycReview, error)
+	UpdateKycReview(ctx context.Context, kycID string, reviewData *imodel.StartedKycReview) (*imodel.StartedKycReview, error)
 }
 
 type BankOracleRepository interface {

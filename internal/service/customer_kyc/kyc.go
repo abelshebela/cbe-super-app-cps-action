@@ -367,9 +367,9 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 			ISONationalityCode: "ET",
 			ISOResidentCode:    "ET",
 
-			UniqueID:   t24LegalID(local_util.NonEmptyString(userData.KYCData.OriginID, userData.KYCData.Sub)),
-			IssuesBy:   strings.ToUpper(string(userData.KYCData.Vendor)),
-			IssuedDate: t24IssuedDate(userData.KYCData.IssuedDate),
+			UniqueID: t24LegalID(local_util.NonEmptyString(userData.KYCData.OriginID, userData.KYCData.Sub)),
+			IssuesBy: strings.ToUpper(string(userData.KYCData.Vendor)),
+			// IssuedDate: t24IssuedDate(userData.KYCData.IssuedDate),
 			ExpiryDate: constants.Empty,
 
 			Gender:      strings.ToUpper(strings.TrimSpace(userData.KYCData.Gender)),

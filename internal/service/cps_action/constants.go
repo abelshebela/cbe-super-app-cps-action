@@ -50,6 +50,11 @@ const (
 	// RequestUpdateCustomerKYC  constants.RequestAction = "UPDATE_CUSTOMER_KYC"
 	// RequestDeleteCustomerKYC  constants.RequestAction = "DELETE_CUSTOMER_KYC"
 
+	RequestStartSelfActivateKy       constants.RequestAction = "START_SELF_ACTIVATE_KYC"
+	RequestApproveSelfActivateKyc    constants.RequestAction = "APPROVE_SELF_ACTIVATE_KYC"
+	RequestRejectSelfActivateKyc     constants.RequestAction = "REJECT_SELF_ACTIVATE_KYC"
+	RequestPickSelfActivateKycReview constants.RequestAction = "PICK_SELF_ACTIVATE_KYC_REVIEW"
+
 	RequestCreateCpsRole     constants.RequestAction = "CREATE_CPS_ROLE"
 	RequestUpdateCpsRole     constants.RequestAction = "UPDATE_CPS_ROLE"
 	RequestDeleteCpsRole     constants.RequestAction = "DELETE_CPS_ROLE"
@@ -269,6 +274,8 @@ const (
 	RequestDisableMultiBranches  constants.RequestAction = "REQUEST_DISABLE_MULTI_BRANCHES"
 	RequestDisableFaydaAccount   constants.RequestAction = "DISABLE_FAYDA_ACCOUNT"
 	RequestEnableFaydaAccount    constants.RequestAction = "ENABLE_FAYDA_ACCOUNT"
+	RequestUnblockCustomer       constants.RequestAction = "UNBLOCK_CUSTOMER"
+	RequestBlockCustomer         constants.RequestAction = "BLOCK_CUSTOMER"
 
 	RequestAccountUpdate         constants.RequestAction = "REQUEST_ACCOUNT_UPDATE"
 	RequestCreatePermissionGroup constants.RequestAction = "CREATE_PERMISSION_GROUP"
@@ -661,6 +668,8 @@ var validRequestActions = map[constants.RequestAction]struct{}{
 	RequestUpdateBlockTime:        {},
 	RequestDisableFaydaAccount:    {},
 	RequestEnableFaydaAccount:     {},
+	RequestBlockCustomer:          {},
+	RequestUnblockCustomer:        {},
 	RequestCreateAvatar:           {},
 	RequestDeleteAvatar:           {},
 	RequestDisableAvatar:          {},
@@ -799,6 +808,11 @@ var validRequestActions = map[constants.RequestAction]struct{}{
 	// RequestCreateCustomerKYC: {},
 	// RequestUpdateCustomerKYC: {},
 	// RequestDeleteCustomerKYC: {},
+
+	RequestStartSelfActivateKy:       {},
+	RequestApproveSelfActivateKyc:    {},
+	RequestRejectSelfActivateKyc:     {},
+	RequestPickSelfActivateKycReview: {},
 
 	RequestEnableDisableBank: {},
 
@@ -1218,6 +1232,8 @@ var RequestActionGroups = map[string][]constants.RequestAction{
 	"CUSTOMER": {
 		RequestEnableDisableCustomer,
 		RequestApproveFaydaCustomer,
+		RequestBlockCustomer,
+		RequestUnblockCustomer,
 	},
 	"NEWSCATEGORY": {
 		constants.RequestAction("CREATE_NEWS_CATEGORY"),
@@ -1362,6 +1378,13 @@ var RequestActionGroups = map[string][]constants.RequestAction{
 		// RequestCreateCustomerKYC,
 		// RequestUpdateCustomerKYC,
 		// RequestDeleteCustomerKYC,
+	},
+
+	"SELFACTIVATEKYC": {
+		RequestStartSelfActivateKy,
+		RequestApproveSelfActivateKyc,
+		RequestRejectSelfActivateKyc,
+		RequestPickSelfActivateKycReview,
 	},
 }
 

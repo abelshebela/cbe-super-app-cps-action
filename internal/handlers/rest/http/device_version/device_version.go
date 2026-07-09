@@ -190,7 +190,12 @@ func (h *deviceVersionAdapter) GetAllDeviceVersions(w http.ResponseWriter, r *ht
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllDeviceVersions", "handler", "deviceVersion")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, h.logger)
-	filterParams := local_util.ExtractFilterParams(r)
+
+	filterParams, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")

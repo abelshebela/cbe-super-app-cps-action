@@ -259,7 +259,7 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 		if len(tokens) > 0 {
 			if updErr := ca.repo.UpdateCustome(ctx,
 				bson.M{"action_code": cpsActionResult.ActionCode},
-				bson.M{"$set": bson.M{"unique_tokens": tokens}},
+				bson.M{"unique_tokens": tokens},
 			); updErr != nil {
 				log.Warnf("[CpsActionSvc][Create] failed to write unique_tokens: %v", updErr)
 			}
@@ -605,9 +605,9 @@ func (ca *cpsActionService) ApproveCPSAction(ctx context.Context, action *model.
 		return nil
 	}
 
-	approve, err := ca.dispatcher.Authorize(ctx, data)
+	_, err = ca.dispatcher.Authorize(ctx, data)
 	// if err != nil && approve == nil {
-	if err != nil && approve.ActionCode == "" {
+	if err != nil {
 		span.AddEvent("failed to authorize cps action", trace.WithAttributes(attribute.String("error", err.Error())))
 		log.Errorf("[CpsActionSvc][Approve] authorize err: %v", err)
 		RollErr := ca.RollBack(ctx, data)
@@ -1146,10 +1146,11 @@ func (ca *cpsActionService) GetUserCreatedActions(ctx context.Context, userID st
 	services := local_util.ExtractStringSlice(filterParams.Filters, "services")
 
 	if len(levels) > 0 || len(services) > 0 {
+		userData := local_util.ExtractUserFromContext(ctx)
 		// Log-only filters requested: query user_action_logs for matching codes.
 		// Pre-log actions won't appear here — they have no log metadata.
 		actionCodes, err := ca.actionLogRepo.GetActionCodesByActionLogFilter(ctx, imodel.UserActionLogActionCodeFilter{
-			MakerUserIDs:   []string{userID},
+			MakerUserIDs:   []string{userData.UserID},
 			ActionStatuses: local_util.ExtractStringSlice(filterParams.Filters, "action_status"),
 			Levels:         levels,
 			Services:       services,
@@ -1491,7 +1492,9 @@ var uniqueFieldsRegistry = map[string][]string{
 	// NewsCategoryCPSAction : CategoryName→"category_name"
 	string(constants.RequestCreateNewsCategory): {"category_name"},
 	// shared NewsArticle : Title→"title"
-	string(constants.RequestCreateArticle): {"title"},
+	string(constants.RequestCreateArticle):                       {"title"},
+	string(constants.RequestCreateRoleDelegationForExistingUser): {"delegated_user_id", "delegated_user_full_name", "delegated_user_phone_number", "delegated_user_email"},
+	string(constants.RequestCreateRoleDelegationForNewUser):      {"delegated_user_id", "delegated_user_full_name", "delegated_user_phone_number", "delegated_user_email"},
 }
 
 func extractUniqueTokens(requestAction string, currentAction interface{}) []string {

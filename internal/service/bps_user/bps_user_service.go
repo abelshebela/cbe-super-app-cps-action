@@ -483,15 +483,18 @@ func (b *bpsUserService) CreateBPSUser(ctx context.Context, req bps_model.BPSUse
 		b.logger.Errorf("[CreateBPSUser] account block repository is not configured")
 		return errors.New(localization.ErrorInternalServerError.Code)
 	}
+	b.logger.Infof("[CreateBPSUser] branch code: %s", req.BranchCode)
+
 	if len(req.BranchCode) == 0 {
 		return errors.New(localization.ErrorBranchCodeRequired.Code)
 	}
 	branchCode := strings.TrimSpace(req.BranchCode[0])
+	b.logger.Infof("[CreateBPSUser] branch code: %s", branchCode)
 	if branchCode == "" {
 		return errors.New(localization.ErrorBranchCodeRequired.Code)
 	}
 
-	branch_detail, err := b.Branch_blocks.FindByFilterKey(ctx, "code", branchCode)
+	branch_detail, err := b.Branch_blocks.FindByFilterKey(ctx, "dao_code", branchCode)
 	if err != nil {
 		b.logger.Errorf("[CreateBPSUser] Get error while locking branch name by branch code")
 		if err.Error() == localization.ErrorResourceNotFound.Code {
@@ -589,7 +592,7 @@ func (b *bpsUserService) UpdateBPSUser(ctx context.Context, userID string, updat
 	}
 
 	if len(updatedUser.BranchCode) > 0 {
-		branch_detail, err := b.Branch_blocks.FindByFilterKey(ctx, "code", strings.TrimSpace(updatedUser.BranchCode[0]))
+		branch_detail, err := b.Branch_blocks.FindByFilterKey(ctx, "dao_code", strings.TrimSpace(updatedUser.BranchCode[0]))
 		if err != nil {
 			if err.Error() != localization.ErrorResourceNotFound.Code {
 				b.logger.Errorf("[UpdateBPSUser] branch not found")

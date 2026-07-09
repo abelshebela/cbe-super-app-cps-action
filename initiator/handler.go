@@ -4,10 +4,9 @@ import (
 	// Inbound section
 	accesslistsegmentation "cbe-super-app-cps-action/internal/constants/interfaces/access_list_segmentation"
 	accountBlockHandlerInterface "cbe-super-app-cps-action/internal/constants/interfaces/account_block"
-	account_sub_type_interface "cbe-super-app-cps-action/internal/constants/interfaces/account_sub_type"
-	apc_interface "cbe-super-app-cps-action/internal/constants/interfaces/account_product_category"
 	ap_interface "cbe-super-app-cps-action/internal/constants/interfaces/account_product"
-	tac_interface "cbe-super-app-cps-action/internal/constants/interfaces/term_and_condition"
+	apc_interface "cbe-super-app-cps-action/internal/constants/interfaces/account_product_category"
+	account_sub_type_interface "cbe-super-app-cps-action/internal/constants/interfaces/account_sub_type"
 	accountvalidationInterface "cbe-super-app-cps-action/internal/constants/interfaces/account_validation"
 	advertHandlerInterface "cbe-super-app-cps-action/internal/constants/interfaces/ad"
 	amountBasedInbound "cbe-super-app-cps-action/internal/constants/interfaces/amount_based_auth"
@@ -32,6 +31,7 @@ import (
 	logistics_merchant_adaptor "cbe-super-app-cps-action/internal/constants/interfaces/logistics_merchant"
 	role_delegation_outbound "cbe-super-app-cps-action/internal/constants/interfaces/role_delegation"
 	sar_iface "cbe-super-app-cps-action/internal/constants/interfaces/superapp_role"
+	tac_interface "cbe-super-app-cps-action/internal/constants/interfaces/term_and_condition"
 	"cbe-super-app-cps-action/internal/constants/interfaces/transaction"
 	ussd_merchant_interface "cbe-super-app-cps-action/internal/constants/interfaces/ussd_merchant"
 	role_delegation_handler "cbe-super-app-cps-action/internal/handlers/rest/http/role_delegation"
@@ -69,20 +69,20 @@ import (
 	superapp_role_handler "cbe-super-app-cps-action/internal/handlers/rest/http/superapp_role"
 
 	customerKycInbound "cbe-super-app-cps-action/internal/constants/interfaces/customer_kyc"
+	selfActivationKYCInbound "cbe-super-app-cps-action/internal/constants/interfaces/customer_kyc"
 	donation "cbe-super-app-cps-action/internal/constants/interfaces/donation"
 	donation_category "cbe-super-app-cps-action/internal/constants/interfaces/donation_category"
 	donation_company "cbe-super-app-cps-action/internal/constants/interfaces/donation_company"
 	encryptionInbound "cbe-super-app-cps-action/internal/constants/interfaces/encryption"
 	sitotaInbound "cbe-super-app-cps-action/internal/constants/interfaces/sitota"
 	accountBlockHandler "cbe-super-app-cps-action/internal/handlers/rest/http/account_block"
+	ap_handler "cbe-super-app-cps-action/internal/handlers/rest/http/account_product"
+	apc_handler "cbe-super-app-cps-action/internal/handlers/rest/http/account_product_category"
+	account_sub_type_handler "cbe-super-app-cps-action/internal/handlers/rest/http/account_sub_type"
 	accountValidation "cbe-super-app-cps-action/internal/handlers/rest/http/account_validation"
 	advertHandlerImpl "cbe-super-app-cps-action/internal/handlers/rest/http/ad"
 	amountBasedAuthHandler "cbe-super-app-cps-action/internal/handlers/rest/http/amount_based_auth"
 	avatarHandlerImpl "cbe-super-app-cps-action/internal/handlers/rest/http/avatar"
-	account_sub_type_handler "cbe-super-app-cps-action/internal/handlers/rest/http/account_sub_type"
-	apc_handler "cbe-super-app-cps-action/internal/handlers/rest/http/account_product_category"
-	ap_handler "cbe-super-app-cps-action/internal/handlers/rest/http/account_product"
-	tac_handler "cbe-super-app-cps-action/internal/handlers/rest/http/term_and_condition"
 	bankHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bank"
 	bankvaulthandler "cbe-super-app-cps-action/internal/handlers/rest/http/bankvault"
 	bpsActionHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bps_action_handler"
@@ -90,12 +90,14 @@ import (
 	bpsHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bps_user"
 	budgetCategoryHandler "cbe-super-app-cps-action/internal/handlers/rest/http/budget_category"
 	bulkServiceHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bulk_service"
+	tac_handler "cbe-super-app-cps-action/internal/handlers/rest/http/term_and_condition"
 
 	cpsactionhandler "cbe-super-app-cps-action/internal/handlers/rest/http/cps_action_handler"
 	cpsRoleHandler "cbe-super-app-cps-action/internal/handlers/rest/http/cps_roles"
 	cpsUserHandler "cbe-super-app-cps-action/internal/handlers/rest/http/cps_user"
 	CustomerHandler "cbe-super-app-cps-action/internal/handlers/rest/http/customer"
 	CustomerKYCHandler "cbe-super-app-cps-action/internal/handlers/rest/http/customer_kyc"
+	selfActivationKYCHandler "cbe-super-app-cps-action/internal/handlers/rest/http/customer_kyc"
 	"cbe-super-app-cps-action/internal/handlers/rest/http/department"
 	deviceversionhandler "cbe-super-app-cps-action/internal/handlers/rest/http/device_version"
 	donationHandler "cbe-super-app-cps-action/internal/handlers/rest/http/donation"
@@ -179,6 +181,7 @@ type Handler struct {
 	CustomerGroupHandler          cg_iface.CustomerGroup
 	CPSRolesHandler               cpsRoleInbound.CPSRolesAdapter
 	CustomerKYCHandler            customerKycInbound.CustomerKYC
+	SelfActivationKYCHandler      selfActivationKYCInbound.SelfActivationKyc
 	UssdMerchantHandler           ussd_merchant_interface.UssdMerchantInbound
 	SuperAppRoleHandler           sar_iface.SuperAppRole
 	RoleDelegationHandler         role_delegation_outbound.RoleDelegation
@@ -241,6 +244,7 @@ func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger, queueMa
 		CustomerGroupHandler:          customer_group_handler.NewCustomerGroupHandler(serviceLayer.CustomerGroup, logger),
 		CPSRolesHandler:               cpsRoleHandler.NewCPSRolesHandler(serviceLayer.CPSRoles, logger),
 		CustomerKYCHandler:            CustomerKYCHandler.NewCustomerKYCAdapter(serviceLayer.CustomerKYC, logger),
+		SelfActivationKYCHandler:      selfActivationKYCHandler.NewSelfActivationAdapter(serviceLayer.SelfActivateKYCService, logger),
 		UssdMerchantHandler:           ussd_merchant.NewUssdMerchantHandler(serviceLayer.UssdMerchantService, logger),
 		SuperAppRoleHandler:           superapp_role_handler.NewSuperAppRoleHandler(serviceLayer.SuperAppRole, logger),
 		RoleDelegationHandler:         role_delegation_handler.NewRoleDelegationHandler(serviceLayer.RoleDelegationService, logger),

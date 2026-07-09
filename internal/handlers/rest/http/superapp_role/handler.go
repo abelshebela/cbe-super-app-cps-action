@@ -41,8 +41,12 @@ func NewSuperAppRoleHandler(svc service.SuperAppRoleService, logger utils.Logger
 //	@Router			/superapp-roles [get]
 func (h *SuperAppRoleAdapter) GetAllSuperAppRoles(w http.ResponseWriter, r *http.Request) {
 	log := local_util.LoggerFromCtx(r.Context(), h.logger)
-	filterParams := local_util.ExtractFilterParams(r)
+	filterParams, err := local_util.ExtractFilterParams(r)
 
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 	search := r.URL.Query().Get("search")
 	if err := local_util.NoSpecialChars(search); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -81,7 +85,11 @@ func (h *SuperAppRoleAdapter) GetTransferLimitByRole(w http.ResponseWriter, r *h
 		return
 	}
 
-	filterParams := local_util.ExtractFilterParams(r)
+	filterParams, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	result, err := h.svc.GetTransferLimitByRole(r.Context(), role, *filterParams)
 	if err != nil {

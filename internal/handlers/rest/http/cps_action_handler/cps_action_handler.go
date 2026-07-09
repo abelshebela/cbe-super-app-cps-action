@@ -16,6 +16,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"slices"
 	"strconv"
 
 	"strings"
@@ -660,7 +661,11 @@ func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Reques
 //	@Security		BearerAuth
 //	@Router			/actions/ [get]
 func (a *cpsActionAdapter) GetCPSActionsByDepartment(w http.ResponseWriter, r *http.Request) {
-	filterParams := local_util.ExtractFilterParams(r)
+	filterParams, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
@@ -711,7 +716,11 @@ func (a *cpsActionAdapter) GetCPSActionsByDepartment(w http.ResponseWriter, r *h
 //	@Security		BearerAuth
 //	@Router			/actions/user/checked/actions [get]
 func (a *cpsActionAdapter) GetUserCheckedActions(w http.ResponseWriter, r *http.Request) {
-	filterParams := local_util.ExtractFilterParams(r)
+	filterParams, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
@@ -759,10 +768,17 @@ func (a *cpsActionAdapter) GetUserCheckedActions(w http.ResponseWriter, r *http.
 //	@Security		BearerAuth
 //	@Router			/actions/user/created/actions [get]
 func (a *cpsActionAdapter) GetUserCreatedActions(w http.ResponseWriter, r *http.Request) {
-	filterParams := local_util.ExtractFilterParams(r)
+	filterParams, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
+	services, _ := filterParams.Filters["services"].(string)
+
+	log := local_util.LoggerFromCtx(r.Context(), a.logger)
 
 	if err := local_util.NoSpecialChars(search); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -777,6 +793,20 @@ func (a *cpsActionAdapter) GetUserCreatedActions(w http.ResponseWriter, r *http.
 	userData := local_util.ExtractUserContext(r)
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getUserCreatedActions", "handler", "cpsAction")
 	defer span.End()
+
+	idxRepo := mid.GetCPSActionApproveRepo()
+	if idxRepo == nil {
+		localization.SendErrorByCodeResponse(w, localization.ErrorUnexpectedError.Code)
+		return
+	}
+
+	if services != "" {
+		filterParams, _, err = cpsactioncore.ParameterProvider(ctx, filterParams, span, constants.Maker, idxRepo, log)
+		if err != nil {
+			localization.SendErrorByCodeResponse(w, err.Error())
+			return
+		}
+	}
 
 	userID := userData.UserName
 	res, url, err := a.cpsActionApplication.GetUserCreatedActions(ctx, userID, filterParams)
@@ -890,7 +920,12 @@ func (a *cpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getUserApproverPendingActions", "handler", "cpsAction")
 	defer span.End()
 	log := local_util.LoggerFromCtx(r.Context(), a.logger)
-	filterParams := local_util.ExtractFilterParams(r)
+
+	filterParams, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
@@ -1030,7 +1065,12 @@ func (a *cpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http
 func (a *cpsActionAdapter) GetListOfServiceForFilter(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getUserApproverPendingActions", "handler", "cpsAction")
 	defer span.End()
-	filterParams := local_util.ExtractFilterParams(r)
+
+	filterParams, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	log := local_util.LoggerFromCtx(r.Context(), a.logger)
 	var data []string
@@ -1071,13 +1111,20 @@ func (a *cpsActionAdapter) GetListOfServiceForFilter(w http.ResponseWriter, r *h
 	}
 
 	if len(data) == 0 {
-		log.Errorf("[CPSAction][GetListOfServiceForFilter] Error while geting the repo")
-		localization.SendErrorByCodeResponse(w, localization.ErrorUnexpectedError.Code)
+		log.Errorf("[CPSAction][GetListOfServiceForFilter] Error while geting the role")
+		localization.SendErrorByCodeResponse(w, localization.ErrorParamsIsRequired.Code)
 		return
+	}
+	var res []string
+	for _, v := range data {
+		if slices.Contains(res, v) {
+			continue
+		}
+		res = append(res, v)
 	}
 
 	log.Infof("[CPSAction][GetListOfServiceForFilter] successfuly fetched the list of services")
-	localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, map[string]interface{}{"services": data})
+	localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, map[string]interface{}{"services": res})
 }
 
 // GetUserAuditorActions retrieves CPS actions pending audit for the current user's auditor role
@@ -1100,8 +1147,12 @@ func (a *cpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.
 	defer span.End()
 	log := local_util.LoggerFromCtx(r.Context(), a.logger)
 
-	filterParams := local_util.ExtractFilterParams(r)
-	// var allocation []string
+	filterParams, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
 
@@ -1284,7 +1335,11 @@ func (a *cpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.
 }
 
 func (a *cpsActionAdapter) GetUserApproverApprovedActions(w http.ResponseWriter, r *http.Request) {
-	filterParams := local_util.ExtractFilterParams(r)
+	filterParams, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
@@ -1958,7 +2013,12 @@ func (a *cpsActionAdapter) ExportCPSActionData(w http.ResponseWriter, r *http.Re
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "exportCPSaction", "handler", "cpsAction")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, a.logger)
-	filterParams := local_util.ExtractFilterParams(r)
+
+	filterParams, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	fileType := r.URL.Query().Get("file_type")
 	from := r.URL.Query().Get("created_at_from")

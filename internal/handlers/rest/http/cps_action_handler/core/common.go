@@ -140,7 +140,10 @@ func ResolveRequestActions(modules []string) []string {
 // the search and filter query parameters for special characters. Returns the
 // filter and an error code string if validation fails ("" on success).
 func ValidateFilterParams(r *http.Request) (*types.Filter, string) {
-	filterParams := local_util.ExtractFilterParams(r)
+	filterParams, err := local_util.ExtractFilterParams(r)
+	if err != nil {
+		return nil, err.Error()
+	}
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
