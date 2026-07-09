@@ -165,7 +165,8 @@ func (r *roleDelegation) CreateWithExistingUser(ctx context.Context, roleDelegat
 			r.logger.Errorf("[RoleDelegation/Create] Failed to find BPS user: %v", err)
 			return errors.New(localization.ErrorUserNotFoundOrDisabled.Code)
 		}
-		if user == nil || !user.Enabled {
+		// if user == nil || !user.Enabled {
+		if user == nil {
 			r.logger.Warnf("[RoleDelegation/Create] BPS User not found: %s", roleDelegation.DelegatedUserID)
 			return errors.New(localization.ErrorUserNotFoundOrDisabled.Code)
 		}
@@ -183,10 +184,10 @@ func (r *roleDelegation) CreateWithExistingUser(ctx context.Context, roleDelegat
 			return err
 		}
 
-		if !user.Enabled {
-			r.logger.Warnf("[RoleDelegation/Create] User not found: %s", roleDelegation.DelegatedUserID)
-			return errors.New(localization.ErrorUserNotFoundOrDisabled.Code)
-		}
+		// if !user.Enabled {
+		// 	r.logger.Warnf("[RoleDelegation/Create] User not found: %s", roleDelegation.DelegatedUserID)
+		// 	return errors.New(localization.ErrorUserNotFoundOrDisabled.Code)
+		// }
 		roleDelegation.DelegatedUserFullName = user.FullName
 		roleDelegation.DelegatedUserUserCode = user.UserCode
 		roleDelegation.DelegatedUserJobTitle = user.JobTitle
