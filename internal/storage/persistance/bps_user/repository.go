@@ -516,7 +516,10 @@ func (b *BPSUserStorage) Update(ctx context.Context, BpsUser *bps_model.BPSUser)
 
 		if _, err := b.role_delegations_dal.UpdateOne(sc, bson.M{"delegated_user_user_code": BpsUser.UserCode}, update); err != nil {
 			log.Errorf("[BPSUserStorage][Update] failed to update role delegation: %v", err)
-			return nil, local_util.HandleDBError(err)
+
+			if errCode := local_util.HandleDBError(err); errCode.Error() != localization.ErrorResourceNotFound.Code {
+				return nil, errCode
+			}
 		}
 
 		return nil, nil
