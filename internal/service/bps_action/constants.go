@@ -164,6 +164,8 @@ const (
 	UpdateHQArchiveTime      RequestAction = "update_hq_archive_time"
 	ResetAccessControl       RequestAction = "RESET_ACCESS_CONTROL"
 	UpgradeKYCLevel          RequestAction = "UPGRADE_KYC_LEVEL"
+	EnableUssdSupperapp      RequestAction = "ENABLE_USSD_SUPERAPP"
+	DisableUssdSupperapp     RequestAction = "DISABLE_USSD_SUPERAPP"
 )
 
 var validRequestActions = map[RequestAction]struct{}{
@@ -285,6 +287,8 @@ var validRequestActions = map[RequestAction]struct{}{
 	EnableDisableBoth:         {},
 	ActivateTerminated:        {},
 	ActivateChangePhoneNumber: {},
+	DisableUssdSupperapp:      {},
+	EnableUssdSupperapp:       {},
 }
 
 func IsValidRequestAction(requestAction string) bool {
@@ -412,6 +416,8 @@ var RequestActionGroups = map[string][]RequestAction{
 	"ENABLE_DISABLE_BOTH":          {EnableDisableBoth},
 	"ACTIVATE_TERMINATED":          {ActivateTerminated},
 	"ACTIVATE_CHANGE_PHONE_NUMBER": {ActivateChangePhoneNumber},
+	"ENABLE_USSD_SUPERAPP":         {EnableUssdSupperapp},
+	"DISABLE_USSD_SUPERAPP":        {DisableUssdSupperapp},
 }
 
 func IsActionInGroup(action RequestAction, group string) bool {
