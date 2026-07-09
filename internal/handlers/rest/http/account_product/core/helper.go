@@ -68,6 +68,22 @@ func ParseCreateRequest(r *http.Request, logger utils.Logger) (ap_dto.CreateAPRe
 	req.FaqURL = strings.TrimSpace(r.FormValue("faq_url"))
 	req.ProductFeatures = strings.TrimSpace(r.FormValue("product_features"))
 
+	if v := r.FormValue("interest_rate"); v != "" {
+		f, err := strconv.ParseFloat(v, 64)
+		if err != nil {
+			return req, fmt.Errorf("interest_rate must be a number")
+		}
+		req.InterestRate = f
+	}
+
+	if v := r.FormValue("is_available_for_onbording"); v != "" {
+		b, err := strconv.ParseBool(v)
+		if err != nil {
+			return req, fmt.Errorf("is_avalilabe_for_onbording must be true or false")
+		}
+		req.IsAvailableForOnbording = b
+	}
+
 	if v := r.FormValue("minimum_opening_balance"); v != "" {
 		f, err := strconv.ParseFloat(v, 64)
 		if err != nil {
@@ -95,6 +111,7 @@ func ParseCreateRequest(r *http.Request, logger utils.Logger) (ap_dto.CreateAPRe
 		}
 		req.InterestFee = f
 	}
+
 
 	if v := r.FormValue("has_atm_and_debit_card"); v != "" {
 		b, err := strconv.ParseBool(v)
@@ -136,6 +153,22 @@ func ParseUpdateRequest(r *http.Request, logger utils.Logger) (ap_dto.UpdateAPRe
 	req.AccountCurrency = strings.ToUpper(strings.TrimSpace(r.FormValue("account_currency")))
 	req.FaqURL = strings.TrimSpace(r.FormValue("faq_url"))
 	req.ProductFeatures = strings.TrimSpace(r.FormValue("product_features"))
+
+	if v := r.FormValue("interest_rate"); v != "" {
+		f, err := strconv.ParseFloat(v, 64)
+		if err != nil {
+			return req, fmt.Errorf("interest_rate must be a number")
+		}
+		req.InterestRate = f
+	}
+
+	if v := r.FormValue("is_available_for_onbording"); v != "" {
+		b, err := strconv.ParseBool(v)
+		if err != nil {
+			return req, fmt.Errorf("is_avalilabe_for_onbording must be true or false")
+		}
+		req.IsAvailableForOnbording = &b
+	}
 
 	if v := r.FormValue("minimum_opening_balance"); v != "" {
 		f, err := strconv.ParseFloat(v, 64)
@@ -204,6 +237,8 @@ func MapToResponse(m *imodel.AccountProduct) ap_dto.APResponse {
 		HasPhysicalCard:       m.HasPhysicalCard,
 		HasVirtualCard:        m.HasVirtualCard,
 		// ProductIcon:           m.ProductIcon,
+		IsAvailableForOnbording: m.IsAvailableForOnbording,
+		InterestRate: m.InterestRate,
 		ProductCoverImage: m.ProductCoverImage,
 		IsEnabled:         m.IsEnabled,
 		IsDeleted:         m.IsDeleted,
