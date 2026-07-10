@@ -856,6 +856,10 @@ func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID 
 	// Single unified log-filter pass. The repo already applies request_action:{$in:RAList}
 	// on the CPS action collection so no separate RAList pre-filter is needed here.
 	levelClaimPairs := extractLevelClaimPairs(filterParams.Filters)
+	// When level+claim pairs are provided, skip generic levels filter to avoid conflicts
+	if len(levelClaimPairs) > 0 {
+		levels = nil
+	}
 	if len(levels) > 0 || len(services) > 0 || len(auditorMarkStatuses) > 0 || len(auditorStateStatuses) > 0 || len(levelClaimPairs) > 0 {
 		var responsibilities []string
 		if filterParams.Filters["action_status"] != string(constants.AUDITORNOTCHECKED) {
