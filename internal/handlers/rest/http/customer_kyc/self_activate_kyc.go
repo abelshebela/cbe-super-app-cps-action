@@ -102,11 +102,11 @@ func (c *selfActivationKYCAdapter) ApproveSelfActivateKycRequest(w http.Response
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
 		log.Infof("[ApproveSelfActivateKycRequest] request submitted for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
-		localization.SendSuccessResponse(w, localization.CustomerKycApprovalRequestSubmittedSuccessfully, nil)
+		localization.SendSuccessResponse(w, localization.CustomerKycRequestApprovedSuccessfully, nil)
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.CustomerKycRequestApprovedSuccessfully, nil)
+	localization.SendSuccessResponse(w, localization.CustomerKycApprovalRequestSubmittedSuccessfully, nil)
 }
 
 func (c *selfActivationKYCAdapter) RejectSelfActivateKycRequest(w http.ResponseWriter, r *http.Request) {
@@ -149,11 +149,11 @@ func (c *selfActivationKYCAdapter) RejectSelfActivateKycRequest(w http.ResponseW
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
 		log.Infof("[RejectSelfActivateKycRequest] request submitted for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
-		localization.SendSuccessResponse(w, localization.CustomerKycRejectRequestSubmittedSuccessfully, nil)
+		localization.SendSuccessResponse(w, localization.CustomerKycRequestRejectedSuccessfully, nil)
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.CustomerKycRequestRejectedSuccessfully, nil)
+	localization.SendSuccessResponse(w, localization.CustomerKycRejectRequestSubmittedSuccessfully, nil)
 }
 
 func (c *selfActivationKYCAdapter) StartSelfActivateKycReview(w http.ResponseWriter, r *http.Request) {

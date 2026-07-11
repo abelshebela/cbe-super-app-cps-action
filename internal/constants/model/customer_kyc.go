@@ -55,7 +55,6 @@ type UserInfo struct {
 }
 
 type StartedKycReview struct {
-	ID       bson.ObjectID `json:"id" bson:"_id,omitempty"`
 	KycID    bson.ObjectID `json:"kyc_id" bson:"kyc_id"`
 	Reviewer UserInfo      `json:"reviewer" bson:"reviewer"`
 
