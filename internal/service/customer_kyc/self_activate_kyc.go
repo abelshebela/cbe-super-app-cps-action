@@ -319,8 +319,14 @@ func (s *selfActivationKYCService) Authorize(ctx context.Context, cpsAction *mod
 		}
 
 		exists, err := s.repo.CheckIfUserOrAccountExists(ctx, userData)
+
+		rejectionReason := strings.TrimSpace(userData.KYCRejectReason)
 		if exists {
 			s.logger.Errorf("This user exists and has linked account: %v", err)
+
+			if err = s.repo.UpdateKYCStatusSA(ctx, cpsAction.UniqueId, string(constants.KYCStatusCancelled), rejectionReason, false); err != nil {
+				return nil, err
+			}
 
 			existingReview, err := s.repo.FindKycInReviewSA(ctx, cpsAction.UniqueId)
 			if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
@@ -337,6 +343,10 @@ func (s *selfActivationKYCService) Authorize(ctx context.Context, cpsAction *mod
 			}
 		}
 
+		if err = s.repo.UpdateKYCStatusSA(ctx, cpsAction.UniqueId, string(constants.KYCStatusApproved), rejectionReason, false); err != nil {
+			return nil, err
+		}
+
 		existingReview, err := s.repo.FindKycInReviewSA(ctx, cpsAction.UniqueId)
 		if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 			log.Errorf("[SelfActivationKYC][Authorize] failed to check existing review: %v", err)
@@ -351,7 +361,6 @@ func (s *selfActivationKYCService) Authorize(ctx context.Context, cpsAction *mod
 			}
 		}
 
-		rejectionReason := strings.TrimSpace(userData.KYCRejectReason)
 		if s.smsService != nil {
 			phone := userData.PhoneNumber
 			name := userData.Name
