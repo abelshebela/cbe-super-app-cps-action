@@ -1380,7 +1380,7 @@ var RequestActionGroups = map[string][]constants.RequestAction{
 		// RequestDeleteCustomerKYC,
 	},
 
-	"SELFACTIVATEKYC": {
+	"SELFACTIVATIONKYC": {
 		RequestStartSelfActivateKy,
 		RequestApproveSelfActivateKyc,
 		RequestRejectSelfActivateKyc,
