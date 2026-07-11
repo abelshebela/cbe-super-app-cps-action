@@ -694,6 +694,7 @@ func (ca *cpsActionService) GetCPSActionsForApprover(ctx context.Context, userID
 	levels := local_util.ExtractStringSlice(filterParams.Filters, "levels")
 	services := local_util.ExtractStringSlice(filterParams.Filters, "services")
 	statuses := local_util.ExtractStringSlice(filterParams.Filters, "action_status")
+	checkerLevelStatuses := extractCheckerLevelStatuses(filterParams.Filters)
 
 	// Always resolve via user_action_log when the role has allocated request_actions.
 	// The log's request_action field is the authoritative source for which actions
@@ -702,6 +703,12 @@ func (ca *cpsActionService) GetCPSActionsForApprover(ctx context.Context, userID
 	// records (that field is only set on approve/reject), so the lookup always returns nil.
 	// The repo's request_action+isPendingOnly path handles PENDING scoping correctly.
 	isPendingOnly := len(statuses) == 1 && statuses[0] == string(constants.Pending)
+
+	// When checker level+status pairs are provided, skip generic levels filter to avoid conflicts
+	if len(checkerLevelStatuses) > 0 {
+		levels = nil
+	}
+
 	if len(RAList) > 0 && !isPendingOnly {
 		logFilter := map[string]interface{}{
 			"request_action": bson.M{"$in": RAList},
@@ -725,16 +732,22 @@ func (ca *cpsActionService) GetCPSActionsForApprover(ctx context.Context, userID
 		if len(actionCodes) > 0 {
 			filterParams.Filters["action_code"] = actionCodes
 		}
-	} else if !isPendingOnly && (len(levels) > 0 || len(services) > 0) {
+	} else if !isPendingOnly && (len(levels) > 0 || len(services) > 0 || len(checkerLevelStatuses) > 0) {
 		actionCodes, err := ca.actionLogRepo.GetActionCodesByActionLogFilter(ctx, imodel.UserActionLogActionCodeFilter{
-			Responsibilities: []string{string(imodel.CHECKER)},
-			Levels:           levels,
-			Services:         services,
-			ActionStatuses:   statuses,
+			Responsibilities:     []string{string(imodel.CHECKER)},
+			Levels:               levels,
+			Services:             services,
+			ActionStatuses:       statuses,
+			CheckerLevelStatuses: checkerLevelStatuses,
 		})
 		if err != nil {
 			log.Errorf("[CpsActionSvc][GetCPSActionsForApprover] log filter err: %v", err)
 			return nil, "", err
+		}
+		// When no action codes match the filter, return empty results immediately
+		if len(actionCodes) == 0 {
+			meta := local_util.BuildPaginationMeta(0, filterParams.Page, filterParams.PerPage)
+			return &types.PaginatedResponse[[]*model.CPSAction]{Data: []*model.CPSAction{}, Meta: meta}, "", nil
 		}
 		filterParams.Filters["action_code"] = actionCodes
 	}
@@ -1535,6 +1548,17 @@ func extractUniqueTokens(requestAction string, currentAction interface{}) []stri
 
 func extractLevelClaimPairs(filters map[string]interface{}) []imodel.LevelClaimPair {
 	v, ok := filters["level_claim_pairs"]
+	if !ok {
+		return nil
+	}
+	if pairs, ok := v.([]imodel.LevelClaimPair); ok {
+		return pairs
+	}
+	return nil
+}
+
+func extractCheckerLevelStatuses(filters map[string]interface{}) []imodel.LevelClaimPair {
+	v, ok := filters["checker_level_statuses"]
 	if !ok {
 		return nil
 	}
