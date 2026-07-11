@@ -951,8 +951,8 @@ type CustomerKYCService interface {
 }
 
 type SelfActivateKYCService interface {
-	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]cust_kyc_dto.SelfActivationUser], error)
-	FindByID(ctx context.Context, id string) (*cust_kyc_dto.SelfActivationUser, error)
+	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]cust_kyc_dto.CustomerKYCResponse], error)
+	FindByID(ctx context.Context, id string) (*cust_kyc_dto.CustomerKYCResponse, error)
 	EnableOrDisable(ctx context.Context, id, reason string, enable bool) error
 	StartKycReview(ctx context.Context, id string) (*imodel.StartedKycReview, error)
 	PickKycReview(ctx context.Context, id string, reason string) error

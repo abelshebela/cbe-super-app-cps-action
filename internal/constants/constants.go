@@ -425,10 +425,11 @@ const (
 // ---------------------------------------------------------------------------
 
 const (
-	KYCStatusPending  KYCStatus = "PENDING"
-	KYCStatusApproved KYCStatus = "APPROVED"
-	KYCStatusComplete KYCStatus = "COMPLETE"
-	KYCStatusRejected KYCStatus = "REJECTED"
+	KYCStatusPending   KYCStatus = "PENDING"
+	KYCStatusApproved  KYCStatus = "APPROVED"
+	KYCStatusComplete  KYCStatus = "COMPLETE"
+	KYCStatusRejected  KYCStatus = "REJECTED"
+	KYCStatusCancelled KYCStatus = "CANCELLED"
 )
 
 // ---------------------------------------------------------------------------

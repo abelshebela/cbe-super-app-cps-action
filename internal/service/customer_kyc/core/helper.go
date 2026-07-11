@@ -198,71 +198,70 @@ func MapCustomerKYCToResponse(c *model.CustomerKYC) *dto.CustomerKYCResponse {
 	return &response
 }
 
-func MapSelfActivationUserToResponsePaginated(c *types.PaginatedResponse[[]imodel.SelfActivationUser]) *types.PaginatedResponse[[]dto.SelfActivationUser] {
+func MapSelfActivationUserToResponsePaginated(c *types.PaginatedResponse[[]imodel.SelfActivationUser]) *types.PaginatedResponse[[]dto.CustomerKYCResponse] {
 	if c == nil {
 		return nil
 	}
 
-	responses := make([]dto.SelfActivationUser, 0, len(c.Data))
+	responses := make([]dto.CustomerKYCResponse, 0, len(c.Data))
 	for _, item := range c.Data {
 		if mapped := MapSelfActivationUserToResponse(&item); mapped != nil {
 			responses = append(responses, *mapped)
 		}
 	}
 
-	return &types.PaginatedResponse[[]dto.SelfActivationUser]{
+	return &types.PaginatedResponse[[]dto.CustomerKYCResponse]{
 		Data: responses,
 		Meta: c.Meta,
 	}
 }
 
-func MapSelfActivationUserToResponse(u *imodel.SelfActivationUser) *dto.SelfActivationUser {
+func MapSelfActivationUserToResponse(u *imodel.SelfActivationUser) *dto.CustomerKYCResponse {
 	if u == nil {
 		return nil
 	}
 
-	return &dto.SelfActivationUser{
-		ID:             u.ID,
-		Sub:            u.Sub,
-		Name:           u.Name,
-		Email:          u.Email,
-		PhoneNumber:    u.PhoneNumber,
-		Gender:         u.Gender,
-		Picture:        u.Picture,
-		Nationality:    u.Nationality,
-		BirthDate:      u.BirthDate,
-		Address: dto.CustomerAddress{
+	response := dto.CustomerKYCResponse{
+		ID:  u.ID.Hex(),
+		Sub: u.Sub,
+		PersonalInformation: dto.PersonalInformation{
+			FullName:      u.Name,
+			Email:         u.Email,
+			PhoneNumber:   u.PhoneNumber,
+			Gender:        u.Gender,
+			Nationality:   u.Nationality,
+			DateOfBirth:   u.BirthDate,
+			MaritalStatus: "",
+		},
+		ResidentialAddress: dto.ResidentialAddress{
 			Zone:   u.Address.Zone,
 			Kebele: u.Address.Kebele,
-			Woreda: u.Address.Woreda,
+			Wereda: u.Address.Woreda,
 			Region: u.Address.Region,
 		},
-		Enabled:        u.Enabled,
-		AccountNumbers: u.AccountNumbers,
-		CustomerID:     u.CustomerID,
-		ExpiryDate:     u.ExpiryDate,
-		IssueDate:      u.IssueDate,
-		KYC: dto.KycInfo{
-			PhoneMismatch:  u.KYC.PhoneMismatch,
-			BelowThreshold: u.KYC.BelowThreshold,
-			ContainsANDOR:  u.KYC.ContainsANDOR,
-			KYCStatus:      u.KYC.KYCStatus,
+		FinancialInformation: dto.FinancialInformation{},
+		CapturedDocuments: dto.CapturedDocuments{
+			Photo:         u.Picture,
+			LivenessVideo: u.ComplyCube.LiveVideoID,
 		},
-		ComplyCube:      mapSelfActivationComplyCube(u.ComplyCube),
-		KYCRejectReason: u.KYCRejectReason,
-		CreatedAt:       u.CreatedAt,
-		LastModifiedAt:  u.LastModifiedAt,
-		UpdatedAt:       u.UpdatedAt,
+		CustomerStatus:      boolToCustomerStatus(u.Enabled),
+		KYCStatus:           u.KYC.KYCStatus,
+		MoneyLaunderingFree: nil,
+		TermsAndConditions:  "",
+		CreatedAt:           u.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:           u.LastModifiedAt.Format(time.RFC3339),
 	}
+
+	return &response
 }
 
-func mapSelfActivationComplyCube(c imodel.ComplyCube) dto.ComplyCube {
-	return dto.ComplyCube{
+func mapSelfActivationComplyCube(c imodel.ComplyCube) imodel.ComplyCube {
+	return imodel.ComplyCube{
 		DocumentID:      c.DocumentID,
 		LiveVideoID:     c.LiveVideoID,
 		DocumentType:    c.DocumentType,
 		IdentityCheckID: c.IdentityCheckID,
-		IdentityCheck: dto.IdentityCheck{
+		IdentityCheck: imodel.IdentityCheck{
 			ID:             c.IdentityCheck.ID,
 			ClientID:       c.IdentityCheck.ClientID,
 			LiveVideoID:    c.IdentityCheck.LiveVideoID,
@@ -271,32 +270,32 @@ func mapSelfActivationComplyCube(c imodel.ComplyCube) dto.ComplyCube {
 			Type:           c.IdentityCheck.Type,
 			Status:         c.IdentityCheck.Status,
 			InitialOutcome: c.IdentityCheck.InitialOutcome,
-			Result: dto.IdentityResult{
+			Result: imodel.IdentityResult{
 				Outcome: c.IdentityCheck.Result.Outcome,
-				Breakdown: dto.IdentityBreakdown{
-					IntegrityAnalysis: dto.IntegrityAnalysis{
+				Breakdown: imodel.IdentityBreakdown{
+					IntegrityAnalysis: imodel.IntegrityAnalysis{
 						FaceDetection: c.IdentityCheck.Result.Breakdown.IntegrityAnalysis.FaceDetection,
 					},
-					FaceAnalysis: dto.FaceAnalysis{
+					FaceAnalysis: imodel.FaceAnalysis{
 						FacialSimilarity:       c.IdentityCheck.Result.Breakdown.FaceAnalysis.FacialSimilarity,
 						PreviouslyEnrolledFace: c.IdentityCheck.Result.Breakdown.FaceAnalysis.PreviouslyEnrolledFace,
-						Breakdown: dto.FaceAnalysisBreakdown{
+						Breakdown: imodel.FaceAnalysisBreakdown{
 							FacialSimilarityScore: c.IdentityCheck.Result.Breakdown.FaceAnalysis.Breakdown.FacialSimilarityScore,
 						},
 					},
-					AuthenticityAnalysis: dto.AuthenticityAnalysis{
+					AuthenticityAnalysis: imodel.AuthenticityAnalysis{
 						SpoofedImageAnalysis:            c.IdentityCheck.Result.Breakdown.AuthenticityAnalysis.SpoofedImageAnalysis,
 						LivenessCheck:                   c.IdentityCheck.Result.Breakdown.AuthenticityAnalysis.LivenessCheck,
 						LivenessVoiceChallengeAnalysis:  c.IdentityCheck.Result.Breakdown.AuthenticityAnalysis.LivenessVoiceChallengeAnalysis,
 						LivenessActionChallengeAnalysis: c.IdentityCheck.Result.Breakdown.AuthenticityAnalysis.LivenessActionChallengeAnalysis,
-						Breakdown: dto.AuthenticityAnalysisBreakdown{
+						Breakdown: imodel.AuthenticityAnalysisBreakdown{
 							LivenessCheckScore: c.IdentityCheck.Result.Breakdown.AuthenticityAnalysis.Breakdown.LivenessCheckScore,
 						},
 					},
 				},
 			},
-			Metadata: dto.IdentityMetadata{
-				LiveVideo: dto.LiveVideoMetadata{
+			Metadata: imodel.IdentityMetadata{
+				LiveVideo: imodel.LiveVideoMetadata{
 					Language: c.IdentityCheck.Metadata.LiveVideo.Language,
 				},
 			},
@@ -309,12 +308,12 @@ func mapSelfActivationComplyCube(c imodel.ComplyCube) dto.ComplyCube {
 	}
 }
 
-func MapSelfActivationUserInfo(u *imodel.UserInfo) *dto.UserInfo {
+func MapSelfActivationUserInfo(u *imodel.UserInfo) *imodel.UserInfo {
 	if u == nil {
 		return nil
 	}
 
-	return &dto.UserInfo{
+	return &imodel.UserInfo{
 		ID:          u.ID,
 		UserCode:    u.UserCode,
 		FullName:    u.FullName,
