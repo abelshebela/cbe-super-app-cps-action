@@ -63,7 +63,7 @@ func NewSelfActivationKYCService(repo storage.SelfActivationKYCRepository,
 	}
 }
 
-func (s *selfActivationKYCService) FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]dto.SelfActivationUser], error) {
+func (s *selfActivationKYCService) FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]dto.CustomerKYCResponse], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "FindAllWithPagination", "SelfActivationKYC", "FindAllWithPagination")
 	defer span.End()
 
@@ -75,7 +75,7 @@ func (s *selfActivationKYCService) FindAllWithPagination(ctx context.Context, fi
 	return core.MapSelfActivationUserToResponsePaginated(result), nil
 }
 
-func (s *selfActivationKYCService) FindByID(ctx context.Context, id string) (*dto.SelfActivationUser, error) {
+func (s *selfActivationKYCService) FindByID(ctx context.Context, id string) (*dto.CustomerKYCResponse, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "FindByID", "SelfActivationKYC", "FindByID")
 	defer span.End()
 
@@ -94,7 +94,7 @@ func (s *selfActivationKYCService) FindByID(ctx context.Context, id string) (*dt
 		if review != nil {
 			mappedResponse.KYCReviewStartedAt = &review.StartedAt
 			mappedResponse.KYCReviewExpiresAt = &review.ExpiresAt
-			mappedResponse.Reviewer = core.MapSelfActivationUserInfo(&review.Reviewer)
+			mappedResponse.Reviewer = &review.Reviewer
 		}
 	}
 
@@ -321,7 +321,20 @@ func (s *selfActivationKYCService) Authorize(ctx context.Context, cpsAction *mod
 		exists, err := s.repo.CheckIfUserOrAccountExists(ctx, userData)
 		if exists {
 			s.logger.Errorf("This user exists and has linked account: %v", err)
-			return nil, fmt.Errorf("This user has linked account, cannot be approved")
+
+			existingReview, err := s.repo.FindKycInReviewSA(ctx, cpsAction.UniqueId)
+			if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+				log.Errorf("[SelfActivationKYC][Authorize] failed to check existing review: %v", err)
+				return nil, errors.New(localization.ErrorUnexpectedError.Code)
+			}
+			if existingReview != nil {
+				existingReview.ReviewStatus = string(constants.KYCStatusCancelled)
+				_, err = s.repo.UpdateKycReviewSA(ctx, cpsAction.UniqueId, existingReview)
+				if err != nil {
+					log.Errorf("[SelfActivationKYC][Authorize] failed to update review status: %v", err)
+					return nil, errors.New(localization.ErrorUnexpectedError.Code)
+				}
+			}
 		}
 
 		existingReview, err := s.repo.FindKycInReviewSA(ctx, cpsAction.UniqueId)
@@ -330,7 +343,7 @@ func (s *selfActivationKYCService) Authorize(ctx context.Context, cpsAction *mod
 			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 		if existingReview != nil {
-			existingReview.ReviewStatus = string(constants.KYCStatusRejected)
+			existingReview.ReviewStatus = string(constants.KYCStatusApproved)
 			_, err = s.repo.UpdateKycReviewSA(ctx, cpsAction.UniqueId, existingReview)
 			if err != nil {
 				log.Errorf("[SelfActivationKYC][Authorize] failed to update review status: %v", err)
