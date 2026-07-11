@@ -303,7 +303,7 @@ func (q *accessListSegmentationOracle) FindAllForBlockParents(ctx context.Contex
     SELECT federal_region_name, district_name
     FROM COMPANY
     WHERE district_name = :1 or federal_region_name = :1
-`, geographicalID).Scan(&districtName, &federalRegionName)
+`, geographicalID, geographicalID).Scan(&districtName, &federalRegionName)
 	if err != nil {
 		log.Errorf("[AccessListSegmentation][FindAllForBlockParents] failed to fetch block: %v", err)
 		return nil, err
