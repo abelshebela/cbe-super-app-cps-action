@@ -255,13 +255,13 @@ func MapSelfActivationUserToResponse(u *imodel.SelfActivationUser) *dto.Customer
 	return &response
 }
 
-func mapSelfActivationComplyCube(c imodel.ComplyCube) dto.ComplyCube {
-	return dto.ComplyCube{
+func mapSelfActivationComplyCube(c imodel.ComplyCube) imodel.ComplyCube {
+	return imodel.ComplyCube{
 		DocumentID:      c.DocumentID,
 		LiveVideoID:     c.LiveVideoID,
 		DocumentType:    c.DocumentType,
 		IdentityCheckID: c.IdentityCheckID,
-		IdentityCheck: dto.IdentityCheck{
+		IdentityCheck: imodel.IdentityCheck{
 			ID:             c.IdentityCheck.ID,
 			ClientID:       c.IdentityCheck.ClientID,
 			LiveVideoID:    c.IdentityCheck.LiveVideoID,
@@ -270,32 +270,32 @@ func mapSelfActivationComplyCube(c imodel.ComplyCube) dto.ComplyCube {
 			Type:           c.IdentityCheck.Type,
 			Status:         c.IdentityCheck.Status,
 			InitialOutcome: c.IdentityCheck.InitialOutcome,
-			Result: dto.IdentityResult{
+			Result: imodel.IdentityResult{
 				Outcome: c.IdentityCheck.Result.Outcome,
-				Breakdown: dto.IdentityBreakdown{
-					IntegrityAnalysis: dto.IntegrityAnalysis{
+				Breakdown: imodel.IdentityBreakdown{
+					IntegrityAnalysis: imodel.IntegrityAnalysis{
 						FaceDetection: c.IdentityCheck.Result.Breakdown.IntegrityAnalysis.FaceDetection,
 					},
-					FaceAnalysis: dto.FaceAnalysis{
+					FaceAnalysis: imodel.FaceAnalysis{
 						FacialSimilarity:       c.IdentityCheck.Result.Breakdown.FaceAnalysis.FacialSimilarity,
 						PreviouslyEnrolledFace: c.IdentityCheck.Result.Breakdown.FaceAnalysis.PreviouslyEnrolledFace,
-						Breakdown: dto.FaceAnalysisBreakdown{
+						Breakdown: imodel.FaceAnalysisBreakdown{
 							FacialSimilarityScore: c.IdentityCheck.Result.Breakdown.FaceAnalysis.Breakdown.FacialSimilarityScore,
 						},
 					},
-					AuthenticityAnalysis: dto.AuthenticityAnalysis{
+					AuthenticityAnalysis: imodel.AuthenticityAnalysis{
 						SpoofedImageAnalysis:            c.IdentityCheck.Result.Breakdown.AuthenticityAnalysis.SpoofedImageAnalysis,
 						LivenessCheck:                   c.IdentityCheck.Result.Breakdown.AuthenticityAnalysis.LivenessCheck,
 						LivenessVoiceChallengeAnalysis:  c.IdentityCheck.Result.Breakdown.AuthenticityAnalysis.LivenessVoiceChallengeAnalysis,
 						LivenessActionChallengeAnalysis: c.IdentityCheck.Result.Breakdown.AuthenticityAnalysis.LivenessActionChallengeAnalysis,
-						Breakdown: dto.AuthenticityAnalysisBreakdown{
+						Breakdown: imodel.AuthenticityAnalysisBreakdown{
 							LivenessCheckScore: c.IdentityCheck.Result.Breakdown.AuthenticityAnalysis.Breakdown.LivenessCheckScore,
 						},
 					},
 				},
 			},
-			Metadata: dto.IdentityMetadata{
-				LiveVideo: dto.LiveVideoMetadata{
+			Metadata: imodel.IdentityMetadata{
+				LiveVideo: imodel.LiveVideoMetadata{
 					Language: c.IdentityCheck.Metadata.LiveVideo.Language,
 				},
 			},
@@ -308,12 +308,12 @@ func mapSelfActivationComplyCube(c imodel.ComplyCube) dto.ComplyCube {
 	}
 }
 
-func MapSelfActivationUserInfo(u *imodel.UserInfo) *dto.UserInfo {
+func MapSelfActivationUserInfo(u *imodel.UserInfo) *imodel.UserInfo {
 	if u == nil {
 		return nil
 	}
 
-	return &dto.UserInfo{
+	return &imodel.UserInfo{
 		ID:          u.ID,
 		UserCode:    u.UserCode,
 		FullName:    u.FullName,
