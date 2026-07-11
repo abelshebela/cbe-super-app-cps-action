@@ -321,7 +321,20 @@ func (s *selfActivationKYCService) Authorize(ctx context.Context, cpsAction *mod
 		exists, err := s.repo.CheckIfUserOrAccountExists(ctx, userData)
 		if exists {
 			s.logger.Errorf("This user exists and has linked account: %v", err)
-			return nil, fmt.Errorf("This user has linked account, cannot be approved")
+
+			existingReview, err := s.repo.FindKycInReviewSA(ctx, cpsAction.UniqueId)
+			if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+				log.Errorf("[SelfActivationKYC][Authorize] failed to check existing review: %v", err)
+				return nil, errors.New(localization.ErrorUnexpectedError.Code)
+			}
+			if existingReview != nil {
+				existingReview.ReviewStatus = string(constants.KYCStatusRejected)
+				_, err = s.repo.UpdateKycReviewSA(ctx, cpsAction.UniqueId, existingReview)
+				if err != nil {
+					log.Errorf("[SelfActivationKYC][Authorize] failed to update review status: %v", err)
+					return nil, errors.New(localization.ErrorUnexpectedError.Code)
+				}
+			}
 		}
 
 		existingReview, err := s.repo.FindKycInReviewSA(ctx, cpsAction.UniqueId)
@@ -330,7 +343,7 @@ func (s *selfActivationKYCService) Authorize(ctx context.Context, cpsAction *mod
 			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 		if existingReview != nil {
-			existingReview.ReviewStatus = string(constants.KYCStatusRejected)
+			existingReview.ReviewStatus = string(constants.KYCStatusApproved)
 			_, err = s.repo.UpdateKycReviewSA(ctx, cpsAction.UniqueId, existingReview)
 			if err != nil {
 				log.Errorf("[SelfActivationKYC][Authorize] failed to update review status: %v", err)
