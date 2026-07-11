@@ -63,7 +63,7 @@ func NewSelfActivationKYCService(repo storage.SelfActivationKYCRepository,
 	}
 }
 
-func (s *selfActivationKYCService) FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]dto.SelfActivationUser], error) {
+func (s *selfActivationKYCService) FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]dto.CustomerKYCResponse], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "FindAllWithPagination", "SelfActivationKYC", "FindAllWithPagination")
 	defer span.End()
 
@@ -75,7 +75,7 @@ func (s *selfActivationKYCService) FindAllWithPagination(ctx context.Context, fi
 	return core.MapSelfActivationUserToResponsePaginated(result), nil
 }
 
-func (s *selfActivationKYCService) FindByID(ctx context.Context, id string) (*dto.SelfActivationUser, error) {
+func (s *selfActivationKYCService) FindByID(ctx context.Context, id string) (*dto.CustomerKYCResponse, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "FindByID", "SelfActivationKYC", "FindByID")
 	defer span.End()
 
@@ -94,7 +94,7 @@ func (s *selfActivationKYCService) FindByID(ctx context.Context, id string) (*dt
 		if review != nil {
 			mappedResponse.KYCReviewStartedAt = &review.StartedAt
 			mappedResponse.KYCReviewExpiresAt = &review.ExpiresAt
-			mappedResponse.Reviewer = core.MapSelfActivationUserInfo(&review.Reviewer)
+			mappedResponse.Reviewer = &review.Reviewer
 		}
 	}
 
@@ -328,7 +328,7 @@ func (s *selfActivationKYCService) Authorize(ctx context.Context, cpsAction *mod
 				return nil, errors.New(localization.ErrorUnexpectedError.Code)
 			}
 			if existingReview != nil {
-				existingReview.ReviewStatus = string(constants.KYCStatusRejected)
+				existingReview.ReviewStatus = string(constants.KYCStatusCancelled)
 				_, err = s.repo.UpdateKycReviewSA(ctx, cpsAction.UniqueId, existingReview)
 				if err != nil {
 					log.Errorf("[SelfActivationKYC][Authorize] failed to update review status: %v", err)
