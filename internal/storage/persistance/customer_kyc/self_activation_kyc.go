@@ -173,11 +173,12 @@ func (r *selfActivationRepository) UpdateKYCStatusSA(ctx context.Context, id, st
 	}
 
 	update := bson.M{
-		"kyc_status":       status,
-		"kyc_approved":     approved,
+		"kyc.kyc_status":   status,
 		"enabled":          approved,
 		"last_modified_at": time.Now(),
+		"updated_at":       time.Now(),
 	}
+
 	if rejectionReason != "" {
 		update["kyc_reject_reason"] = rejectionReason
 	}
