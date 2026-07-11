@@ -244,6 +244,7 @@ func MapSelfActivationUserToResponse(u *imodel.SelfActivationUser) *dto.Customer
 			Photo:         u.Picture,
 			LivenessVideo: u.ComplyCube.LiveVideoID,
 		},
+		AccountNumbers:      u.AccountNumbers,
 		CustomerStatus:      boolToCustomerStatus(u.Enabled),
 		KYCStatus:           u.KYC.KYCStatus,
 		MoneyLaunderingFree: nil,

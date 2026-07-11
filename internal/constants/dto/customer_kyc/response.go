@@ -18,16 +18,16 @@ type CustomerKYCResponse struct {
 	ResidentialAddress   ResidentialAddress   `json:"residential_address"`
 	FinancialInformation FinancialInformation `json:"financial_information"`
 	CapturedDocuments    CapturedDocuments    `json:"captured_documents"`
-
-	CustomerStatus      string           `json:"customer_status"`
-	KYCStatus           string           `json:"kyc_status"`
-	MoneyLaunderingFree *bool            `json:"money_laundering_free"`
-	TermsAndConditions  string           `json:"terms_and_conditions,omitempty"`
-	KYCReviewStartedAt  *time.Time       `json:"started_at,omitempty"`
-	KYCReviewExpiresAt  *time.Time       `json:"expires_at,omitempty"`
-	Reviewer            *imodel.UserInfo `json:"reviewer,omitempty"`
-	CreatedAt           string           `json:"created_at"`
-	UpdatedAt           string           `json:"updated_at"`
+	AccountNumbers       []string             `json:"account_numbers,omitempty"`
+	CustomerStatus       string               `json:"customer_status"`
+	KYCStatus            string               `json:"kyc_status"`
+	MoneyLaunderingFree  *bool                `json:"money_laundering_free"`
+	TermsAndConditions   string               `json:"terms_and_conditions,omitempty"`
+	KYCReviewStartedAt   *time.Time           `json:"started_at,omitempty"`
+	KYCReviewExpiresAt   *time.Time           `json:"expires_at,omitempty"`
+	Reviewer             *imodel.UserInfo     `json:"reviewer,omitempty"`
+	CreatedAt            string               `json:"created_at"`
+	UpdatedAt            string               `json:"updated_at"`
 }
 
 type PersonalInformation struct {

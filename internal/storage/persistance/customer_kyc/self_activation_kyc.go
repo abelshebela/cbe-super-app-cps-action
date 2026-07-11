@@ -240,14 +240,14 @@ func (r *selfActivationRepository) UpdateKycReviewSA(ctx context.Context, kycID 
 
 	filter := bson.M{"kyc_id": objID}
 	update := bson.M{
-		"review_status": reviewData.ReviewStatus,
-		"picked_at":     reviewData.PickedAt,
-		"started_at":    reviewData.StartedAt,
-		"expires_at":    reviewData.ExpiresAt,
-		"reviewer":      reviewData.Reviewer,
-		"picked_by":     reviewData.PickedBy,
-		"pick_reason":   reviewData.PickReason,
-		"pick_count":    reviewData.PickCount,
+		"kyc.kyc_status": reviewData.ReviewStatus,
+		"picked_at":      reviewData.PickedAt,
+		"started_at":     reviewData.StartedAt,
+		"expires_at":     reviewData.ExpiresAt,
+		"reviewer":       reviewData.Reviewer,
+		"picked_by":      reviewData.PickedBy,
+		"pick_reason":    reviewData.PickReason,
+		"pick_count":     reviewData.PickCount,
 	}
 
 	result, err := r.inReviewDal.UpdateOne(ctx, filter, update)
