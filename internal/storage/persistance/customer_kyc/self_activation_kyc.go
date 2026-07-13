@@ -114,14 +114,9 @@ func (r *selfActivationRepository) FindAllWithPaginationSA(ctx context.Context, 
 		"kyc_status": "kyc.kyc_status",
 	}
 	for param, mongoField := range nestedFieldMap {
-		if v, ok := filterParam.Filters[param]; ok && v != nil && v != "" {
-			if s, ok := v.(string); ok {
-				statuses := strings.Split(s, ",")
-
-				for i := range statuses {
-					statuses[i] = strings.TrimSpace(statuses[i])
-				}
-
+		if v, ok := filterParam.Filters[param]; ok && v != nil {
+			statuses := local_util.StringSliceFromFilterValue(v)
+			if len(statuses) > 0 {
 				filter[mongoField] = bson.M{
 					"$in": statuses,
 				}
