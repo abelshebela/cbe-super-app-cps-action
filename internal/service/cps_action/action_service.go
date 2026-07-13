@@ -842,6 +842,7 @@ func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID 
 		string(constants.AUDITORINPROGRESS): true,
 		string(constants.AUDITORCHECKED):    true,
 	}
+
 	for _, src := range []string{"auditor_status", "auditor_statuses"} {
 		for _, v := range local_util.ExtractStringSlice(filterParams.Filters, src) {
 			if auditStateSet[strings.ToUpper(v)] {
