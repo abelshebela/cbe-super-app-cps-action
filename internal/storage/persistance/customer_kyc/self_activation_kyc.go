@@ -94,7 +94,7 @@ func (r *selfActivationRepository) FindAllWithPaginationSA(ctx context.Context, 
 
 	log.Infof("[CustomerKYC][FindAllWithPagination] fetching kyc requests")
 
-	allowed := []string{"kyc_status", "enabled", "created_at"}
+	allowed := []string{"kyc.kyc_status", "enabled", "created_at"}
 	filter, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, allowed)
 
 	filter["is_deleted"] = bson.M{"$ne": true}
@@ -102,7 +102,30 @@ func (r *selfActivationRepository) FindAllWithPaginationSA(ctx context.Context, 
 	if filterParam.Search != "" {
 		q := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		filter["$or"] = []bson.M{
+			{"kyc_data.full_name": q},
+			{"kyc_data.phone_number": q},
+			{"kyc_data.email": q},
 			{"kyc.kyc_status": q},
+			{"user_id": q},
+		}
+	}
+
+	nestedFieldMap := map[string]string{
+		"kyc_status": "kyc.kyc_status",
+	}
+	for param, mongoField := range nestedFieldMap {
+		if v, ok := filterParam.Filters[param]; ok && v != nil && v != "" {
+			if s, ok := v.(string); ok {
+				statuses := strings.Split(s, ",")
+
+				for i := range statuses {
+					statuses[i] = strings.TrimSpace(statuses[i])
+				}
+
+				filter[mongoField] = bson.M{
+					"$in": statuses,
+				}
+			}
 		}
 	}
 
