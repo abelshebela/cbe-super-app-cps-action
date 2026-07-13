@@ -23,6 +23,7 @@ import (
 
 type Account interface {
 	LookupAccountByPhone(ctx context.Context, phone string) (bool, error)
+	CustomerCifSearch(ctx context.Context, cif string) (*core.CustomerFetchResult, error)
 	LookupAccountByAccountNumber(ctx context.Context, account model.AccountLookUpRequest) (*imodel.AccountDetail, error)
 	LookupAccountByAccountNumberFromBps(ctx context.Context, accountNumber string) (accountLookup.AccountResponse, error)
 	CreateAccountWithFayda(ctx context.Context, account accountLookup.AccountCreateParams) (types.Account, error)
@@ -281,7 +282,7 @@ func (s *CoreAccountLookupAdapter) CustomerCifSearch(ctx context.Context, cif st
 		return nil, localization.ErrorUnexpectedError
 	}
 
-	res, err := s.coreAPI.CustomerFetch(ctx, core.CustomerFetchParam{CustomerNumber: cif, FetchBy: ""})
+	res, err := s.coreAPI.CustomerFetch(ctx, core.CustomerFetchParam{CustomerNumber: cif, FetchBy: "Customer Numner"})
 
 	if err != nil {
 		s.Logger.Errorf("[coreLookup][CustomerCifSearch] failed to search customer by CIF: %v", err)

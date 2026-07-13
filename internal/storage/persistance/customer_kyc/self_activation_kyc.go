@@ -102,25 +102,20 @@ func (r *selfActivationRepository) FindAllWithPaginationSA(ctx context.Context, 
 	if filterParam.Search != "" {
 		q := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		filter["$or"] = []bson.M{
-			{"kyc_data.full_name": q},
-			{"kyc_data.phone_number": q},
-			{"kyc_data.email": q},
-			{"kyc_data.origin_id": q},
-			{"kyc_status": q},
-			{"user_id": q},
+			{"kyc.kyc_status": q},
 		}
 	}
 
-	nestedFieldMap := map[string]string{
-		"vendor":           "kyc_data.vendor",
-		"account_type":     "kyc_data.account_type",
-		"sub_account_type": "kyc_data.sub_account_type",
-	}
-	for param, mongoField := range nestedFieldMap {
-		if v, ok := filterParam.Filters[param]; ok && v != nil && v != "" {
-			filter[mongoField] = v
-		}
-	}
+	// nestedFieldMap := map[string]string{
+	// 	"vendor":           "kyc_data.vendor",
+	// 	"account_type":     "kyc_data.account_type",
+	// 	"sub_account_type": "kyc_data.sub_account_type",
+	// }
+	// for param, mongoField := range nestedFieldMap {
+	// 	if v, ok := filterParam.Filters[param]; ok && v != nil && v != "" {
+	// 		filter[mongoField] = v
+	// 	}
+	// }
 
 	results, err := r.selfActivationDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
