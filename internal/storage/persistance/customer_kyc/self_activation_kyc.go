@@ -42,7 +42,7 @@ func (r *selfActivationRepository) CheckIfUserOrAccountExists(ctx context.Contex
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
 	phone := strings.TrimSpace(userData.PhoneNumber)
-	customerID := strings.TrimSpace(userData.CustomerID)
+	customerID := strings.TrimSpace(userData.CustomerNumber)
 
 	if phone == "" && customerID == "" {
 		return false, nil
