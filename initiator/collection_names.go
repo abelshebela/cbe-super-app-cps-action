@@ -46,6 +46,7 @@ var (
 	NewsTagsCollection               = "news_tags"
 	NewsCategoryCollection           = "news_category"
 	CustomersKYCCollection           = "customer_kyc"
+	SelfActivationKYCCollection      = "self_activation"
 	BPSActionRolesCollection         = "action_roles"
 	BPSActionListCollection          = "bps_action_list"
 	CPSActionListCollection          = "cps_action_list"

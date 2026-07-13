@@ -1049,6 +1049,39 @@ func (a *cpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http
 		return
 	}
 
+	// Parse level+status filter for checker: levels=1,2&level_1_status=APPROVED&level_2_status=REJECTED
+	// Levels without a status filter by level only; levels WITH a status also require
+	// the checker to have given that specific status at that level (all pairs are ANDed).
+	// Support both singular "level" and plural "levels" parameters
+	rawLevel := strings.TrimSpace(r.URL.Query().Get("levels"))
+	if rawLevel == "" {
+		rawLevel = strings.TrimSpace(r.URL.Query().Get("level"))
+	}
+	if rawLevel != "" {
+		var checkerLevelStatuses []imodel.LevelClaimPair
+		var rawLevels []string
+		for _, lv := range strings.Split(rawLevel, ",") {
+			lv = strings.TrimSpace(lv)
+			if lv == "" {
+				continue
+			}
+			rawLevels = append(rawLevels, lv)
+			status := strings.ToUpper(strings.TrimSpace(r.URL.Query().Get("level_" + lv + "_status")))
+			if status != "" {
+				checkerLevelStatuses = append(checkerLevelStatuses, imodel.LevelClaimPair{Level: lv, Claim: status})
+			}
+		}
+		if filterParams.Filters == nil {
+			filterParams.Filters = map[string]interface{}{}
+		}
+		if len(rawLevels) > 0 {
+			filterParams.Filters["levels"] = rawLevels
+		}
+		if len(checkerLevelStatuses) > 0 {
+			filterParams.Filters["checker_level_statuses"] = checkerLevelStatuses
+		}
+	}
+
 	res, url, err := a.cpsActionApplication.GetCPSActionsForApprover(ctx, userID, reqs, filterParams)
 	if err != nil {
 		span.RecordError(err)
@@ -1294,7 +1327,12 @@ func (a *cpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.
 	// Parse level+claim filter: levels=1,2,3&level_1_claim=MARKEDASRIGHT&level_2_claim=MARKEDASWRONG
 	// Levels without a claim filter by level only; levels WITH a claim also require
 	// the auditor to have given that specific claim at that level (all pairs are ANDed).
-	if rawLevel := strings.TrimSpace(r.URL.Query().Get("levels")); rawLevel != "" {
+	// Support both singular "level" and plural "levels" parameters
+	rawLevel := strings.TrimSpace(r.URL.Query().Get("levels"))
+	if rawLevel == "" {
+		rawLevel = strings.TrimSpace(r.URL.Query().Get("level"))
+	}
+	if rawLevel != "" {
 		var levelClaimPairs []imodel.LevelClaimPair
 		var rawLevels []string
 		for _, lv := range strings.Split(rawLevel, ",") {
@@ -1406,6 +1444,39 @@ func (a *cpsActionAdapter) GetUserApproverApprovedActions(w http.ResponseWriter,
 	// 	localization.SendErrorByCodeResponse(w, err.Error())
 	// 	return
 	// }
+
+	// Parse level+status filter for checker: levels=1,2&level_1_status=APPROVED&level_2_status=REJECTED
+	// Levels without a status filter by level only; levels WITH a status also require
+	// the checker to have given that specific status at that level (all pairs are ANDed).
+	// Support both singular "level" and plural "levels" parameters
+	rawLevel := strings.TrimSpace(r.URL.Query().Get("levels"))
+	if rawLevel == "" {
+		rawLevel = strings.TrimSpace(r.URL.Query().Get("level"))
+	}
+	if rawLevel != "" {
+		var checkerLevelStatuses []imodel.LevelClaimPair
+		var rawLevels []string
+		for _, lv := range strings.Split(rawLevel, ",") {
+			lv = strings.TrimSpace(lv)
+			if lv == "" {
+				continue
+			}
+			rawLevels = append(rawLevels, lv)
+			status := strings.ToUpper(strings.TrimSpace(r.URL.Query().Get("level_" + lv + "_status")))
+			if status != "" {
+				checkerLevelStatuses = append(checkerLevelStatuses, imodel.LevelClaimPair{Level: lv, Claim: status})
+			}
+		}
+		if filterParams.Filters == nil {
+			filterParams.Filters = map[string]interface{}{}
+		}
+		if len(rawLevels) > 0 {
+			filterParams.Filters["levels"] = rawLevels
+		}
+		if len(checkerLevelStatuses) > 0 {
+			filterParams.Filters["checker_level_statuses"] = checkerLevelStatuses
+		}
+	}
 
 	userID := local_util.ExtractUserContext(r).UserID
 	res, url, err := a.cpsActionApplication.GetCPSActionsForApprover(ctx, userID, reqs, filterParams)
