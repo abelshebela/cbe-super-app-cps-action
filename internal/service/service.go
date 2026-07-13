@@ -68,6 +68,8 @@ import (
 	cust_kyc_dto "cbe-super-app-cps-action/internal/constants/dto/customer_kyc"
 	queue "cbe-super-app-cps-action/internal/storage/queue_system"
 
+	self_activation_dto "cbe-super-app-cps-action/internal/constants/dto/customer_kyc_self"
+
 	bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 	"go.mongodb.org/mongo-driver/v2/bson"
 
@@ -195,6 +197,7 @@ type CustomerService interface {
 	CreateEnableCustomerSession(ctx context.Context, id string) (string, error)
 	GetCustomerActionLogByID(ctx context.Context, id string, filterParams types.Filter) (types.PaginatedResponse[[]customer_dto.CustomerActionLogResponse], error)
 	SearchCustomerByCIForAccountNumber(ctx context.Context, number string) (*customer_dto.CustomerListResponse, error)
+	SearchCustomerByCIF(ctx context.Context, number string) ([]self_activation_dto.CustomerFetchDetailResponse, error)
 	SearchCustomerServiceLimitByCIF(ctx context.Context, cif string, filterParams *types.Filter) (types.PaginatedResponse[[]customer_dto.CustomerServiceLimitResponses], error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	GetCustomerDetailByID(ctx context.Context, id string) (*customer_dto.CustomerDetailResponse, error)

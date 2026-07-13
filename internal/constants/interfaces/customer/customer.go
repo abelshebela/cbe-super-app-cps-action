@@ -18,4 +18,5 @@ type CustomerDetail interface {
 	GetCustomerDetailByID(w http.ResponseWriter, r *http.Request)
 	GetCustomerActionLogByID(w http.ResponseWriter, r *http.Request)
 	GetCustomerBarUnBarReasons(w http.ResponseWriter, r *http.Request)
+	SearchCustomerByCIF(w http.ResponseWriter, r *http.Request)
 }
