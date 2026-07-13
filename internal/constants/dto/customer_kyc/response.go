@@ -9,6 +9,7 @@ type CustomerKYCResponse struct {
 	ID             string `json:"id"`
 	SuperAppUserID string `json:"super_app_user_id,omitempty"`
 	Sub            string `json:"sub,omitempty"`
+	CustomerNumber string `bson:"customer_number" json:"customer_number"`
 	AccountType    string `json:"account_type,omitempty"`
 	SubAccountType string `json:"sub_account_type,omitempty"`
 	Currency       string `json:"currency,omitempty"`
