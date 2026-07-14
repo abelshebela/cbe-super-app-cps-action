@@ -154,7 +154,7 @@ func (s *accountProductService) Create(ctx context.Context, req ap_dto.CreateAPR
 		log.Errorf("[APSvc][Create] incomplete user")
 		return nil, errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
-
+            //   bypass for test
 	existing, err := s.repo.FindByCBSCode(ctx, req.CBSProductCode)
 	if err != nil && !strings.Contains(err.Error(), localization.ErrorResourceNotFound.Code) {
 		log.Errorf("[APSvc][Create] dup check err: %v", err)
@@ -196,11 +196,13 @@ func (s *accountProductService) Create(ctx context.Context, req ap_dto.CreateAPR
 		ProductFeatures:       req.ProductFeatures,
 		HasPhysicalCard:       req.HasPhysicalCard,
 		HasVirtualCard:        req.HasVirtualCard,
+		InterestRate: req.InterestRate,
+		IsAvailableForOnbording: req.IsAvailableForOnbording,
 		// ProductIcon:           iconURL,
 		ProductCoverImage: coverImageURL,
 		IsEnabled:         true,
 	}
-
+              //bypass 2
 	if s.categoryRepo != nil {
 		if cat, err := s.categoryRepo.FindByID(ctx, req.AccountCategoryID); err == nil {
 			payload.CategoryName    = cat.CategoryName
@@ -289,6 +291,9 @@ func (s *accountProductService) Update(ctx context.Context, id string, req ap_dt
 	}
 	if req.HasVirtualCard != nil {
 		updated.HasVirtualCard = *req.HasVirtualCard
+	}
+	if req.IsAvailableForOnbording != nil{
+		updated.IsAvailableForOnbording= *req.IsAvailableForOnbording
 	}
 
 	if req.CoverImage != nil {
