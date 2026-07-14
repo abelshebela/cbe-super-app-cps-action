@@ -12,15 +12,15 @@ import (
 func InitRedis(ctx context.Context, cfg *sharedConfig.VaultConfig, logger utils.Logger) (*sharedRedis.RedisClient, *redis.Client, error) {
 	logger.Infof("Initializing Redis connection")
 
-	// redisClient, err := sharedRedis.ConnectToRedis(ctx, cfg)
-	// if err != nil {
-	// 	logger.Errorf("Failed to initialize Redis connection: %v", err)
-	// 	return nil, nil, err
-	// }
-	redisClient := redis.NewClient(&redis.Options{
-		Addr: "localhost:6379",
-		DB:   0,
-	})
+	redisClient, err := sharedRedis.ConnectToRedis(ctx, cfg)
+	if err != nil {
+		logger.Errorf("Failed to initialize Redis connection: %v", err)
+		return nil, nil, err
+	}
+	// redisClient := redis.NewClient(&redis.Options{
+	// 	Addr: "localhost:6379",
+	// 	DB:   0,
+	// })
 
 	client := sharedRedis.NewRedisClient(redisClient, *cfg)
 
