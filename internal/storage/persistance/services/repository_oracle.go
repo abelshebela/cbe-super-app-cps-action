@@ -379,7 +379,7 @@ VALUES (
 	return nil
 }
 
-func (s *ServicesStorage) Create(ctx context.Context, accountNumber string, service *imodel.Service) error {
+func (s *ServicesStorage) Create(ctx context.Context, accountNumber string, service *imodel.Service) (string, error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 
 	if service.CreatedAt.IsZero() {
@@ -392,7 +392,7 @@ func (s *ServicesStorage) Create(ctx context.Context, accountNumber string, serv
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		log.Errorf("[ServicesRepo][Create] begin tx failed: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return "", errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer func() { _ = tx.Rollback() }()
 
@@ -400,13 +400,13 @@ func (s *ServicesStorage) Create(ctx context.Context, accountNumber string, serv
 	serviceID, err := s.insertService(ctx, tx, accountNumber, service)
 	if err != nil {
 		log.Errorf("[ServicesRepo][Create] insert failed: %v", err)
-		return local_util.HandleDBError(err)
+		return "", local_util.HandleDBError(err)
 	}
 	service.ID = serviceID
 
 	if err := tx.Commit(); err != nil {
 		log.Errorf("[ServicesRepo][Create] commit failed: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return "", errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	_ = s.kafkaProducer.PublishMessage(
@@ -416,9 +416,9 @@ func (s *ServicesStorage) Create(ctx context.Context, accountNumber string, serv
 		string(constants.ClientOrchestrationServicesTopic),
 		"new service created",
 	)
-	_ = s.redis.Set(ctx, s.cfg.CPSServiceUpdate, service, -1)
+	// _ = s.redis.Set(ctx, s.cfg.CPSServiceUpdate, service, -1)
 
-	return nil
+	return serviceID, nil
 }
 
 func (s *ServicesStorage) Update(ctx context.Context, id string, service *imodel.Service, accountDetail string) error {
@@ -481,7 +481,7 @@ WHERE id = HEXTORAW(:7)`
 		string(constants.ClientOrchestrationServicesTopic),
 		"service authorized and updated",
 	)
-	_ = s.redis.Set(ctx, s.cfg.CPSServiceUpdate, service, -1)
+	// _ = s.redis.Set(ctx, s.cfg.CPSServiceUpdate, service, -1)
 
 	return nil
 }
@@ -1331,7 +1331,7 @@ VALUES (
 		string(constants.ClientOrchestrationServicesTopic),
 		"new service list created",
 	)
-	_ = s.redis.Set(ctx, s.cfg.CPSServiceUpdate, serviceList, -1)
+	// _ = s.redis.Set(ctx, s.cfg.CPSServiceUpdate, serviceList, -1)
 
 	return nil
 }
