@@ -482,7 +482,7 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 			return nil, localization.ErrorInvalidActionData
 		}
 		s.logger.Infof("[servicesService][Authorize] Authorizing create service with data: %+v", serviceDoc)
-		err = s.repo.Create(ctx, serviceDoc.ProductGlAccount, serviceDoc)
+		serviceID, err := s.repo.Create(ctx, serviceDoc.ProductGlAccount, serviceDoc)
 		if err == nil {
 			action.CurrentAction = serviceDoc
 		}
@@ -491,7 +491,7 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 
 		for _, c := range serviceDoc.Cap {
 			values = append(values, service_cache.ServiceData{
-				ServiceID:          action.UniqueId,
+				ServiceID:          serviceID,
 				AccessListID:       serviceDoc.ServiceKeyId,
 				ServiceKey:         serviceDoc.ServiceKey,
 				ServiceCode:        serviceDoc.ServiceCode,

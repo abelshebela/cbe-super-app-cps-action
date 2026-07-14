@@ -42,7 +42,7 @@ func (r *selfActivationRepository) CheckIfUserOrAccountExists(ctx context.Contex
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
 	phone := strings.TrimSpace(userData.PhoneNumber)
-	customerID := strings.TrimSpace(userData.CustomerID)
+	customerID := strings.TrimSpace(userData.CustomerNumber)
 
 	if phone == "" && customerID == "" {
 		return false, nil
@@ -94,7 +94,7 @@ func (r *selfActivationRepository) FindAllWithPaginationSA(ctx context.Context, 
 
 	log.Infof("[CustomerKYC][FindAllWithPagination] fetching kyc requests")
 
-	allowed := []string{"kyc_status", "enabled", "created_at"}
+	allowed := []string{"kyc.kyc_status", "enabled", "created_at"}
 	filter, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, allowed)
 
 	filter["is_deleted"] = bson.M{"$ne": true}
@@ -105,20 +105,22 @@ func (r *selfActivationRepository) FindAllWithPaginationSA(ctx context.Context, 
 			{"kyc_data.full_name": q},
 			{"kyc_data.phone_number": q},
 			{"kyc_data.email": q},
-			{"kyc_data.origin_id": q},
-			{"kyc_status": q},
+			{"kyc.kyc_status": q},
 			{"user_id": q},
 		}
 	}
 
 	nestedFieldMap := map[string]string{
-		"vendor":           "kyc_data.vendor",
-		"account_type":     "kyc_data.account_type",
-		"sub_account_type": "kyc_data.sub_account_type",
+		"kyc_status": "kyc.kyc_status",
 	}
 	for param, mongoField := range nestedFieldMap {
-		if v, ok := filterParam.Filters[param]; ok && v != nil && v != "" {
-			filter[mongoField] = v
+		if v, ok := filterParam.Filters[param]; ok && v != nil {
+			statuses := local_util.StringSliceFromFilterValue(v)
+			if len(statuses) > 0 {
+				filter[mongoField] = bson.M{
+					"$in": statuses,
+				}
+			}
 		}
 	}
 
@@ -240,14 +242,14 @@ func (r *selfActivationRepository) UpdateKycReviewSA(ctx context.Context, kycID 
 
 	filter := bson.M{"kyc_id": objID}
 	update := bson.M{
-		"kyc.kyc_status": reviewData.ReviewStatus,
-		"picked_at":      reviewData.PickedAt,
-		"started_at":     reviewData.StartedAt,
-		"expires_at":     reviewData.ExpiresAt,
-		"reviewer":       reviewData.Reviewer,
-		"picked_by":      reviewData.PickedBy,
-		"pick_reason":    reviewData.PickReason,
-		"pick_count":     reviewData.PickCount,
+		"review_status": reviewData.ReviewStatus,
+		"picked_at":     reviewData.PickedAt,
+		"started_at":    reviewData.StartedAt,
+		"expires_at":    reviewData.ExpiresAt,
+		"reviewer":      reviewData.Reviewer,
+		"picked_by":     reviewData.PickedBy,
+		"pick_reason":   reviewData.PickReason,
+		"pick_count":    reviewData.PickCount,
 	}
 
 	result, err := r.inReviewDal.UpdateOne(ctx, filter, update)

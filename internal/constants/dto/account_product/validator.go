@@ -79,6 +79,10 @@ func (r CreateAPRequest) Validate() error {
 			validation.Required,
 			validation.Min(float64(1)),
 		),
+		validation.Field(&r.InterestRate,
+			validation.Required,
+			validation.Min(float64(1)),
+		),
 		validation.Field(&r.MinimumMaintenanceFee,
 			validation.Min(float64(1)),
 		),
@@ -107,6 +111,9 @@ func (r UpdateAPRequest) Validate() error {
 		if err := apNoSpecialChars(r.ProductName); err != nil {
 			return errors.New("Product Name: " + err.Error())
 		}
+	}
+	if r.InterestRate < 0{
+		return errors.New("Interest rate can not less that zero")
 	}
 	if r.ProductTagLine != "" {
 		if len(r.ProductTagLine) > 128 {

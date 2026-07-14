@@ -9,6 +9,7 @@ type CustomerKYCResponse struct {
 	ID             string `json:"id"`
 	SuperAppUserID string `json:"super_app_user_id,omitempty"`
 	Sub            string `json:"sub,omitempty"`
+	CustomerNumber string `bson:"customer_number" json:"customer_number"`
 	AccountType    string `json:"account_type,omitempty"`
 	SubAccountType string `json:"sub_account_type,omitempty"`
 	Currency       string `json:"currency,omitempty"`
@@ -34,17 +35,18 @@ type PersonalInformation struct {
 	// FirstName     string `json:"first_name" validate:"required"`
 	// MiddleName    string `json:"middle_name,omitempty"`
 	// LastName      string `json:"last_name" validate:"required"`
-	FullName      string `json:"full_name" bson:"full_name"`
-	MotherName    string `json:"mother_name" validate:"required"`
-	PhoneNumber   string `json:"phone_number" validate:"required"`
-	Email         string `json:"email,omitempty"`
-	Gender        string `json:"gender" validate:"required,oneof=MALE FEMALE"`
-	MaritalStatus string `json:"marital_status,omitempty"`
-	Nationality   string `json:"nationality,omitempty"`
-	DateOfBirth   string `json:"date_of_birth" validate:"required"`
-	IsCitizen     bool   `json:"is_citizen"`
-	OriginID      string `json:"origin_id,omitempty"`
-	USTIN         string `json:"us_tin,omitempty"`
+	FullName       string   `json:"full_name" bson:"full_name"`
+	MotherName     string   `json:"mother_name" validate:"required"`
+	PhoneNumber    string   `json:"phone_number" validate:"required"`
+	Email          string   `json:"email,omitempty"`
+	Gender         string   `json:"gender" validate:"required,oneof=MALE FEMALE"`
+	MaritalStatus  string   `json:"marital_status,omitempty"`
+	Nationality    string   `json:"nationality,omitempty"`
+	DateOfBirth    string   `json:"date_of_birth" validate:"required"`
+	IsCitizen      bool     `json:"is_citizen"`
+	OriginID       string   `json:"origin_id,omitempty"`
+	USTIN          string   `json:"us_tin,omitempty"`
+	AccountNumbers []string `bson:"account_numbers,omitempty" json:"account_numbers,omitempty"`
 }
 
 type CapturedDocuments struct {

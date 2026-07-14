@@ -222,16 +222,18 @@ func MapSelfActivationUserToResponse(u *imodel.SelfActivationUser) *dto.Customer
 	}
 
 	response := dto.CustomerKYCResponse{
-		ID:  u.ID.Hex(),
-		Sub: u.Sub,
+		ID:             u.ID.Hex(),
+		Sub:            u.Sub,
+		CustomerNumber: u.CustomerNumber,
 		PersonalInformation: dto.PersonalInformation{
-			FullName:      u.Name,
-			Email:         u.Email,
-			PhoneNumber:   u.PhoneNumber,
-			Gender:        u.Gender,
-			Nationality:   u.Nationality,
-			DateOfBirth:   u.BirthDate,
-			MaritalStatus: "",
+			FullName:       u.Name,
+			Email:          u.Email,
+			PhoneNumber:    u.PhoneNumber,
+			Gender:         u.Gender,
+			Nationality:    u.Nationality,
+			DateOfBirth:    u.BirthDate,
+			MaritalStatus:  "",
+			AccountNumbers: u.AccountNumbers,
 		},
 		ResidentialAddress: dto.ResidentialAddress{
 			Zone:   u.Address.Zone,
@@ -244,7 +246,6 @@ func MapSelfActivationUserToResponse(u *imodel.SelfActivationUser) *dto.Customer
 			Photo:         u.Picture,
 			LivenessVideo: u.ComplyCube.LiveVideoID,
 		},
-		AccountNumbers:      u.AccountNumbers,
 		CustomerStatus:      boolToCustomerStatus(u.Enabled),
 		KYCStatus:           u.KYC.KYCStatus,
 		MoneyLaunderingFree: nil,
