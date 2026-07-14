@@ -423,6 +423,11 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 		if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
+
+		if existingReview == nil {
+			log.Warnf("[CustKycSvc][Authorize] no existing review found for kyc id: %s", cpsAction.UniqueId)
+			return nil, errors.New(localization.ErrorNoExistingReview.Code)
+		}
 		existingReview.ReviewStatus = string(constants.KYCStatusApproved)
 		_, err = s.repo.UpdateKycReview(ctx, cpsAction.UniqueId, existingReview)
 		if err != nil {
@@ -467,6 +472,12 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 			log.Errorf("[CustKycSvc][Authorize] failed to check existing review: %v", err)
 			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
+
+		if existingReview == nil {
+			log.Warnf("[CustKycSvc][Authorize] no existing review found for kyc id: %s", cpsAction.UniqueId)
+			return nil, errors.New(localization.ErrorNoExistingReview.Code)
+		}
+
 		existingReview.ReviewStatus = string(constants.KYCStatusRejected)
 		_, err = s.repo.UpdateKycReview(ctx, cpsAction.UniqueId, existingReview)
 		if err != nil {
@@ -503,6 +514,12 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 			log.Errorf("[CustKycSvc][Authorize] failed to check existing review: %v", err)
 			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
+
+		if existingReview == nil {
+			log.Warnf("[CustKycSvc][Authorize] no existing review found for kyc id: %s", cpsAction.UniqueId)
+			return nil, errors.New(localization.ErrorNoExistingReview.Code)
+		}
+
 		now := time.Now()
 		existingReview.PickedAt = &now
 		existingReview.StartedAt = now

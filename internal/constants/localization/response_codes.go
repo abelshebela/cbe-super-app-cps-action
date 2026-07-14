@@ -483,6 +483,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorMissingOrInvalidImage,
 	ErrorPendingCpsActionExists,
 	ErrorUnexpectedError,
+	ErrorNoExistingReview,
 	ErrorParamsIsRequired,
 	ErrorDonationForServiceAlreadyExists,
 	ErrorMarchantDataAlready,
@@ -6832,6 +6833,13 @@ var (
 		Code:       "ERROR_UNEXPECTED_ERROR",
 		StatusCode: StatusInternalServerError,
 		Message:    MsgUnexpectedError,
+		Type:       "error",
+	}
+
+	ErrorNoExistingReview = ResponseCode{
+		Code:       "ERROR_NO_EXISTING_REVIEW",
+		StatusCode: StatusBadRequest,
+		Message:    "No existing review found for this KYC request",
 		Type:       "error",
 	}
 
