@@ -10,6 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
+
 // HandleDBError checks the error type and returns appropriate localized errors.
 // If the error is mongo.ErrNoDocuments or sql.ErrNoRows, it returns ErrorResourceNotFound.
 // For all other errors, it returns ErrorUnexpectedError.
