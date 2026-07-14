@@ -105,7 +105,7 @@ type UnlinkAccount interface {
 
 // ServicesRepository manages CRUD for Services catalog
 type ServicesRepository interface {
-	Create(ctx context.Context, accountNumber string, service *imodel.Service) error
+	Create(ctx context.Context, accountNumber string, service *imodel.Service) (string, error)
 	Update(ctx context.Context, id string, service *imodel.Service, accountDetail string) error
 	Delete(ctx context.Context, serviceID, accessListID string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
