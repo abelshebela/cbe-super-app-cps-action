@@ -1257,7 +1257,7 @@ FETCH FIRST 1 ROWS ONLY`, accessListTable, where)
 	return &item, nil
 }
 
-func (s *ServicesStorage) CreateServiceKey(ctx context.Context, serviceList *imodel.ServiceKey) error {
+func (s *ServicesStorage) CreateServiceKey(ctx context.Context, serviceList *imodel.ServiceKey) (string, error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 
 	serviceList.IsEnabled = true
@@ -1265,7 +1265,7 @@ func (s *ServicesStorage) CreateServiceKey(ctx context.Context, serviceList *imo
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		log.Errorf("[ServicesRepo][CreateServiceKey] begin tx failed: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return "", errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer func() { _ = tx.Rollback() }()
 
@@ -1280,7 +1280,10 @@ INSERT INTO access_lists (
 )
 VALUES (
   :1,:2,:3,:4,:5,:6
-)`
+)
+RETURNING id INTO :7`
+
+	var id string
 
 	if _, err := tx.ExecContext(ctx, q,
 		serviceList.ServiceName,
@@ -1289,9 +1292,10 @@ VALUES (
 		boolToOracleNumber(serviceList.IsUSSDEnabled),
 		boolToOracleNumber(serviceList.IsSuperAppEnabled),
 		boolToOracleNumber(serviceList.IsEnabled),
+		sql.Out{Dest: &id},
 	); err != nil {
 		log.Errorf("[ServicesRepo][CreateServiceKey] insert failed: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return "", errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// Synchronize access_list with this service list
@@ -1321,7 +1325,7 @@ VALUES (
 
 	if err := tx.Commit(); err != nil {
 		log.Errorf("[ServicesRepo][CreateServiceKey] commit failed: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return "", errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	_ = s.kafkaProducer.PublishMessage(
@@ -1333,7 +1337,7 @@ VALUES (
 	)
 	// _ = s.redis.Set(ctx, s.cfg.CPSServiceUpdate, serviceList, -1)
 
-	return nil
+	return id, nil
 }
 
 func (s *ServicesStorage) UpdateServiceKey(ctx context.Context, id, serviceKey string, serviceList *imodel.ServiceKey) error {
