@@ -24,24 +24,26 @@ const (
 )
 
 type CustomerKYC struct {
-	ID         bson.ObjectID   `json:"id" bson:"_id,omitempty"`
-	UserID     string          `json:"user_id" bson:"user_id,omitempty"`
-	ClientID   string          `json:"client_id" bson:"client_id,omitempty"`
-	KYCData    KYC             `json:"kyc_data" bson:"kyc_data"`
-	ComplyCube *ComplyCubeData `json:"complycube,omitempty" bson:"complycube,omitempty"`
-	// FaydaVerification    *FaydaVerification  `json:"fayda_verification,omitempty" bson:"fayda_verification,omitempty"`
+	ID                   bson.ObjectID       `json:"id" bson:"_id,omitempty"`
+	UserID               string              `json:"user_id" bson:"user_id,omitempty"`
+	ClientID             string              `json:"client_id" bson:"client_id,omitempty"`
+	KYCData              KYC                 `json:"kyc_data" bson:"kyc_data"`
+	ComplyCube           *ComplyCubeData     `json:"complycube,omitempty" bson:"complycube,omitempty"`
 	ReviewStatus         string              `json:"review_status" bson:"review_status,omitempty"`
 	ReviewComments       string              `json:"review_comments" bson:"review_comments,omitempty"`
 	KYCRejectReasonField map[string]struct{} `json:"kyc_reject_reason_failed" bson:"kyc_reject_reason_failed"`
 	KYCStatus            KYCStatus           `json:"kyc_status" bson:"kyc_status"`
 	KYCRejectReason      string              `json:"kyc_reject_reason" bson:"kyc_reject_reason"`
-	KYCApproved          bool                `json:"kyc_approved" bson:"kyc_approved"`
-	KYCActivityBy        any                 `json:"kyc_activity_by" bson:"kyc_activity_by"`
-	Enabled              bool                `json:"enabled" bson:"enabled"`
-	IsDeleted            bool                `json:"is_deleted" bson:"is_deleted"`
-	CreatedAt            time.Time           `json:"created_at" bson:"created_at"`
-	LastModifiedAt       time.Time           `json:"last_modified_at" bson:"last_modified_at"`
-	DeletedAt            time.Time           `json:"deleted_at" bson:"deleted_at"`
+
+	Review KycReview `bson:"kyc_review" json:"kyc_review"`
+
+	KYCApproved    bool      `json:"kyc_approved" bson:"kyc_approved"`
+	KYCActivityBy  any       `json:"kyc_activity_by" bson:"kyc_activity_by"`
+	Enabled        bool      `json:"enabled" bson:"enabled"`
+	IsDeleted      bool      `json:"is_deleted" bson:"is_deleted"`
+	CreatedAt      time.Time `json:"created_at" bson:"created_at"`
+	LastModifiedAt time.Time `json:"last_modified_at" bson:"last_modified_at"`
+	DeletedAt      time.Time `json:"deleted_at" bson:"deleted_at"`
 }
 
 // KYC Review related models

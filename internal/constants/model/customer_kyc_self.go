@@ -19,18 +19,36 @@ type SelfActivationUser struct {
 	Address        CustomerAddress `bson:"address" json:"address"`
 	Enabled        bool            `bson:"enabled" json:"enabled"`
 	AccountNumbers []string        `bson:"account_numbers" json:"account_numbers"`
-	CustomerNumber string          `bson:"customer_number" json:"customer_number"`
+	ChosenAccounts []string        `bson:"chosen_accounts" json:"chosen_accounts"`
 	ExpiryDate     string          `bson:"expiry_date" json:"expiry_date"`
 	IssueDate      string          `bson:"issue_date" json:"issue_date"`
 
-	KYC        KycInfo    `bson:"kyc" json:"kyc"`
-	ComplyCube ComplyCube `bson:"complycube" json:"complycube"`
+	KYC        KycInfo    `bson:"kyc,omitempty" json:"kyc"`
+	ComplyCube ComplyCube `bson:"complycube,omitempty" json:"complycube,omitzero"`
 
-	KYCRejectReason string `bson:"kyc_reject_reason,omitempty" json:"kyc_reject_reason,omitempty"`
+	// CPS fields
+	Review          KycReview `bson:"kyc_review" json:"kyc_review"`
+	CustomerNumber  string    `bson:"customer_number" json:"customer_number"`
+	KYCRejectReason string    `bson:"kyc_reject_reason,omitempty" json:"kyc_reject_reason,omitempty"`
+	//
+
+	IsActive  bool `json:"is_active" bson:"is_active"`
+	IsDeleted bool `json:"is_deleted" bson:"is_deleted"`
 
 	CreatedAt      time.Time `bson:"created_at" json:"created_at"`
 	LastModifiedAt time.Time `bson:"last_modified_at" json:"last_modified_at"`
 	UpdatedAt      time.Time `bson:"updated_at" json:"updated_at"`
+}
+
+type KycReview struct {
+	Reviewer     UserInfo   `json:"reviewer" bson:"reviewer"`
+	ReviewStatus string     `json:"review_status" bson:"review_status"`
+	StartedAt    time.Time  `json:"started_at" bson:"started_at"`
+	ExpiresAt    time.Time  `json:"expires_at" bson:"expires_at"`
+	PickedAt     *time.Time `json:"picked_at,omitempty" bson:"picked_at,omitempty"`
+	PickedBy     *UserInfo  `json:"picked_by,omitempty" bson:"picked_by,omitempty"`
+	PickReason   string     `json:"pick_reason,omitempty" bson:"pick_reason,omitempty"`
+	PickCount    int        `json:"pick_count" bson:"pick_count"`
 }
 
 type CustomerAddress struct {

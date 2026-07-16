@@ -1,8 +1,9 @@
 package customerkyc
 
 import (
-	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"time"
+
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type CustomerKYCResponse struct {
@@ -20,21 +21,36 @@ type CustomerKYCResponse struct {
 	FinancialInformation FinancialInformation `json:"financial_information"`
 	CapturedDocuments    CapturedDocuments    `json:"captured_documents"`
 	AccountNumbers       []string             `json:"account_numbers,omitempty"`
-	CustomerStatus       string               `json:"customer_status"`
+	CustomerStatus       string               `json:"customer_status,omitempty"`
 	KYCStatus            string               `json:"kyc_status"`
+	Review               KycReview            `bson:"kyc_review" json:"kyc_review"`
 	MoneyLaunderingFree  *bool                `json:"money_laundering_free"`
 	TermsAndConditions   string               `json:"terms_and_conditions,omitempty"`
-	KYCReviewStartedAt   *time.Time           `json:"started_at,omitempty"`
-	KYCReviewExpiresAt   *time.Time           `json:"expires_at,omitempty"`
-	Reviewer             *imodel.UserInfo     `json:"reviewer,omitempty"`
 	CreatedAt            string               `json:"created_at"`
 	UpdatedAt            string               `json:"updated_at"`
 }
 
+type UserInfo struct {
+	ID          bson.ObjectID `json:"id" bson:"id"`
+	UserCode    string        `json:"user_code" bson:"user_code"`
+	FullName    string        `json:"full_name" bson:"full_name"`
+	Email       string        `json:"email" bson:"email"`
+	Department  string        `json:"department" bson:"department"`
+	PhoneNumber string        `json:"phone_number" bson:"phone_number"`
+}
+
+type KycReview struct {
+	Reviewer     UserInfo   `json:"reviewer" bson:"reviewer"`
+	ReviewStatus string     `json:"review_status" bson:"review_status"`
+	StartedAt    time.Time  `json:"started_at" bson:"started_at"`
+	ExpiresAt    time.Time  `json:"expires_at" bson:"expires_at"`
+	PickedAt     *time.Time `json:"picked_at,omitempty" bson:"picked_at,omitempty"`
+	PickedBy     *UserInfo  `json:"picked_by,omitempty" bson:"picked_by,omitempty"`
+	PickReason   string     `json:"pick_reason,omitempty" bson:"pick_reason,omitempty"`
+	PickCount    int        `json:"pick_count" bson:"pick_count"`
+}
+
 type PersonalInformation struct {
-	// FirstName     string `json:"first_name" validate:"required"`
-	// MiddleName    string `json:"middle_name,omitempty"`
-	// LastName      string `json:"last_name" validate:"required"`
 	FullName       string   `json:"full_name" bson:"full_name"`
 	MotherName     string   `json:"mother_name" validate:"required"`
 	PhoneNumber    string   `json:"phone_number" validate:"required"`

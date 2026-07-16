@@ -946,7 +946,7 @@ type CustomerKYCService interface {
 	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]cust_kyc_dto.CustomerKYCResponse], error)
 	FindByID(ctx context.Context, id string) (*cust_kyc_dto.CustomerKYCResponse, error)
 	EnableOrDisable(ctx context.Context, id, reason string, enable bool) error
-	StartKycReview(ctx context.Context, id string) (*imodel.StartedKycReview, error)
+	StartKycReview(ctx context.Context, id string) (*cust_kyc_dto.CustomerKYCResponse, error)
 	PickKycReview(ctx context.Context, id string, reason string) error
 	// UpdateKYCStatus(ctx context.Context, id, status string) error
 	// Delete(ctx context.Context, id string) error
@@ -957,7 +957,7 @@ type SelfActivateKYCService interface {
 	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]cust_kyc_dto.CustomerKYCResponse], error)
 	FindByID(ctx context.Context, id string) (*cust_kyc_dto.CustomerKYCResponse, error)
 	EnableOrDisable(ctx context.Context, id, reason string, enable bool) error
-	StartKycReview(ctx context.Context, id string) (*imodel.StartedKycReview, error)
+	StartKycReview(ctx context.Context, id string) (*cust_kyc_dto.CustomerKYCResponse, error)
 	PickKycReview(ctx context.Context, id string, reason string) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }

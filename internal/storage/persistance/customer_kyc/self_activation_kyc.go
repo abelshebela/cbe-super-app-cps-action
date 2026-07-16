@@ -21,20 +21,16 @@ import (
 )
 
 type selfActivationRepository struct {
-	mongoClient       *mongo.Client
 	oracleDB          *sql.DB
 	selfActivationDal dal.MongoDal[imodel.SelfActivationUser, imodel.SelfActivationUser]
-	inReviewDal       dal.MongoDal[imodel.StartedKycReview, imodel.StartedKycReview]
 	logger            utils.Logger
 	coll              *mongo.Collection
 }
 
 func NewSelfActivationRepository(client *mongo.Client, oracleDB *sql.DB, cfg *config.VaultConfig, dbName, collection string, logger utils.Logger) storage.SelfActivationKYCRepository {
 	return &selfActivationRepository{
-		mongoClient:       client,
 		oracleDB:          oracleDB,
 		selfActivationDal: dal.NewMongoDal[imodel.SelfActivationUser, imodel.SelfActivationUser](client, cfg, dbName, collection),
-		inReviewDal:       dal.NewMongoDal[imodel.StartedKycReview, imodel.StartedKycReview](client, cfg, dbName, "started_kyc_reviews"),
 		logger:            logger,
 		coll:              client.Database(dbName).Collection(collection),
 	}
@@ -104,11 +100,9 @@ func (r *selfActivationRepository) FindAllWithPaginationSA(ctx context.Context, 
 	if filterParam.Search != "" {
 		q := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		filter["$or"] = []bson.M{
-			{"kyc_data.full_name": q},
-			{"kyc_data.phone_number": q},
-			{"kyc_data.email": q},
-			{"kyc.kyc_status": q},
-			{"user_id": q},
+			{"name": q},
+			{"phone_number": q},
+			{"email": q},
 		}
 	}
 
@@ -166,7 +160,7 @@ func (r *selfActivationRepository) FindByIDSA(ctx context.Context, id string) (*
 	return result, nil
 }
 
-func (r *selfActivationRepository) UpdateKYCStatusSA(ctx context.Context, id, status, rejectionReason string, approved bool) error {
+func (r *selfActivationRepository) UpdateKYCStatusSA(ctx context.Context, id, status, rejectionReason string, kyc *imodel.SelfActivationUser, approved bool) error {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
 	log.Infof("[CustomerKYC][UpdateKYCStatus] updating kyc status for id: %s to %s", id, status)
@@ -197,7 +191,7 @@ func (r *selfActivationRepository) UpdateKYCStatusSA(ctx context.Context, id, st
 	return nil
 }
 
-func (r *selfActivationRepository) FindKycInReviewSA(ctx context.Context, kycID string) (*imodel.StartedKycReview, error) {
+func (r *selfActivationRepository) FindKycInReviewSA(ctx context.Context, kycID string) (*imodel.SelfActivationUser, error) {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
 	log.Infof("[CustomerKYC][FindKycInReview] fetching started kyc by id: %s", kycID)
@@ -207,8 +201,8 @@ func (r *selfActivationRepository) FindKycInReviewSA(ctx context.Context, kycID 
 		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
 
-	filter := bson.M{"kyc_id": objID}
-	result, err := r.inReviewDal.FindOne(ctx, filter, nil)
+	filter := bson.M{"_id": objID, "kyc.kyc_status": imodel.KYCStatusInReview}
+	result, err := r.selfActivationDal.FindOne(ctx, filter, nil)
 	if err != nil {
 		log.Errorf("[CustomerKYC][FindKycInReview] failed to find kyc: %v", err)
 		return nil, local_util.HandleDBError(err)
@@ -217,22 +211,22 @@ func (r *selfActivationRepository) FindKycInReviewSA(ctx context.Context, kycID 
 	return result, nil
 }
 
-func (r *selfActivationRepository) StartKycReviewSA(ctx context.Context, reviewData *imodel.StartedKycReview) (*imodel.StartedKycReview, error) {
-	log := local_util.LoggerFromCtx(ctx, r.logger)
+// func (r *selfActivationRepository) StartKycReviewSA(ctx context.Context, reviewData *imodel.SelfActivationUser) (*imodel.SelfActivationUser, error) {
+// 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
-	log.Debugf("[CustomerKYC][StartKycReview] inserting started review: %+v", reviewData)
+// 	log.Debugf("[CustomerKYC][StartKycReview] inserting started review: %+v", reviewData)
 
-	result, err := r.inReviewDal.InsertOne(ctx, *reviewData)
-	if err != nil {
-		log.Errorf("[CustomerKYC][StartKycReview] failed to insert started kyc review: %v", err)
-		log.Debugf("[CustomerKYC][StartKycReview] payload: %+v", reviewData)
-		return nil, local_util.HandleDBError(err)
-	}
+// 	result, err := r.inReviewDal.InsertOne(ctx, *reviewData)
+// 	if err != nil {
+// 		log.Errorf("[CustomerKYC][StartKycReview] failed to insert started kyc review: %v", err)
+// 		log.Debugf("[CustomerKYC][StartKycReview] payload: %+v", reviewData)
+// 		return nil, local_util.HandleDBError(err)
+// 	}
 
-	return &result, nil
-}
+// 	return &result, nil
+// }
 
-func (r *selfActivationRepository) UpdateKycReviewSA(ctx context.Context, kycID string, reviewData *imodel.StartedKycReview) (*imodel.StartedKycReview, error) {
+func (r *selfActivationRepository) UpdateKycReviewSA(ctx context.Context, kycID string, reviewData *imodel.SelfActivationUser) (*imodel.SelfActivationUser, error) {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
 	log.Infof("[UpdateKycReview] updating kyc review for id: %s", kycID)
@@ -244,17 +238,17 @@ func (r *selfActivationRepository) UpdateKycReviewSA(ctx context.Context, kycID 
 
 	filter := bson.M{"kyc_id": objID}
 	update := bson.M{
-		"review_status": reviewData.ReviewStatus,
-		"picked_at":     reviewData.PickedAt,
-		"started_at":    reviewData.StartedAt,
-		"expires_at":    reviewData.ExpiresAt,
-		"reviewer":      reviewData.Reviewer,
-		"picked_by":     reviewData.PickedBy,
-		"pick_reason":   reviewData.PickReason,
-		"pick_count":    reviewData.PickCount,
+		"kyc.review_status": reviewData.Review.ReviewStatus,
+		"kyc.picked_at":     reviewData.Review.PickedAt,
+		"kyc.started_at":    reviewData.Review.StartedAt,
+		"kyc.expires_at":    reviewData.Review.ExpiresAt,
+		"kyc.reviewer":      reviewData.Review.Reviewer,
+		"kyc.picked_by":     reviewData.Review.PickedBy,
+		"kyc.pick_reason":   reviewData.Review.PickReason,
+		"kyc.pick_count":    reviewData.Review.PickCount,
 	}
 
-	result, err := r.inReviewDal.UpdateOne(ctx, filter, update)
+	result, err := r.selfActivationDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		log.Errorf("[UpdateKycReview] failed to update kyc review: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)

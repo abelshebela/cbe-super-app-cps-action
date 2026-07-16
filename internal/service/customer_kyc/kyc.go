@@ -94,18 +94,6 @@ func (s *customerKYCService) FindByID(ctx context.Context, id string) (*dto.Cust
 	}
 	mappedResponse := core.MapCustomerKYCToResponse(result)
 
-	if result.KYCStatus == imodel.KYCStatusInReview {
-		review, err := s.repo.FindKycInReview(ctx, id)
-		if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
-			return nil, errors.New(localization.ErrorUnexpectedError.Code)
-		}
-		if review != nil {
-			mappedResponse.KYCReviewStartedAt = &review.StartedAt
-			mappedResponse.KYCReviewExpiresAt = &review.ExpiresAt
-			mappedResponse.Reviewer = &review.Reviewer
-		}
-	}
-
 	return mappedResponse, nil
 }
 
@@ -177,15 +165,9 @@ func (s *customerKYCService) EnableOrDisable(ctx context.Context, id, reason str
 	return nil
 }
 
-func (s *customerKYCService) StartKycReview(ctx context.Context, id string) (*imodel.StartedKycReview, error) {
+func (s *customerKYCService) StartKycReview(ctx context.Context, id string) (*dto.CustomerKYCResponse, error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 	makerUser := local_util.ExtractUserFromContext(ctx)
-
-	kycID, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		log.Errorf("[CustKycSvc][StartKycReview] invalid object id: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
-	}
 
 	userID, err := bson.ObjectIDFromHex(makerUser.UserID)
 	if err != nil {
@@ -204,17 +186,12 @@ func (s *customerKYCService) StartKycReview(ctx context.Context, id string) (*im
 		return nil, errors.New("KYC review can only be started for KYC requests with pending status")
 	}
 
-	existingReview, err := s.repo.FindKycInReview(ctx, id)
-	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
-		log.Errorf("[CustKycSvc][StartKycReview] failed to check existing review: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
-	}
-	if existingReview != nil && existingReview.IsActive && existingReview.ExpiresAt.After(time.Now()) {
+	if kyc != nil && kyc.Review.ExpiresAt.After(time.Now()) {
 		log.Warnf("[CustKycSvc][StartKycReview] active review already exists for kyc id: %s", id)
 		return nil, errors.New("An active review already exists for this KYC request")
 	}
 
-	if existingReview != nil && existingReview.ExpiresAt.Before(time.Now()) {
+	if kyc != nil && kyc.Review.ExpiresAt.Before(time.Now()) {
 		log.Warnf("[CustKycSvc][StartKycReview] review already exists but expired for kyc id: %s", id)
 		return nil, errors.New("An expired review already exists. Please pick the review to restart the review process.")
 	}
@@ -225,8 +202,7 @@ func (s *customerKYCService) StartKycReview(ctx context.Context, id string) (*im
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	newReq := &imodel.StartedKycReview{
-		KycID: kycID,
+	kyc.Review = imodel.KycReview{
 		Reviewer: imodel.UserInfo{
 			ID:          userID,
 			UserCode:    cpsUser.UserCode,
@@ -234,26 +210,19 @@ func (s *customerKYCService) StartKycReview(ctx context.Context, id string) (*im
 			Email:       cpsUser.Email,
 			PhoneNumber: cpsUser.PhoneNumber,
 		},
-		ReviewStatus:   string(imodel.KYCStatusInReview),
-		StartedAt:      time.Now(),
-		ExpiresAt:      time.Now().Add(30 * time.Minute),
-		IsActive:       true,
-		IsDeleted:      false,
-		CreatedAt:      time.Now(),
-		LastModifiedAt: time.Now(),
+		ReviewStatus: string(imodel.KYCStatusInReview),
+		StartedAt:    time.Now(),
+		ExpiresAt:    time.Now().Add(30 * time.Minute),
 	}
 
-	newReview, err := s.repo.StartKycReview(ctx, newReq)
+	err = s.repo.UpdateKYCStatus(ctx, id, string(imodel.KYCStatusInReview), "", kyc, false)
 	if err != nil {
 		return nil, err
 	}
 
-	err = s.repo.UpdateKYCStatus(ctx, id, string(imodel.KYCStatusInReview), "", false)
-	if err != nil {
-		return nil, err
-	}
+	mappedResponse := core.MapCustomerKYCToResponse(kyc)
 
-	return newReview, nil
+	return mappedResponse, nil
 }
 
 func (s *customerKYCService) PickKycReview(ctx context.Context, id string, reason string) error {
@@ -416,17 +385,8 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 			return nil, err
 		}
 
-		if err = s.repo.UpdateKYCStatus(ctx, cpsAction.UniqueId, string(constants.KYCStatusApproved), "", true); err != nil {
+		if err = s.repo.UpdateKYCStatus(ctx, cpsAction.UniqueId, string(constants.KYCStatusApproved), "", userData, true); err != nil {
 			return nil, err
-		}
-		existingReview, err := s.repo.FindKycInReview(ctx, cpsAction.UniqueId)
-		if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
-			return nil, errors.New(localization.ErrorUnexpectedError.Code)
-		}
-		existingReview.ReviewStatus = string(constants.KYCStatusApproved)
-		_, err = s.repo.UpdateKycReview(ctx, cpsAction.UniqueId, existingReview)
-		if err != nil {
-			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 
 		if s.smsService != nil {
@@ -458,7 +418,7 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 			return nil, errors.New("rejection reason is required")
 		}
 
-		if err = s.repo.UpdateKYCStatus(ctx, cpsAction.UniqueId, string(constants.KYCStatusRejected), rejectionReason, false); err != nil {
+		if err = s.repo.UpdateKYCStatus(ctx, cpsAction.UniqueId, string(constants.KYCStatusRejected), rejectionReason, userData, false); err != nil {
 			return nil, err
 		}
 

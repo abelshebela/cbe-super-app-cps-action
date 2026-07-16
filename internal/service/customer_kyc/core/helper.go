@@ -1,7 +1,6 @@
 package core
 
 import (
-	// "cbe-super-app-cps-action/internal/constants"
 	dto "cbe-super-app-cps-action/internal/constants/dto/customer_kyc"
 	"cbe-super-app-cps-action/internal/constants/model"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
@@ -13,8 +12,6 @@ import (
 	"time"
 
 	"github.com/hugokessem/coreio/core"
-
-	// coreCustomer "github.com/hugokessem/coreio/lib/core/cusotmer/customer_creation"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -233,7 +230,7 @@ func MapSelfActivationUserToResponse(u *imodel.SelfActivationUser) *dto.Customer
 			Nationality:    u.Nationality,
 			DateOfBirth:    u.BirthDate,
 			MaritalStatus:  "",
-			AccountNumbers: u.AccountNumbers,
+			AccountNumbers: u.ChosenAccounts,
 		},
 		ResidentialAddress: dto.ResidentialAddress{
 			Zone:   u.Address.Zone,
@@ -245,6 +242,16 @@ func MapSelfActivationUserToResponse(u *imodel.SelfActivationUser) *dto.Customer
 		CapturedDocuments: dto.CapturedDocuments{
 			Photo:         u.Picture,
 			LivenessVideo: u.ComplyCube.LiveVideoID,
+		},
+		Review: dto.KycReview{
+			Reviewer:     dto.UserInfo(u.Review.Reviewer),
+			ReviewStatus: u.Review.ReviewStatus,
+			StartedAt:    u.Review.StartedAt,
+			ExpiresAt:    u.Review.ExpiresAt,
+			PickedAt:     u.Review.PickedAt,
+			PickedBy:     (*dto.UserInfo)(u.Review.PickedBy),
+			PickReason:   u.Review.PickReason,
+			PickCount:    u.Review.PickCount,
 		},
 		CustomerStatus:      boolToCustomerStatus(u.Enabled),
 		KYCStatus:           u.KYC.KYCStatus,

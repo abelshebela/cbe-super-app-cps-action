@@ -344,7 +344,7 @@ INSERT INTO LINKED_ACCOUNTS (
 	return nil
 }
 
-func (r *customerKYCRepository) UpdateKYCStatus(ctx context.Context, id, status, rejectionReason string, approved bool) error {
+func (r *customerKYCRepository) UpdateKYCStatus(ctx context.Context, id, status, rejectionReason string, kyc *imodel.CustomerKYC, approved bool) error {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
 	log.Infof("[CustomerKYC][UpdateKYCStatus] updating kyc status for id: %s to %s", id, status)

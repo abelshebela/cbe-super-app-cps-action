@@ -940,9 +940,9 @@ type CustomerKYCRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.CustomerKYC], error)
 	FindByID(ctx context.Context, id string) (*imodel.CustomerKYC, error)
 	CreateUser(ctx context.Context, userAccount *coreio.CusteomerAccountCreationResponse, userData imodel.CustomerKYC) error
-	UpdateKYCStatus(ctx context.Context, id, status, rejectionReason string, approved bool) error
+	UpdateKYCStatus(ctx context.Context, id, status, rejectionReason string, kyc *imodel.CustomerKYC, approved bool) error
 	FindKycInReview(ctx context.Context, kycID string) (*imodel.StartedKycReview, error)
-	StartKycReview(ctx context.Context, reviewData *imodel.StartedKycReview) (*imodel.StartedKycReview, error)
+	// StartKycReview(ctx context.Context, reviewData *imodel.StartedKycReview) (*imodel.StartedKycReview, error)
 	UpdateKycReview(ctx context.Context, kycID string, reviewData *imodel.StartedKycReview) (*imodel.StartedKycReview, error)
 	// Delete(ctx context.Context, id string) error
 }
@@ -951,10 +951,10 @@ type SelfActivationKYCRepository interface {
 	FindAllWithPaginationSA(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.SelfActivationUser], error)
 	FindByIDSA(ctx context.Context, id string) (*imodel.SelfActivationUser, error)
 	CheckIfUserOrAccountExists(ctx context.Context, userData *imodel.SelfActivationUser) (bool, error)
-	UpdateKYCStatusSA(ctx context.Context, id, status, rejectionReason string, approved bool) error
-	FindKycInReviewSA(ctx context.Context, kycID string) (*imodel.StartedKycReview, error)
-	StartKycReviewSA(ctx context.Context, reviewData *imodel.StartedKycReview) (*imodel.StartedKycReview, error)
-	UpdateKycReviewSA(ctx context.Context, kycID string, reviewData *imodel.StartedKycReview) (*imodel.StartedKycReview, error)
+	UpdateKYCStatusSA(ctx context.Context, id, status, rejectionReason string, kyc *imodel.SelfActivationUser, approved bool) error
+	FindKycInReviewSA(ctx context.Context, kycID string) (*imodel.SelfActivationUser, error)
+	// StartKycReviewSA(ctx context.Context, reviewData *imodel.StartedKycReview) (*imodel.StartedKycReview, error)
+	UpdateKycReviewSA(ctx context.Context, kycID string, reviewData *imodel.SelfActivationUser) (*imodel.SelfActivationUser, error)
 }
 
 type BankOracleRepository interface {
