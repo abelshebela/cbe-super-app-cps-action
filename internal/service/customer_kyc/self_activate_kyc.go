@@ -201,12 +201,12 @@ func (s *selfActivationKYCService) StartKycReview(ctx context.Context, id string
 		log.Errorf("[SelfActivationKYC][StartKycReview] failed to check existing review: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	if existingReview != nil && existingReview.ExpiresAt != nil && existingReview.ExpiresAt.After(time.Now()) {
+	if existingReview != nil && existingReview.ReviewStatus == string(imodel.KYCStatusInReview) && existingReview.ExpiresAt != nil && existingReview.ExpiresAt.After(time.Now()) {
 		log.Warnf("[SelfActivationKYC][StartKycReview] active review already exists for kyc id: %s", id)
 		return nil, errors.New("An active review already exists for this KYC request")
 	}
 
-	if existingReview != nil && existingReview.ExpiresAt != nil && existingReview.ExpiresAt.Before(time.Now()) {
+	if existingReview != nil && existingReview.ReviewStatus == string(imodel.KYCStatusInReview) && existingReview.ExpiresAt != nil && existingReview.ExpiresAt.Before(time.Now()) {
 		log.Warnf("[SelfActivationKYC][StartKycReview] review already exists but expired for kyc id: %s", id)
 		return nil, errors.New("An expired review already exists. Please pick the review to restart the review process.")
 	}
