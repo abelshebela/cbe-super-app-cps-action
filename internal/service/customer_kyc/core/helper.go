@@ -250,8 +250,11 @@ func MapSelfActivationUserToResponse(u *imodel.SelfActivationUser) *dto.Customer
 		KYCStatus:           u.KYC.KYCStatus,
 		MoneyLaunderingFree: nil,
 		TermsAndConditions:  "",
-		CreatedAt:           u.CreatedAt.Format(time.RFC3339),
-		UpdatedAt:           u.LastModifiedAt.Format(time.RFC3339),
+		// KYCReviewStartedAt:  u.sta,
+		// KYCReviewExpiresAt: u.ExpiryDate,
+		// Reviewer: u.
+		CreatedAt: u.CreatedAt.Format(time.RFC3339),
+		UpdatedAt: u.LastModifiedAt.Format(time.RFC3339),
 	}
 
 	return &response
