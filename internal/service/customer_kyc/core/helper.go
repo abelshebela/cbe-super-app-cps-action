@@ -248,7 +248,7 @@ func MapSelfActivationUserToResponse(u *imodel.SelfActivationUser) *dto.Customer
 		MoneyLaunderingFree: nil,
 		TermsAndConditions:  "",
 		CreatedAt:           u.CreatedAt.Format(time.RFC3339),
-		UpdatedAt:           u.LastModifiedAt.Format(time.RFC3339),
+		UpdatedAt:           u.UpdatedAt.Format(time.RFC3339),
 	}
 
 	return &response
