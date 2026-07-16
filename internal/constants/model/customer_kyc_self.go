@@ -19,6 +19,7 @@ type SelfActivationUser struct {
 	Address        CustomerAddress `bson:"address" json:"address"`
 	Enabled        bool            `bson:"enabled" json:"enabled"`
 	AccountNumbers []string        `bson:"account_numbers" json:"account_numbers"`
+	ChosenAccounts []string        `bson:"chosen_accounts" json:"chosen_accounts"`
 	CustomerNumber string          `bson:"customer_number" json:"customer_number"`
 	ExpiryDate     string          `bson:"expiry_date" json:"expiry_date"`
 	IssueDate      string          `bson:"issue_date" json:"issue_date"`

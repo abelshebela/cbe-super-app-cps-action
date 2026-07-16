@@ -60,8 +60,8 @@ type StartedKycReview struct {
 
 	ReviewStatus string `json:"review_status" bson:"review_status"`
 
-	StartedAt time.Time `json:"started_at" bson:"started_at"`
-	ExpiresAt time.Time `json:"expires_at" bson:"expires_at"`
+	StartedAt *time.Time `json:"started_at" bson:"started_at"`
+	ExpiresAt *time.Time `json:"expires_at" bson:"expires_at"`
 
 	PickedAt   *time.Time `json:"picked_at,omitempty" bson:"picked_at,omitempty"`
 	PickedBy   *UserInfo  `json:"picked_by,omitempty" bson:"picked_by,omitempty"`

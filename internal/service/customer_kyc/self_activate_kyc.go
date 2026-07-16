@@ -92,8 +92,8 @@ func (s *selfActivationKYCService) FindByID(ctx context.Context, id string) (*dt
 			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 		if review != nil {
-			mappedResponse.KYCReviewStartedAt = &review.StartedAt
-			mappedResponse.KYCReviewExpiresAt = &review.ExpiresAt
+			mappedResponse.KYCReviewStartedAt = review.StartedAt
+			mappedResponse.KYCReviewExpiresAt = review.ExpiresAt
 			mappedResponse.Reviewer = &review.Reviewer
 		}
 	}
@@ -201,12 +201,12 @@ func (s *selfActivationKYCService) StartKycReview(ctx context.Context, id string
 		log.Errorf("[SelfActivationKYC][StartKycReview] failed to check existing review: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	if existingReview != nil && existingReview.IsActive && existingReview.ExpiresAt.After(time.Now()) {
+	if existingReview != nil && existingReview.ExpiresAt != nil && existingReview.ExpiresAt.After(time.Now()) {
 		log.Warnf("[SelfActivationKYC][StartKycReview] active review already exists for kyc id: %s", id)
 		return nil, errors.New("An active review already exists for this KYC request")
 	}
 
-	if existingReview != nil && existingReview.ExpiresAt.Before(time.Now()) {
+	if existingReview != nil && existingReview.ExpiresAt != nil && existingReview.ExpiresAt.Before(time.Now()) {
 		log.Warnf("[SelfActivationKYC][StartKycReview] review already exists but expired for kyc id: %s", id)
 		return nil, errors.New("An expired review already exists. Please pick the review to restart the review process.")
 	}
@@ -217,6 +217,8 @@ func (s *selfActivationKYCService) StartKycReview(ctx context.Context, id string
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
+	now := time.Now()
+	expiresAt := time.Now().Add(30 * time.Minute)
 	newReq := &imodel.StartedKycReview{
 		KycID: kycID,
 		Reviewer: imodel.UserInfo{
@@ -227,8 +229,8 @@ func (s *selfActivationKYCService) StartKycReview(ctx context.Context, id string
 			PhoneNumber: cpsUser.PhoneNumber,
 		},
 		ReviewStatus:   string(imodel.KYCStatusInReview),
-		StartedAt:      time.Now(),
-		ExpiresAt:      time.Now().Add(30 * time.Minute),
+		StartedAt:      &now,
+		ExpiresAt:      &expiresAt,
 		IsActive:       true,
 		IsDeleted:      false,
 		CreatedAt:      time.Now(),
@@ -439,9 +441,11 @@ func (s *selfActivationKYCService) Authorize(ctx context.Context, cpsAction *mod
 			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 		now := time.Now()
+		expiresAt := now.Add(30 * time.Minute)
+
 		existingReview.PickedAt = &now
-		existingReview.StartedAt = now
-		existingReview.ExpiresAt = now.Add(30 * time.Minute)
+		existingReview.StartedAt = &now
+		existingReview.ExpiresAt = &expiresAt
 		existingReview.Reviewer = *reviewData.PickedBy
 		existingReview.PickedBy = reviewData.PickedBy
 		existingReview.PickReason = reviewData.PickReason
