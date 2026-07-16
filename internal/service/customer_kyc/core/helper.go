@@ -1,7 +1,6 @@
 package core
 
 import (
-	// "cbe-super-app-cps-action/internal/constants"
 	dto "cbe-super-app-cps-action/internal/constants/dto/customer_kyc"
 	"cbe-super-app-cps-action/internal/constants/model"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
@@ -13,8 +12,6 @@ import (
 	"time"
 
 	"github.com/hugokessem/coreio/core"
-
-	// coreCustomer "github.com/hugokessem/coreio/lib/core/cusotmer/customer_creation"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
