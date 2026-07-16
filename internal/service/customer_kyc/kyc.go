@@ -100,8 +100,8 @@ func (s *customerKYCService) FindByID(ctx context.Context, id string) (*dto.Cust
 			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 		if review != nil {
-			mappedResponse.KYCReviewStartedAt = &review.StartedAt
-			mappedResponse.KYCReviewExpiresAt = &review.ExpiresAt
+			mappedResponse.KYCReviewStartedAt = review.StartedAt
+			mappedResponse.KYCReviewExpiresAt = review.ExpiresAt
 			mappedResponse.Reviewer = &review.Reviewer
 		}
 	}
@@ -209,7 +209,7 @@ func (s *customerKYCService) StartKycReview(ctx context.Context, id string) (*im
 		log.Errorf("[CustKycSvc][StartKycReview] failed to check existing review: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	if existingReview != nil && existingReview.IsActive && existingReview.ExpiresAt.After(time.Now()) {
+	if existingReview != nil && existingReview.ExpiresAt != nil && existingReview.ExpiresAt.After(time.Now()) {
 		log.Warnf("[CustKycSvc][StartKycReview] active review already exists for kyc id: %s", id)
 		return nil, errors.New("An active review already exists for this KYC request")
 	}
@@ -225,6 +225,8 @@ func (s *customerKYCService) StartKycReview(ctx context.Context, id string) (*im
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
+	now := time.Now()
+	expiresAt := time.Now().Add(30 * time.Minute)
 	newReq := &imodel.StartedKycReview{
 		KycID: kycID,
 		Reviewer: imodel.UserInfo{
@@ -235,12 +237,12 @@ func (s *customerKYCService) StartKycReview(ctx context.Context, id string) (*im
 			PhoneNumber: cpsUser.PhoneNumber,
 		},
 		ReviewStatus:   string(imodel.KYCStatusInReview),
-		StartedAt:      time.Now(),
-		ExpiresAt:      time.Now().Add(30 * time.Minute),
+		StartedAt:      &now,
+		ExpiresAt:      &expiresAt,
 		IsActive:       true,
 		IsDeleted:      false,
-		CreatedAt:      time.Now(),
-		LastModifiedAt: time.Now(),
+		CreatedAt:      now,
+		LastModifiedAt: now,
 	}
 
 	newReview, err := s.repo.StartKycReview(ctx, newReq)
@@ -504,9 +506,11 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 		now := time.Now()
+		expiresAt := time.Now().Add(30 * time.Minute)
+
 		existingReview.PickedAt = &now
-		existingReview.StartedAt = now
-		existingReview.ExpiresAt = now.Add(30 * time.Minute)
+		existingReview.StartedAt = &now
+		existingReview.ExpiresAt = &expiresAt
 		existingReview.Reviewer = *reviewData.PickedBy
 		existingReview.PickedBy = reviewData.PickedBy
 		existingReview.PickReason = reviewData.PickReason
