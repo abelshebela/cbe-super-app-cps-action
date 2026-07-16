@@ -196,26 +196,27 @@ func (s *selfActivationKYCService) StartKycReview(ctx context.Context, id string
 		return nil, errors.New("KYC review can only be started for KYC requests with pending status")
 	}
 
-	existingReview, err := s.repo.FindKycInReviewSA(ctx, id)
-	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
-		log.Errorf("[SelfActivationKYC][StartKycReview] failed to check existing review: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
-	}
-	if existingReview != nil &&
-		existingReview.ReviewStatus == string(imodel.KYCStatusInReview) {
+	// existingReview, err := s.repo.FindKycInReviewSA(ctx, id)
+	// if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+	// 	log.Errorf("[SelfActivationKYC][StartKycReview] failed to check existing review: %v", err)
+	// 	return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	// }
+	// if existingReview != nil &&
+	// 	existingReview.ReviewStatus == string(imodel.KYCStatusInReview) {
 
-		now := time.Now()
+	// 	now := time.Now()
 
-		switch {
-		case existingReview.ExpiresAt == nil || existingReview.ExpiresAt.After(now):
-			log.Warnf("[SelfActivationKYC][StartKycReview] active review already exists for kyc id: %s", id)
-			return nil, errors.New("An active review already exists for this KYC request")
+	// 	switch {
+	// 	case existingReview.ExpiresAt == nil || existingReview.ExpiresAt.After(now):
+	// 		log.Warnf("[SelfActivationKYC][StartKycReview] active review already exists for kyc id: %s", id)
+	// 		return nil, errors.New("An active review already exists for this KYC request")
 
-		default:
-			log.Warnf("[SelfActivationKYC][StartKycReview] review already exists but expired for kyc id: %s", id)
-			return nil, errors.New("An expired review already exists. Please pick the review to restart the review process.")
-		}
-	}
+	// 	default:
+	// 		log.Warnf("[SelfActivationKYC][StartKycReview] review already exists but expired for kyc id: %s", id)
+	// 		return nil, errors.New("An expired review already exists. Please pick the review to restart the review process.")
+	// 	}
+	// }
+
 	cpsUser, err := s.cpsUserRepo.FindByID(ctx, makerUser.UserCode)
 	if err != nil {
 		log.Errorf("[SelfActivationKYC][StartKycReview] failed to fetch user info: %v", err)
