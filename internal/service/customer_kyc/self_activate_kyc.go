@@ -364,11 +364,11 @@ func (s *selfActivationKYCService) Authorize(ctx context.Context, cpsAction *mod
 		if s.smsService != nil {
 			phone := userData.PhoneNumber
 			name := userData.Name
-			reason := rejectionReason
+			// reason := rejectionReason
 			go func() {
 				msg := fmt.Sprintf(
-					"Dear %s, Congratulations! Your application for opening a new account and superapp activation is successful, Your new account number is %s. Welcome to CBE Super App!",
-					name, reason,
+					"Dear %s, Congratulations! Your application for superapp activation is successful. Welcome to CBE Super App!",
+					name,
 				)
 				if err := s.smsService.PublishSMSMessage(context.Background(), types.SMSKafkaMessage{
 					Recipient:   phone,
@@ -414,7 +414,7 @@ func (s *selfActivationKYCService) Authorize(ctx context.Context, cpsAction *mod
 			reason := rejectionReason
 			go func() {
 				msg := fmt.Sprintf(
-					"Dear %s, Your application for opening a new account and CBE superapp activation is Rejected Due to %s, please correct and apply again. Thank You",
+					"Dear %s, Your application for CBE superapp activation is Rejected Due to %s, please correct and apply again. Thank You",
 					name, reason,
 				)
 				if err := s.smsService.PublishSMSMessage(context.Background(), types.SMSKafkaMessage{
