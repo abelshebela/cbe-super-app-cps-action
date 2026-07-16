@@ -233,7 +233,7 @@ func MapSelfActivationUserToResponse(u *imodel.SelfActivationUser) *dto.Customer
 			Nationality:    u.Nationality,
 			DateOfBirth:    u.BirthDate,
 			MaritalStatus:  "",
-			AccountNumbers: u.AccountNumbers,
+			AccountNumbers: u.ChosenAccounts,
 		},
 		ResidentialAddress: dto.ResidentialAddress{
 			Zone:   u.Address.Zone,
@@ -246,7 +246,7 @@ func MapSelfActivationUserToResponse(u *imodel.SelfActivationUser) *dto.Customer
 			Photo:         u.Picture,
 			LivenessVideo: u.ComplyCube.LiveVideoID,
 		},
-		CustomerStatus:      boolToCustomerStatus(u.Enabled),
+		CustomerStatus:      "NEW",
 		KYCStatus:           u.KYC.KYCStatus,
 		MoneyLaunderingFree: nil,
 		TermsAndConditions:  "",

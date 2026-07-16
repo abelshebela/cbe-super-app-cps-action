@@ -548,7 +548,7 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 		if unmarshalErr != nil {
 			return nil, localization.ErrorInvalidActionData
 		}
-		err = s.repo.CreateServiceKey(ctx, listDoc)
+		accessListID, err := s.repo.CreateServiceKey(ctx, listDoc)
 		if err == nil {
 			action.CurrentAction = listDoc
 		}
@@ -564,7 +564,7 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 		}
 
 		s.accessListCache.Set(ctx, accessList_cache.AccessListData{
-			ID:          action.UniqueId,
+			ID:          accessListID,
 			Source:      source,
 			ServiceName: listDoc.ServiceName,
 			ServiceKey:  listDoc.ServiceKey,
