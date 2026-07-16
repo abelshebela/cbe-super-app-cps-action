@@ -209,16 +209,21 @@ func (s *customerKYCService) StartKycReview(ctx context.Context, id string) (*im
 		log.Errorf("[CustKycSvc][StartKycReview] failed to check existing review: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	if existingReview != nil && existingReview.ReviewStatus == string(imodel.KYCStatusInReview) && existingReview.ExpiresAt != nil && existingReview.ExpiresAt.After(time.Now()) {
-		log.Warnf("[CustKycSvc][StartKycReview] active review already exists for kyc id: %s", id)
-		return nil, errors.New("An active review already exists for this KYC request")
-	}
+	if existingReview != nil &&
+		existingReview.ReviewStatus == string(imodel.KYCStatusInReview) {
 
-	if existingReview != nil && existingReview.ReviewStatus == string(imodel.KYCStatusInReview) && existingReview.ExpiresAt.Before(time.Now()) {
-		log.Warnf("[CustKycSvc][StartKycReview] review already exists but expired for kyc id: %s", id)
-		return nil, errors.New("An expired review already exists. Please pick the review to restart the review process.")
-	}
+		now := time.Now()
 
+		switch {
+		case existingReview.ExpiresAt == nil || existingReview.ExpiresAt.After(now):
+			log.Warnf("[SelfActivationKYC][StartKycReview] active review already exists for kyc id: %s", id)
+			return nil, errors.New("An active review already exists for this KYC request")
+
+		default:
+			log.Warnf("[SelfActivationKYC][StartKycReview] review already exists but expired for kyc id: %s", id)
+			return nil, errors.New("An expired review already exists. Please pick the review to restart the review process.")
+		}
+	}
 	cpsUser, err := s.cpsUserRepo.FindByID(ctx, makerUser.UserCode)
 	if err != nil {
 		log.Errorf("[CustKycSvc][StartKycReview] failed to fetch user info: %v", err)
