@@ -21,7 +21,6 @@ import (
 )
 
 type selfActivationRepository struct {
-	mongoClient       *mongo.Client
 	oracleDB          *sql.DB
 	selfActivationDal dal.MongoDal[imodel.SelfActivationUser, imodel.SelfActivationUser]
 	inReviewDal       dal.MongoDal[imodel.StartedKycReview, imodel.StartedKycReview]
@@ -31,7 +30,6 @@ type selfActivationRepository struct {
 
 func NewSelfActivationRepository(client *mongo.Client, oracleDB *sql.DB, cfg *config.VaultConfig, dbName, collection string, logger utils.Logger) storage.SelfActivationKYCRepository {
 	return &selfActivationRepository{
-		mongoClient:       client,
 		oracleDB:          oracleDB,
 		selfActivationDal: dal.NewMongoDal[imodel.SelfActivationUser, imodel.SelfActivationUser](client, cfg, dbName, collection),
 		inReviewDal:       dal.NewMongoDal[imodel.StartedKycReview, imodel.StartedKycReview](client, cfg, dbName, "started_kyc_reviews"),
