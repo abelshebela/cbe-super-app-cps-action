@@ -950,6 +950,7 @@ type CustomerKYCRepository interface {
 type SelfActivationKYCRepository interface {
 	FindAllWithPaginationSA(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.SelfActivationUser], error)
 	FindByIDSA(ctx context.Context, id string) (*imodel.SelfActivationUser, error)
+	FindForExport(ctx context.Context, from, to time.Time, customerName string) ([]imodel.ExportSelfActivationRequest, error)
 	CheckIfUserOrAccountExists(ctx context.Context, userData *imodel.SelfActivationUser) (bool, error)
 	UpdateKYCStatusSA(ctx context.Context, id, status, rejectionReason string, approved bool) error
 	FindKycInReviewSA(ctx context.Context, kycID string) (*imodel.StartedKycReview, error)

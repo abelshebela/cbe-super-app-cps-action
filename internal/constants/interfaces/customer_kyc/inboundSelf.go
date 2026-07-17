@@ -9,4 +9,5 @@ type SelfActivationKyc interface {
 	RejectSelfActivateKycRequest(w http.ResponseWriter, r *http.Request)
 	StartSelfActivateKycReview(w http.ResponseWriter, r *http.Request)
 	PickSelfActivateKycReview(w http.ResponseWriter, r *http.Request)
+	ExportUserSelfActivation(w http.ResponseWriter, r *http.Request)
 }
