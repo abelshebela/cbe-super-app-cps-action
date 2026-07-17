@@ -23,6 +23,7 @@ type SelfActivationUser struct {
 	CustomerNumber string          `bson:"customer_number" json:"customer_number"`
 	ExpiryDate     string          `bson:"expiry_date" json:"expiry_date"`
 	IssueDate      string          `bson:"issue_date" json:"issue_date"`
+	SelfiePhoto    string          `json:"selfie_photo" bson:"selfie_photo"`
 
 	KYC        KycInfo    `bson:"kyc" json:"kyc"`
 	ComplyCube ComplyCube `bson:"complycube" json:"complycube"`
@@ -119,4 +120,18 @@ type IdentityMetadata struct {
 
 type LiveVideoMetadata struct {
 	Language string `bson:"language" json:"language"`
+}
+
+// Model from Export
+type ExportSelfActivationRequest struct {
+	CustomerName     string `json:"customer_name" csv:"Customer Name"`
+	PhoneNumber      string `json:"phone_number" csv:"Phone Number"`
+	Gender           string `json:"gender" csv:"Gender"`
+	DateOfBirth      string `json:"date_of_birth" csv:"Date of Birth"`
+	Region           string `json:"region" csv:"Region"`
+	RegistrationDate string `json:"registration_date" csv:"Registration Date"`
+	RejectionReason  string `json:"rejection_reason" csv:"rejection_reason"`
+	CustomerStatus   string `json:"customer_status" csv:"Customer Status"`
+	KYCStatus        string `json:"kyc_status" csv:"KYC Status"`
+	Action           string `json:"action" csv:"Action"`
 }
