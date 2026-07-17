@@ -43,22 +43,6 @@ func CreateAccountToCore(ctx context.Context, data core.CreateCustomerParam, acc
 		return nil, fmt.Errorf("customer creation failed: %s", strings.Join(response.AccountCreationDetail.Messages, ", "))
 	}
 
-	// Workaround: coreio maps Detail.Customer to T24 EMPLOYERSNAME which is always empty.
-	// The real customer number is in the response's transactionId but not exposed by the library.
-	// We recover it via PhoneLookup which queries T24 by MNEMONIC and returns CustomerID.
-
-	// if response.AccountCreationDetail != nil && response.AccountCreationDetail.Detail.Customer == "" && response.AccountCreationDetail.Detail.CoCode != "" {
-	// 	lookup, lookupErr := coreAPI.PhoneLookup(ctx, core.PhoneLookupParam{PhoneNumber: response.AccountCreationDetail.Detail.})
-	// 	if lookupErr != nil {
-	// 		logger.Warnf("[CreateAccountToCore] customer number lookup by mnemonic=%s failed: %v", response.AccountCreationDetail.Menmonic, lookupErr)
-	// 	} else if lookup != nil && lookup.Success && lookup.Detail != nil && lookup.Detail.CustomerID != "" {
-	// 		response.AccountCreationDetail.Detail.Customer = lookup.Detail.CustomerID
-	// 		logger.Infof("[CreateAccountToCore] resolved customer number %s via mnemonic lookup", response.AccountCreationDetail.Detail.Customer)
-	// 	} else {
-	// 		logger.Warnf("[CreateAccountToCore] mnemonic lookup returned no CustomerID for mnemonic=%s", response.AccountCreationDetail.Menmonic)
-	// 	}
-	// }
-
 	return response, nil
 }
 
@@ -243,9 +227,14 @@ func MapSelfActivationUserToResponse(u *imodel.SelfActivationUser) *dto.Customer
 			Photo:         u.Picture,
 			LivenessVideo: u.ComplyCube.LiveVideoID,
 		},
-		CustomerStatus:      "NEW",
-		KYCRejectReason:     u.KYCRejectReason,
-		KYCStatus:           u.KYC.KYCStatus,
+		CustomerStatus:  "NEW",
+		KYCRejectReason: u.KYCRejectReason,
+		KYC: dto.KycInfo{
+			KYCStatus:      u.KYC.KYCStatus,
+			PhoneMismatch:  u.KYC.PhoneMismatch,
+			BelowThreshold: u.KYC.BelowThreshold,
+			ContainsANDOR:  u.KYC.ContainsANDOR,
+		},
 		MoneyLaunderingFree: nil,
 		TermsAndConditions:  "",
 		CreatedAt:           u.CreatedAt.Format(time.RFC3339),
