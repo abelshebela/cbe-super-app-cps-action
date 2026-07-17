@@ -225,7 +225,7 @@ func MapSelfActivationUserToResponse(u *imodel.SelfActivationUser) *dto.Customer
 		FinancialInformation: dto.FinancialInformation{},
 		CapturedDocuments: dto.CapturedDocuments{
 			Photo:         u.Picture,
-			LivenessVideo: u.ComplyCube.LiveVideoID,
+			LivenessVideo: u.SelfiePhoto,
 		},
 		CustomerStatus:  "NEW",
 		KYCRejectReason: u.KYCRejectReason,
@@ -256,5 +256,21 @@ func MapSelfActivationUserInfo(u *imodel.UserInfo) *imodel.UserInfo {
 		Email:       u.Email,
 		Department:  u.Department,
 		PhoneNumber: u.PhoneNumber,
+	}
+}
+
+func BuildRow(request imodel.ExportSelfActivationRequest) []string {
+
+	return []string{
+		request.CustomerName,
+		request.PhoneNumber,
+		request.Gender,
+		request.DateOfBirth,
+		request.Region,
+		request.RegistrationDate,
+		request.RejectionReason,
+		request.CustomerStatus,
+		request.KYCStatus,
+		request.Action,
 	}
 }
