@@ -175,7 +175,7 @@ func (c *selfActivationKYCAdapter) StartSelfActivateKycReview(w http.ResponseWri
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessOperationCompleted, newReview)
+	localization.SendSuccessResponse(w, localization.SuccessKYCReviewStarted, newReview)
 }
 
 func (c *selfActivationKYCAdapter) PickSelfActivateKycReview(w http.ResponseWriter, r *http.Request) {
@@ -204,5 +204,5 @@ func (c *selfActivationKYCAdapter) PickSelfActivateKycReview(w http.ResponseWrit
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessOperationCompleted, nil)
+	localization.SendSuccessResponse(w, localization.SuccessKYCReviewPicked, nil)
 }

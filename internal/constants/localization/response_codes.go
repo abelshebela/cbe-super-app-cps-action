@@ -760,6 +760,8 @@ var ResponseCodesList = []ResponseCode{
 	SuccessDonationCompanyEnabledSP,
 	SuccessDonationCompanyDisabledSP,
 	SuccessDonationCompanyDeleteSP,
+	SuccessKYCReviewStarted,
+	SuccessKYCReviewPicked,
 	SuccessDonationCategoryEnabledSP,
 	SuccessDonationCategoryDisabledSP,
 	SuccessDonationCategoryDeleteSP,
@@ -1799,6 +1801,20 @@ var (
 		Code:       "SUCCESS_KYC_APPROVE_REQUESTED",
 		StatusCode: StatusOK,
 		Message:    MsgKYCApproved,
+		Type:       "success",
+	}
+
+	SuccessKYCReviewStarted = ResponseCode{
+		Code:       "SUCCESS_KYC_REVIEW_STARTED",
+		StatusCode: StatusOK,
+		Message:    "KYC review started succcessfully.",
+		Type:       "success",
+	}
+
+	SuccessKYCReviewPicked = ResponseCode{
+		Code:       "SUCCESS_KYC_REVIEW_PICKED",
+		StatusCode: StatusOK,
+		Message:    "KYC review picked successfully",
 		Type:       "success",
 	}
 
