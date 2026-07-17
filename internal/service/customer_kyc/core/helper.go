@@ -260,6 +260,10 @@ func MapSelfActivationUserInfo(u *imodel.UserInfo) *imodel.UserInfo {
 }
 
 func BuildRow(request imodel.ExportSelfActivationRequest) []string {
+	var registrationDate string
+	if !request.RegistrationDate.IsZero() {
+		registrationDate = request.RegistrationDate.Format(time.RFC3339)
+	}
 
 	return []string{
 		request.CustomerName,
@@ -267,10 +271,9 @@ func BuildRow(request imodel.ExportSelfActivationRequest) []string {
 		request.Gender,
 		request.DateOfBirth,
 		request.Region,
-		request.RegistrationDate,
+		registrationDate,
 		request.RejectionReason,
 		request.CustomerStatus,
 		request.KYCStatus,
-		request.Action,
 	}
 }

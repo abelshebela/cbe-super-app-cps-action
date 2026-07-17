@@ -347,7 +347,6 @@ func (s *selfActivationKYCService) ExportUserSelfActivation(ctx context.Context,
 		"Rejection Reason",
 		"Customer Status",
 		"KYC Status",
-		"Action",
 	}
 
 	ext := "csv"
