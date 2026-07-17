@@ -280,39 +280,20 @@ func (r *selfActivationRepository) FindForExport(ctx context.Context, from, to t
 			Key:   "$match",
 			Value: matchFilter,
 		}},
-
 		bson.D{{
 			Key: "$project",
 			Value: bson.M{
 				"_id": 0,
 
-				"customer_name": "$name",
-				"phone_number":  1,
-				"gender":        1,
-				"date_of_birth": "$birth_date",
-				"region":        "$address.region",
-
-				"registration_date": "$created_at",
-
-				"rejection_reason": "$kyc_reject_reason",
-
-				"customer_status": bson.M{
-					"$cond": bson.A{
-						"$enabled",
-						"Active",
-						"Inactive",
-					},
-				},
-
-				"kyc_status": "$kyc.kyc_status",
-
-				"action": bson.M{
-					"$cond": bson.A{
-						"$enabled",
-						"APPROVED",
-						"REJECTED",
-					},
-				},
+				"customer_name":     "$name",
+				"phone_number":      1,
+				"gender":            1,
+				"date_of_birth":     "$birth_date",
+				"region":            "$address.region",
+				"registration_date": "$updated_at",
+				"rejection_reason":  "$kyc_reject_reason",
+				"customer_status":   "NEW",
+				"kyc_status":        "$kyc.kyc_status",
 			},
 		}},
 	}
