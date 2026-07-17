@@ -124,14 +124,13 @@ type LiveVideoMetadata struct {
 
 // Model from Export
 type ExportSelfActivationRequest struct {
-	CustomerName     string `json:"customer_name" csv:"Customer Name"`
-	PhoneNumber      string `json:"phone_number" csv:"Phone Number"`
-	Gender           string `json:"gender" csv:"Gender"`
-	DateOfBirth      string `json:"date_of_birth" csv:"Date of Birth"`
-	Region           string `json:"region" csv:"Region"`
-	RegistrationDate string `json:"registration_date" csv:"Registration Date"`
-	RejectionReason  string `json:"rejection_reason" csv:"rejection_reason"`
-	CustomerStatus   string `json:"customer_status" csv:"Customer Status"`
-	KYCStatus        string `json:"kyc_status" csv:"KYC Status"`
-	Action           string `json:"action" csv:"Action"`
+	CustomerName     string    `json:"customer_name" bson:"customer_name"`
+	PhoneNumber      string    `json:"phone_number" bson:"phone_number"`
+	Gender           string    `json:"gender" bson:"gender"`
+	DateOfBirth      string    `json:"date_of_birth" bson:"date_of_birth"`
+	Region           string    `json:"region" bson:"region"`
+	RegistrationDate time.Time `json:"registration_date" bson:"registration_date"`
+	RejectionReason  string    `json:"rejection_reason" bson:"rejection_reason"`
+	CustomerStatus   string    `json:"customer_status" bson:"customer_status"`
+	KYCStatus        string    `json:"kyc_status" bson:"kyc_status"`
 }
