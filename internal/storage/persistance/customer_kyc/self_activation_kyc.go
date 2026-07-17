@@ -10,6 +10,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"regexp"
 	"strings"
 	"time"
 
@@ -256,4 +257,76 @@ func (r *selfActivationRepository) UpdateKycReviewSA(ctx context.Context, kycID 
 	}
 
 	return &result, nil
+}
+
+func (r *selfActivationRepository) FindForExport(ctx context.Context, from, to time.Time, customerName string) ([]imodel.ExportSelfActivationRequest, error) {
+	matchFilter := bson.M{
+		"created_at": bson.M{
+			"$gte": from,
+			"$lte": to,
+		},
+		"is_deleted": bson.M{"$ne": true},
+	}
+
+	if customerName != "" {
+		matchFilter["name"] = bson.M{
+			"$regex":   "^" + regexp.QuoteMeta(customerName) + "$",
+			"$options": "i",
+		}
+	}
+
+	pipeline := mongo.Pipeline{
+		bson.D{{
+			Key:   "$match",
+			Value: matchFilter,
+		}},
+
+		bson.D{{
+			Key: "$project",
+			Value: bson.M{
+				"_id": 0,
+
+				"customer_name": "$name",
+				"phone_number":  1,
+				"gender":        1,
+				"date_of_birth": "$birth_date",
+				"region":        "$address.region",
+
+				"registration_date": "$created_at",
+
+				"rejection_reason": "$kyc_reject_reason",
+
+				"customer_status": bson.M{
+					"$cond": bson.A{
+						"$enabled",
+						"Active",
+						"Inactive",
+					},
+				},
+
+				"kyc_status": "$kyc.kyc_status",
+
+				"action": bson.M{
+					"$cond": bson.A{
+						"$enabled",
+						"APPROVED",
+						"REJECTED",
+					},
+				},
+			},
+		}},
+	}
+
+	cursor, err := r.coll.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, local_util.HandleDBError(err)
+	}
+	defer cursor.Close(ctx)
+
+	var result []imodel.ExportSelfActivationRequest
+	if err := cursor.All(ctx, &result); err != nil {
+		return nil, local_util.HandleDBError(err)
+	}
+
+	return result, nil
 }
