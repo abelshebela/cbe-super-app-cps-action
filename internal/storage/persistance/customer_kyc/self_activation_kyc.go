@@ -102,11 +102,8 @@ func (r *selfActivationRepository) FindAllWithPaginationSA(ctx context.Context, 
 	if filterParam.Search != "" {
 		q := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		filter["$or"] = []bson.M{
-			{"kyc_data.full_name": q},
-			{"kyc_data.phone_number": q},
-			{"kyc_data.email": q},
-			{"kyc.kyc_status": q},
-			{"user_id": q},
+			{"name": q},
+			{"phone_number": q},
 		}
 	}
 
