@@ -1,9 +1,11 @@
 package term_and_condition_core
 
 import (
+	"context"
 	"encoding/json"
 
 	imodel "cbe-super-app-cps-action/internal/constants/model"
+	"cbe-super-app-cps-action/internal/storage"
 )
 
 func MapFromAction(raw interface{}) (imodel.AccountOpeningTerms, error) {
@@ -41,4 +43,12 @@ func MapFromAction(raw interface{}) (imodel.AccountOpeningTerms, error) {
 	}
 
 	return t, nil
+}
+
+func AccountProductctExistUpdate(ctx context.Context, repoAccountProd storage.AccountOpeningTermsRepository, termID string) error {
+
+	if err := repoAccountProd.EnableOrDisable(ctx, termID, false); err != nil {
+		return err
+	}
+	return nil
 }
