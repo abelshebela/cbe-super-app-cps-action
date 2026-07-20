@@ -67,22 +67,14 @@ func Init(router chi.Router, handler customer_kyc.CustomerKYC, authMiddleware mi
 				authMiddleware.AuthenticateToken,
 			},
 		},
-		// {
-		// 	Method:  http.MethodPatch,
-		// 	Path:    "/customers/kyc/{id}",
-		// 	Handler: handler.UpdateKYCStatus,
-		// 	Middlewares: []func(next http.Handler) http.Handler{
-		// 		authMiddleware.AuthenticateToken,
-		// 	},
-		// },
-		// {
-		// 	Method:  http.MethodDelete,
-		// 	Path:    "/customers/kyc/{id}",
-		// 	Handler: handler.DeleteKYCRequest,
-		// 	Middlewares: []func(next http.Handler) http.Handler{
-		// 		authMiddleware.AuthenticateToken,
-		// 	},
-		// },
+		{
+			Method:  http.MethodGet,
+			Path:    "/customers/kyc-onboarding/export",
+			Handler: handler.ExportKYCOnboarding,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
 	}
 
 	glue.RegisterRoutes(router, routes)

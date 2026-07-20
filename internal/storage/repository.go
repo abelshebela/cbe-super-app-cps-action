@@ -939,6 +939,7 @@ type CustomerKYCRepository interface {
 	// Create(ctx context.Context, req *imodel.CustomerKYC) error
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.CustomerKYC], error)
 	FindByID(ctx context.Context, id string) (*imodel.CustomerKYC, error)
+	FindKYCOnboardingForExport(ctx context.Context, from, to time.Time, customerName string) ([]imodel.ExportSelfActivationRequest, error)
 	CreateUser(ctx context.Context, userAccount *coreio.CusteomerAccountCreationResponse, userData imodel.CustomerKYC) error
 	UpdateKYCStatus(ctx context.Context, id, status, rejectionReason string, approved bool) error
 	FindKycInReview(ctx context.Context, kycID string) (*imodel.StartedKycReview, error)

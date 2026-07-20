@@ -11,6 +11,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -365,4 +366,43 @@ func (c *customerKYCAdapter) PickKycReview(w http.ResponseWriter, r *http.Reques
 	}
 
 	localization.SendSuccessResponse(w, localization.SuccessOperationCompleted, nil)
+}
+
+func (c *customerKYCAdapter) ExportKYCOnboarding(w http.ResponseWriter, r *http.Request) {
+	ctx, span := util.TraceLogger(r.Context(), "handler", "PickSelfActivateKycReview", "handler", "self_activate_kyc")
+	defer span.End()
+	log := util.LoggerFromCtx(ctx, c.logger)
+
+	fileType := strings.ToLower(strings.TrimSpace(r.URL.Query().Get("file_type")))
+	startDateRaw := strings.TrimSpace(r.URL.Query().Get("created_at_from"))
+	endDateRaw := strings.TrimSpace(r.URL.Query().Get("created_at_to"))
+	customerName := strings.TrimSpace(r.URL.Query().Get("name"))
+
+	if fileType == "" || startDateRaw == "" || endDateRaw == "" {
+		log.Warnf("[ExportKYCOnboarding] missing required params: file_type=%q, created_at_from=%q, created_at_to=%q", fileType, startDateRaw, endDateRaw)
+		localization.SendBadRequestResponse(w, localization.ErrorRequiredFieldMissing.Message)
+		return
+	}
+
+	from, to, err := util.FormatDateRangeToUTCStrings(startDateRaw, endDateRaw)
+	if err != nil {
+		log.Warnf("[ExportKYCOnboarding] invalid date format: created_at_from=%s, created_at_to=%s, err=%v", startDateRaw, endDateRaw, err)
+		localization.SendErrorResponse(w, localization.ErrorInvalidDateFormat, nil, nil)
+		return
+	}
+
+	if to.Before(from) {
+		log.Warnf("[ExportKYCOnboarding] invalid date range: start=%v, end=%v", from, to)
+		localization.SendErrorResponse(w, localization.ErrorInvalidDateFormat, nil, nil)
+		return
+	}
+
+	fileLink, err := c.svc.ExportKYCOnboarding(ctx, from, to, fileType, customerName)
+	if err != nil {
+		log.Errorf("[ExportKYCOnboarding] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SucccessKYCExportedSuccessfully, fileLink)
 }

@@ -11,6 +11,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"regexp"
 	"strings"
 	"time"
 
@@ -468,4 +469,57 @@ func t24Gender(g string) sharedconst.Gender {
 func t24Date(yyyymmdd string) time.Time {
 	t, _ := time.Parse("20060102", yyyymmdd)
 	return t
+}
+
+func (r *customerKYCRepository) FindKYCOnboardingForExport(ctx context.Context, from, to time.Time, customerName string) ([]imodel.ExportSelfActivationRequest, error) {
+	matchFilter := bson.M{
+		"created_at": bson.M{
+			"$gte": from,
+			"$lte": to,
+		},
+		"is_deleted": bson.M{"$ne": true},
+	}
+
+	if customerName != "" {
+		matchFilter["name"] = bson.M{
+			"$regex":   "^" + regexp.QuoteMeta(customerName) + "$",
+			"$options": "i",
+		}
+	}
+
+	pipeline := mongo.Pipeline{
+		bson.D{{
+			Key:   "$match",
+			Value: matchFilter,
+		}},
+		bson.D{{
+			Key: "$project",
+			Value: bson.M{
+				"_id": 0,
+
+				"customer_name":     "$kyc.full_name",
+				"phone_number":      1,
+				"gender":            1,
+				"date_of_birth":     "$kyc.birth_date",
+				"region":            "$kyc.address.region",
+				"registration_date": "$last_modified_at",
+				"rejection_reason":  "$kyc_reject_reason_failed",
+				"customer_status":   "NEW",
+				"kyc_status":        "$kyc_status",
+			},
+		}},
+	}
+
+	cursor, err := r.coll.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, local_util.HandleDBError(err)
+	}
+	defer cursor.Close(ctx)
+
+	var result []imodel.ExportSelfActivationRequest
+	if err := cursor.All(ctx, &result); err != nil {
+		return nil, local_util.HandleDBError(err)
+	}
+
+	return result, nil
 }

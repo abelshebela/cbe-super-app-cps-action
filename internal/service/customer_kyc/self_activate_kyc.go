@@ -322,7 +322,7 @@ func (s *selfActivationKYCService) ExportUserSelfActivation(ctx context.Context,
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 
 	if s.minioClient == nil {
-		log.Errorf("[ExportUserSelfActivation/ExportUsers] minio client is not configured")
+		log.Errorf("[ExportUserSelfActivation] minio client is not configured")
 		return "", errors.New(localization.CpsUserDataExportedError.Code)
 	}
 
@@ -333,7 +333,7 @@ func (s *selfActivationKYCService) ExportUserSelfActivation(ctx context.Context,
 
 	data, err := s.repo.FindForExport(ctx, from, to, customerName)
 	if err != nil {
-		log.Errorf("[ExportUserSelfActivation/ExportUsers] failed to fetch self activation requests: %v", err)
+		log.Errorf("[ExportUserSelfActivation] failed to fetch self activation requests: %v", err)
 		return "", err
 	}
 
@@ -363,8 +363,8 @@ func (s *selfActivationKYCService) ExportUserSelfActivation(ctx context.Context,
 		}
 		url, exportErr := lib.ExportPDFAndUpload(ctx, s.minioClient, s.bucketName, *s.cfg, objectName, headers, rows, lib.PDFExportOptions{PageSize: "A4"}, nil, s.logger)
 		if exportErr != nil {
-			log.Errorf("[CPSUser/ExportUsers] pdf export failed: %v", exportErr)
-			return "", errors.New(localization.CpsUserDataExportedError.Code)
+			log.Errorf("[CPSUser] pdf export failed: %v", exportErr)
+			return "", fmt.Errorf("failed to export self-activation kyc data")
 		}
 
 		return url, nil
@@ -379,8 +379,8 @@ func (s *selfActivationKYCService) ExportUserSelfActivation(ctx context.Context,
 		return nil
 	}, s.logger)
 	if exportErr != nil {
-		log.Errorf("[CPSUser/ExportUsers] csv export failed: %v", exportErr)
-		return "", errors.New(localization.CpsUserDataExportedError.Code)
+		log.Errorf("[CPSUser] csv export failed: %v", exportErr)
+		return "", fmt.Errorf("failed to export self-activation kyc data")
 	}
 
 	return url, nil
