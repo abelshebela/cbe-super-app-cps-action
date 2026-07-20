@@ -498,7 +498,7 @@ func (r *customerKYCRepository) FindKYCOnboardingForExport(ctx context.Context, 
 				"_id": 0,
 
 				"customer_name":     "$kyc_data.full_name",
-				"phone_number":      "$phone_number",
+				"phone_number":      "$kyc_data.phone_number",
 				"gender":            "$kyc_data.gender",
 				"date_of_birth":     "$kyc_data.birth_date",
 				"region":            "$kyc_data.address.region",
