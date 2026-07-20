@@ -13,6 +13,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
+	"encoding/csv"
 	"errors"
 	"fmt"
 	"strings"
@@ -37,7 +38,6 @@ type customerKYCService struct {
 	minio          *s3.Client
 	bucketName     string
 	cfg            *config.VaultConfig
-	minioEndPoint  string
 	smsService     *lib.NotificationStore
 }
 
@@ -51,7 +51,6 @@ func NewCustomerKYCService(repo storage.CustomerKYCRepository,
 	minio *s3.Client,
 	bucketName string,
 	cfg *config.VaultConfig,
-	minioEndPoint string,
 	smsService *lib.NotificationStore,
 ) service.CustomerKYCService {
 	return &customerKYCService{
@@ -65,7 +64,6 @@ func NewCustomerKYCService(repo storage.CustomerKYCRepository,
 		minio:          minio,
 		bucketName:     bucketName,
 		cfg:            cfg,
-		minioEndPoint:  minioEndPoint,
 		smsService:     smsService,
 	}
 }
@@ -319,6 +317,74 @@ func (s *customerKYCService) PickKycReview(ctx context.Context, id string, reaso
 	}
 
 	return nil
+}
+
+func (s *customerKYCService) ExportKYCOnboarding(ctx context.Context, from, to time.Time, fileType, customerName string) (string, error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
+	if s.minio == nil {
+		log.Errorf("[ExportKYCOnboarding] minio client is not configured")
+		return "", errors.New(localization.CpsUserDataExportedError.Code)
+	}
+
+	fileType = strings.ToLower(strings.TrimSpace(fileType))
+	if fileType != string(lib.FileTypeCSV) && fileType != string(lib.FileTypePDF) {
+		return "", errors.New(localization.ErrorInvalidRequest.Code)
+	}
+
+	data, err := s.repo.FindKYCOnboardingForExport(ctx, from, to, customerName)
+	if err != nil {
+		log.Errorf("[ExportKYCOnboarding] failed to fetch onboarding requests: %v", err)
+		return "", err
+	}
+
+	headers := []string{
+		"Customer Name",
+		"Phone Number",
+		"Gender",
+		"Date of Birth",
+		"Region",
+		"Registration Date & Time",
+		"Rejection Reason",
+		"Customer Status",
+		"KYC Status",
+	}
+
+	ext := "csv"
+	if fileType == string(lib.FileTypePDF) {
+		ext = "pdf"
+	}
+
+	objectName := fmt.Sprintf("onboarding_kyc_requests_%s_to_%s_%d.%s", from.Format("20060102"), to.Format("20060102"), time.Now().Unix(), ext)
+
+	if fileType == string(lib.FileTypePDF) {
+		rows := make([][]string, 0, len(data))
+		for _, item := range data {
+			rows = append(rows, core.BuildRow(item))
+		}
+		url, exportErr := lib.ExportPDFAndUpload(ctx, s.minio, s.bucketName, *s.cfg, objectName, headers, rows, lib.PDFExportOptions{PageSize: "A4"}, nil, s.logger)
+		if exportErr != nil {
+			log.Errorf("[CPSUser] pdf export failed: %v", exportErr)
+			return "", fmt.Errorf("failed to export onboarding kyc data")
+		}
+
+		return url, nil
+	}
+
+	url, exportErr := lib.ExportCSVAndUpload(ctx, s.minio, s.bucketName, *s.cfg, objectName, headers, func(writer *csv.Writer) error {
+		for _, item := range data {
+			if err := writer.Write(core.BuildRow(item)); err != nil {
+				return err
+			}
+		}
+		return nil
+	}, s.logger)
+	if exportErr != nil {
+		log.Errorf("[CPSUser] csv export failed: %v", exportErr)
+		return "", fmt.Errorf("failed to export onboarding kyc data")
+	}
+
+	return url, nil
 }
 
 func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {

@@ -10,6 +10,7 @@ type CustomerKYC interface {
 	RejectKycRequest(w http.ResponseWriter, r *http.Request)
 	StartKycReview(w http.ResponseWriter, r *http.Request)
 	PickKycReview(w http.ResponseWriter, r *http.Request)
+	ExportKYCOnboarding(w http.ResponseWriter, r *http.Request)
 	// UpdateKYCStatus(w http.ResponseWriter, r *http.Request)
 	// DeleteKYCRequest(w http.ResponseWriter, r *http.Request)
 }
