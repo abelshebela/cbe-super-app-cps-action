@@ -42,25 +42,21 @@ func NewSelfActivationRepository(client *mongo.Client, oracleDB *sql.DB, cfg *co
 func (r *selfActivationRepository) CheckIfUserOrAccountExists(ctx context.Context, userData *imodel.SelfActivationUser) (bool, error) {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
-	phone := strings.TrimSpace(userData.PhoneNumber)
+	// phone := strings.TrimSpace(userData.PhoneNumber)
 	customerID := strings.TrimSpace(userData.CustomerNumber)
 
-	if phone == "" && customerID == "" {
+	if customerID == "" {
 		return false, nil
 	}
 
 	const userExistsQuery = `
 		SELECT COUNT(1)
 		FROM USERS u
-		WHERE (
-			TRIM(u.CONTACT_PHONE) = :1
-			TRIM(u.CUSTOMER_NUMBER) = :2
-		)
-		AND u.IS_DELETED = 0
+		WHERE TRIM(u.CUSTOMER_NUMBER) = :1
 	`
 
 	var userCount int
-	if err := r.oracleDB.QueryRowContext(ctx, userExistsQuery, phone, customerID).Scan(&userCount); err != nil {
+	if err := r.oracleDB.QueryRowContext(ctx, userExistsQuery, customerID).Scan(&userCount); err != nil {
 		log.Errorf("[SelfActivationKYC][CheckIfUserOrAccountExists] failed to query USERS: %v", err)
 		return false, local_util.HandleDBError(err)
 	}
@@ -69,25 +65,24 @@ func (r *selfActivationRepository) CheckIfUserOrAccountExists(ctx context.Contex
 		return false, nil
 	}
 
-	const linkedAccountQuery = `
-		SELECT COUNT(1)
-		FROM LINKED_ACCOUNTS la
-		INNER JOIN USERS u ON u.USER_CODE = la.USER_CODE
-		WHERE (
-			TRIM(u.CONTACT_PHONE) = :1
-			TRIM(u.CUSTOMER_NUMBER) = :2
-		)
-		AND la.IS_DELETED = 0
-		AND la.IS_ACTIVE = 1
-	`
+	return true, nil
 
-	var linkedCount int
-	if err := r.oracleDB.QueryRowContext(ctx, linkedAccountQuery, phone, customerID).Scan(&linkedCount); err != nil {
-		log.Errorf("[SelfActivationKYC][CheckIfUserOrAccountExists] failed to query LINKED_ACCOUNTS: %v", err)
-		return false, local_util.HandleDBError(err)
-	}
+	// const linkedAccountQuery = `
+	// 	SELECT COUNT(1)
+	// 	FROM LINKED_ACCOUNTS la
+	// 	JOIN USERS u
+	// 	    ON u.USER_CODE = la.USER_CODE
+	// 	WHERE TRIM(u.CUSTOMER_NUMBER) = :1
+	// 	AND la.IS_ACTIVE = 1
+	// `
 
-	return linkedCount > 0, nil
+	// var linkedCount int
+	// if err := r.oracleDB.QueryRowContext(ctx, linkedAccountQuery, customerID).Scan(&linkedCount); err != nil {
+	// 	log.Errorf("[SelfActivationKYC][CheckIfUserOrAccountExists] failed to query LINKED_ACCOUNTS: %v", err)
+	// 	return false, local_util.HandleDBError(err)
+	// }
+
+	// return linkedCount > 0, nil
 }
 
 func (r *selfActivationRepository) FindAllWithPaginationSA(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.SelfActivationUser], error) {
@@ -122,7 +117,7 @@ func (r *selfActivationRepository) FindAllWithPaginationSA(ctx context.Context, 
 		}
 	}
 
-	results, err := r.selfActivationDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	results, err := r.selfActivationDal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		log.Errorf("[CustomerKYC][FindAllWithPagination] failed to fetch data: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
