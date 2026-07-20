@@ -21,21 +21,21 @@ type CustomerKYCResponse struct {
 	CapturedDocuments    CapturedDocuments    `json:"captured_documents"`
 	AccountNumbers       []string             `json:"account_numbers,omitempty"`
 	CustomerStatus       string               `json:"customer_status"`
-	KYCStatus            string               `json:"kyc_status"`
-	MoneyLaunderingFree  *bool                `json:"money_laundering_free"`
-	KYCRejectReason      string               `bson:"kyc_reject_reason,omitempty" json:"kyc_reject_reason,omitempty"`
-	TermsAndConditions   string               `json:"terms_and_conditions,omitempty"`
-	KYCReviewStartedAt   *time.Time           `json:"started_at,omitempty"`
-	KYCReviewExpiresAt   *time.Time           `json:"expires_at,omitempty"`
-	Reviewer             *imodel.UserInfo     `json:"reviewer,omitempty"`
-	CreatedAt            string               `json:"created_at"`
-	UpdatedAt            string               `json:"updated_at"`
+
+	KYCStatus string  `json:"kyc_status,omitempty"`
+	KYC       KycInfo `bson:"kyc" json:"kyc"`
+
+	MoneyLaunderingFree *bool            `json:"money_laundering_free"`
+	KYCRejectReason     string           `bson:"kyc_reject_reason,omitempty" json:"kyc_reject_reason,omitempty"`
+	TermsAndConditions  string           `json:"terms_and_conditions,omitempty"`
+	KYCReviewStartedAt  *time.Time       `json:"started_at,omitempty"`
+	KYCReviewExpiresAt  *time.Time       `json:"expires_at,omitempty"`
+	Reviewer            *imodel.UserInfo `json:"reviewer,omitempty"`
+	CreatedAt           string           `json:"created_at"`
+	UpdatedAt           string           `json:"updated_at"`
 }
 
 type PersonalInformation struct {
-	// FirstName     string `json:"first_name" validate:"required"`
-	// MiddleName    string `json:"middle_name,omitempty"`
-	// LastName      string `json:"last_name" validate:"required"`
 	FullName       string   `json:"full_name" bson:"full_name"`
 	MotherName     string   `json:"mother_name" validate:"required"`
 	PhoneNumber    string   `json:"phone_number" validate:"required"`
@@ -48,6 +48,13 @@ type PersonalInformation struct {
 	OriginID       string   `json:"origin_id,omitempty"`
 	USTIN          string   `json:"us_tin,omitempty"`
 	AccountNumbers []string `bson:"account_numbers,omitempty" json:"account_numbers,omitempty"`
+}
+
+type KycInfo struct {
+	PhoneMismatch  bool   `bson:"phone_mismatch" json:"phone_mismatch"`
+	BelowThreshold bool   `bson:"below_threshold" json:"below_threshold"`
+	ContainsANDOR  bool   `bson:"contains_and_or" json:"contains_and_or"`
+	KYCStatus      string `bson:"kyc_status" json:"kyc_status"`
 }
 
 type CapturedDocuments struct {

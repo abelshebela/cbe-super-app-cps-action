@@ -13,11 +13,13 @@ import (
 	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
+	"encoding/csv"
 	"errors"
 	"fmt"
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	coreio "github.com/hugokessem/coreio/core"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -36,6 +38,7 @@ type selfActivationKYCService struct {
 	bucketName     string
 	cfg            *config.VaultConfig
 	smsService     *lib.NotificationStore
+	minioClient    *s3.Client
 }
 
 func NewSelfActivationKYCService(repo storage.SelfActivationKYCRepository,
@@ -48,6 +51,7 @@ func NewSelfActivationKYCService(repo storage.SelfActivationKYCRepository,
 	bucketName string,
 	cfg *config.VaultConfig,
 	smsService *lib.NotificationStore,
+	minioClient *s3.Client,
 ) service.SelfActivateKYCService {
 	return &selfActivationKYCService{
 		repo:           repo,
@@ -60,6 +64,7 @@ func NewSelfActivationKYCService(repo storage.SelfActivationKYCRepository,
 		bucketName:     bucketName,
 		cfg:            cfg,
 		smsService:     smsService,
+		minioClient:    minioClient,
 	}
 }
 
@@ -311,6 +316,74 @@ func (s *selfActivationKYCService) PickKycReview(ctx context.Context, id string,
 	}
 
 	return nil
+}
+
+func (s *selfActivationKYCService) ExportUserSelfActivation(ctx context.Context, from, to time.Time, fileType, customerName string) (string, error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
+	if s.minioClient == nil {
+		log.Errorf("[ExportUserSelfActivation/ExportUsers] minio client is not configured")
+		return "", errors.New(localization.CpsUserDataExportedError.Code)
+	}
+
+	fileType = strings.ToLower(strings.TrimSpace(fileType))
+	if fileType != string(lib.FileTypeCSV) && fileType != string(lib.FileTypePDF) {
+		return "", errors.New(localization.ErrorInvalidRequest.Code)
+	}
+
+	data, err := s.repo.FindForExport(ctx, from, to, customerName)
+	if err != nil {
+		log.Errorf("[ExportUserSelfActivation/ExportUsers] failed to fetch self activation requests: %v", err)
+		return "", err
+	}
+
+	headers := []string{
+		"Customer Name",
+		"Phone Number",
+		"Gender",
+		"Date of Birth",
+		"Region",
+		"Registration Date & Time",
+		"Rejection Reason",
+		"Customer Status",
+		"KYC Status",
+	}
+
+	ext := "csv"
+	if fileType == string(lib.FileTypePDF) {
+		ext = "pdf"
+	}
+
+	objectName := fmt.Sprintf("self_activation_requests%s_to_%s_%d.%s", from.Format("20060102"), to.Format("20060102"), time.Now().Unix(), ext)
+
+	if fileType == string(lib.FileTypePDF) {
+		rows := make([][]string, 0, len(data))
+		for _, item := range data {
+			rows = append(rows, core.BuildRow(item))
+		}
+		url, exportErr := lib.ExportPDFAndUpload(ctx, s.minioClient, s.bucketName, *s.cfg, objectName, headers, rows, lib.PDFExportOptions{PageSize: "A4"}, nil, s.logger)
+		if exportErr != nil {
+			log.Errorf("[CPSUser/ExportUsers] pdf export failed: %v", exportErr)
+			return "", errors.New(localization.CpsUserDataExportedError.Code)
+		}
+
+		return url, nil
+	}
+
+	url, exportErr := lib.ExportCSVAndUpload(ctx, s.minioClient, s.bucketName, *s.cfg, objectName, headers, func(writer *csv.Writer) error {
+		for _, item := range data {
+			if err := writer.Write(core.BuildRow(item)); err != nil {
+				return err
+			}
+		}
+		return nil
+	}, s.logger)
+	if exportErr != nil {
+		log.Errorf("[CPSUser/ExportUsers] csv export failed: %v", exportErr)
+		return "", errors.New(localization.CpsUserDataExportedError.Code)
+	}
+
+	return url, nil
 }
 
 func (s *selfActivationKYCService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
