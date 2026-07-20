@@ -414,6 +414,7 @@ func (s *selfActivationKYCService) Authorize(ctx context.Context, cpsAction *mod
 				log.Errorf("[SelfActivationKYC][Authorize] failed to check existing review: %v", err)
 				return nil, errors.New(localization.ErrorUnexpectedError.Code)
 			}
+
 			if existingReview != nil {
 				existingReview.ReviewStatus = string(constants.KYCStatusCancelled)
 				_, err = s.repo.UpdateKycReviewSA(ctx, cpsAction.UniqueId, existingReview)
@@ -422,42 +423,45 @@ func (s *selfActivationKYCService) Authorize(ctx context.Context, cpsAction *mod
 					return nil, errors.New(localization.ErrorUnexpectedError.Code)
 				}
 			}
-		}
 
-		if err = s.repo.UpdateKYCStatusSA(ctx, cpsAction.UniqueId, string(constants.KYCStatusApproved), rejectionReason, false); err != nil {
-			return nil, err
-		}
+			return nil, fmt.Errorf("The user has already been approved through a branch. This request has been cancelled.")
+		} else {
 
-		existingReview, err := s.repo.FindKycInReviewSA(ctx, cpsAction.UniqueId)
-		if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
-			log.Errorf("[SelfActivationKYC][Authorize] failed to check existing review: %v", err)
-			return nil, errors.New(localization.ErrorUnexpectedError.Code)
-		}
-		if existingReview != nil {
-			existingReview.ReviewStatus = string(constants.KYCStatusApproved)
-			_, err = s.repo.UpdateKycReviewSA(ctx, cpsAction.UniqueId, existingReview)
-			if err != nil {
-				log.Errorf("[SelfActivationKYC][Authorize] failed to update review status: %v", err)
+			if err = s.repo.UpdateKYCStatusSA(ctx, cpsAction.UniqueId, string(constants.KYCStatusApproved), rejectionReason, false); err != nil {
+				return nil, err
+			}
+
+			existingReview, err := s.repo.FindKycInReviewSA(ctx, cpsAction.UniqueId)
+			if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+				log.Errorf("[SelfActivationKYC][Authorize] failed to check existing review: %v", err)
 				return nil, errors.New(localization.ErrorUnexpectedError.Code)
 			}
-		}
-
-		if s.smsService != nil {
-			phone := userData.PhoneNumber
-			name := userData.Name
-			// reason := rejectionReason
-			go func() {
-				msg := fmt.Sprintf(
-					"Dear %s, Congratulations! Your application for superapp activation is successful. Welcome to CBE Super App!",
-					name,
-				)
-				if err := s.smsService.PublishSMSMessage(context.Background(), types.SMSKafkaMessage{
-					Recipient:   phone,
-					MessageBody: msg,
-				}); err != nil {
-					s.logger.Errorf("[SelfActivationKYC][Authorize] SMS send failed for phone %s: %v", phone, err)
+			if existingReview != nil {
+				existingReview.ReviewStatus = string(constants.KYCStatusApproved)
+				_, err = s.repo.UpdateKycReviewSA(ctx, cpsAction.UniqueId, existingReview)
+				if err != nil {
+					log.Errorf("[SelfActivationKYC][Authorize] failed to update review status: %v", err)
+					return nil, errors.New(localization.ErrorUnexpectedError.Code)
 				}
-			}()
+			}
+
+			if s.smsService != nil {
+				phone := userData.PhoneNumber
+				name := userData.Name
+				// reason := rejectionReason
+				go func() {
+					msg := fmt.Sprintf(
+						"Dear %s, Congratulations! Your application for superapp activation is successful. Welcome to CBE Super App!",
+						name,
+					)
+					if err := s.smsService.PublishSMSMessage(context.Background(), types.SMSKafkaMessage{
+						Recipient:   phone,
+						MessageBody: msg,
+					}); err != nil {
+						s.logger.Errorf("[SelfActivationKYC][Authorize] SMS send failed for phone %s: %v", phone, err)
+					}
+				}()
+			}
 		}
 
 	case string(constants.RequestRejectSelfActivateKyc):
