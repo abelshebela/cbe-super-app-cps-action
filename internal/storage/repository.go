@@ -122,7 +122,7 @@ type ServicesRepository interface {
 	FindServiceListByNameOrKey(ctx context.Context, name, key string) (*imodel.ServiceKey, error)
 	// FindServiceListByExactNameOrKey matches whole name/key (case-insensitive), only non-deleted rows — for create uniqueness checks.
 	FindServiceListByExactNameOrKey(ctx context.Context, name, key string) (*imodel.ServiceKey, error)
-	CreateServiceKey(ctx context.Context, serviceList *imodel.ServiceKey) error
+	CreateServiceKey(ctx context.Context, serviceList *imodel.ServiceKey) (string, error)
 	UpdateServiceKey(ctx context.Context, id, serviceKey string, serviceList *imodel.ServiceKey) error
 	EnableOrDisableServiceList(ctx context.Context, id string, enable bool) error
 	DeleteServiceKey(ctx context.Context, id string) error

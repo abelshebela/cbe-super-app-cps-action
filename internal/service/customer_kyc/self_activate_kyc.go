@@ -92,8 +92,8 @@ func (s *selfActivationKYCService) FindByID(ctx context.Context, id string) (*dt
 			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 		if review != nil {
-			mappedResponse.KYCReviewStartedAt = &review.StartedAt
-			mappedResponse.KYCReviewExpiresAt = &review.ExpiresAt
+			mappedResponse.KYCReviewStartedAt = review.StartedAt
+			mappedResponse.KYCReviewExpiresAt = review.ExpiresAt
 			mappedResponse.Reviewer = &review.Reviewer
 		}
 	}
@@ -196,20 +196,26 @@ func (s *selfActivationKYCService) StartKycReview(ctx context.Context, id string
 		return nil, errors.New("KYC review can only be started for KYC requests with pending status")
 	}
 
-	existingReview, err := s.repo.FindKycInReviewSA(ctx, id)
-	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
-		log.Errorf("[SelfActivationKYC][StartKycReview] failed to check existing review: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
-	}
-	if existingReview != nil && existingReview.IsActive && existingReview.ExpiresAt.After(time.Now()) {
-		log.Warnf("[SelfActivationKYC][StartKycReview] active review already exists for kyc id: %s", id)
-		return nil, errors.New("An active review already exists for this KYC request")
-	}
+	// existingReview, err := s.repo.FindKycInReviewSA(ctx, id)
+	// if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+	// 	log.Errorf("[SelfActivationKYC][StartKycReview] failed to check existing review: %v", err)
+	// 	return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	// }
+	// if existingReview != nil &&
+	// 	existingReview.ReviewStatus == string(imodel.KYCStatusInReview) {
 
-	if existingReview != nil && existingReview.ExpiresAt.Before(time.Now()) {
-		log.Warnf("[SelfActivationKYC][StartKycReview] review already exists but expired for kyc id: %s", id)
-		return nil, errors.New("An expired review already exists. Please pick the review to restart the review process.")
-	}
+	// 	now := time.Now()
+
+	// 	switch {
+	// 	case existingReview.ExpiresAt == nil || existingReview.ExpiresAt.After(now):
+	// 		log.Warnf("[SelfActivationKYC][StartKycReview] active review already exists for kyc id: %s", id)
+	// 		return nil, errors.New("An active review already exists for this KYC request")
+
+	// 	default:
+	// 		log.Warnf("[SelfActivationKYC][StartKycReview] review already exists but expired for kyc id: %s", id)
+	// 		return nil, errors.New("An expired review already exists. Please pick the review to restart the review process.")
+	// 	}
+	// }
 
 	cpsUser, err := s.cpsUserRepo.FindByID(ctx, makerUser.UserCode)
 	if err != nil {
@@ -217,6 +223,8 @@ func (s *selfActivationKYCService) StartKycReview(ctx context.Context, id string
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
+	now := time.Now()
+	expiresAt := time.Now().Add(30 * time.Minute)
 	newReq := &imodel.StartedKycReview{
 		KycID: kycID,
 		Reviewer: imodel.UserInfo{
@@ -227,8 +235,8 @@ func (s *selfActivationKYCService) StartKycReview(ctx context.Context, id string
 			PhoneNumber: cpsUser.PhoneNumber,
 		},
 		ReviewStatus:   string(imodel.KYCStatusInReview),
-		StartedAt:      time.Now(),
-		ExpiresAt:      time.Now().Add(30 * time.Minute),
+		StartedAt:      &now,
+		ExpiresAt:      &expiresAt,
 		IsActive:       true,
 		IsDeleted:      false,
 		CreatedAt:      time.Now(),
@@ -364,11 +372,11 @@ func (s *selfActivationKYCService) Authorize(ctx context.Context, cpsAction *mod
 		if s.smsService != nil {
 			phone := userData.PhoneNumber
 			name := userData.Name
-			reason := rejectionReason
+			// reason := rejectionReason
 			go func() {
 				msg := fmt.Sprintf(
-					"Dear %s, Your application for opening a new account and CBE superapp activation is Rejected Due to %s, please correct and apply again. Thank You",
-					name, reason,
+					"Dear %s, Congratulations! Your application for superapp activation is successful. Welcome to CBE Super App!",
+					name,
 				)
 				if err := s.smsService.PublishSMSMessage(context.Background(), types.SMSKafkaMessage{
 					Recipient:   phone,
@@ -414,7 +422,7 @@ func (s *selfActivationKYCService) Authorize(ctx context.Context, cpsAction *mod
 			reason := rejectionReason
 			go func() {
 				msg := fmt.Sprintf(
-					"Dear %s, Your application for opening a new account and CBE superapp activation is Rejected Due to %s, please correct and apply again. Thank You",
+					"Dear %s, Your application for CBE superapp activation is Rejected Due to %s, please correct and apply again. Thank You",
 					name, reason,
 				)
 				if err := s.smsService.PublishSMSMessage(context.Background(), types.SMSKafkaMessage{
@@ -432,15 +440,18 @@ func (s *selfActivationKYCService) Authorize(ctx context.Context, cpsAction *mod
 			return nil, err
 		}
 
-		existingReview, err := s.repo.FindKycInReviewSA(ctx, cpsAction.UniqueId)
+		existingReview,
+			err := s.repo.FindKycInReviewSA(ctx, cpsAction.UniqueId)
 		if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 			log.Errorf("[SelfActivationKYC][Authorize] failed to check existing review: %v", err)
 			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 		now := time.Now()
+		expiresAt := now.Add(30 * time.Minute)
+
 		existingReview.PickedAt = &now
-		existingReview.StartedAt = now
-		existingReview.ExpiresAt = now.Add(30 * time.Minute)
+		existingReview.StartedAt = &now
+		existingReview.ExpiresAt = &expiresAt
 		existingReview.Reviewer = *reviewData.PickedBy
 		existingReview.PickedBy = reviewData.PickedBy
 		existingReview.PickReason = reviewData.PickReason
