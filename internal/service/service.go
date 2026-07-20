@@ -948,6 +948,7 @@ type CustomerKYCService interface {
 	EnableOrDisable(ctx context.Context, id, reason string, enable bool) error
 	StartKycReview(ctx context.Context, id string) (*imodel.StartedKycReview, error)
 	PickKycReview(ctx context.Context, id string, reason string) error
+	ExportKYCOnboarding(ctx context.Context, from, to time.Time, fileType, customerName string) (string, error)
 	// UpdateKYCStatus(ctx context.Context, id, status string) error
 	// Delete(ctx context.Context, id string) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
