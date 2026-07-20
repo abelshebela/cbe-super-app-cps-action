@@ -122,7 +122,7 @@ func (r *selfActivationRepository) FindAllWithPaginationSA(ctx context.Context, 
 		}
 	}
 
-	results, err := r.selfActivationDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	results, err := r.selfActivationDal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		log.Errorf("[CustomerKYC][FindAllWithPagination] failed to fetch data: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
