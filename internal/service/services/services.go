@@ -75,7 +75,7 @@ func (s *servicesService) Create(ctx context.Context, req service_dto.CreateServ
 	if req.ProductGlAccount != "" {
 		var accountDetail *model.AccountDetail
 		var accountDetailForPl model.AccountDetail
-		if !*req.IsPlAccount && req.ProductGlAccount != "" {
+		if req.IsPlAccount != nil && !*req.IsPlAccount && req.ProductGlAccount != "" {
 			accountDetail, err = s.ValidateAccountNumberWithExternalAPI(ctx, req.ProductGlAccount)
 			if err != nil {
 				log.Errorf("[servicesService][Authorize] account number validation failed for account number %s: %v", req.ProductGlAccount, err)
