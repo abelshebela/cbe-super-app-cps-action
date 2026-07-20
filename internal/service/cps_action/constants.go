@@ -1373,8 +1373,8 @@ var RequestActionGroups = map[string][]constants.RequestAction{
 	"CUSTOMERKYC": {
 		RequestApproveCustomerKYC,
 		RequestRejectCustomerKYC,
-		RequestStartKycReview,
-		RequestPickKycReview,
+		// RequestStartKycReview,
+		// RequestPickKycReview,
 		// RequestCreateCustomerKYC,
 		// RequestUpdateCustomerKYC,
 		// RequestDeleteCustomerKYC,
@@ -1383,8 +1383,8 @@ var RequestActionGroups = map[string][]constants.RequestAction{
 	"SELFACTIVATIONKYC": {
 		RequestStartSelfActivateKy,
 		RequestApproveSelfActivateKyc,
-		RequestRejectSelfActivateKyc,
-		RequestPickSelfActivateKycReview,
+		// RequestRejectSelfActivateKyc,
+		// RequestPickSelfActivateKycReview,
 	},
 }
 
