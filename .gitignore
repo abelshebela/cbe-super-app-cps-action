@@ -70,3 +70,5 @@ db/migrations/accounts_block_migration.sql
 .claude
 .gocache
 .continue
+*Request*
+*Message*
