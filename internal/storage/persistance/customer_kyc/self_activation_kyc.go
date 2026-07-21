@@ -1,6 +1,7 @@
 package customer
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
@@ -172,6 +173,10 @@ func (r *selfActivationRepository) UpdateKYCStatusSA(ctx context.Context, id, st
 		"enabled":          approved,
 		"last_modified_at": time.Now(),
 		"updated_at":       time.Now(),
+	}
+
+	if status == string(imodel.KYCStatusRejected) || status == string(constants.KYCStatusCancelled) {
+		update["needs_pin_setup"] = false
 	}
 
 	if rejectionReason != "" {

@@ -489,19 +489,20 @@ func (r *customerKYCRepository) FindKYCOnboardingForExport(ctx context.Context, 
 
 	pipeline := mongo.Pipeline{
 		bson.D{{
-			Key:   "$match",
-			Value: matchFilter,
-		}},
-		bson.D{{
 			Key: "$project",
 			Value: bson.M{
 				"_id": 0,
 
-				"customer_name":     "$kyc.full_name",
-				"phone_number":      1,
-				"gender":            1,
-				"date_of_birth":     "$kyc.birth_date",
-				"region":            "$kyc.address.region",
+				"customer_name": "$kyc_data.full_name",
+				"phone_number":  "$kyc_data.phone_number",
+				"gender":        "$kyc_data.gender",
+				"date_of_birth": bson.M{
+					"$dateToString": bson.M{
+						"format": "%Y-%m-%d",
+						"date":   "$kyc_data.birth_date",
+					},
+				},
+				"region":            "$kyc_data.address.region",
 				"registration_date": "$last_modified_at",
 				"rejection_reason":  "$kyc_reject_reason_failed",
 				"customer_status":   "NEW",
@@ -512,6 +513,7 @@ func (r *customerKYCRepository) FindKYCOnboardingForExport(ctx context.Context, 
 
 	cursor, err := r.coll.Aggregate(ctx, pipeline)
 	if err != nil {
+		r.logger.Errorf("failed to get kyc onboarding data: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	defer cursor.Close(ctx)

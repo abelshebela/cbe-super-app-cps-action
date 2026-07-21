@@ -25,14 +25,16 @@ type CustomerKYCResponse struct {
 	KYCStatus string  `json:"kyc_status,omitempty"`
 	KYC       KycInfo `bson:"kyc" json:"kyc"`
 
-	MoneyLaunderingFree *bool            `json:"money_laundering_free"`
-	KYCRejectReason     string           `bson:"kyc_reject_reason,omitempty" json:"kyc_reject_reason,omitempty"`
-	TermsAndConditions  string           `json:"terms_and_conditions,omitempty"`
-	KYCReviewStartedAt  *time.Time       `json:"started_at,omitempty"`
-	KYCReviewExpiresAt  *time.Time       `json:"expires_at,omitempty"`
-	Reviewer            *imodel.UserInfo `json:"reviewer,omitempty"`
-	CreatedAt           string           `json:"created_at"`
-	UpdatedAt           string           `json:"updated_at"`
+	MoneyLaunderingFree *bool  `json:"money_laundering_free"`
+	KYCRejectReason     string `bson:"kyc_reject_reason,omitempty" json:"kyc_reject_reason,omitempty"`
+	TermsAndConditions  string `json:"terms_and_conditions,omitempty"`
+
+	KYCReviewStartedAt *time.Time `json:"started_at,omitempty"`
+	KYCReviewExpiresAt *time.Time `json:"expires_at,omitempty"`
+
+	Reviewer  *imodel.UserInfo `json:"reviewer,omitempty"`
+	CreatedAt string           `json:"created_at"`
+	UpdatedAt string           `json:"updated_at"`
 }
 
 type PersonalInformation struct {
