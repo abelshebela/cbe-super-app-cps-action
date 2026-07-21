@@ -20,7 +20,7 @@ import (
 
 const (
 	merchantsTable     = "MERCHANTS"
-	ussdMerchantsTable = "USSD_MERCHANTS_SERVICE"
+	ussdMerchantsTable = "USSD_MERCHANT_SERVICE"
 )
 
 const selectJoin = `
@@ -41,7 +41,7 @@ SELECT
 	M.LAST_MODIFIED_AT,
 	M.DELETED_AT
 FROM MERCHANTS M
-JOIN USSD_MERCHANTS_SERVICE U ON U.MERCHANT_ID = M.ID AND U.IS_DELETED = 0`
+JOIN USSD_MERCHANT_SERVICE U ON U.MERCHANT_ID = M.ID AND U.IS_DELETED = 0`
 
 type UssdMerchantRepository struct {
 	db     *sql.DB
@@ -106,7 +106,7 @@ RETURNING RAWTOHEX(ID) INTO :8`
 	}
 
 	const insertUssdQ = `
-INSERT INTO USSD_MERCHANTS_SERVICE (
+INSERT INTO USSD_MERCHANT_SERVICE (
 	MERCHANT_ID,
 	SERVICE_ID,
 	LOGO,
@@ -288,7 +288,7 @@ func (u *UssdMerchantRepository) Delete(ctx context.Context, id string) error {
 	defer func() { _ = tx.Rollback() }()
 
 	const deleteUssdQ = `
-UPDATE USSD_MERCHANTS_SERVICE
+UPDATE USSD_MERCHANT_SERVICE
 SET IS_DELETED = 1, DELETED_AT = SYSTIMESTAMP, LAST_MODIFIED_AT = SYSTIMESTAMP
 WHERE MERCHANT_ID = HEXTORAW(:1) AND IS_DELETED = 0`
 
