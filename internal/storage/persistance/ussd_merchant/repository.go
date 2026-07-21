@@ -138,12 +138,8 @@ INSERT INTO USSD_MERCHANT_SERVICE (
 	return nil
 }
 
-func (u *UssdMerchantRepository) Update(ctx context.Context, id string, update bson.M) error {
+func (u *UssdMerchantRepository) Update(ctx context.Context, id string, update *imodel.UssdMerchant) error {
 	log := local_util.LoggerFromCtx(ctx, u.logger)
-
-	if len(update) == 0 {
-		return nil
-	}
 
 	tx, err := u.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -152,65 +148,54 @@ func (u *UssdMerchantRepository) Update(ctx context.Context, id string, update b
 	}
 	defer func() { _ = tx.Rollback() }()
 
-	// Split bson.M keys into merchant vs ussd_merchant fields.
-	merchantUpdates := make([]string, 0)
-	ussdUpdates := make([]string, 0)
-	merchantArgs := make([]interface{}, 0)
-	ussdArgs := make([]interface{}, 0)
+	merchantUpdates := make([]string, 0, 6)
+	merchantArgs := make([]interface{}, 0, 8)
 	mIdx := 1
+
+	if strings.TrimSpace(update.Name) != "" {
+		merchantUpdates = append(merchantUpdates, fmt.Sprintf("MERCHANT_NAME = :%d", mIdx))
+		merchantArgs = append(merchantArgs, update.Name)
+		mIdx++
+	}
+	if strings.TrimSpace(string(update.SettlementMethod)) != "" {
+		merchantUpdates = append(merchantUpdates, fmt.Sprintf("SETTLEMENT_METHOD = :%d", mIdx))
+		merchantArgs = append(merchantArgs, string(update.SettlementMethod))
+		mIdx++
+	}
+	if strings.TrimSpace(update.PhoneNumber) != "" {
+		merchantUpdates = append(merchantUpdates, fmt.Sprintf("CONTACT_PHONE = :%d", mIdx))
+		merchantArgs = append(merchantArgs, update.PhoneNumber)
+		mIdx++
+	}
+	if strings.TrimSpace(update.Email) != "" {
+		merchantUpdates = append(merchantUpdates, fmt.Sprintf("CONTACT_EMAIL = :%d", mIdx))
+		merchantArgs = append(merchantArgs, update.Email)
+		mIdx++
+	}
+	if strings.TrimSpace(update.AccountNumber) != "" {
+		merchantUpdates = append(merchantUpdates, fmt.Sprintf("MERCHANT_ACCOUNT_NUMBER = :%d", mIdx))
+		merchantArgs = append(merchantArgs, update.AccountNumber)
+		mIdx++
+	}
+
+	ussdUpdates := make([]string, 0, 3)
+	ussdArgs := make([]interface{}, 0, 3)
 	uIdx := 1
 
-	for key, val := range update {
-		switch key {
-		case "name":
-			merchantUpdates = append(merchantUpdates, fmt.Sprintf("MERCHANT_NAME = :%d", mIdx))
-			merchantArgs = append(merchantArgs, val)
-			mIdx++
-		case "settlement_method":
-			merchantUpdates = append(merchantUpdates, fmt.Sprintf("SETTLEMENT_METHOD = :%d", mIdx))
-			merchantArgs = append(merchantArgs, val)
-			mIdx++
-		case "phone_number":
-			merchantUpdates = append(merchantUpdates, fmt.Sprintf("CONTACT_PHONE = :%d", mIdx))
-			merchantArgs = append(merchantArgs, val)
-			mIdx++
-		case "email":
-			merchantUpdates = append(merchantUpdates, fmt.Sprintf("CONTACT_EMAIL = :%d", mIdx))
-			merchantArgs = append(merchantArgs, val)
-			mIdx++
-		case "account_number":
-			merchantUpdates = append(merchantUpdates, fmt.Sprintf("MERCHANT_ACCOUNT_NUMBER = :%d", mIdx))
-			merchantArgs = append(merchantArgs, val)
-			mIdx++
-		case "enabled":
-			v, ok := val.(bool)
-			if !ok {
-				log.Errorf("[UssdMerchantRepo][Update] enabled is not bool: %v", val)
-				return errors.New(localization.ErrorInvalidID.Code)
-			}
-			n := 0
-			if v {
-				n = 1
-			}
-			merchantUpdates = append(merchantUpdates, fmt.Sprintf("IS_ENABLED = :%d", mIdx))
-			merchantArgs = append(merchantArgs, n)
-			mIdx++
-		case "service":
-			ussdUpdates = append(ussdUpdates, fmt.Sprintf("SERVICE_ID = HEXTORAW(:%d)", uIdx))
-			ussdArgs = append(ussdArgs, val)
-			uIdx++
-		case "logo":
-			ussdUpdates = append(ussdUpdates, fmt.Sprintf("LOGO = :%d", uIdx))
-			ussdArgs = append(ussdArgs, val)
-			uIdx++
-		case "credential":
-			ussdUpdates = append(ussdUpdates, fmt.Sprintf("CREDENTIAL = :%d", uIdx))
-			ussdArgs = append(ussdArgs, val)
-			uIdx++
-		default:
-			log.Errorf("[UssdMerchantRepo][Update] unknown bson key: %s", key)
-			return errors.New(localization.ErrorInvalidID.Code)
-		}
+	if strings.TrimSpace(update.Service) != "" {
+		ussdUpdates = append(ussdUpdates, fmt.Sprintf("SERVICE_ID = HEXTORAW(:%d)", uIdx))
+		ussdArgs = append(ussdArgs, update.Service)
+		uIdx++
+	}
+	if strings.TrimSpace(update.Logo) != "" {
+		ussdUpdates = append(ussdUpdates, fmt.Sprintf("LOGO = :%d", uIdx))
+		ussdArgs = append(ussdArgs, update.Logo)
+		uIdx++
+	}
+	if strings.TrimSpace(update.Credential) != "" {
+		ussdUpdates = append(ussdUpdates, fmt.Sprintf("CREDENTIAL = :%d", uIdx))
+		ussdArgs = append(ussdArgs, update.Credential)
+		uIdx++
 	}
 
 	merchantFound := false
@@ -258,7 +243,6 @@ func (u *UssdMerchantRepository) Update(ctx context.Context, id string, update b
 	}
 
 	if !merchantFound && len(ussdUpdates) == 0 {
-		// Verify merchant exists.
 		const existsQ = `SELECT 1 FROM MERCHANTS WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0`
 		var exists int
 		if err := tx.QueryRowContext(ctx, existsQ, id).Scan(&exists); err != nil {
@@ -272,6 +256,34 @@ func (u *UssdMerchantRepository) Update(ctx context.Context, id string, update b
 	if err := tx.Commit(); err != nil {
 		log.Errorf("[UssdMerchantRepo][Update] commit failed: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	return nil
+}
+
+func (u *UssdMerchantRepository) EnableOrDisable(ctx context.Context, id string, enabled bool) error {
+	log := local_util.LoggerFromCtx(ctx, u.logger)
+
+	const q = `
+UPDATE MERCHANTS
+SET
+	IS_ENABLED = :1,
+	LAST_MODIFIED_AT = SYSTIMESTAMP
+WHERE ID = HEXTORAW(:2) AND IS_DELETED = 0`
+
+	enabledInt := 0
+	if enabled {
+		enabledInt = 1
+	}
+
+	res, err := u.db.ExecContext(ctx, q, enabledInt, id)
+	if err != nil {
+		log.Errorf("[UssdMerchantRepo][EnableOrDisable] update failed: %v", err)
+		return local_util.HandleDBError(err)
+	}
+	rows, _ := res.RowsAffected()
+	if rows == 0 {
+		return errors.New(localization.ErrorMerchantNotFound.Code)
 	}
 
 	return nil
