@@ -30,6 +30,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/sitota"
 	superapprole "cbe-super-app-cps-action/internal/storage/persistance/superapp_role"
 	tac_oracle "cbe-super-app-cps-action/internal/storage/persistance/term_and_condition/oracle"
+	"cbe-super-app-cps-action/internal/storage/persistance/ussd_merchant"
 	vaultCategory "cbe-super-app-cps-action/internal/storage/persistance/vault"
 	wallet_oracle "cbe-super-app-cps-action/internal/storage/persistance/wallet/oracle"
 
@@ -57,6 +58,7 @@ type OraclePersistence struct {
 	Customer                storage.CustomerRepository
 	EventMerchant           storage.EventMerchantRepository
 	EcommerceMerchant       storage.EcommerceMerchantRepository
+	UssdMerchant            storage.UssdMerchantRepository
 	DonationCategory        storage.DonationCategoryRepository
 	DonationCompany         storage.DonationCompanyRepository
 	Donation                storage.DonationRepository
@@ -92,6 +94,7 @@ func InitOraclePersistence(client *mongo.Client, db *sql.DB, cfg *config.VaultCo
 		Customer:              customer_oracle.NewCustomerOracleRepository(db, *cfg, log),
 		EventMerchant:         event_oracle.NewEventMerchantOracleRepository(db, log),
 		EcommerceMerchant:     ecommerce_merchant.NewEcommerceMerchantRepository(db, log),
+		UssdMerchant:          ussd_merchant.NewUssdMerchant(db, log),
 		DonationCategory: donation_category_oracle.NewPublishingRepository(
 			donation_category_oracle.NewRepository(db, log),
 			clientOrchestrationProducer,
