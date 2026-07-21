@@ -865,14 +865,13 @@ type LogisticsMerchantOracleRepository interface {
 
 type UssdMerchantRepository interface {
 	Create(ctx context.Context, data imodel.UssdMerchant) error
-	Update(ctx context.Context, id string, update bson.M) error
+	Update(ctx context.Context, id string, update *imodel.UssdMerchant) error
 	Delete(ctx context.Context, id string) error
+	EnableOrDisable(ctx context.Context, id string, enabled bool) error
 	FindById(ctx context.Context, id string) (ussd_merchant_dto.UssdMerchantResponse, error)
 	FindByOr(ctx context.Context, phone, email, accountNumber string) (imodel.UssdMerchant, error)
 	Find(ctx context.Context, filter bson.M) (ussd_merchant_dto.UssdMerchantResponse, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (types.PaginatedResponse[[]ussd_merchant_dto.UssdMerchantResponse], error)
-	// Delete(ctx context.Context, id string) error
-
 }
 
 type AccessListSegmentationRepository interface {
