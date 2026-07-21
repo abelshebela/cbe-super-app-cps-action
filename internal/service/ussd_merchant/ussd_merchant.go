@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 
@@ -317,18 +316,17 @@ func (s *ussdMerchantService) Authorize(ctx context.Context, cpsAction *model.CP
 			return nil, errors.New(localization.ErrorUnhandledServer.Code)
 		}
 	case string(constants.RequestUpdateUssdMerchant):
-		update := core.ModelToBson(curMerchant)
-		if err := s.repo.Update(ctx, cpsAction.UniqueId, update); err != nil {
+		if err := s.repo.Update(ctx, cpsAction.UniqueId, curMerchant); err != nil {
 			log.Errorf("[UssdMerchSvc][Authorize] update err: %v", err)
 			return nil, errors.New(localization.ErrorUnhandledServer.Code)
 		}
 	case string(constants.RequestEnableUssdMerchant):
-		if err := s.repo.Update(ctx, cpsAction.UniqueId, bson.M{"enabled": true}); err != nil {
+		if err := s.repo.EnableOrDisable(ctx, cpsAction.UniqueId, true); err != nil {
 			log.Errorf("[UssdMerchSvc][Authorize] enable err: %v", err)
 			return nil, err
 		}
 	case string(constants.RequestDisableUssdMerchant):
-		if err := s.repo.Update(ctx, cpsAction.UniqueId, bson.M{"enabled": false}); err != nil {
+		if err := s.repo.EnableOrDisable(ctx, cpsAction.UniqueId, false); err != nil {
 			log.Errorf("[UssdMerchSvc][Authorize] disable err: %v", err)
 			return nil, err
 		}
