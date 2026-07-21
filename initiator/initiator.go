@@ -176,6 +176,12 @@ func Init(ctx context.Context) {
 		}
 	}()
 
+	go func() {
+		if err := InitUtilityConsumer(serviceLayer.Utility, cfg, logger); err != nil {
+			logger.Errorf("Failed to start utility consumer: %v", err)
+		}
+	}()
+
 	logger.Infof("initialize handler layer")
 	handlerLayer := InitHandler(serviceLayer, logger, queueInfra.Manager)
 
