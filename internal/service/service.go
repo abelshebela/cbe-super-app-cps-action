@@ -723,6 +723,7 @@ type ServiceLayer struct {
 	AccountProduct                AccountProductService
 	AccountOpeningTerms           AccountOpeningTermsService
 	TokenProvider                 TokenProviderService
+	Utility                       UtilityService
 }
 
 type ServiceContainer struct {
@@ -799,6 +800,7 @@ type ServiceContainer struct {
 	AccountProductCategoryContainer    AccountProductCategoryService
 	AccountProductContainer            AccountProductService
 	AccountOpeningTermsContainer       AccountOpeningTermsService
+	UtilityContainer                   UtilityService
 }
 
 type BPSActionRoleService interface {
@@ -975,4 +977,16 @@ type SuperAppRoleService interface {
 	BulkDisableAccessLists(ctx context.Context, superappRole string, req superapproledto.BulkAccessListByRoleRequest) error
 	BulkEnableAccessLists(ctx context.Context, superappRole string, req superapproledto.BulkAccessListByRoleRequest) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+}
+
+// UtilityService handles opaque Kafka-sourced payloads gated by maker-checker.
+// The payload schema is unknown to this service — it is stored and forwarded as-is.
+type UtilityService interface {
+	// HandleKafkaMessage creates (or updates) a pending CPS action from an incoming Kafka message.
+	HandleKafkaMessage(ctx context.Context, msg imodel.UtilityKafkaMessage) error
+	// Authorize is called by the CPS dispatcher when a checker approves a utility action.
+	// On approval it publishes the CurrentAction bytes to the configured output Kafka topic.
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	// GetByUniqueToken returns the CurrentAction payload for a utility CPS action as a generic map.
+	GetByUniqueToken(ctx context.Context, uniqueToken, department string) (map[string]interface{}, error)
 }
