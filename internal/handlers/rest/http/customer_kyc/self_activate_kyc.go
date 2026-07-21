@@ -12,7 +12,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -53,7 +52,6 @@ func (c *selfActivationKYCAdapter) GetAllSelfActivateKYCRequests(w http.Response
 		return
 	}
 
-	w.Header().Set("Server-Time", time.Now().Format(time.RFC3339))
 	localization.SendSuccessResponse(w, localization.SuccessDataRetrieved, res)
 }
 
@@ -75,7 +73,6 @@ func (c *selfActivationKYCAdapter) GetSelfActivateKYCRequest(w http.ResponseWrit
 		return
 	}
 
-	w.Header().Set("Server-Time", time.Now().Format(time.RFC3339))
 	localization.SendSuccessResponse(w, localization.SuccessDataRetrieved, res)
 }
 
@@ -179,7 +176,6 @@ func (c *selfActivationKYCAdapter) StartSelfActivateKycReview(w http.ResponseWri
 		return
 	}
 
-	w.Header().Set("Server-Time", time.Now().Format(time.RFC3339))
 	localization.SendSuccessResponse(w, localization.SuccessKYCReviewStarted, newReview)
 }
 
@@ -209,7 +205,6 @@ func (c *selfActivationKYCAdapter) PickSelfActivateKycReview(w http.ResponseWrit
 		return
 	}
 
-	w.Header().Set("Server-Time", time.Now().Format(time.RFC3339))
 	localization.SendSuccessResponse(w, localization.SuccessKYCReviewPicked, nil)
 }
 
