@@ -23,12 +23,10 @@ import (
 	service_cache "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/catch/service"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type servicesService struct {
 	repo            storage.ServicesRepository
-	ussdMerchant    storage.UssdMerchantRepository
 	cps             service.CPSActionService
 	core            coreio.CBECoreAPIInterface
 	logger          utils.Logger
@@ -36,10 +34,9 @@ type servicesService struct {
 	accessListCache accessList_cache.AccessListCatch
 }
 
-func NewServicesService(repo storage.ServicesRepository, ussdMerchant storage.UssdMerchantRepository, cps service.CPSActionService, core coreio.CBECoreAPIInterface, serviceCache service_cache.ServiceCatch, accessListCache accessList_cache.AccessListCatch, logger utils.Logger) *servicesService {
+func NewServicesService(repo storage.ServicesRepository, cps service.CPSActionService, core coreio.CBECoreAPIInterface, serviceCache service_cache.ServiceCatch, accessListCache accessList_cache.AccessListCatch, logger utils.Logger) *servicesService {
 	return &servicesService{
 		repo:            repo,
-		ussdMerchant:    ussdMerchant,
 		cps:             cps,
 		core:            core,
 		serviceCache:    serviceCache,
@@ -264,17 +261,12 @@ func (s *servicesService) DeleteServices(ctx context.Context, id string) error {
 		return errors.New("There is an active donation connected with this service")
 	}
 
-	// Check ussd_merchants
-	if s.ussdMerchant != nil {
-		ussdMerchant, err := s.ussdMerchant.Find(ctx, bson.M{
-			"service": id,
-		})
-		if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
-			return err
-		}
-		if strings.EqualFold(ussdMerchant.Service, id) {
-			return errors.New("There is an active ussd merchant connected with this service")
-		}
+	ussdMerchant, err := s.repo.FindUSSDMerchantByServiceId(ctx, id)
+	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+		return err
+	}
+	if ussdMerchant {
+		return errors.New("There is an active ussd merchant connected with this service")
 	}
 
 	deleted := core.BuildServiceDeleteSnapshot(*prev)

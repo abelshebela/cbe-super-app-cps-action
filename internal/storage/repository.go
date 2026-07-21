@@ -132,6 +132,7 @@ type ServicesRepository interface {
 
 	FindWalletByServiceId(ctx context.Context, serviceID string) (bool, error)
 	FindDonationByServiceId(ctx context.Context, serviceID string) (bool, error)
+	FindUSSDMerchantByServiceId(ctx context.Context, serviceID string) (bool, error)
 }
 
 type OTPRepository interface {

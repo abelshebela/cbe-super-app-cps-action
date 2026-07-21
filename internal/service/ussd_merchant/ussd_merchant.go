@@ -62,11 +62,9 @@ func (s *ussdMerchantService) CreateUssdMerchant(ctx context.Context, req ussd_m
 	}
 
 	existing, err := s.repo.FindByOr(ctx, req.PhoneNumber, req.Email, req.AccountNumber)
-	if err != nil {
-		if err.Error() != localization.ErrorResourceNotFound.Code {
-			log.Errorf("[UssdMerchSvc][Create] exist check err: %v", err)
-			return err
-		}
+	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+		log.Errorf("[UssdMerchSvc][Create] exist check err: %v", err)
+		return err
 	}
 
 	if req.Service != "" {
@@ -90,14 +88,10 @@ func (s *ussdMerchantService) CreateUssdMerchant(ctx context.Context, req ussd_m
 		return errors.New(localization.ErrorFileUploadFailed.Code)
 	}
 
-	log.Infof("[UssdMerchSvc][Create] creating cps action****************1")
 	ussdMerchant := core.UssdMerchant(req)
-
-	log.Infof("[UssdMerchSvc][Create] creating cps action****************2")
 
 	ussdMerchant.Logo = URL
 	core.CreateCredentials(&ussdMerchant, s.cfg)
-	log.Infof("[UssdMerchSvc][Create] creating cps action****************3")
 
 	cspActionModel := lib.CpsModelBuilder(constants.Empty, makerData, nil, ussdMerchant, constants.RequestCreateUssdMerchant, constants.CREATE)
 	if err := s.cpsService.CreateCPSAction(ctx, &cspActionModel); err != nil {
