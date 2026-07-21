@@ -10,14 +10,15 @@ import (
 
 // KafkaConfig holds Kafka configuration
 type KafkaConfig struct {
-	Brokers             string `json:"brokers"`
-	FeedbackTopic       string `json:"feedback_topic"`
-	SurveyFeedbackTopic string `json:"survey_feedback_topic"`
-	ConsumerGroup       string `json:"consumer_group"`
-	RequiredAcks        int    `json:"required_acks"`
-	RetryMax            int    `json:"retry_max"`
-	SessionTimeout      int    `json:"session_timeout"`
-	HeartbeatInterval   int    `json:"heartbeat_interval"`
+	Brokers              string `json:"brokers"`
+	FeedbackTopic        string `json:"feedback_topic"`
+	SurveyFeedbackTopic  string `json:"survey_feedback_topic"`
+	UtilityActionTopic   string `json:"utility_action_topic"`
+	ConsumerGroup        string `json:"consumer_group"`
+	RequiredAcks         int    `json:"required_acks"`
+	RetryMax             int    `json:"retry_max"`
+	SessionTimeout       int    `json:"session_timeout"`
+	HeartbeatInterval    int    `json:"heartbeat_interval"`
 }
 
 func LoadKafkaConfig(cfg *config.VaultConfig, logger utils.Logger) *KafkaConfig {
@@ -37,6 +38,7 @@ func loadKafkaConfigFromEnv(cfg *config.VaultConfig, logger utils.Logger) *Kafka
 		Brokers:             cfg.KafkaBrokers,
 		FeedbackTopic:       cfg.KafkaCustomerFeedbackTopic,
 		SurveyFeedbackTopic: cfg.KafkaCustomerSurveyTopic,
+		UtilityActionTopic:  getEnv("KAFKA_UTILITY_ACTION_TOPIC", "", logger),
 		ConsumerGroup:       "cps-action-service",
 		RequiredAcks:        requiredAcks,
 		RetryMax:            retryMax,

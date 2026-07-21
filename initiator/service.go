@@ -71,6 +71,7 @@ import (
 	"cbe-super-app-cps-action/internal/service/topup"
 	"cbe-super-app-cps-action/internal/service/unlink"
 	ussd_merchant "cbe-super-app-cps-action/internal/service/ussd_merchant"
+	utility_svc "cbe-super-app-cps-action/internal/service/utility"
 	"cbe-super-app-cps-action/internal/service/wallet"
 	"cbe-super-app-cps-action/internal/storage/persistance"
 
@@ -344,6 +345,9 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	roleDelegationService = role_delegation_service.NewRoleDelegationService(persistence.RoleDelegationPersistence, persistence.JobRolePersistence, persistence.CpsUserPersistence, persistence.BPSUserPersistence, persistence.DepartmentPersistence, persistence.RolePersistence, oracle.AccountBlock, cpsActionService, minioClient, cfg.S3BucketName, *cfg, notificationProducer, logger)
 	serviceContainer.RoleDelegationContainer = roleDelegationService
 
+	utilityService := utility_svc.NewUtilityService(cpsActionService, clientOrchestrationProducer, logger)
+	serviceContainer.UtilityContainer = utilityService
+
 	return service.ServiceLayer{
 		RoleService:                   RoleService,
 		JobRoleService:                jobRoleService,
@@ -409,5 +413,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		AccountProduct:                accountProductService,
 		AccountOpeningTerms:           accountOpeningTermsService,
 		TokenProvider:                 tokenProviderService,
+		Utility:                       utilityService,
 	}
 }
