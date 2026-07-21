@@ -51,7 +51,7 @@ func ExistingIdentifierForUpdate(existing imodel.UssdMerchant, id string, req us
 	normalizedPhone := local_util.FormatPhoneNumber(req.PhoneNumber)
 	normalizedAcct := strings.TrimSpace(req.AccountNumber)
 
-	existingID := local_util.FirstHex24(existing.ID.String())
+	existingID := existing.ID
 	// Email duplicate
 	if normalizedEmail != "" && strings.EqualFold(existing.Email, normalizedEmail) && existingID != id {
 		return errors.New(localization.ErrorEmailAlreadyExist.Code)
