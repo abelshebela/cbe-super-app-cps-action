@@ -10392,4 +10392,12 @@ var (
 		Message:    MsgTACAlreadyExists,
 		Type:       "error",
 	}
+
+	// Utility response codes
+	SuccessGetOneUtility = ResponseCode{
+		Code:       "SUCCESS_GET_ONE_UTILITY",
+		StatusCode: StatusOK,
+		Message:    "Utility action retrieved successfully",
+		Type:       "success",
+	}
 )

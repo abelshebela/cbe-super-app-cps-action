@@ -53,6 +53,8 @@ import (
 	unlinkInbound "cbe-super-app-cps-action/internal/constants/interfaces/unlink"
 	vaultCategory "cbe-super-app-cps-action/internal/constants/interfaces/vault"
 	walletInbound "cbe-super-app-cps-action/internal/constants/interfaces/wallet"
+	utilityInbound "cbe-super-app-cps-action/internal/constants/interfaces/utility"
+	utility_handler "cbe-super-app-cps-action/internal/handlers/rest/http/utility"
 	"cbe-super-app-cps-action/internal/service"
 	queue "cbe-super-app-cps-action/internal/storage/queue_system"
 
@@ -188,6 +190,7 @@ type Handler struct {
 	AccountProductCategoryHandler apc_interface.AccountProductCategoryHandler
 	AccountProductHandler         ap_interface.AccountProductHandler
 	TermAndConditionHandler       tac_interface.TermAndConditionHandler
+	UtilityHandler                utilityInbound.UtilityInbound
 }
 
 func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger, queueManager *queue.QueueManager) Handler {
@@ -251,5 +254,6 @@ func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger, queueMa
 		AccountProductCategoryHandler: apc_handler.InitAccountProductCategoryAdapter(serviceLayer.AccountProductCategory, logger),
 		AccountProductHandler:         ap_handler.InitAccountProductAdapter(serviceLayer.AccountProduct, logger),
 		TermAndConditionHandler:       tac_handler.InitTermAndConditionAdapter(serviceLayer.AccountOpeningTerms, logger),
+		UtilityHandler:                utility_handler.NewUtilityAdapter(serviceLayer.Utility, logger),
 	}
 }
