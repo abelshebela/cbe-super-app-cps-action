@@ -622,9 +622,9 @@ const (
 // ---------------------------------------------------------------------------
 
 const (
-	SettlementMethodDirect       SettlementMethod = "DIRECT"
-	SettlementMethodGL           SettlementMethod = "GL"
-	SettlementMethodMultiAccount SettlementMethod = "MULTI_ACCOUNT"
+	SettlementMethodDirect        SettlementMethod = "DIRECT"
+	SettlementMethodGL            SettlementMethod = "GL"
+	SettlementMethodMultiMerchant SettlementMethod = "MULTI_MERCHANT"
 )
 
 // ---------------------------------------------------------------------------
