@@ -775,6 +775,23 @@ func (s *ServicesStorage) FindDonationByServiceId(ctx context.Context, serviceID
 	return true, nil
 }
 
+func (s *ServicesStorage) FindUSSDMerchantByServiceId(ctx context.Context, serviceID string) (bool, error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
+	const q = `SELECT ID FROM USSD_MERCHANTS_SERVICE WHERE SERVICE_ID = HEXTORAW(:1)`
+
+	var id string
+	err := s.db.QueryRowContext(ctx, q, serviceID).Scan(&id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+		log.Errorf("[ServiceRepo][FindUSSDMerchantByServiceId] query failed: %v", err)
+		return false, err
+	}
+	return true, nil
+}
+
 func (s *ServicesStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]service_dto.ServiceResponse], error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 

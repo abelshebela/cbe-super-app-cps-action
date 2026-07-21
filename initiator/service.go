@@ -113,7 +113,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	accountValidation := accountvalidation.NewAccountValidationService(persistence.ValidationRulePersistence, nil, logger)
 	eventService := event.NewEventService(persistence.EventPersistence, nil, nil, persistence.UserPersistence, minioClient, minioPubUrl, cfg.S3BucketName, cfg, logger)
 	bulkService := bulk_service.NewBulkService(oracle.AccessListOracle, nil, oracle.AccessListSegmentaion, logger)
-	ussdMerchant := ussd_merchant.NewUssdMerchantService(persistence.UssdMerchantPersistence, oracle.ServicesPersistence, minioClient, nil, cfg.S3BucketName, *cfg, logger)
+	ussdMerchant := ussd_merchant.NewUssdMerchantService(oracle.UssdMerchant, oracle.ServicesPersistence, minioClient, nil, cfg.S3BucketName, *cfg, logger)
 
 	customerService := customer.NewCustomerService(oracle.Customer, persistence.BpsActionPersistence, nil, nil, nil, accountLookupAdapter, nil, logger)
 	bank_service := bankService.NewBankService(logger, persistence.BankPersistence, oracle.BankOracle, nil, bankCache, minioClient, minioPubUrl, cfg, cfg.S3BucketName)
@@ -162,7 +162,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	cpsActionRoleService := cps_action_role_service.NewCPSActionRoleService(persistence.CPSActionRolePersistence, persistence.CPSActionApproveIndexPersistence, persistence.JobRolePersistence, nil, logger)
 	eventMerchantService := event_merchant_service.NewEventMerchantService(oracle.EventMerchant, nil, accountLookupAdapter, persistence.MerchantLookup, cfg, logger)
 	logisticsMerchantService := logistics_merchant_service.NewLogisticsMerchantService(oracle.LogisticsMerchantOracle, nil, accountLookupAdapter, cfg, logger)
-	servicesService := services_svc.NewServicesService(oracle.ServicesPersistence, persistence.UssdMerchantPersistence, nil, coreInterface, serviceCache, accessListCache, logger)
+	servicesService := services_svc.NewServicesService(oracle.ServicesPersistence, nil, coreInterface, serviceCache, accessListCache, logger)
 	miniAppProductCodeContainer := miniapp.NewMiniAppProductCodeService(persistence.MiniAppProductCodePersistence, logger)
 	accessListSegmentationService := access_list_segmentation_service.NewAccessListSegmentationService(oracle.AccessListSegmentaion, nil, oracle.AccessListOracle, persistence.AccountBlockPersistence, persistence.CustomerService, persistence.CPSRoles, logger)
 	customerSegmentationService := customer_segmentation.NewCustomerSegmentation(oracle.CustomerSegmentation, oracle.NewCPSRolesStorage, nil, nil, logger)
@@ -240,7 +240,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	dispatcher := cpsaction.NewDispatcher(serviceContainer)
 	cpsActionService := cpsaction.NewCPSActionService(persistence.CPSActionRolePersistence, persistence.CPSAction, persistence.UserActionLogPersistence, logger, *dispatcher, minioClient, cfg.S3BucketName, cfg.MinioPublicEndPoint, *cfg)
 	cpsActionService = cpsaction.WithActionRolePolicy(cpsActionService, persistence.CPSActionRolePersistence, logger)
-	ussdMerchant = ussd_merchant.NewUssdMerchantService(persistence.UssdMerchantPersistence, oracle.ServicesPersistence, minioClient, cpsActionService, cfg.S3BucketName, *cfg, logger)
+	ussdMerchant = ussd_merchant.NewUssdMerchantService(oracle.UssdMerchant, oracle.ServicesPersistence, minioClient, cpsActionService, cfg.S3BucketName, *cfg, logger)
 
 	eventService = event.NewEventService(persistence.EventPersistence, cpsActionService, ecommerceMerchantService, persistence.UserPersistence, minioClient, minioPubUrl, cfg.S3BucketName, cfg, logger)
 	bulkService = bulk_service.NewBulkService(oracle.AccessListOracle, cpsActionService, oracle.AccessListSegmentaion, logger)
@@ -303,7 +303,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 
 	// Services catalog service (uses CPSAction for maker-checker)
 	// servicesService = services_svc.NewServicesService(persistence.ServicesPersistence, cpsActionService, logger)
-	servicesService = services_svc.NewServicesService(oracle.ServicesPersistence, persistence.UssdMerchantPersistence, cpsActionService, coreInterface, serviceCache, accessListCache, logger)
+	servicesService = services_svc.NewServicesService(oracle.ServicesPersistence, cpsActionService, coreInterface, serviceCache, accessListCache, logger)
 	// serviceContainer.ServicesContainer = servicesService
 	serviceContainer.MiniAppMerchantContainer = miniMerchant
 	ecommerceMerchantService = ecommerce_merchant.NewEcommerceMerchantService(oracle.EcommerceMerchant, oracle.ServicesPersistence, cpsActionService, persistence.MerchantLookup, coreInterface, logger, accountLookupAdapter, *cfg)

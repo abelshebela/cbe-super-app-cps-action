@@ -1,299 +1,298 @@
 package ussd_merchant
 
-import (
-	ussd_merchant_dto "cbe-super-app-cps-action/internal/constants/dto/ussd_merchant"
-	"cbe-super-app-cps-action/internal/constants/lib"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	imodel "cbe-super-app-cps-action/internal/constants/model"
-	"cbe-super-app-cps-action/internal/constants/types"
-	"cbe-super-app-cps-action/internal/storage"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
-	"context"
-	"errors"
-	"regexp"
-	"time"
+// import (
+// 	ussd_merchant_dto "cbe-super-app-cps-action/internal/constants/dto/ussd_merchant"
+// 	"cbe-super-app-cps-action/internal/constants/lib"
+// 	"cbe-super-app-cps-action/internal/constants/localization"
+// 	imodel "cbe-super-app-cps-action/internal/constants/model"
+// 	"cbe-super-app-cps-action/internal/constants/types"
+// 	"cbe-super-app-cps-action/internal/storage"
+// 	local_util "cbe-super-app-cps-action/pkgs/utils"
+// 	"context"
+// 	"errors"
+// 	"regexp"
+// 	"time"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	"go.mongodb.org/mongo-driver/v2/bson"
-	"go.mongodb.org/mongo-driver/v2/mongo"
-)
+// 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
+// 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
+// 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+// 	"go.mongodb.org/mongo-driver/v2/bson"
+// 	"go.mongodb.org/mongo-driver/v2/mongo"
+// )
 
-type UssdMerchantRepository struct {
-	dal             dal.MongoDal[imodel.UssdMerchant, imodel.UssdMerchant]
-	dbName          string
-	cfg             config.VaultConfig
-	collection      string
-	mongoCollection *mongo.Collection
-	logger          utils.Logger
-}
+// type UssdMerchantRepository struct {
+// 	dal             dal.MongoDal[imodel.UssdMerchant, imodel.UssdMerchant]
+// 	dbName          string
+// 	cfg             config.VaultConfig
+// 	collection      string
+// 	mongoCollection *mongo.Collection
+// 	logger          utils.Logger
+// }
 
-func NewUssdMerchant(client *mongo.Client, dbName string, collection string, cfg *config.VaultConfig, logger utils.Logger) storage.UssdMerchantRepository {
-	return &UssdMerchantRepository{
-		dal:             dal.NewMongoDal[imodel.UssdMerchant, imodel.UssdMerchant](client, cfg, dbName, collection),
-		mongoCollection: client.Database(dbName).Collection(collection),
-		cfg:             *cfg,
-		logger:          logger,
-	}
-}
+// func NewUssdMerchant(client *mongo.Client, dbName string, collection string, cfg *config.VaultConfig, logger utils.Logger) storage.UssdMerchantRepository {
+// 	return &UssdMerchantRepository{
+// 		dal:             dal.NewMongoDal[imodel.UssdMerchant, imodel.UssdMerchant](client, cfg, dbName, collection),
+// 		mongoCollection: client.Database(dbName).Collection(collection),
+// 		cfg:             *cfg,
+// 		logger:          logger,
+// 	}
+// }
 
-func (u *UssdMerchantRepository) Create(ctx context.Context, data imodel.UssdMerchant) error {
-	log := local_util.LoggerFromCtx(ctx, u.logger)
+// func (u *UssdMerchantRepository) Create(ctx context.Context, data imodel.UssdMerchant) error {
+// 	log := local_util.LoggerFromCtx(ctx, u.logger)
 
-	data.ID = bson.NewObjectID()
-	data.CreatedAt = time.Now()
-	_, err := u.dal.InsertOne(ctx, data)
-	if err != nil {
-		log.Errorf("[UssdMerchantRepository][Create] error creating ussd_merchant: %v", err)
-		return local_util.HandleDBError(err)
-	}
-	return nil
-}
-func (u *UssdMerchantRepository) Update(ctx context.Context, id string, update bson.M) error {
-	log := local_util.LoggerFromCtx(ctx, u.logger)
+// 	data.ID = bson.NewObjectID()
+// 	data.CreatedAt = time.Now()
+// 	_, err := u.dal.InsertOne(ctx, data)
+// 	if err != nil {
+// 		log.Errorf("[UssdMerchantRepository][Create] error creating ussd_merchant: %v", err)
+// 		return local_util.HandleDBError(err)
+// 	}
+// 	return nil
+// }
+// func (u *UssdMerchantRepository) Update(ctx context.Context, id string, update bson.M) error {
+// 	log := local_util.LoggerFromCtx(ctx, u.logger)
 
-	objID, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		log.Errorf("[UssdMerchantRepository][Update] error parsing id: %v", err)
-		return errors.New(localization.ErrorInvalidID.Code)
-	}
+// 	objID, err := bson.ObjectIDFromHex(id)
+// 	if err != nil {
+// 		log.Errorf("[UssdMerchantRepository][Update] error parsing id: %v", err)
+// 		return errors.New(localization.ErrorInvalidID.Code)
+// 	}
 
-	filter := bson.M{"_id": objID, "is_deleted": false}
-	_, err = u.dal.UpdateOne(ctx, filter, update)
-	if err != nil {
-		log.Errorf("[UssdMerchantRepository][Update] error updating ussd_merchant: %v", err)
-		return local_util.HandleDBError(err)
-	}
-	return nil
-}
+// 	filter := bson.M{"_id": objID, "is_deleted": false}
+// 	_, err = u.dal.UpdateOne(ctx, filter, update)
+// 	if err != nil {
+// 		log.Errorf("[UssdMerchantRepository][Update] error updating ussd_merchant: %v", err)
+// 		return local_util.HandleDBError(err)
+// 	}
+// 	return nil
+// }
 
-func (u *UssdMerchantRepository) Delete(ctx context.Context, id string) error {
-	log := local_util.LoggerFromCtx(ctx, u.logger)
+// func (u *UssdMerchantRepository) Delete(ctx context.Context, id string) error {
+// 	log := local_util.LoggerFromCtx(ctx, u.logger)
 
-	objID, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		log.Errorf("[UssdMerchantRepository][Delete] error parsing id: %v", err)
-		return errors.New(localization.ErrorInvalidID.Code)
-	}
+// 	objID, err := bson.ObjectIDFromHex(id)
+// 	if err != nil {
+// 		log.Errorf("[UssdMerchantRepository][Delete] error parsing id: %v", err)
+// 		return errors.New(localization.ErrorInvalidID.Code)
+// 	}
 
-	filter := bson.M{"_id": objID}
-	update := bson.M{
-		"is_deleted": true,
-		"deleted_at": time.Now(),
-		"updated_at": time.Now(),
-	}
+// 	filter := bson.M{"_id": objID}
+// 	update := bson.M{
+// 		"is_deleted": true,
+// 		"deleted_at": time.Now(),
+// 		"updated_at": time.Now(),
+// 	}
 
-	_, err = u.dal.UpdateOne(ctx, filter, update)
-	if err != nil {
-		log.Errorf("[UssdMerchantRepository][Delete] error deleting ussd_merchant: %v", err)
-		return local_util.HandleDBError(err)
-	}
-	return nil
-}
-func (u *UssdMerchantRepository) FindById(ctx context.Context, id string) (ussd_merchant_dto.UssdMerchantResponse, error) {
-	log := local_util.LoggerFromCtx(ctx, u.logger)
+// 	_, err = u.dal.UpdateOne(ctx, filter, update)
+// 	if err != nil {
+// 		log.Errorf("[UssdMerchantRepository][Delete] error deleting ussd_merchant: %v", err)
+// 		return local_util.HandleDBError(err)
+// 	}
+// 	return nil
+// }
+// func (u *UssdMerchantRepository) FindById(ctx context.Context, id string) (ussd_merchant_dto.UssdMerchantResponse, error) {
+// 	log := local_util.LoggerFromCtx(ctx, u.logger)
 
-	objID, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		log.Errorf("[UssdMerchantRepository][FindById] error parsing id: %v", err)
-		return ussd_merchant_dto.UssdMerchantResponse{}, errors.New(localization.ErrorUnexpectedError.Code)
-	}
+// 	objID, err := bson.ObjectIDFromHex(id)
+// 	if err != nil {
+// 		log.Errorf("[UssdMerchantRepository][FindById] error parsing id: %v", err)
+// 		return ussd_merchant_dto.UssdMerchantResponse{}, errors.New(localization.ErrorUnexpectedError.Code)
+// 	}
 
-	data, err := u.dal.FindOne(ctx, bson.M{"_id": objID, "is_deleted": false}, nil)
-	if err != nil {
-		log.Errorf("[UssdMerchantRepository][FindById] error fetching ussd_merchant: %v", err)
-		return ussd_merchant_dto.UssdMerchantResponse{}, local_util.HandleDBError(err)
-	}
+// 	data, err := u.dal.FindOne(ctx, bson.M{"_id": objID, "is_deleted": false}, nil)
+// 	if err != nil {
+// 		log.Errorf("[UssdMerchantRepository][FindById] error fetching ussd_merchant: %v", err)
+// 		return ussd_merchant_dto.UssdMerchantResponse{}, local_util.HandleDBError(err)
+// 	}
 
-	res := ResponseMapper(*data)
+// 	res := ResponseMapper(*data)
 
-	return res, nil
-}
+// 	return res, nil
+// }
 
-func (u *UssdMerchantRepository) Find(ctx context.Context, filter bson.M) (ussd_merchant_dto.UssdMerchantResponse, error) {
-	log := local_util.LoggerFromCtx(ctx, u.logger)
+// func (u *UssdMerchantRepository) Find(ctx context.Context, filter bson.M) (ussd_merchant_dto.UssdMerchantResponse, error) {
+// 	log := local_util.LoggerFromCtx(ctx, u.logger)
 
-	data, err := u.dal.FindOne(ctx, filter, nil)
-	if err != nil {
-		log.Errorf("[UssdMerchantRepository][Find] error fetching ussd_merchant: %v", err)
-		return ussd_merchant_dto.UssdMerchantResponse{}, local_util.HandleDBError(err)
-	}
+// 	data, err := u.dal.FindOne(ctx, filter, nil)
+// 	if err != nil {
+// 		log.Errorf("[UssdMerchantRepository][Find] error fetching ussd_merchant: %v", err)
+// 		return ussd_merchant_dto.UssdMerchantResponse{}, local_util.HandleDBError(err)
+// 	}
 
-	res := ResponseMapper(*data)
+// 	res := ResponseMapper(*data)
 
-	return res, nil
-}
+// 	return res, nil
+// }
 
-func (u *UssdMerchantRepository) FindByOr(ctx context.Context, phone, email, accountNumber string) (imodel.UssdMerchant, error) {
-	log := local_util.LoggerFromCtx(ctx, u.logger)
+// func (u *UssdMerchantRepository) FindByOr(ctx context.Context, phone, email, accountNumber string) (imodel.UssdMerchant, error) {
+// 	log := local_util.LoggerFromCtx(ctx, u.logger)
 
-	// Build conditions dynamically, only for non-empty parameters
-	conditions := []bson.M{}
+// 	// Build conditions dynamically, only for non-empty parameters
+// 	conditions := []bson.M{}
 
-	if phone != "" {
-		conditions = append(conditions, bson.M{
-			"phone_number": bson.M{"$regex": "^" + regexp.QuoteMeta(phone) + "$", "$options": "i"},
-		})
-	}
+// 	if phone != "" {
+// 		conditions = append(conditions, bson.M{
+// 			"phone_number": bson.M{"$regex": "^" + regexp.QuoteMeta(phone) + "$", "$options": "i"},
+// 		})
+// 	}
 
-	if accountNumber != "" {
-		conditions = append(conditions, bson.M{
-			"accountNumber": accountNumber,
-		})
-	}
+// 	if accountNumber != "" {
+// 		conditions = append(conditions, bson.M{
+// 			"accountNumber": accountNumber,
+// 		})
+// 	}
 
-	if email != "" {
-		conditions = append(conditions, bson.M{
-			"email": bson.M{"$regex": "^" + regexp.QuoteMeta(email) + "$", "$options": "i"},
-		})
-	}
+// 	if email != "" {
+// 		conditions = append(conditions, bson.M{
+// 			"email": bson.M{"$regex": "^" + regexp.QuoteMeta(email) + "$", "$options": "i"},
+// 		})
+// 	}
 
-	filter := bson.M{"$or": conditions}
-	filter["is_deleted"] = false
-	data, err := u.dal.FindOne(ctx, filter, nil)
-	if err != nil {
-		log.Errorf("[UssdMerchantRepository][FindByOr] failed to find merchant: %v", err)
-		return imodel.UssdMerchant{}, local_util.HandleDBError(err)
-	}
-	return *data, nil
-}
+// 	filter := bson.M{"$or": conditions}
+// 	filter["is_deleted"] = false
+// 	data, err := u.dal.FindOne(ctx, filter, nil)
+// 	if err != nil {
+// 		log.Errorf("[UssdMerchantRepository][FindByOr] failed to find merchant: %v", err)
+// 		return imodel.UssdMerchant{}, local_util.HandleDBError(err)
+// 	}
+// 	return *data, nil
+// }
 
-func (u *UssdMerchantRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (types.PaginatedResponse[[]ussd_merchant_dto.UssdMerchantResponse], error) {
-	log := local_util.LoggerFromCtx(ctx, u.logger)
+// func (u *UssdMerchantRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (types.PaginatedResponse[[]ussd_merchant_dto.UssdMerchantResponse], error) {
+// 	log := local_util.LoggerFromCtx(ctx, u.logger)
 
-	filter := bson.M{"is_deleted": bson.M{"$ne": true}}
-	searchKeys := bson.M{}
+// 	filter := bson.M{"is_deleted": bson.M{"$ne": true}}
+// 	searchKeys := bson.M{}
 
-	allowedKeys := []string{"enabled", "merchant_code", "name", "settlement_method", "phone_number", "service", "accountNumber"}
+// 	allowedKeys := []string{"enabled", "merchant_code", "name", "settlement_method", "phone_number", "service", "accountNumber"}
 
-	if filterParam.Search != "" {
-		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		searchKeys["$or"] = []bson.M{
-			{"merchant_code": searchRegex},
-			{"name": searchRegex},
-			{"settlement_method": searchRegex},
-			{"phone_number": searchRegex},
-			{"service": searchRegex},
-			{"accountNumber": searchRegex},
-		}
-	}
+// 	if filterParam.Search != "" {
+// 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
+// 		searchKeys["$or"] = []bson.M{
+// 			{"merchant_code": searchRegex},
+// 			{"name": searchRegex},
+// 			{"settlement_method": searchRegex},
+// 			{"phone_number": searchRegex},
+// 			{"service": searchRegex},
+// 			{"accountNumber": searchRegex},
+// 		}
+// 	}
 
-	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
-	filter["is_deleted"] = false
+// 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
+// 	filter["is_deleted"] = false
 
-	pipeline := mongo.Pipeline{
-		bson.D{{Key: "$match", Value: filter}},
-		bson.D{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},
-		bson.D{{Key: "$project", Value: bson.M{
-			"_id":               1,
-			"merchant_code":     1,
-			"name":              1,
-			"settlement_method": 1,
-			"phone_number":      1,
-			"service":           1,
-			"email":             1,
-			"enabled":           1,
-			"credential":        1,
-			"accountNumber":    1,
-			"logo":              1,
-			"is_deleted":        1,
-			"updated_at":        1,
-			"created_at":        1,
-		}}},
+// 	pipeline := mongo.Pipeline{
+// 		bson.D{{Key: "$match", Value: filter}},
+// 		bson.D{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},
+// 		bson.D{{Key: "$project", Value: bson.M{
+// 			"_id":               1,
+// 			"merchant_code":     1,
+// 			"name":              1,
+// 			"settlement_method": 1,
+// 			"phone_number":      1,
+// 			"service":           1,
+// 			"email":             1,
+// 			"enabled":           1,
+// 			"credential":        1,
+// 			"accountNumber":     1,
+// 			"logo":              1,
+// 			"is_deleted":        1,
+// 			"updated_at":        1,
+// 			"created_at":        1,
+// 		}}},
 
-		// Safe string → ObjectId
-		bson.D{{Key: "$addFields", Value: bson.M{
-			"service_obj_id": bson.M{
-				"$cond": bson.M{
-					"if": bson.M{
-						"$regexMatch": bson.M{
-							"input": "$service",
-							"regex": "^[a-fA-F0-9]{24}$",
-						},
-					},
-					"then": bson.M{"$toObjectId": "$service"},
-					"else": nil,
-				},
-			},
-		}}},
+// 		// Safe string → ObjectId
+// 		bson.D{{Key: "$addFields", Value: bson.M{
+// 			"service_obj_id": bson.M{
+// 				"$cond": bson.M{
+// 					"if": bson.M{
+// 						"$regexMatch": bson.M{
+// 							"input": "$service",
+// 							"regex": "^[a-fA-F0-9]{24}$",
+// 						},
+// 					},
+// 					"then": bson.M{"$toObjectId": "$service"},
+// 					"else": nil,
+// 				},
+// 			},
+// 		}}},
 
-		bson.D{{Key: "$lookup", Value: bson.M{
-			"from":         "services",
-			"localField":   "service_obj_id",
-			"foreignField": "_id",
-			"as":           "service_info",
-			"pipeline": mongo.Pipeline{
-				bson.D{{Key: "$project", Value: bson.M{
-					"_id":          1,
-					"service_name": 1,
-				}}},
-			},
-		}}},
+// 		bson.D{{Key: "$lookup", Value: bson.M{
+// 			"from":         "services",
+// 			"localField":   "service_obj_id",
+// 			"foreignField": "_id",
+// 			"as":           "service_info",
+// 			"pipeline": mongo.Pipeline{
+// 				bson.D{{Key: "$project", Value: bson.M{
+// 					"_id":          1,
+// 					"service_name": 1,
+// 				}}},
+// 			},
+// 		}}},
 
-		bson.D{{Key: "$unwind", Value: bson.M{
-			"path":                       "$service_info",
-			"preserveNullAndEmptyArrays": true,
-		}}},
+// 		bson.D{{Key: "$unwind", Value: bson.M{
+// 			"path":                       "$service_info",
+// 			"preserveNullAndEmptyArrays": true,
+// 		}}},
 
-		bson.D{{Key: "$addFields", Value: bson.M{
-			"service_name": "$service_info.service_name",
-		}}},
+// 		bson.D{{Key: "$addFields", Value: bson.M{
+// 			"service_name": "$service_info.service_name",
+// 		}}},
 
-		bson.D{{Key: "$project", Value: bson.M{
-			"service_info":   0,
-			"service_obj_id": 0,
-		}}},
+// 		bson.D{{Key: "$project", Value: bson.M{
+// 			"service_info":   0,
+// 			"service_obj_id": 0,
+// 		}}},
 
-		bson.D{{Key: "$facet", Value: bson.M{
-			"data": []bson.D{
-				{{Key: "$skip", Value: skip}},
-				{{Key: "$limit", Value: limit}},
-			},
-			"total": []bson.D{
-				{{Key: "$count", Value: "count"}},
-			},
-		}}},
-	}
+// 		bson.D{{Key: "$facet", Value: bson.M{
+// 			"data": []bson.D{
+// 				{{Key: "$skip", Value: skip}},
+// 				{{Key: "$limit", Value: limit}},
+// 			},
+// 			"total": []bson.D{
+// 				{{Key: "$count", Value: "count"}},
+// 			},
+// 		}}},
+// 	}
 
-	log.Infof("[UssdMerchantRepository][FindAllWithPagination] fetching Ussd Merchant with pagination")
-	cursor, err := u.mongoCollection.Aggregate(ctx, pipeline)
-	if err != nil {
-		log.Errorf("[UssdMerchantRepository][FindAllWithPagination] failed to execute aggregation pipeline: %v", err)
-		return types.PaginatedResponse[[]ussd_merchant_dto.UssdMerchantResponse]{}, errors.New(localization.ErrorUnexpectedError.Code)
-	}
-	defer cursor.Close(ctx)
+// 	log.Infof("[UssdMerchantRepository][FindAllWithPagination] fetching Ussd Merchant with pagination")
+// 	cursor, err := u.mongoCollection.Aggregate(ctx, pipeline)
+// 	if err != nil {
+// 		log.Errorf("[UssdMerchantRepository][FindAllWithPagination] failed to execute aggregation pipeline: %v", err)
+// 		return types.PaginatedResponse[[]ussd_merchant_dto.UssdMerchantResponse]{}, errors.New(localization.ErrorUnexpectedError.Code)
+// 	}
+// 	defer cursor.Close(ctx)
 
-	var results []struct {
-		Data  []ussd_merchant_dto.UssdMerchantResponse `bson:"data"`
-		Total []struct {
-			Count int64 `bson:"count"`
-		} `bson:"total"`
-	}
+// 	var results []struct {
+// 		Data  []ussd_merchant_dto.UssdMerchantResponse `bson:"data"`
+// 		Total []struct {
+// 			Count int64 `bson:"count"`
+// 		} `bson:"total"`
+// 	}
 
-	if err := cursor.All(ctx, &results); err != nil {
-		log.Errorf("[UssdMerchantRepository][FindAllWithPagination] failed to decode aggregation results: %v", err)
-		return types.PaginatedResponse[[]ussd_merchant_dto.UssdMerchantResponse]{}, errors.New(localization.ErrorUnexpectedError.Code)
-	}
+// 	if err := cursor.All(ctx, &results); err != nil {
+// 		log.Errorf("[UssdMerchantRepository][FindAllWithPagination] failed to decode aggregation results: %v", err)
+// 		return types.PaginatedResponse[[]ussd_merchant_dto.UssdMerchantResponse]{}, errors.New(localization.ErrorUnexpectedError.Code)
+// 	}
 
-	if len(results) == 0 {
-		return types.PaginatedResponse[[]ussd_merchant_dto.UssdMerchantResponse]{
-			Data: []ussd_merchant_dto.UssdMerchantResponse{},
-			Meta: local_util.BuildPaginationMeta(0, filterParam.Page, filterParam.PerPage),
-		}, nil
-	}
+// 	if len(results) == 0 {
+// 		return types.PaginatedResponse[[]ussd_merchant_dto.UssdMerchantResponse]{
+// 			Data: []ussd_merchant_dto.UssdMerchantResponse{},
+// 			Meta: local_util.BuildPaginationMeta(0, filterParam.Page, filterParam.PerPage),
+// 		}, nil
+// 	}
 
-	var total int64
-	if len(results[0].Total) > 0 {
-		total = results[0].Total[0].Count
-	}
+// 	var total int64
+// 	if len(results[0].Total) > 0 {
+// 		total = results[0].Total[0].Count
+// 	}
 
-	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
-	log.Infof("[UssdMerchantRepository][FindAllWithPagination] retrieved %d Ussd Merchant", len(results[0].Data))
-	return types.PaginatedResponse[[]ussd_merchant_dto.UssdMerchantResponse]{
-		Data: results[0].Data,
-		Meta: meta,
-	}, nil
+// 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
+// 	log.Infof("[UssdMerchantRepository][FindAllWithPagination] retrieved %d Ussd Merchant", len(results[0].Data))
+// 	return types.PaginatedResponse[[]ussd_merchant_dto.UssdMerchantResponse]{
+// 		Data: results[0].Data,
+// 		Meta: meta,
+// 	}, nil
 
-}
-
+// }
