@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
-	"go.mongodb.org/mongo-driver/v2/bson"
 
 	ussd_merchant_dto "cbe-super-app-cps-action/internal/constants/dto/ussd_merchant"
 	localization "cbe-super-app-cps-action/internal/constants/localization"
@@ -51,7 +50,7 @@ func ExistingIdentifierForUpdate(existing imodel.UssdMerchant, id string, req us
 	normalizedPhone := local_util.FormatPhoneNumber(req.PhoneNumber)
 	normalizedAcct := strings.TrimSpace(req.AccountNumber)
 
-	existingID := local_util.FirstHex24(existing.ID.String())
+	existingID := existing.ID
 	// Email duplicate
 	if normalizedEmail != "" && strings.EqualFold(existing.Email, normalizedEmail) && existingID != id {
 		return errors.New(localization.ErrorEmailAlreadyExist.Code)
@@ -94,33 +93,6 @@ func UssdMerchantUpdate(req ussd_merchant_dto.UpdateUssdMerchantRequest, ussdMer
 		Email:            req.Email,
 		Service:          req.Service,
 	}
-}
-
-func ModelToBson(data *imodel.UssdMerchant) bson.M {
-	update := bson.M{}
-
-	if data.Name != "" {
-		update["name"] = data.Name
-	}
-	if data.Logo != "" {
-		update["logo"] = data.Logo
-	}
-	if data.SettlementMethod != "" {
-		update["settlement_method"] = data.SettlementMethod
-	}
-	if data.PhoneNumber != "" {
-		update["phone_number"] = data.PhoneNumber
-	}
-	if data.Email != "" {
-		update["email"] = data.Email
-	}
-	if data.Service != "" {
-		update["service"] = data.Service
-	}
-	if data.AccountNumber != "" {
-		update["account_number"] = data.AccountNumber
-	}
-	return update
 }
 
 func CreateCredentials(merchant *imodel.UssdMerchant, cfg config.VaultConfig) error {

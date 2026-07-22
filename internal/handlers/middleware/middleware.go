@@ -35,6 +35,7 @@ func SecurityHeaders(next http.Handler) http.Handler {
 		w.Header().Set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload")
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		w.Header().Set("X-Frame-Options", "DENY")
+		w.Header().Set("Date", "ALLOW")
 		w.Header().Set("Content-Security-Policy", "default-src 'self'; frame-ancestors 'none'")
 		w.Header().Set("Cache-Control", "no-store")
 		next.ServeHTTP(w, r)
@@ -49,7 +50,7 @@ func CORS(cfg *config.VaultConfig) func(http.Handler) http.Handler {
 	case "production":
 		allowedOrigins = []string{"https://superappcps.cbe.com.et"}
 	case "uat":
-		allowedOrigins = []string{"localhost:3000", "http://localhost:3000", "https://uat-cbe-super-app-central-portal.vercel.app", "https://dev-cbe-super-app-central-portal.vercel.app", "https://cpsportal-uat.cbe.com.et"}
+		allowedOrigins = []string{"localhost:3000", "http://localhost:3000", "https://uat-cbe-super-app-central-portal.vercel.app", "https://cpsportal-uat.cbe.com.et"}
 	case "staging":
 		allowedOrigins = []string{"0.0.0.0:3000", "https://staging-cbe-super-app-central-portal.vercel.app", "https://cpsportal-stg.cbe.com.et"}
 	case "qa":

@@ -11,6 +11,8 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strings"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -27,50 +29,6 @@ func NewCustomerKYCAdapter(kycService service.CustomerKYCService, logger utils.L
 		logger: logger,
 	}
 }
-
-// CreateCustomerKYC creates a new KYC request for a customer
-//
-//	@Summary		Create Customer KYC
-//	@Description	Create a new KYC request for a customer. This will create a CPS action for approval.
-//	@Tags			Customer KYC
-//	@Accept			json
-//	@Produce		json
-//	@Param			request	body		customerkyc.CreateCustomerKYCRequest	true	"Create KYC Request"
-//	@Success		201		{object}	localization.StandardResponse{data=nil}	"KYC request created successfully"
-//	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request"
-//	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
-//	@Security		BearerAuth
-//	@Router			/customers/kyc [post]
-// func (c *customerKYCAdapter) CreateCustomerKYC(w http.ResponseWriter, r *http.Request) {
-// 	ctx, span := util.TraceLogger(r.Context(), "handler", "CreateCustomerKYC", "handler", "customer_kyc")
-// 	defer span.End()
-// 	log := util.LoggerFromCtx(ctx, c.logger)
-// 	md := &types.ContextMetadata{}
-// 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
-// 	localization.UpdateWriterContext(w, ctx)
-
-// 	req, err := core.ParseRequestFromMultipleFormData(r)
-// 	if err != nil {
-// 		span.RecordError(err)
-// 		log.Errorf("[KycH][Create] parse form err: %v", err)
-// 		localization.SendBadRequestResponse(w, err.Error())
-// 		return
-// 	}
-
-// 	if err := req.Validate(); err != nil {
-// 		log.Errorf("[CreateCustomerKYC Validation) validation failed: %v", err)
-// 		localization.SendBadRequestResponse(w, err.Error())
-// 		return
-// 	}
-
-// 	if err := c.svc.Create(ctx, req); err != nil {
-// 		log.Errorf("[CreateCustomerKYC] service call failed: %v", err)
-// 		localization.SendErrorByCodeResponse(w, err.Error())
-// 		return
-// 	}
-
-// 	localization.SendSuccessResponse(w, localization.SuccessOperationCompleted, nil)
-// }
 
 // GetAllKYCRequests returns all KYC requests with pagination
 //
@@ -145,6 +103,7 @@ func (c *customerKYCAdapter) GetKYCRequest(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	res.ServerTime = time.Now().UTC().Format(time.RFC3339)
 	localization.SendSuccessResponse(w, localization.SuccessDataRetrieved, res)
 }
 
@@ -229,93 +188,6 @@ func (c *customerKYCAdapter) RejectKycRequest(w http.ResponseWriter, r *http.Req
 	localization.SendSuccessResponse(w, localization.CustomerKycRequestRejectedSuccessfully, nil)
 }
 
-// DeleteKYCRequest deletes a specific KYC request by ID
-//
-//	@Summary		Delete KYC Request
-//	@Description	Deletes a specific KYC request by its ID. This will create a CPS action for approval.
-//	@Tags			Customer KYC
-//	@Accept			json
-//	@Produce		json
-//	@Param			id	path		string								true	"KYC Request ID"
-//	@Success		200	{object}	localization.StandardResponse{data=nil}	"KYC request deletion initiated"
-//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request - ID required"
-//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
-//	@Security		BearerAuth
-//	@Router			/customers/kyc/{id} [delete]
-// func (c *customerKYCAdapter) DeleteKYCRequest(w http.ResponseWriter, r *http.Request) {
-// 	ctx, span := util.TraceLogger(r.Context(), "handler", "DeleteKYCRequest", "handler", "customer_kyc")
-// 	defer span.End()
-// 	log := util.LoggerFromCtx(ctx, c.logger)
-// 	md := &types.ContextMetadata{}
-// 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
-// 	localization.UpdateWriterContext(w, ctx)
-
-// 	id := chi.URLParam(r, "id")
-// 	if id == "" {
-// 		localization.SendBadRequestResponse(w, localization.ErrorIdNotSetOnQueryParam.Code)
-// 		return
-// 	}
-
-// 	if err := c.svc.Delete(ctx, id); err != nil {
-// 		log.Errorf("[DeleteKYCRequest] failed to delete KYC request: %v", err)
-// 		localization.SendErrorByCodeResponse(w, err.Error())
-// 		return
-// 	}
-
-// 	localization.SendSuccessResponse(w, localization.SuccessOperationCompleted, nil)
-// }
-
-// UpdateKYCStatus updates the KYC status for a specific request ID
-//
-//	@Summary		Update KYC Status
-//	@Description	Updates the KYC status for a specific request ID. This will create a CPS action for approval.
-//	@Tags			Customer KYC
-//	@Accept			json
-//	@Produce		json
-//	@Param			id		path		string							true	"KYC Request ID"
-//	@Param			request	body		customerkyc.UpdateKYCStatusRequest	true	"Update KYC Status Request"
-//	@Success		200		{object}	localization.StandardResponse{data=nil}	"KYC status update initiated"
-//	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request"
-//	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
-//	@Security		BearerAuth
-//	@Router			/customers/kyc/{id} [patch]
-// func (c *customerKYCAdapter) UpdateKYCStatus(w http.ResponseWriter, r *http.Request) {
-// 	ctx, span := util.TraceLogger(r.Context(), "handler", "UpdateKYCStatus", "handler", "customer_kyc")
-// 	defer span.End()
-// 	log := util.LoggerFromCtx(ctx, c.logger)
-// 	md := &types.ContextMetadata{}
-// 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
-// 	localization.UpdateWriterContext(w, ctx)
-
-// 	id := chi.URLParam(r, "id")
-// 	if id == "" {
-// 		localization.SendBadRequestResponse(w, localization.ErrorIdNotSetOnQueryParam.Code)
-// 		return
-// 	}
-
-// 	var req dto.UpdateKYCStatusRequest
-// 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-// 		span.RecordError(err)
-// 		log.Errorf("[UpdateKYCStatus] failed to unmarshal request: %v", err)
-// 		localization.SendBadRequestResponse(w, localization.ErrorInvalidJSONPayload.Code)
-// 		return
-// 	}
-
-// 	if err := req.Validate(); err != nil {
-// 		log.Errorf("[UpdateKYCStatus Validation] validation failed: %v", err)
-// 		localization.SendBadRequestResponse(w, err.Error())
-// 		return
-// 	}
-
-// 	if err := c.svc.UpdateKYCStatus(ctx, id, req.KYCStatus); err != nil {
-// 		log.Errorf("[UpdateKYCStatus] service call failed: %v", err)
-// 		localization.SendErrorByCodeResponse(w, err.Error())
-// 		return
-// 	}
-
-// 	localization.SendSuccessResponse(w, localization.SuccessOperationCompleted, nil)
-// }
-
 func (c *customerKYCAdapter) StartKycReview(w http.ResponseWriter, r *http.Request) {
 	ctx, span := util.TraceLogger(r.Context(), "handler", "StartKycReview", "handler", "StartKycReview")
 	defer span.End()
@@ -365,4 +237,43 @@ func (c *customerKYCAdapter) PickKycReview(w http.ResponseWriter, r *http.Reques
 	}
 
 	localization.SendSuccessResponse(w, localization.SuccessOperationCompleted, nil)
+}
+
+func (c *customerKYCAdapter) ExportKYCOnboarding(w http.ResponseWriter, r *http.Request) {
+	ctx, span := util.TraceLogger(r.Context(), "handler", "PickSelfActivateKycReview", "handler", "self_activate_kyc")
+	defer span.End()
+	log := util.LoggerFromCtx(ctx, c.logger)
+
+	fileType := strings.ToLower(strings.TrimSpace(r.URL.Query().Get("file_type")))
+	startDateRaw := strings.TrimSpace(r.URL.Query().Get("created_at_from"))
+	endDateRaw := strings.TrimSpace(r.URL.Query().Get("created_at_to"))
+	customerName := strings.TrimSpace(r.URL.Query().Get("name"))
+
+	if fileType == "" || startDateRaw == "" || endDateRaw == "" {
+		log.Warnf("[ExportKYCOnboarding] missing required params: file_type=%q, created_at_from=%q, created_at_to=%q", fileType, startDateRaw, endDateRaw)
+		localization.SendBadRequestResponse(w, localization.ErrorRequiredFieldMissing.Message)
+		return
+	}
+
+	from, to, err := util.FormatDateRangeToUTCStrings(startDateRaw, endDateRaw)
+	if err != nil {
+		log.Warnf("[ExportKYCOnboarding] invalid date format: created_at_from=%s, created_at_to=%s, err=%v", startDateRaw, endDateRaw, err)
+		localization.SendErrorResponse(w, localization.ErrorInvalidDateFormat, nil, nil)
+		return
+	}
+
+	if to.Before(from) {
+		log.Warnf("[ExportKYCOnboarding] invalid date range: start=%v, end=%v", from, to)
+		localization.SendErrorResponse(w, localization.ErrorInvalidDateFormat, nil, nil)
+		return
+	}
+
+	fileLink, err := c.svc.ExportKYCOnboarding(ctx, from, to, fileType, customerName)
+	if err != nil {
+		log.Errorf("[ExportKYCOnboarding] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SucccessKYCExportedSuccessfully, fileLink)
 }

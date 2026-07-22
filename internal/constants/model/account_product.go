@@ -22,6 +22,8 @@ type AccountProduct struct {
 	HasVirtualCard        bool       `bson:"has_virtual_card" json:"has_virtual_card"`
 	ProductIcon           string     `bson:"product_icon" json:"product_icon"`
 	ProductCoverImage     string     `bson:"product_cover_image" json:"product_cover_image"`
+	IsAvailableForOnbording bool                 `json:"is_available_for_onbording"`
+	InterestRate            float64               `json:"interest_rate"`
 	IsEnabled             bool       `bson:"is_enabled" json:"is_enabled"`
 	IsDeleted             bool       `bson:"is_deleted" json:"is_deleted"`
 	CreatedAt             time.Time  `bson:"created_at" json:"created_at"`

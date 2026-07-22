@@ -27,13 +27,13 @@ import (
 )
 
 type accountOpeningTermsService struct {
-	repo              storage.AccountOpeningTermsRepository
+	repo               storage.AccountOpeningTermsRepository
 	accountProductRepo storage.AccountProductRepository
-	cpsService        service.CPSActionService
-	logger            utils.Logger
-	minio             *s3.Client
-	bucketName        string
-	cfg               *config.VaultConfig
+	cpsService         service.CPSActionService
+	logger             utils.Logger
+	minio              *s3.Client
+	bucketName         string
+	cfg                *config.VaultConfig
 }
 
 var _ service.AccountOpeningTermsService = (*accountOpeningTermsService)(nil)
@@ -71,6 +71,12 @@ func (s *accountOpeningTermsService) Authorize(ctx context.Context, cpsAction *m
 
 	switch constants.RequestAction(cpsAction.RequestAction) {
 	case constants.RequestCreateTermAndCondition:
+
+		if err := tac_core.AccountProductctExistUpdate(ctx, s.repo, tac.AccountProductID); err != nil {
+			log.Errorf("[TACSvc][Authorize] account product check err: %v", err)
+			return nil, err
+		}
+
 		if err := s.repo.Create(ctx, &tac); err != nil {
 			span.AddEvent("create failed", trace.WithAttributes(attribute.String("error", err.Error())))
 			log.Errorf("[TACSvc][Authorize] create err: %v", err)

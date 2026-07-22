@@ -88,4 +88,5 @@ type Persistence struct {
 	BpsActionPersistence              storage.BPSActionRepository
 	UserActionLogPersistence          storage.UserActionLogRepository
 	RoleDelegationPersistence         storage.RoleDelegationRepository
+	TransactionLimitPersistence       storage.TransactionLimitRepository
 }

@@ -11,6 +11,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"regexp"
 	"strings"
 	"time"
 
@@ -51,14 +52,11 @@ func (r *customerKYCRepository) FindAllWithPagination(ctx context.Context, filte
 
 	log.Infof("[CustomerKYC][FindAllWithPagination] fetching kyc requests")
 
-	// FilterBuilder handles kyc_status (exact), enabled (bool), created_at (date / date range).
 	allowed := []string{"kyc_status", "enabled", "created_at"}
 	filter, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, allowed)
 
-	// Always exclude soft-deleted documents.
 	filter["is_deleted"] = bson.M{"$ne": true}
 
-	// Text search across the most useful identifier fields.
 	if filterParam.Search != "" {
 		q := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		filter["$or"] = []bson.M{
@@ -71,10 +69,6 @@ func (r *customerKYCRepository) FindAllWithPagination(ctx context.Context, filte
 		}
 	}
 
-	// Nested-field filters: map friendly query-param keys to their MongoDB paths.
-	// ?vendor=FAYDA         → kyc_data.vendor
-	// ?account_type=SAVING  → kyc_data.account_type
-	// ?sub_account_type=IFB → kyc_data.sub_account_type
 	nestedFieldMap := map[string]string{
 		"vendor":           "kyc_data.vendor",
 		"account_type":     "kyc_data.account_type",
@@ -475,4 +469,59 @@ func t24Gender(g string) sharedconst.Gender {
 func t24Date(yyyymmdd string) time.Time {
 	t, _ := time.Parse("20060102", yyyymmdd)
 	return t
+}
+
+func (r *customerKYCRepository) FindKYCOnboardingForExport(ctx context.Context, from, to time.Time, customerName string) ([]imodel.ExportSelfActivationRequest, error) {
+	matchFilter := bson.M{
+		"created_at": bson.M{
+			"$gte": from,
+			"$lte": to,
+		},
+		"is_deleted": bson.M{"$ne": true},
+	}
+
+	if customerName != "" {
+		matchFilter["name"] = bson.M{
+			"$regex":   "^" + regexp.QuoteMeta(customerName) + "$",
+			"$options": "i",
+		}
+	}
+
+	pipeline := mongo.Pipeline{
+		bson.D{{
+			Key: "$project",
+			Value: bson.M{
+				"_id": 0,
+
+				"customer_name": "$kyc_data.full_name",
+				"phone_number":  "$kyc_data.phone_number",
+				"gender":        "$kyc_data.gender",
+				"date_of_birth": bson.M{
+					"$dateToString": bson.M{
+						"format": "%Y-%m-%d",
+						"date":   "$kyc_data.birth_date",
+					},
+				},
+				"region":            "$kyc_data.address.region",
+				"registration_date": "$last_modified_at",
+				"rejection_reason":  "$kyc_reject_reason_failed",
+				"customer_status":   "NEW",
+				"kyc_status":        "$kyc_status",
+			},
+		}},
+	}
+
+	cursor, err := r.coll.Aggregate(ctx, pipeline)
+	if err != nil {
+		r.logger.Errorf("failed to get kyc onboarding data: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+	defer cursor.Close(ctx)
+
+	var result []imodel.ExportSelfActivationRequest
+	if err := cursor.All(ctx, &result); err != nil {
+		return nil, local_util.HandleDBError(err)
+	}
+
+	return result, nil
 }

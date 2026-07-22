@@ -67,10 +67,12 @@ import (
 	"cbe-super-app-cps-action/internal/service/roles"
 	services_svc "cbe-super-app-cps-action/internal/service/services"
 	sitota_service "cbe-super-app-cps-action/internal/service/sitota"
+	transaction_service "cbe-super-app-cps-action/internal/service/transaction"
 	superapp_role "cbe-super-app-cps-action/internal/service/superapp_role"
 	"cbe-super-app-cps-action/internal/service/topup"
 	"cbe-super-app-cps-action/internal/service/unlink"
 	ussd_merchant "cbe-super-app-cps-action/internal/service/ussd_merchant"
+	utility_svc "cbe-super-app-cps-action/internal/service/utility"
 	"cbe-super-app-cps-action/internal/service/wallet"
 	"cbe-super-app-cps-action/internal/storage/persistance"
 
@@ -112,7 +114,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	accountValidation := accountvalidation.NewAccountValidationService(persistence.ValidationRulePersistence, nil, logger)
 	eventService := event.NewEventService(persistence.EventPersistence, nil, nil, persistence.UserPersistence, minioClient, minioPubUrl, cfg.S3BucketName, cfg, logger)
 	bulkService := bulk_service.NewBulkService(oracle.AccessListOracle, nil, oracle.AccessListSegmentaion, logger)
-	ussdMerchant := ussd_merchant.NewUssdMerchantService(persistence.UssdMerchantPersistence, oracle.ServicesPersistence, minioClient, nil, cfg.S3BucketName, *cfg, logger)
+	ussdMerchant := ussd_merchant.NewUssdMerchantService(oracle.UssdMerchant, oracle.ServicesPersistence, minioClient, nil, cfg.S3BucketName, *cfg, logger)
 
 	customerService := customer.NewCustomerService(oracle.Customer, persistence.BpsActionPersistence, nil, nil, nil, accountLookupAdapter, nil, logger)
 	bank_service := bankService.NewBankService(logger, persistence.BankPersistence, oracle.BankOracle, nil, bankCache, minioClient, minioPubUrl, cfg, cfg.S3BucketName)
@@ -161,15 +163,15 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	cpsActionRoleService := cps_action_role_service.NewCPSActionRoleService(persistence.CPSActionRolePersistence, persistence.CPSActionApproveIndexPersistence, persistence.JobRolePersistence, nil, logger)
 	eventMerchantService := event_merchant_service.NewEventMerchantService(oracle.EventMerchant, nil, accountLookupAdapter, persistence.MerchantLookup, cfg, logger)
 	logisticsMerchantService := logistics_merchant_service.NewLogisticsMerchantService(oracle.LogisticsMerchantOracle, nil, accountLookupAdapter, cfg, logger)
-	servicesService := services_svc.NewServicesService(oracle.ServicesPersistence, persistence.UssdMerchantPersistence, nil, coreInterface, serviceCache, accessListCache, logger)
+	servicesService := services_svc.NewServicesService(oracle.ServicesPersistence, nil, coreInterface, serviceCache, accessListCache, logger)
 	miniAppProductCodeContainer := miniapp.NewMiniAppProductCodeService(persistence.MiniAppProductCodePersistence, logger)
 	accessListSegmentationService := access_list_segmentation_service.NewAccessListSegmentationService(oracle.AccessListSegmentaion, nil, oracle.AccessListOracle, persistence.AccountBlockPersistence, persistence.CustomerService, persistence.CPSRoles, logger)
 	customerSegmentationService := customer_segmentation.NewCustomerSegmentation(oracle.CustomerSegmentation, oracle.NewCPSRolesStorage, nil, nil, logger)
 	jobRoleService := job_role.NewJobRoleService(persistence.JobRolePersistence, persistence.RolePersistence, nil, persistence.CpsUserPersistence, *cfg, logger)
 	RoleService := roles.NewRoleService(persistence.RolePersistence, persistence.PortalCardPersistence, persistence.CPSActionApproveIndexPersistence, persistence.JobRolePersistence, persistence.BPSActionApproveIndexPersistence, nil, *cfg, logger)
 	// CPSRolesService := cps_role.NewCPSRoleService(oracle.NewCPSRolesStorage, nil, coreInterface, logger)
-	customerKYCService := kyc_service.NewCustomerKYCService(oracle.CustomerKYC, nil, persistence.CpsUserPersistence, accountLookupAdapter, coreInterface, tokenProviderService, logger, minioClient, cfg.S3BucketName, cfg, minioPubUrl, smsService)
-	selfActivationKYCService := kyc_service.NewSelfActivationKYCService(oracle.SelfActivationKYC, nil, persistence.CpsUserPersistence, accountLookupAdapter, coreInterface, tokenProviderService, logger, cfg.S3BucketName, cfg, smsService)
+	customerKYCService := kyc_service.NewCustomerKYCService(oracle.CustomerKYC, nil, persistence.CpsUserPersistence, accountLookupAdapter, coreInterface, tokenProviderService, logger, minioClient, cfg.S3BucketName, cfg, smsService)
+	selfActivationKYCService := kyc_service.NewSelfActivationKYCService(oracle.SelfActivationKYC, nil, persistence.CpsUserPersistence, accountLookupAdapter, coreInterface, tokenProviderService, logger, cfg.S3BucketName, cfg, smsService, minioClient)
 	customerGroupService := customer_group.NewCustomerGroupService(oracle.CustomerGroup, nil, logger)
 	superAppRoleService := superapp_role.NewSuperAppRoleService(oracle.SuperAppRole, nil, coreInterface, logger)
 	roleDelegationService := role_delegation_service.NewRoleDelegationService(persistence.RoleDelegationPersistence, persistence.JobRolePersistence, persistence.CpsUserPersistence, persistence.BPSUserPersistence, persistence.DepartmentPersistence, persistence.RolePersistence, oracle.AccountBlock, nil, minioClient, cfg.S3BucketName, *cfg, notificationProducer, logger)
@@ -239,7 +241,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	dispatcher := cpsaction.NewDispatcher(serviceContainer)
 	cpsActionService := cpsaction.NewCPSActionService(persistence.CPSActionRolePersistence, persistence.CPSAction, persistence.UserActionLogPersistence, logger, *dispatcher, minioClient, cfg.S3BucketName, cfg.MinioPublicEndPoint, *cfg)
 	cpsActionService = cpsaction.WithActionRolePolicy(cpsActionService, persistence.CPSActionRolePersistence, logger)
-	ussdMerchant = ussd_merchant.NewUssdMerchantService(persistence.UssdMerchantPersistence, oracle.ServicesPersistence, minioClient, cpsActionService, cfg.S3BucketName, *cfg, logger)
+	ussdMerchant = ussd_merchant.NewUssdMerchantService(oracle.UssdMerchant, oracle.ServicesPersistence, minioClient, cpsActionService, cfg.S3BucketName, *cfg, logger)
 
 	eventService = event.NewEventService(persistence.EventPersistence, cpsActionService, ecommerceMerchantService, persistence.UserPersistence, minioClient, minioPubUrl, cfg.S3BucketName, cfg, logger)
 	bulkService = bulk_service.NewBulkService(oracle.AccessListOracle, cpsActionService, oracle.AccessListSegmentaion, logger)
@@ -302,7 +304,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 
 	// Services catalog service (uses CPSAction for maker-checker)
 	// servicesService = services_svc.NewServicesService(persistence.ServicesPersistence, cpsActionService, logger)
-	servicesService = services_svc.NewServicesService(oracle.ServicesPersistence, persistence.UssdMerchantPersistence, cpsActionService, coreInterface, serviceCache, accessListCache, logger)
+	servicesService = services_svc.NewServicesService(oracle.ServicesPersistence, cpsActionService, coreInterface, serviceCache, accessListCache, logger)
 	// serviceContainer.ServicesContainer = servicesService
 	serviceContainer.MiniAppMerchantContainer = miniMerchant
 	ecommerceMerchantService = ecommerce_merchant.NewEcommerceMerchantService(oracle.EcommerceMerchant, oracle.ServicesPersistence, cpsActionService, persistence.MerchantLookup, coreInterface, logger, accountLookupAdapter, *cfg)
@@ -335,14 +337,19 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	jobRoleService = job_role.NewJobRoleService(persistence.JobRolePersistence, persistence.RolePersistence, cpsActionService, persistence.CpsUserPersistence, *cfg, logger)
 	RoleService = roles.NewRoleService(persistence.RolePersistence, persistence.PortalCardPersistence, persistence.CPSActionApproveIndexPersistence, persistence.JobRolePersistence, persistence.BPSActionApproveIndexPersistence, cpsActionService, *cfg, logger)
 	// CPSRolesService = cps_role.NewCPSRoleService(oracle.NewCPSRolesStorage, cpsActionService, coreInterface, logger)
-	customerKYCService = kyc_service.NewCustomerKYCService(oracle.CustomerKYC, cpsActionService, persistence.CpsUserPersistence, accountLookupAdapter, coreInterface, tokenProviderService, logger, minioClient, cfg.S3BucketName, cfg, minioPubUrl, smsService)
-	selfActivationKYCService = kyc_service.NewSelfActivationKYCService(oracle.SelfActivationKYC, cpsActionService, persistence.CpsUserPersistence, accountLookupAdapter, coreInterface, tokenProviderService, logger, cfg.S3BucketName, cfg, smsService)
+	customerKYCService = kyc_service.NewCustomerKYCService(oracle.CustomerKYC, cpsActionService, persistence.CpsUserPersistence, accountLookupAdapter, coreInterface, tokenProviderService, logger, minioClient, cfg.S3BucketName, cfg, smsService)
+	selfActivationKYCService = kyc_service.NewSelfActivationKYCService(oracle.SelfActivationKYC, cpsActionService, persistence.CpsUserPersistence, accountLookupAdapter, coreInterface, tokenProviderService, logger, cfg.S3BucketName, cfg, smsService, minioClient)
 	customerGroupService = customer_group.NewCustomerGroupService(oracle.CustomerGroup, cpsActionService, logger)
 	serviceContainer.CustomerGroupContainer = customerGroupService
 	superAppRoleService = superapp_role.NewSuperAppRoleService(oracle.SuperAppRole, cpsActionService, coreInterface, logger)
 	serviceContainer.SuperAppRoleContainer = superAppRoleService
 	roleDelegationService = role_delegation_service.NewRoleDelegationService(persistence.RoleDelegationPersistence, persistence.JobRolePersistence, persistence.CpsUserPersistence, persistence.BPSUserPersistence, persistence.DepartmentPersistence, persistence.RolePersistence, oracle.AccountBlock, cpsActionService, minioClient, cfg.S3BucketName, *cfg, notificationProducer, logger)
 	serviceContainer.RoleDelegationContainer = roleDelegationService
+
+	utilityService := utility_svc.NewUtilityService(cpsActionService, clientOrchestrationProducer, logger)
+	serviceContainer.UtilityContainer = utilityService
+
+	vaultTransactionService := transaction_service.NewVaultTransactionService(nil, persistence.TransactionLimitPersistence, logger)
 
 	return service.ServiceLayer{
 		RoleService:                   RoleService,
@@ -409,5 +416,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		AccountProduct:                accountProductService,
 		AccountOpeningTerms:           accountOpeningTermsService,
 		TokenProvider:                 tokenProviderService,
+		Utility:                       utilityService,
+		TransactionService:            vaultTransactionService,
 	}
 }

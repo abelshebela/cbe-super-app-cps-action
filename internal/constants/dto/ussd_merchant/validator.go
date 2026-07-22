@@ -52,7 +52,7 @@ func (r CreateUssdMerchantRequest) Validate() error {
 		validation.In(
 			string(constants.SettlementMethodDirect),
 			string(constants.SettlementMethodGL),
-			string(constants.SettlementMethodMultiAccount),
+			string(constants.SettlementMethodMultiMerchant),
 		),
 	); err != nil {
 		errs["settlement_method"] = validation.NewError(
@@ -89,7 +89,7 @@ func (r UpdateUssdMerchantRequest) Validate() error {
 			validation.In(
 				string(constants.SettlementMethodDirect),
 				string(constants.SettlementMethodGL),
-				string(constants.SettlementMethodMultiAccount),
+				string(constants.SettlementMethodMultiMerchant),
 			),
 		); err != nil {
 			errs["settlement_method"] = validation.NewError(

@@ -105,7 +105,7 @@ type UnlinkAccount interface {
 
 // ServicesRepository manages CRUD for Services catalog
 type ServicesRepository interface {
-	Create(ctx context.Context, accountNumber string, service *imodel.Service) error
+	Create(ctx context.Context, accountNumber string, service *imodel.Service) (string, error)
 	Update(ctx context.Context, id string, service *imodel.Service, accountDetail string) error
 	Delete(ctx context.Context, serviceID, accessListID string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
@@ -122,7 +122,7 @@ type ServicesRepository interface {
 	FindServiceListByNameOrKey(ctx context.Context, name, key string) (*imodel.ServiceKey, error)
 	// FindServiceListByExactNameOrKey matches whole name/key (case-insensitive), only non-deleted rows — for create uniqueness checks.
 	FindServiceListByExactNameOrKey(ctx context.Context, name, key string) (*imodel.ServiceKey, error)
-	CreateServiceKey(ctx context.Context, serviceList *imodel.ServiceKey) error
+	CreateServiceKey(ctx context.Context, serviceList *imodel.ServiceKey) (string, error)
 	UpdateServiceKey(ctx context.Context, id, serviceKey string, serviceList *imodel.ServiceKey) error
 	EnableOrDisableServiceList(ctx context.Context, id string, enable bool) error
 	DeleteServiceKey(ctx context.Context, id string) error
@@ -132,6 +132,7 @@ type ServicesRepository interface {
 
 	FindWalletByServiceId(ctx context.Context, serviceID string) (bool, error)
 	FindDonationByServiceId(ctx context.Context, serviceID string) (bool, error)
+	FindUSSDMerchantByServiceId(ctx context.Context, serviceID string) (bool, error)
 }
 
 type OTPRepository interface {
@@ -829,6 +830,10 @@ type TransactionRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]transaction_dto.VaultTransaction], error)
 }
 
+type TransactionLimitRepository interface {
+	FindByCustomerNumber(ctx context.Context, customerNumber string) (*local_model.TransactionLimit, error)
+}
+
 type EventMerchantRepository interface {
 	FindOne(ctx context.Context, filter bson.M) (*event_model.EventMerchant, error)
 	Update(ctx context.Context, id string, eventMerchant event_model.EventMerchant) error
@@ -864,14 +869,13 @@ type LogisticsMerchantOracleRepository interface {
 
 type UssdMerchantRepository interface {
 	Create(ctx context.Context, data imodel.UssdMerchant) error
-	Update(ctx context.Context, id string, update bson.M) error
+	Update(ctx context.Context, id string, update *imodel.UssdMerchant) error
 	Delete(ctx context.Context, id string) error
+	EnableOrDisable(ctx context.Context, id string, enabled bool) error
 	FindById(ctx context.Context, id string) (ussd_merchant_dto.UssdMerchantResponse, error)
 	FindByOr(ctx context.Context, phone, email, accountNumber string) (imodel.UssdMerchant, error)
 	Find(ctx context.Context, filter bson.M) (ussd_merchant_dto.UssdMerchantResponse, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (types.PaginatedResponse[[]ussd_merchant_dto.UssdMerchantResponse], error)
-	// Delete(ctx context.Context, id string) error
-
 }
 
 type AccessListSegmentationRepository interface {
@@ -939,6 +943,7 @@ type CustomerKYCRepository interface {
 	// Create(ctx context.Context, req *imodel.CustomerKYC) error
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.CustomerKYC], error)
 	FindByID(ctx context.Context, id string) (*imodel.CustomerKYC, error)
+	FindKYCOnboardingForExport(ctx context.Context, from, to time.Time, customerName string) ([]imodel.ExportSelfActivationRequest, error)
 	CreateUser(ctx context.Context, userAccount *coreio.CusteomerAccountCreationResponse, userData imodel.CustomerKYC) error
 	UpdateKYCStatus(ctx context.Context, id, status, rejectionReason string, approved bool) error
 	FindKycInReview(ctx context.Context, kycID string) (*imodel.StartedKycReview, error)
@@ -950,6 +955,7 @@ type CustomerKYCRepository interface {
 type SelfActivationKYCRepository interface {
 	FindAllWithPaginationSA(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.SelfActivationUser], error)
 	FindByIDSA(ctx context.Context, id string) (*imodel.SelfActivationUser, error)
+	FindForExport(ctx context.Context, from, to time.Time, customerName string) ([]imodel.ExportSelfActivationRequest, error)
 	CheckIfUserOrAccountExists(ctx context.Context, userData *imodel.SelfActivationUser) (bool, error)
 	UpdateKYCStatusSA(ctx context.Context, id, status, rejectionReason string, approved bool) error
 	FindKycInReviewSA(ctx context.Context, kycID string) (*imodel.StartedKycReview, error)
@@ -1087,6 +1093,7 @@ type AccountOpeningTermsRepository interface {
 	Create(ctx context.Context, t *imodel.AccountOpeningTerms) error
 	Update(ctx context.Context, id string, t *imodel.AccountOpeningTerms) error
 	Delete(ctx context.Context, id string) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*imodel.AccountOpeningTerms, error)
 	FindByProductAndVersion(ctx context.Context, productID, versionLabel string) (*imodel.AccountOpeningTerms, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.AccountOpeningTerms], error)

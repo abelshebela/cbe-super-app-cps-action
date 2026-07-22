@@ -135,6 +135,30 @@ func (t *TransactionHandler) FetchAllTransactions(w http.ResponseWriter, r *http
 //	@Security		BearerAuth
 //	@Router			/transactions/{id} [get]
 //
+// FetchTransactionLimitByUserCode implements transaction.TransactionInterface.
+func (t *TransactionHandler) FetchTransactionLimitByUserCode(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_utils.TraceLogger(r.Context(), "handler", "transaction", "TransactionHandler", "FetchTransactionLimitByUserCode")
+	defer span.End()
+	log := local_utils.LoggerFromCtx(ctx, t.logger)
+
+	customerNumber := chi.URLParam(r, "customer_number")
+	if customerNumber == "" {
+		span.AddEvent("Missing customer_number", trace.WithAttributes(attribute.String("error", "customer_number required")))
+		localization.SendErrorByCodeResponse(w, localization.ErrorNoDataProvided.Code)
+		return
+	}
+
+	limit, err := t.service.FetchTransactionLimitByCustomerNumber(ctx, customerNumber)
+	if err != nil {
+		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("customer_number", customerNumber)))
+		log.Errorf("[TxnH][GetLimit] svc err: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	span.AddEvent("Transaction limit retrieved", trace.WithAttributes(attribute.String("customer_number", customerNumber)))
+	localization.SendSuccessResponse(w, localization.SuccessTransactionLimitRetrieved, limit)
+}
+
 // FetchTransactionByID implements transaction.TransactionInterface.
 func (t *TransactionHandler) FetchTransactionByID(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_utils.TraceLogger(r.Context(), "handler", "transaction", "TransactionHandler", "FetchTransactionByID")

@@ -17,6 +17,8 @@ type CreateAPRequest struct {
 	HasVirtualCard        bool                  `json:"has_virtual_debit_card"`
 	Icon                  *multipart.FileHeader `json:"icon"`
 	CoverImage            *multipart.FileHeader `json:"cover_image"`
+	IsAvailableForOnbording bool                 `json:"is_available_for_onbording"`
+	InterestRate            float64               `json:"interest_rate"`
 }
 
 type UpdateAPRequest struct {
@@ -34,6 +36,8 @@ type UpdateAPRequest struct {
 	HasVirtualCard        *bool                 `json:"has_virtual_debit_card"`
 	Icon                  *multipart.FileHeader `json:"icon"`
 	CoverImage            *multipart.FileHeader `json:"cover_image"`
+	IsAvailableForOnbording *bool                 `json:"is_available_for_onbording"`
+	InterestRate            float64               `json:"interest_rate"`
 }
 
 type CPSAPRequest struct {
@@ -53,6 +57,8 @@ type CPSAPRequest struct {
 	HasVirtualCard        bool    `json:"has_virtual_card"`
 	ProductIcon           string  `json:"product_icon"`
 	ProductCoverImage     string  `json:"product_cover_image"`
+	IsAvailableForOnbording bool                 `json:"is_available_for_onbording"`
+	InterestRate            float64               `json:"interest_rate"`
 	IsEnabled             bool    `json:"is_enabled"`
 	IsDeleted             bool    `json:"is_deleted"`
 	CreatedAt             string  `json:"created_at"`
@@ -82,6 +88,8 @@ type APResponse struct {
 	HasVirtualCard        bool              `json:"has_virtual_card"`
 	ProductIcon           string            `json:"product_icon"`
 	ProductCoverImage     string            `json:"product_cover_image"`
+	IsAvailableForOnbording bool                 `json:"is_available_for_onbording"`
+	InterestRate            float64               `json:"interest_rate"`
 	IsEnabled             bool              `json:"is_enabled"`
 	IsDeleted             bool              `json:"is_deleted"`
 	CreatedAt             string            `json:"created_at"`

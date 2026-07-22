@@ -45,15 +45,9 @@ const (
 	// RequestCreateCustomerKYC  constants.RequestAction = "CREATE_CUSTOMER_KYC"
 	RequestApproveCustomerKYC constants.RequestAction = "APPROVE_CUSTOMER_KYC"
 	RequestRejectCustomerKYC  constants.RequestAction = "REJECT_CUSTOMER_KYC"
-	RequestStartKycReview     constants.RequestAction = "START_KYC_REVIEW"
-	RequestPickKycReview      constants.RequestAction = "PICK_KYC_REVIEW"
-	// RequestUpdateCustomerKYC  constants.RequestAction = "UPDATE_CUSTOMER_KYC"
-	// RequestDeleteCustomerKYC  constants.RequestAction = "DELETE_CUSTOMER_KYC"
 
-	RequestStartSelfActivateKy       constants.RequestAction = "START_SELF_ACTIVATE_KYC"
-	RequestApproveSelfActivateKyc    constants.RequestAction = "APPROVE_SELF_ACTIVATE_KYC"
-	RequestRejectSelfActivateKyc     constants.RequestAction = "REJECT_SELF_ACTIVATE_KYC"
-	RequestPickSelfActivateKycReview constants.RequestAction = "PICK_SELF_ACTIVATE_KYC_REVIEW"
+	RequestApproveSelfActivateKyc constants.RequestAction = "APPROVE_SELF_ACTIVATE_KYC"
+	RequestRejectSelfActivateKyc  constants.RequestAction = "REJECT_SELF_ACTIVATE_KYC"
 
 	RequestCreateCpsRole     constants.RequestAction = "CREATE_CPS_ROLE"
 	RequestUpdateCpsRole     constants.RequestAction = "UPDATE_CPS_ROLE"
@@ -464,6 +458,13 @@ const (
 	RequestCreateTermAndCondition constants.RequestAction = "CREATE_TERM_AND_CONDITION"
 	RequestUpdateTermAndCondition constants.RequestAction = "UPDATE_TERM_AND_CONDITION"
 	RequestDeleteTermAndCondition constants.RequestAction = "DELETE_TERM_AND_CONDITION"
+
+	// Utility — opaque Kafka-sourced payloads gated by maker-checker
+	RequestCreateUtility  constants.RequestAction = "CREATE_UTILITY"
+	RequestUpdateUtility  constants.RequestAction = "UPDATE_UTILITY"
+	RequestEnableUtility  constants.RequestAction = "ENABLE_UTILITY"
+	RequestDisableUtility constants.RequestAction = "DISABLE_UTILITY"
+	RequestDeleteUtility  constants.RequestAction = "DELETE_UTILITY"
 )
 
 var validRequestActions = map[constants.RequestAction]struct{}{
@@ -803,16 +804,9 @@ var validRequestActions = map[constants.RequestAction]struct{}{
 
 	RequestApproveCustomerKYC: {},
 	RequestRejectCustomerKYC:  {},
-	RequestStartKycReview:     {},
-	RequestPickKycReview:      {},
-	// RequestCreateCustomerKYC: {},
-	// RequestUpdateCustomerKYC: {},
-	// RequestDeleteCustomerKYC: {},
 
-	RequestStartSelfActivateKy:       {},
-	RequestApproveSelfActivateKyc:    {},
-	RequestRejectSelfActivateKyc:     {},
-	RequestPickSelfActivateKycReview: {},
+	RequestApproveSelfActivateKyc: {},
+	RequestRejectSelfActivateKyc:  {},
 
 	RequestEnableDisableBank: {},
 
@@ -837,6 +831,12 @@ var validRequestActions = map[constants.RequestAction]struct{}{
 	RequestCreateTermAndCondition: {},
 	RequestUpdateTermAndCondition: {},
 	RequestDeleteTermAndCondition: {},
+
+	RequestCreateUtility:  {},
+	RequestUpdateUtility:  {},
+	RequestEnableUtility:  {},
+	RequestDisableUtility: {},
+	RequestDeleteUtility:  {},
 }
 
 func IsValidRequestAction(requestAction string) bool {
@@ -1230,10 +1230,14 @@ var RequestActionGroups = map[string][]constants.RequestAction{
 		RequestDisableShortVideo,
 	},
 	"CUSTOMER": {
-		RequestEnableDisableCustomer,
 		RequestApproveFaydaCustomer,
+	},
+	"BARECUSTOMER": {
 		RequestBlockCustomer,
 		RequestUnblockCustomer,
+	},
+	"DISABLECUSTOMER": {
+		RequestEnableDisableCustomer,
 	},
 	"NEWSCATEGORY": {
 		constants.RequestAction("CREATE_NEWS_CATEGORY"),
@@ -1363,28 +1367,21 @@ var RequestActionGroups = map[string][]constants.RequestAction{
 		RequestEnableEcommerceMerchantBranch,
 		RequestDisableEcommerceMerchantBranch,
 	},
-	// "CPSROLE": {
-	// 	RequestCreateCpsRole,
-	// 	RequestUpdateCpsRole,
-	// 	RequestDeleteCpsRole,
-	// 	RequestEnableCpsRole,
-	// 	RequestDisableCpsRole,
-	// },
 	"CUSTOMERKYC": {
 		RequestApproveCustomerKYC,
 		RequestRejectCustomerKYC,
-		RequestStartKycReview,
-		RequestPickKycReview,
-		// RequestCreateCustomerKYC,
-		// RequestUpdateCustomerKYC,
-		// RequestDeleteCustomerKYC,
 	},
 
 	"SELFACTIVATIONKYC": {
-		RequestStartSelfActivateKy,
 		RequestApproveSelfActivateKyc,
 		RequestRejectSelfActivateKyc,
-		RequestPickSelfActivateKycReview,
+	},
+	"UTILITY": {
+		RequestCreateUtility,
+		RequestUpdateUtility,
+		RequestEnableUtility,
+		RequestDisableUtility,
+		RequestDeleteUtility,
 	},
 }
 

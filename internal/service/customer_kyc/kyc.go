@@ -13,6 +13,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
+	"encoding/csv"
 	"errors"
 	"fmt"
 	"strings"
@@ -37,7 +38,6 @@ type customerKYCService struct {
 	minio          *s3.Client
 	bucketName     string
 	cfg            *config.VaultConfig
-	minioEndPoint  string
 	smsService     *lib.NotificationStore
 }
 
@@ -51,7 +51,6 @@ func NewCustomerKYCService(repo storage.CustomerKYCRepository,
 	minio *s3.Client,
 	bucketName string,
 	cfg *config.VaultConfig,
-	minioEndPoint string,
 	smsService *lib.NotificationStore,
 ) service.CustomerKYCService {
 	return &customerKYCService{
@@ -65,7 +64,6 @@ func NewCustomerKYCService(repo storage.CustomerKYCRepository,
 		minio:          minio,
 		bucketName:     bucketName,
 		cfg:            cfg,
-		minioEndPoint:  minioEndPoint,
 		smsService:     smsService,
 	}
 }
@@ -100,8 +98,8 @@ func (s *customerKYCService) FindByID(ctx context.Context, id string) (*dto.Cust
 			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 		if review != nil {
-			mappedResponse.KYCReviewStartedAt = &review.StartedAt
-			mappedResponse.KYCReviewExpiresAt = &review.ExpiresAt
+			mappedResponse.KYCReviewStartedAt = review.StartedAt
+			mappedResponse.KYCReviewExpiresAt = review.ExpiresAt
 			mappedResponse.Reviewer = &review.Reviewer
 		}
 	}
@@ -204,20 +202,26 @@ func (s *customerKYCService) StartKycReview(ctx context.Context, id string) (*im
 		return nil, errors.New("KYC review can only be started for KYC requests with pending status")
 	}
 
-	existingReview, err := s.repo.FindKycInReview(ctx, id)
-	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
-		log.Errorf("[CustKycSvc][StartKycReview] failed to check existing review: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
-	}
-	if existingReview != nil && existingReview.IsActive && existingReview.ExpiresAt.After(time.Now()) {
-		log.Warnf("[CustKycSvc][StartKycReview] active review already exists for kyc id: %s", id)
-		return nil, errors.New("An active review already exists for this KYC request")
-	}
+	// existingReview, err := s.repo.FindKycInReview(ctx, id)
+	// if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+	// 	log.Errorf("[CustKycSvc][StartKycReview] failed to check existing review: %v", err)
+	// 	return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	// }
+	// if existingReview != nil &&
+	// 	existingReview.ReviewStatus == string(imodel.KYCStatusInReview) {
 
-	if existingReview != nil && existingReview.ExpiresAt.Before(time.Now()) {
-		log.Warnf("[CustKycSvc][StartKycReview] review already exists but expired for kyc id: %s", id)
-		return nil, errors.New("An expired review already exists. Please pick the review to restart the review process.")
-	}
+	// 	now := time.Now()
+
+	// 	switch {
+	// 	case existingReview.ExpiresAt == nil || existingReview.ExpiresAt.After(now):
+	// 		log.Warnf("[SelfActivationKYC][StartKycReview] active review already exists for kyc id: %s", id)
+	// 		return nil, errors.New("An active review already exists for this KYC request")
+
+	// 	default:
+	// 		log.Warnf("[SelfActivationKYC][StartKycReview] review already exists but expired for kyc id: %s", id)
+	// 		return nil, errors.New("An expired review already exists. Please pick the review to restart the review process.")
+	// 	}
+	// }
 
 	cpsUser, err := s.cpsUserRepo.FindByID(ctx, makerUser.UserCode)
 	if err != nil {
@@ -225,6 +229,8 @@ func (s *customerKYCService) StartKycReview(ctx context.Context, id string) (*im
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
+	now := time.Now()
+	expiresAt := time.Now().Add(30 * time.Minute)
 	newReq := &imodel.StartedKycReview{
 		KycID: kycID,
 		Reviewer: imodel.UserInfo{
@@ -235,12 +241,12 @@ func (s *customerKYCService) StartKycReview(ctx context.Context, id string) (*im
 			PhoneNumber: cpsUser.PhoneNumber,
 		},
 		ReviewStatus:   string(imodel.KYCStatusInReview),
-		StartedAt:      time.Now(),
-		ExpiresAt:      time.Now().Add(30 * time.Minute),
+		StartedAt:      &now,
+		ExpiresAt:      &expiresAt,
 		IsActive:       true,
 		IsDeleted:      false,
-		CreatedAt:      time.Now(),
-		LastModifiedAt: time.Now(),
+		CreatedAt:      now,
+		LastModifiedAt: now,
 	}
 
 	newReview, err := s.repo.StartKycReview(ctx, newReq)
@@ -267,6 +273,10 @@ func (s *customerKYCService) PickKycReview(ctx context.Context, id string, reaso
 		}
 		log.Errorf("[CustKycSvc][StartKycReview] find err: %v", err)
 		return err
+	}
+
+	if kycInReview.ReviewStatus != string(imodel.KYCStatusInReview) {
+		return fmt.Errorf("This KYC is already been: %s", kycInReview.ReviewStatus)
 	}
 
 	if kycInReview == nil {
@@ -303,14 +313,98 @@ func (s *customerKYCService) PickKycReview(ctx context.Context, id string, reaso
 		PickReason: reason,
 	}
 
-	cpsActionData := lib.CpsModelBuilder(id, makerUser, nil, newReq, string(constants.RequestPickKycReview), constants.CREATE)
+	// cpsActionData := lib.CpsModelBuilder(id, makerUser, nil, newReq, string(constants.RequestPickKycReview), constants.CREATE)
 
-	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
-		log.Errorf("[CustKycSvc][StartKycReview] cps action err: %v", err)
-		return err
+	// if err := s.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
+	// 	log.Errorf("[CustKycSvc][StartKycReview] cps action err: %v", err)
+	// 	return err
+	// }
+
+	expiresAt := now.Add(30 * time.Minute)
+
+	kycInReview.PickedAt = &now
+	kycInReview.StartedAt = &now
+	kycInReview.ExpiresAt = &expiresAt
+	kycInReview.Reviewer = *newReq.PickedBy
+	kycInReview.PickedBy = newReq.PickedBy
+	kycInReview.PickReason = newReq.PickReason
+	kycInReview.PickCount += 1
+
+	_, err = s.repo.UpdateKycReview(ctx, id, kycInReview)
+	if err != nil {
+		log.Errorf("[CustKycSvc][PickKycReview] failed to update review expiration: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	return nil
+}
+
+func (s *customerKYCService) ExportKYCOnboarding(ctx context.Context, from, to time.Time, fileType, customerName string) (string, error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
+	if s.minio == nil {
+		log.Errorf("[ExportKYCOnboarding] minio client is not configured")
+		return "", errors.New(localization.CpsUserDataExportedError.Code)
+	}
+
+	fileType = strings.ToLower(strings.TrimSpace(fileType))
+	if fileType != string(lib.FileTypeCSV) && fileType != string(lib.FileTypePDF) {
+		return "", errors.New(localization.ErrorInvalidRequest.Code)
+	}
+
+	data, err := s.repo.FindKYCOnboardingForExport(ctx, from, to, customerName)
+	if err != nil {
+		log.Errorf("[ExportKYCOnboarding] failed to fetch onboarding requests: %v", err)
+		return "", err
+	}
+
+	headers := []string{
+		"Customer Name",
+		"Phone Number",
+		"Gender",
+		"Date of Birth",
+		"Region",
+		"Registration Date & Time",
+		"Rejection Reason",
+		"Customer Status",
+		"KYC Status",
+	}
+
+	ext := "csv"
+	if fileType == string(lib.FileTypePDF) {
+		ext = "pdf"
+	}
+
+	objectName := fmt.Sprintf("onboarding_kyc_requests_%s_to_%s_%d.%s", from.Format("20060102"), to.Format("20060102"), time.Now().Unix(), ext)
+
+	if fileType == string(lib.FileTypePDF) {
+		rows := make([][]string, 0, len(data))
+		for _, item := range data {
+			rows = append(rows, core.BuildRow(item))
+		}
+		url, exportErr := lib.ExportPDFAndUpload(ctx, s.minio, s.bucketName, *s.cfg, objectName, headers, rows, lib.PDFExportOptions{PageSize: "A4"}, nil, s.logger)
+		if exportErr != nil {
+			log.Errorf("[CPSUser] pdf export failed: %v", exportErr)
+			return "", fmt.Errorf("failed to export onboarding kyc data")
+		}
+
+		return url, nil
+	}
+
+	url, exportErr := lib.ExportCSVAndUpload(ctx, s.minio, s.bucketName, *s.cfg, objectName, headers, func(writer *csv.Writer) error {
+		for _, item := range data {
+			if err := writer.Write(core.BuildRow(item)); err != nil {
+				return err
+			}
+		}
+		return nil
+	}, s.logger)
+	if exportErr != nil {
+		log.Errorf("[CPSUser] csv export failed: %v", exportErr)
+		return "", fmt.Errorf("failed to export onboarding kyc data")
+	}
+
+	return url, nil
 }
 
 func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
@@ -327,94 +421,94 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 			return nil, err
 		}
 
-		var firstName, middleName, lastName string
+		// var firstName, middleName, lastName string
 
-		nameParts := strings.Fields(strings.TrimSpace(userData.KYCData.FullName))
+		// nameParts := strings.Fields(strings.TrimSpace(userData.KYCData.FullName))
 
-		switch len(nameParts) {
-		case 1:
-			firstName = nameParts[0]
-		case 2:
-			firstName = nameParts[0]
-			lastName = nameParts[1]
-		default:
-			firstName = nameParts[0]
-			middleName = nameParts[1]
-			lastName = strings.Join(nameParts[2:], " ")
-		}
+		// switch len(nameParts) {
+		// case 1:
+		// 	firstName = nameParts[0]
+		// case 2:
+		// 	firstName = nameParts[0]
+		// 	lastName = nameParts[1]
+		// default:
+		// 	firstName = nameParts[0]
+		// 	middleName = nameParts[1]
+		// 	lastName = strings.Join(nameParts[2:], " ")
+		// }
 
-		token, err := s.tokenProvider.GetToken(ctx)
-		if err != nil {
-			log.Errorf("[CustKycSvc][Authorize] token fetch: %v", err)
-			return nil, err
-		}
+		// token, err := s.tokenProvider.GetToken(ctx)
+		// if err != nil {
+		// 	log.Errorf("[CustKycSvc][Authorize] token fetch: %v", err)
+		// 	return nil, err
+		// }
 
-		data := coreio.CreateCustomerParam{
-			FirstName:  strings.ToUpper(strings.TrimSpace(firstName)),
-			MiddleName: strings.ToUpper(strings.TrimSpace(middleName)),
-			LastName:   strings.ToUpper(strings.TrimSpace(lastName)),
+		// data := coreio.CreateCustomerParam{
+		// 	FirstName:  strings.ToUpper(strings.TrimSpace(firstName)),
+		// 	MiddleName: strings.ToUpper(strings.TrimSpace(middleName)),
+		// 	LastName:   strings.ToUpper(strings.TrimSpace(lastName)),
 
-			PhoneNumber: userData.KYCData.PhoneNumber,
+		// 	PhoneNumber: userData.KYCData.PhoneNumber,
 
-			Address: strings.TrimSpace(userData.KYCData.Address.Woreda),
+		// 	Address: strings.TrimSpace(userData.KYCData.Address.Woreda),
 
-			PostalCode:     constants.Empty,
-			ISOCountryCode: "ET",
+		// 	PostalCode:     constants.Empty,
+		// 	ISOCountryCode: "ET",
 
-			AccountOffice: s.cfg.CentralKYCBranchCode,
-			Industry:      constants.Empty,
+		// 	AccountOffice: s.cfg.CentralKYCBranchCode,
+		// 	Industry:      constants.Empty,
 
-			ISONationalityCode: "ET",
-			ISOResidentCode:    "ET",
+		// 	ISONationalityCode: "ET",
+		// 	ISOResidentCode:    "ET",
 
-			UniqueID: t24LegalID(local_util.NonEmptyString(userData.KYCData.OriginID, userData.KYCData.Sub)),
-			IssuesBy: strings.ToUpper(string(userData.KYCData.Vendor)),
-			// IssuedDate: t24IssuedDate(userData.KYCData.IssuedDate),
-			ExpiryDate: constants.Empty,
+		// 	UniqueID: t24LegalID(local_util.NonEmptyString(userData.KYCData.OriginID, userData.KYCData.Sub)),
+		// 	IssuesBy: strings.ToUpper(string(userData.KYCData.Vendor)),
+		// 	// IssuedDate: t24IssuedDate(userData.KYCData.IssuedDate),
+		// 	ExpiryDate: constants.Empty,
 
-			Gender:      strings.ToUpper(strings.TrimSpace(userData.KYCData.Gender)),
-			DateOfBirth: userData.KYCData.BirthDate.Format("20060102"),
+		// 	Gender:      strings.ToUpper(strings.TrimSpace(userData.KYCData.Gender)),
+		// 	DateOfBirth: userData.KYCData.BirthDate.Format("20060102"),
 
-			MaritalStatus: strings.ToUpper(strings.TrimSpace(userData.KYCData.MaritalStatus)),
-			Email:         userData.KYCData.Email,
+		// 	MaritalStatus: strings.ToUpper(strings.TrimSpace(userData.KYCData.MaritalStatus)),
+		// 	Email:         userData.KYCData.Email,
 
-			EmploymentStatus: t24EmploymentStatus(userData.KYCData.EmployementStatus),
-			Occupation:       strings.ToUpper(strings.TrimSpace(userData.KYCData.Occupation)),
+		// 	EmploymentStatus: t24EmploymentStatus(userData.KYCData.EmployementStatus),
+		// 	Occupation:       strings.ToUpper(strings.TrimSpace(userData.KYCData.Occupation)),
 
-			EmployerName:     constants.Empty,
-			EmployerAddress:  constants.Empty,
-			EmployerBusiness: userData.KYCData.SourceOfIncome,
+		// 	EmployerName:     constants.Empty,
+		// 	EmployerAddress:  constants.Empty,
+		// 	EmployerBusiness: userData.KYCData.SourceOfIncome,
 
-			CustomerCurrency:  t24Currency(userData.KYCData.Currency),
-			Salary:            t24Amount(userData.KYCData.MonthlyIncome),
-			AnnualBonus:       constants.Empty,
-			NetMonthlyIncome:  t24Amount(userData.KYCData.MonthlyIncome),
-			NetMonthlyExpence: constants.Empty,
+		// 	CustomerCurrency:  t24Currency(userData.KYCData.Currency),
+		// 	Salary:            t24Amount(userData.KYCData.MonthlyIncome),
+		// 	AnnualBonus:       constants.Empty,
+		// 	NetMonthlyIncome:  t24Amount(userData.KYCData.MonthlyIncome),
+		// 	NetMonthlyExpence: constants.Empty,
 
-			TinNumber:     userData.KYCData.USTIN,
-			MotherName:    strings.ToUpper(strings.TrimSpace(userData.KYCData.MothersName)),
-			CustomerGroup: t24CustomerGroup(userData.KYCData.SubAccountType),
-			NationalId:    userData.KYCData.Sub,
+		// 	TinNumber:     userData.KYCData.USTIN,
+		// 	MotherName:    strings.ToUpper(strings.TrimSpace(userData.KYCData.MothersName)),
+		// 	CustomerGroup: t24CustomerGroup(userData.KYCData.SubAccountType),
+		// 	NationalId:    userData.KYCData.Sub,
 
-			Url: s.cfg.CustomerCreateURL,
-			Header: map[string]string{
-				"Authorization": "Bearer " + token,
-			},
-		}
+		// 	Url: s.cfg.CustomerCreateURL,
+		// 	Header: map[string]string{
+		// 		"Authorization": "Bearer " + token,
+		// 	},
+		// }
 
-		s.logger.Infof("[CustKycSvc][Authorize] core call params — uniqueID=%s employmentStatus=%s salary=%s nationality=%s country=%s", data.UniqueID, data.EmploymentStatus, data.Salary, data.ISONationalityCode, data.ISOCountryCode)
-		userAccount, err := core.CreateAccountToCore(ctx, data, s.accountService, s.coreio, s.cfg, s.logger)
-		if err != nil {
-			log.Errorf("[CustKycSvc][Authorize] core account creation failed: %v", err)
-			if strings.Contains(err.Error(), "customer creation failed") {
-				return nil, errors.New(localization.ErrorCustomerCreationOnCoreFailed.Code)
-			}
-			return nil, err
-		}
+		// s.logger.Infof("[CustKycSvc][Authorize] core call params — uniqueID=%s employmentStatus=%s salary=%s nationality=%s country=%s", data.UniqueID, data.EmploymentStatus, data.Salary, data.ISONationalityCode, data.ISOCountryCode)
+		// userAccount, err := core.CreateAccountToCore(ctx, data, s.accountService, s.coreio, s.cfg, s.logger)
+		// if err != nil {
+		// 	log.Errorf("[CustKycSvc][Authorize] core account creation failed: %v", err)
+		// 	if strings.Contains(err.Error(), "customer creation failed") {
+		// 		return nil, errors.New(localization.ErrorCustomerCreationOnCoreFailed.Code)
+		// 	}
+		// 	return nil, err
+		// }
 
-		if err = s.repo.CreateUser(ctx, userAccount, *userData); err != nil {
-			return nil, err
-		}
+		// if err = s.repo.CreateUser(ctx, userAccount, *userData); err != nil {
+		// 	return nil, err
+		// }
 
 		if err = s.repo.UpdateKYCStatus(ctx, cpsAction.UniqueId, string(constants.KYCStatusApproved), "", true); err != nil {
 			return nil, err
@@ -432,11 +526,11 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 		if s.smsService != nil {
 			phone := userData.KYCData.PhoneNumber
 			name := userData.KYCData.FullName
-			accountNumber := userAccount.AccountCreationDetail.Detail.AccountNumber
+			// accountNumber := userAccount.AccountCreationDetail.Detail.AccountNumber
 			go func() {
 				msg := fmt.Sprintf(
-					"Dear %s, Congratulations! Your application for opening a new account and superapp activation is successful, Your new account number is %s. Welcome to CBE Super App!",
-					name, accountNumber,
+					"Dear %s, Congratulations! Your application for opening a new account and superapp activation is successful, Please Check and continue your account creation.",
+					name,
 				)
 				if err := s.smsService.PublishSMSMessage(context.Background(), types.SMSKafkaMessage{
 					Recipient:   phone,
@@ -492,32 +586,34 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 			}()
 		}
 
-	case string(constants.RequestPickKycReview):
-		reviewData, err := local_util.JsonUnmarshal[imodel.StartedKycReview](cpsAction.CurrentAction)
-		if err != nil {
-			return nil, err
-		}
+	// case string(constants.RequestPickKycReview):
+	// 	reviewData, err := local_util.JsonUnmarshal[imodel.StartedKycReview](cpsAction.CurrentAction)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
 
-		existingReview, err := s.repo.FindKycInReview(ctx, cpsAction.UniqueId)
-		if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
-			log.Errorf("[CustKycSvc][Authorize] failed to check existing review: %v", err)
-			return nil, errors.New(localization.ErrorUnexpectedError.Code)
-		}
-		now := time.Now()
-		existingReview.PickedAt = &now
-		existingReview.StartedAt = now
-		existingReview.ExpiresAt = now.Add(30 * time.Minute)
-		existingReview.Reviewer = *reviewData.PickedBy
-		existingReview.PickedBy = reviewData.PickedBy
-		existingReview.PickReason = reviewData.PickReason
-		existingReview.PickCount += 1
+	// 	existingReview, err := s.repo.FindKycInReview(ctx, cpsAction.UniqueId)
+	// 	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+	// 		log.Errorf("[CustKycSvc][Authorize] failed to check existing review: %v", err)
+	// 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	// 	}
+	// 	now := time.Now()
+	// 	expiresAt := time.Now().Add(30 * time.Minute)
 
-		_, err = s.repo.UpdateKycReview(ctx, cpsAction.UniqueId, existingReview)
-		if err != nil {
-			log.Errorf("[CustKycSvc][Authorize] failed to update review expiration: %v", err)
-			return nil, errors.New(localization.ErrorUnexpectedError.Code)
-		}
-		return cpsAction, nil
+	// 	existingReview.PickedAt = &now
+	// 	existingReview.StartedAt = &now
+	// 	existingReview.ExpiresAt = &expiresAt
+	// 	existingReview.Reviewer = *reviewData.PickedBy
+	// 	existingReview.PickedBy = reviewData.PickedBy
+	// 	existingReview.PickReason = reviewData.PickReason
+	// 	existingReview.PickCount += 1
+
+	// 	_, err = s.repo.UpdateKycReview(ctx, cpsAction.UniqueId, existingReview)
+	// 	if err != nil {
+	// 		log.Errorf("[CustKycSvc][Authorize] failed to update review expiration: %v", err)
+	// 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	// 	}
+	// 	return cpsAction, nil
 
 	default:
 		return nil, fmt.Errorf("unsupported action: %s", cpsAction.RequestAction)

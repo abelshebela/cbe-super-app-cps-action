@@ -557,7 +557,6 @@ func (c customerAdapter) SearchCustomerByCIForAccountNumber(w http.ResponseWrite
 		return
 	}
 	localization.SendSuccessResponse(w, localization.SuccessCustomerDetailSuccessfullyFetched, customer)
-
 }
 
 func (c *customerAdapter) SetBlockCustomerSession(w http.ResponseWriter, r *http.Request) {
@@ -694,4 +693,30 @@ func (c *customerAdapter) GetCustomerBarUnBarReasons(w http.ResponseWriter, r *h
 		return
 	}
 	localization.SendSuccessResponse(w, localization.SuccessUserRetrieved, reasons)
+}
+
+func (c *customerAdapter) SearchCustomerByCIF(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "SearchCustomerByCIF", "handler", "customer")
+	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, c.logger)
+
+	number := chi.URLParam(r, "number")
+	if number == "" {
+		log.Errorf("[CustomerH][SearchCustomerByCIF] number not set")
+		localization.SendBadRequestResponse(w, "invalid request: input value is required")
+		return
+	}
+	if err := core.ValidateCustomerLookupRequest(number); err != nil {
+		log.Errorf("[SearchCustomerByCIF] validation error: %v", err)
+		localization.SendBadRequestResponse(w, "invalid request: input value must be a valid CID, account number, or phone number")
+		return
+	}
+	customer, err := c.customerService.SearchCustomerByCIF(ctx, number)
+	if err != nil {
+		span.RecordError(err)
+		log.Errorf("[SearchCustomerByCIF] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	localization.SendSuccessResponse(w, localization.SuccessCustomerDetailSuccessfullyFetched, customer)
 }
