@@ -32,9 +32,11 @@ type CustomerKYCResponse struct {
 	KYCReviewStartedAt *time.Time `json:"started_at,omitempty"`
 	KYCReviewExpiresAt *time.Time `json:"expires_at,omitempty"`
 
-	Reviewer  *imodel.UserInfo `json:"reviewer,omitempty"`
-	CreatedAt string           `json:"created_at"`
-	UpdatedAt string           `json:"updated_at"`
+	Reviewer *imodel.UserInfo `json:"reviewer,omitempty"`
+
+	ServerTime string `json:"server-time,omitempty"`
+	CreatedAt  string `json:"created_at"`
+	UpdatedAt  string `json:"updated_at"`
 }
 
 type PersonalInformation struct {
