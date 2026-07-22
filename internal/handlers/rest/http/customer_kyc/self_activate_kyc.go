@@ -53,7 +53,6 @@ func (c *selfActivationKYCAdapter) GetAllSelfActivateKYCRequests(w http.Response
 		return
 	}
 
-	w.Header().Set("date", time.Now().Format(time.RFC3339))
 	localization.SendSuccessResponse(w, localization.SuccessDataRetrieved, res)
 }
 
@@ -75,7 +74,7 @@ func (c *selfActivationKYCAdapter) GetSelfActivateKYCRequest(w http.ResponseWrit
 		return
 	}
 
-	w.Header().Set("date", time.Now().Format(time.RFC3339))
+	res.ServerTime = time.Now().UTC().Format(time.RFC3339)
 	localization.SendSuccessResponse(w, localization.SuccessDataRetrieved, res)
 }
 
@@ -179,7 +178,6 @@ func (c *selfActivationKYCAdapter) StartSelfActivateKycReview(w http.ResponseWri
 		return
 	}
 
-	w.Header().Set("date", time.Now().Format(time.RFC3339))
 	localization.SendSuccessResponse(w, localization.SuccessKYCReviewStarted, newReview)
 }
 
@@ -209,7 +207,6 @@ func (c *selfActivationKYCAdapter) PickSelfActivateKycReview(w http.ResponseWrit
 		return
 	}
 
-	w.Header().Set("date", time.Now().Format(time.RFC3339))
 	localization.SendSuccessResponse(w, localization.SuccessKYCReviewPicked, nil)
 }
 
