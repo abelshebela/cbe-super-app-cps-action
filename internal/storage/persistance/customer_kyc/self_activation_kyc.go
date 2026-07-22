@@ -1,6 +1,7 @@
 package customer
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
@@ -10,6 +11,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"regexp"
 	"strings"
 	"time"
 
@@ -41,25 +43,21 @@ func NewSelfActivationRepository(client *mongo.Client, oracleDB *sql.DB, cfg *co
 func (r *selfActivationRepository) CheckIfUserOrAccountExists(ctx context.Context, userData *imodel.SelfActivationUser) (bool, error) {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
-	phone := strings.TrimSpace(userData.PhoneNumber)
+	// phone := strings.TrimSpace(userData.PhoneNumber)
 	customerID := strings.TrimSpace(userData.CustomerNumber)
 
-	if phone == "" && customerID == "" {
+	if customerID == "" {
 		return false, nil
 	}
 
 	const userExistsQuery = `
 		SELECT COUNT(1)
 		FROM USERS u
-		WHERE (
-			TRIM(u.CONTACT_PHONE) = :1
-			TRIM(u.CUSTOMER_NUMBER) = :2
-		)
-		AND u.IS_DELETED = 0
+		WHERE TRIM(u.CUSTOMER_NUMBER) = :1
 	`
 
 	var userCount int
-	if err := r.oracleDB.QueryRowContext(ctx, userExistsQuery, phone, customerID).Scan(&userCount); err != nil {
+	if err := r.oracleDB.QueryRowContext(ctx, userExistsQuery, customerID).Scan(&userCount); err != nil {
 		log.Errorf("[SelfActivationKYC][CheckIfUserOrAccountExists] failed to query USERS: %v", err)
 		return false, local_util.HandleDBError(err)
 	}
@@ -68,25 +66,24 @@ func (r *selfActivationRepository) CheckIfUserOrAccountExists(ctx context.Contex
 		return false, nil
 	}
 
-	const linkedAccountQuery = `
-		SELECT COUNT(1)
-		FROM LINKED_ACCOUNTS la
-		INNER JOIN USERS u ON u.USER_CODE = la.USER_CODE
-		WHERE (
-			TRIM(u.CONTACT_PHONE) = :1
-			TRIM(u.CUSTOMER_NUMBER) = :2
-		)
-		AND la.IS_DELETED = 0
-		AND la.IS_ACTIVE = 1
-	`
+	return true, nil
 
-	var linkedCount int
-	if err := r.oracleDB.QueryRowContext(ctx, linkedAccountQuery, phone, customerID).Scan(&linkedCount); err != nil {
-		log.Errorf("[SelfActivationKYC][CheckIfUserOrAccountExists] failed to query LINKED_ACCOUNTS: %v", err)
-		return false, local_util.HandleDBError(err)
-	}
+	// const linkedAccountQuery = `
+	// 	SELECT COUNT(1)
+	// 	FROM LINKED_ACCOUNTS la
+	// 	JOIN USERS u
+	// 	    ON u.USER_CODE = la.USER_CODE
+	// 	WHERE TRIM(u.CUSTOMER_NUMBER) = :1
+	// 	AND la.IS_ACTIVE = 1
+	// `
 
-	return linkedCount > 0, nil
+	// var linkedCount int
+	// if err := r.oracleDB.QueryRowContext(ctx, linkedAccountQuery, customerID).Scan(&linkedCount); err != nil {
+	// 	log.Errorf("[SelfActivationKYC][CheckIfUserOrAccountExists] failed to query LINKED_ACCOUNTS: %v", err)
+	// 	return false, local_util.HandleDBError(err)
+	// }
+
+	// return linkedCount > 0, nil
 }
 
 func (r *selfActivationRepository) FindAllWithPaginationSA(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.SelfActivationUser], error) {
@@ -94,7 +91,7 @@ func (r *selfActivationRepository) FindAllWithPaginationSA(ctx context.Context, 
 
 	log.Infof("[CustomerKYC][FindAllWithPagination] fetching kyc requests")
 
-	allowed := []string{"kyc_status", "enabled", "created_at"}
+	allowed := []string{"kyc.kyc_status", "enabled", "created_at"}
 	filter, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, allowed)
 
 	filter["is_deleted"] = bson.M{"$ne": true}
@@ -102,27 +99,26 @@ func (r *selfActivationRepository) FindAllWithPaginationSA(ctx context.Context, 
 	if filterParam.Search != "" {
 		q := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		filter["$or"] = []bson.M{
-			{"kyc_data.full_name": q},
-			{"kyc_data.phone_number": q},
-			{"kyc_data.email": q},
-			{"kyc_data.origin_id": q},
-			{"kyc_status": q},
-			{"user_id": q},
+			{"name": q},
+			{"phone_number": q},
 		}
 	}
 
 	nestedFieldMap := map[string]string{
-		"vendor":           "kyc_data.vendor",
-		"account_type":     "kyc_data.account_type",
-		"sub_account_type": "kyc_data.sub_account_type",
+		"kyc_status": "kyc.kyc_status",
 	}
 	for param, mongoField := range nestedFieldMap {
-		if v, ok := filterParam.Filters[param]; ok && v != nil && v != "" {
-			filter[mongoField] = v
+		if v, ok := filterParam.Filters[param]; ok && v != nil {
+			statuses := local_util.StringSliceFromFilterValue(v)
+			if len(statuses) > 0 {
+				filter[mongoField] = bson.M{
+					"$in": statuses,
+				}
+			}
 		}
 	}
 
-	results, err := r.selfActivationDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	results, err := r.selfActivationDal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		log.Errorf("[CustomerKYC][FindAllWithPagination] failed to fetch data: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
@@ -177,6 +173,10 @@ func (r *selfActivationRepository) UpdateKYCStatusSA(ctx context.Context, id, st
 		"enabled":          approved,
 		"last_modified_at": time.Now(),
 		"updated_at":       time.Now(),
+	}
+
+	if status == string(imodel.KYCStatusRejected) || status == string(constants.KYCStatusCancelled) {
+		update["needs_pin_setup"] = false
 	}
 
 	if rejectionReason != "" {
@@ -257,4 +257,57 @@ func (r *selfActivationRepository) UpdateKycReviewSA(ctx context.Context, kycID 
 	}
 
 	return &result, nil
+}
+
+func (r *selfActivationRepository) FindForExport(ctx context.Context, from, to time.Time, customerName string) ([]imodel.ExportSelfActivationRequest, error) {
+	matchFilter := bson.M{
+		"created_at": bson.M{
+			"$gte": from,
+			"$lte": to,
+		},
+		"is_deleted": bson.M{"$ne": true},
+	}
+
+	if customerName != "" {
+		matchFilter["name"] = bson.M{
+			"$regex":   "^" + regexp.QuoteMeta(customerName) + "$",
+			"$options": "i",
+		}
+	}
+
+	pipeline := mongo.Pipeline{
+		bson.D{{
+			Key:   "$match",
+			Value: matchFilter,
+		}},
+		bson.D{{
+			Key: "$project",
+			Value: bson.M{
+				"_id": 0,
+
+				"customer_name":     "$name",
+				"phone_number":      1,
+				"gender":            1,
+				"date_of_birth":     "$birth_date",
+				"region":            "$address.region",
+				"registration_date": "$updated_at",
+				"rejection_reason":  "$kyc_reject_reason",
+				"customer_status":   "NEW",
+				"kyc_status":        "$kyc.kyc_status",
+			},
+		}},
+	}
+
+	cursor, err := r.coll.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, local_util.HandleDBError(err)
+	}
+	defer cursor.Close(ctx)
+
+	var result []imodel.ExportSelfActivationRequest
+	if err := cursor.All(ctx, &result); err != nil {
+		return nil, local_util.HandleDBError(err)
+	}
+
+	return result, nil
 }

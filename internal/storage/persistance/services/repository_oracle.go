@@ -379,7 +379,7 @@ VALUES (
 	return nil
 }
 
-func (s *ServicesStorage) Create(ctx context.Context, accountNumber string, service *imodel.Service) error {
+func (s *ServicesStorage) Create(ctx context.Context, accountNumber string, service *imodel.Service) (string, error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 
 	if service.CreatedAt.IsZero() {
@@ -392,7 +392,7 @@ func (s *ServicesStorage) Create(ctx context.Context, accountNumber string, serv
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		log.Errorf("[ServicesRepo][Create] begin tx failed: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return "", errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer func() { _ = tx.Rollback() }()
 
@@ -400,13 +400,13 @@ func (s *ServicesStorage) Create(ctx context.Context, accountNumber string, serv
 	serviceID, err := s.insertService(ctx, tx, accountNumber, service)
 	if err != nil {
 		log.Errorf("[ServicesRepo][Create] insert failed: %v", err)
-		return local_util.HandleDBError(err)
+		return "", local_util.HandleDBError(err)
 	}
 	service.ID = serviceID
 
 	if err := tx.Commit(); err != nil {
 		log.Errorf("[ServicesRepo][Create] commit failed: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return "", errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	_ = s.kafkaProducer.PublishMessage(
@@ -416,9 +416,9 @@ func (s *ServicesStorage) Create(ctx context.Context, accountNumber string, serv
 		string(constants.ClientOrchestrationServicesTopic),
 		"new service created",
 	)
-	_ = s.redis.Set(ctx, s.cfg.CPSServiceUpdate, service, -1)
+	// _ = s.redis.Set(ctx, s.cfg.CPSServiceUpdate, service, -1)
 
-	return nil
+	return serviceID, nil
 }
 
 func (s *ServicesStorage) Update(ctx context.Context, id string, service *imodel.Service, accountDetail string) error {
@@ -481,7 +481,7 @@ WHERE id = HEXTORAW(:7)`
 		string(constants.ClientOrchestrationServicesTopic),
 		"service authorized and updated",
 	)
-	_ = s.redis.Set(ctx, s.cfg.CPSServiceUpdate, service, -1)
+	// _ = s.redis.Set(ctx, s.cfg.CPSServiceUpdate, service, -1)
 
 	return nil
 }
@@ -770,6 +770,23 @@ func (s *ServicesStorage) FindDonationByServiceId(ctx context.Context, serviceID
 			return false, nil
 		}
 		log.Errorf("[ServiceRepo][FindDonationByAccessList] query failed: %v", err)
+		return false, err
+	}
+	return true, nil
+}
+
+func (s *ServicesStorage) FindUSSDMerchantByServiceId(ctx context.Context, serviceID string) (bool, error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
+	const q = `SELECT ID FROM USSD_MERCHANTS_SERVICE WHERE SERVICE_ID = HEXTORAW(:1)`
+
+	var id string
+	err := s.db.QueryRowContext(ctx, q, serviceID).Scan(&id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+		log.Errorf("[ServiceRepo][FindUSSDMerchantByServiceId] query failed: %v", err)
 		return false, err
 	}
 	return true, nil
@@ -1257,7 +1274,7 @@ FETCH FIRST 1 ROWS ONLY`, accessListTable, where)
 	return &item, nil
 }
 
-func (s *ServicesStorage) CreateServiceKey(ctx context.Context, serviceList *imodel.ServiceKey) error {
+func (s *ServicesStorage) CreateServiceKey(ctx context.Context, serviceList *imodel.ServiceKey) (string, error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 
 	serviceList.IsEnabled = true
@@ -1265,7 +1282,7 @@ func (s *ServicesStorage) CreateServiceKey(ctx context.Context, serviceList *imo
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		log.Errorf("[ServicesRepo][CreateServiceKey] begin tx failed: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return "", errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer func() { _ = tx.Rollback() }()
 
@@ -1280,7 +1297,10 @@ INSERT INTO access_lists (
 )
 VALUES (
   :1,:2,:3,:4,:5,:6
-)`
+)
+RETURNING id INTO :7`
+
+	var id string
 
 	if _, err := tx.ExecContext(ctx, q,
 		serviceList.ServiceName,
@@ -1289,9 +1309,10 @@ VALUES (
 		boolToOracleNumber(serviceList.IsUSSDEnabled),
 		boolToOracleNumber(serviceList.IsSuperAppEnabled),
 		boolToOracleNumber(serviceList.IsEnabled),
+		sql.Out{Dest: &id},
 	); err != nil {
 		log.Errorf("[ServicesRepo][CreateServiceKey] insert failed: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return "", errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// Synchronize access_list with this service list
@@ -1321,7 +1342,7 @@ VALUES (
 
 	if err := tx.Commit(); err != nil {
 		log.Errorf("[ServicesRepo][CreateServiceKey] commit failed: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return "", errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	_ = s.kafkaProducer.PublishMessage(
@@ -1331,9 +1352,9 @@ VALUES (
 		string(constants.ClientOrchestrationServicesTopic),
 		"new service list created",
 	)
-	_ = s.redis.Set(ctx, s.cfg.CPSServiceUpdate, serviceList, -1)
+	// _ = s.redis.Set(ctx, s.cfg.CPSServiceUpdate, serviceList, -1)
 
-	return nil
+	return id, nil
 }
 
 func (s *ServicesStorage) UpdateServiceKey(ctx context.Context, id, serviceKey string, serviceList *imodel.ServiceKey) error {

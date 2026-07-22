@@ -74,6 +74,7 @@ import (
 	customeMiddleware "cbe-super-app-cps-action/internal/handlers/middleware"
 
 	ussd_merchant_rout "cbe-super-app-cps-action/internal/glue/routing/ussd_merchant"
+	utility_routing "cbe-super-app-cps-action/internal/glue/routing/utility"
 
 	"github.com/go-chi/chi/v5"
 	chiMiddleware "github.com/go-chi/chi/v5/middleware"
@@ -205,6 +206,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, encryptionMiddleware shared
 	selfActivationKYC.Init(r, handlerLayer.SelfActivationKYCHandler, authMiddleware)
 	roles.Init(r, handlerLayer.RoleHandler, authMiddleware)
 	role_delegation.Init(r, handlerLayer.RoleDelegationHandler, authMiddleware)
+	utility_routing.Init(r, handlerLayer.UtilityHandler, authMiddleware)
 
 	secured := chi.NewRouter()
 

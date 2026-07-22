@@ -98,6 +98,8 @@ var cpsActionRegistry = map[string]string{
 	"GET customers/{id}": "CUSTOMER",
 	"PATCH customers":    "CUSTOMER",
 
+	"GET transaction": "VIEWTRANSACTIONLIMIT",
+
 	// Departments
 	"GET departments":      "DEPARTMENT",
 	"GET departments/{id}": "DEPARTMENT",
@@ -158,9 +160,9 @@ var cpsActionRegistry = map[string]string{
 	// "DELETE cps_users": "CPSUSER",
 
 	// DeviceVersion
-	"POST device_versions":              "DEVICEVERSION",
-	"PATCH device_versions":             "DEVICEVERSION",
-	"PATCH device_versions/state":       "DEVICEVERSION",
+	"POST device_versions":        "DEVICEVERSION",
+	"PATCH device_versions":       "DEVICEVERSION",
+	"PATCH device_versions/state": "DEVICEVERSION",
 
 	// Donation
 	"POST donation":   "DONATION",

@@ -66,8 +66,8 @@ func (r *repository) createInner(ctx context.Context, ap *imodel.AccountProduct)
 		 ACCOUNT_CATEGORY_ID, ACCOUNT_CURRENCY,
 		 MINIMUM_OPENING_BALANCE, MINIMUM_MAINTENANCE_FEE, INTEREST_FEE,
 		 FAQ_URL, PRODUCT_FEATURES, HAS_PHYSICAL_CARD, HAS_VIRTUAL_CARD,
-		 PRODUCT_ICON, PRODUCT_COVER_IMAGE, IS_ENABLED, IS_DELETED)
-		VALUES (:1, :2, :3, HEXTORAW(:4), :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16)`
+		 PRODUCT_ICON, PRODUCT_COVER_IMAGE, IS_ENABLED, IS_DELETED,IS_AVAILABE_FOR_ONBORDING,INTEREST_RATE)
+		VALUES (:1, :2, :3, HEXTORAW(:4), :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16,:17,:18)`
 
 	if _, err := r.db.ExecContext(ctx, q,
 		ap.CBSProductCode,
@@ -86,6 +86,8 @@ func (r *repository) createInner(ctx context.Context, ap *imodel.AccountProduct)
 		ap_core.NullStringFromString(ap.ProductCoverImage),
 		ap_core.BoolToInt(ap.IsEnabled),
 		ap_core.BoolToInt(ap.IsDeleted),
+		ap_core.BoolToInt(ap.IsAvailableForOnbording),
+		ap.InterestRate,
 	); err != nil {
 		log.Errorf("[APOracle][Create] insert: %v", err)
 		return local_util.HandleDBError(err)
@@ -103,8 +105,8 @@ func (r *repository) Update(ctx context.Context, id string, ap *imodel.AccountPr
 		    MINIMUM_OPENING_BALANCE = :6, MINIMUM_MAINTENANCE_FEE = :7, INTEREST_FEE = :8,
 		    FAQ_URL = :9, PRODUCT_FEATURES = :10, HAS_PHYSICAL_CARD = :11,
 		    HAS_VIRTUAL_CARD = :12, PRODUCT_ICON = :13, PRODUCT_COVER_IMAGE = :14,
-		    LAST_MODIFIED_AT = :15
-		WHERE ID = HEXTORAW(:16) AND IS_DELETED = 0`
+		    LAST_MODIFIED_AT = :15,IS_AVAILABE_FOR_ONBORDING = :16,INTEREST_RATE = :17
+		WHERE ID = HEXTORAW(:18) AND IS_DELETED = 0`
 
 	res, err := r.db.ExecContext(ctx, q,
 		ap.CBSProductCode,
@@ -122,6 +124,8 @@ func (r *repository) Update(ctx context.Context, id string, ap *imodel.AccountPr
 		ap_core.NullStringFromString(ap.ProductIcon),
 		ap_core.NullStringFromString(ap.ProductCoverImage),
 		time.Now(),
+		ap_core.BoolToInt(ap.IsAvailableForOnbording),
+		ap.InterestRate,
 		id,
 	)
 	if err != nil {

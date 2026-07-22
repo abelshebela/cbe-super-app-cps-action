@@ -483,6 +483,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorMissingOrInvalidImage,
 	ErrorPendingCpsActionExists,
 	ErrorUnexpectedError,
+	ErrorNoExistingReview,
 	ErrorParamsIsRequired,
 	ErrorDonationForServiceAlreadyExists,
 	ErrorMarchantDataAlready,
@@ -760,6 +761,9 @@ var ResponseCodesList = []ResponseCode{
 	SuccessDonationCompanyEnabledSP,
 	SuccessDonationCompanyDisabledSP,
 	SuccessDonationCompanyDeleteSP,
+	SuccessKYCReviewStarted,
+	SuccessKYCReviewPicked,
+	SucccessKYCExportedSuccessfully,
 	SuccessDonationCategoryEnabledSP,
 	SuccessDonationCategoryDisabledSP,
 	SuccessDonationCategoryDeleteSP,
@@ -1799,6 +1803,27 @@ var (
 		Code:       "SUCCESS_KYC_APPROVE_REQUESTED",
 		StatusCode: StatusOK,
 		Message:    MsgKYCApproved,
+		Type:       "success",
+	}
+
+	SuccessKYCReviewStarted = ResponseCode{
+		Code:       "SUCCESS_KYC_REVIEW_STARTED",
+		StatusCode: StatusOK,
+		Message:    "KYC review started succcessfully.",
+		Type:       "success",
+	}
+
+	SuccessKYCReviewPicked = ResponseCode{
+		Code:       "SUCCESS_KYC_REVIEW_PICKED",
+		StatusCode: StatusOK,
+		Message:    "KYC review picked successfully",
+		Type:       "success",
+	}
+
+	SucccessKYCExportedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_KYC_EXPORTED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "KYC data exported successfully.",
 		Type:       "success",
 	}
 
@@ -6835,6 +6860,13 @@ var (
 		Type:       "error",
 	}
 
+	ErrorNoExistingReview = ResponseCode{
+		Code:       "ERROR_NO_EXISTING_REVIEW",
+		StatusCode: StatusBadRequest,
+		Message:    "No existing review found for this KYC request",
+		Type:       "error",
+	}
+
 	ErrorParamsIsRequired = ResponseCode{
 		Code:       "ERROR_PARAMS_IS_REQUIRED",
 		StatusCode: StatusBadRequest,
@@ -10359,5 +10391,21 @@ var (
 		StatusCode: StatusConflict,
 		Message:    MsgTACAlreadyExists,
 		Type:       "error",
+	}
+
+	// Utility response codes
+	SuccessGetOneUtility = ResponseCode{
+		Code:       "SUCCESS_GET_ONE_UTILITY",
+		StatusCode: StatusOK,
+		Message:    "Utility action retrieved successfully",
+		Type:       "success",
+	}
+
+	// Transaction limit response codes
+	SuccessTransactionLimitRetrieved = ResponseCode{
+		Code:       "SUCCESS_TRANSACTION_LIMIT_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    "Transaction limit retrieved successfully",
+		Type:       "success",
 	}
 )

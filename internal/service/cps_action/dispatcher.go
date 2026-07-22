@@ -147,6 +147,10 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.ShortVideoServiceContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(constants.RequestAction(action), "CUSTOMER"):
 		return d.app.CustomerContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(constants.RequestAction(action), "DISABLECUSTOMER"):
+		return d.app.CustomerContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(constants.RequestAction(action), "BARECUSTOMER"):
+		return d.app.CustomerContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(constants.RequestAction(action), "NEWSTAG"):
 		return d.app.NewsTagsServiceContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(constants.RequestAction(action), "BPSACTIONROLE"):
@@ -192,6 +196,8 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.VaultCategoryContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(constants.RequestAction(action), "ROLEDELEGATION"):
 		return d.app.RoleDelegationContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(constants.RequestAction(action), "UTILITY"):
+		return d.app.UtilityContainer.Authorize(ctx, cpsAction)
 	default:
 		span.AddEvent("unsupported action", trace.WithAttributes(attribute.String("action", action)))
 		return nil, errors.New(localization.ErrorUnsupportedAction.Code)

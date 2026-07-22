@@ -6,6 +6,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
+	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
@@ -15,9 +16,8 @@ import (
 	"fmt"
 	"strings"
 
-	"cbe-super-app-cps-action/internal/constants/types"
-
 	customer_dto "cbe-super-app-cps-action/internal/constants/dto/customer"
+	self_activation_dto "cbe-super-app-cps-action/internal/constants/dto/customer_kyc_self"
 
 	member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -850,4 +850,52 @@ func (c *customerService) GetCustomerBarUnBarReasons(ctx context.Context, userID
 		return nil, err
 	}
 	return reasons, nil
+}
+
+func (c *customerService) SearchCustomerByCIF(ctx context.Context, number string) ([]self_activation_dto.CustomerFetchDetailResponse, error) {
+	accountDetail, err := c.core.CustomerCifSearch(ctx, number)
+	c.logger.Infof("[CustomerSvc][SearchCustomerByCIF] account lookup result: %v", accountDetail)
+	if err != nil {
+		c.logger.Errorf("[CustomerSvc][SearchCustomerByCIF] account lookup failed: %v", err)
+	}
+
+	var customer []self_activation_dto.CustomerFetchDetailResponse
+	if accountDetail == nil || accountDetail.Details == nil {
+		return []self_activation_dto.CustomerFetchDetailResponse{}, nil
+	}
+
+	for _, d := range accountDetail.Details {
+		customer = append(customer, self_activation_dto.CustomerFetchDetailResponse{
+			AccountNumber:      d.AccountNumber,
+			AccountName:        d.AccountName,
+			Currency:           d.Currency,
+			Category:           d.Category,
+			AccountType:        d.AccountType,
+			BranchCode:         d.BranchCode,
+			BranchName:         d.BranchName,
+			Balance:            d.Balance,
+			RestrictionDesc:    d.RestrictionDesc,
+			RestrictionType:    d.RestrictionType,
+			InactiveFlag:       d.InactiveFlag,
+			CustomerID:         d.CustomerID,
+			CIFBranchCode:      d.CIFBranchCode,
+			CIFBranchName:      d.CIFBranchName,
+			CustomerName:       d.CustomerName,
+			Gender:             d.Gender,
+			DOB:                d.DOB,
+			Mail:               d.Mail,
+			Phone:              d.Phone,
+			CIFRestrictType:    d.CIFRestrictType,
+			CIFRestrictionDesc: d.CIFRestrictionDesc,
+			CustomerGroup:      d.CustomerGroup,
+			Segement:           d.Segement,
+			SubSegement:        d.SubSegement,
+			Industry:           d.Industry,
+			Sector:             d.Sector,
+			Ownership:          d.Ownership,
+			Target:             d.Target,
+		})
+	}
+
+	return customer, nil
 }

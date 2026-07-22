@@ -68,6 +68,8 @@ import (
 	cust_kyc_dto "cbe-super-app-cps-action/internal/constants/dto/customer_kyc"
 	queue "cbe-super-app-cps-action/internal/storage/queue_system"
 
+	self_activation_dto "cbe-super-app-cps-action/internal/constants/dto/customer_kyc_self"
+
 	bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 	"go.mongodb.org/mongo-driver/v2/bson"
 
@@ -195,6 +197,7 @@ type CustomerService interface {
 	CreateEnableCustomerSession(ctx context.Context, id string) (string, error)
 	GetCustomerActionLogByID(ctx context.Context, id string, filterParams types.Filter) (types.PaginatedResponse[[]customer_dto.CustomerActionLogResponse], error)
 	SearchCustomerByCIForAccountNumber(ctx context.Context, number string) (*customer_dto.CustomerListResponse, error)
+	SearchCustomerByCIF(ctx context.Context, number string) ([]self_activation_dto.CustomerFetchDetailResponse, error)
 	SearchCustomerServiceLimitByCIF(ctx context.Context, cif string, filterParams *types.Filter) (types.PaginatedResponse[[]customer_dto.CustomerServiceLimitResponses], error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	GetCustomerDetailByID(ctx context.Context, id string) (*customer_dto.CustomerDetailResponse, error)
@@ -720,6 +723,7 @@ type ServiceLayer struct {
 	AccountProduct                AccountProductService
 	AccountOpeningTerms           AccountOpeningTermsService
 	TokenProvider                 TokenProviderService
+	Utility                       UtilityService
 }
 
 type ServiceContainer struct {
@@ -796,6 +800,7 @@ type ServiceContainer struct {
 	AccountProductCategoryContainer    AccountProductCategoryService
 	AccountProductContainer            AccountProductService
 	AccountOpeningTermsContainer       AccountOpeningTermsService
+	UtilityContainer                   UtilityService
 }
 
 type BPSActionRoleService interface {
@@ -895,6 +900,7 @@ type TransactionService interface {
 	FetchTransactionByID(ctx context.Context, id string) (transaction_dto.VaultTransaction, error)
 	FetchAllTransactions(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]transaction_dto.VaultTransaction], error)
 	FindTransactionByCifOrAccountNumberOrFT(ctx context.Context, identifier string) (transaction_dto.VaultTransaction, error)
+	FetchTransactionLimitByCustomerNumber(ctx context.Context, customerNumber string) (*imodel.TransactionLimit, error)
 }
 type CPSActionRoleService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
@@ -945,6 +951,7 @@ type CustomerKYCService interface {
 	EnableOrDisable(ctx context.Context, id, reason string, enable bool) error
 	StartKycReview(ctx context.Context, id string) (*imodel.StartedKycReview, error)
 	PickKycReview(ctx context.Context, id string, reason string) error
+	ExportKYCOnboarding(ctx context.Context, from, to time.Time, fileType, customerName string) (string, error)
 	// UpdateKYCStatus(ctx context.Context, id, status string) error
 	// Delete(ctx context.Context, id string) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
@@ -956,6 +963,7 @@ type SelfActivateKYCService interface {
 	EnableOrDisable(ctx context.Context, id, reason string, enable bool) error
 	StartKycReview(ctx context.Context, id string) (*imodel.StartedKycReview, error)
 	PickKycReview(ctx context.Context, id string, reason string) error
+	ExportUserSelfActivation(ctx context.Context, from, to time.Time, fileType, customerName string) (string, error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
@@ -970,4 +978,16 @@ type SuperAppRoleService interface {
 	BulkDisableAccessLists(ctx context.Context, superappRole string, req superapproledto.BulkAccessListByRoleRequest) error
 	BulkEnableAccessLists(ctx context.Context, superappRole string, req superapproledto.BulkAccessListByRoleRequest) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+}
+
+// UtilityService handles opaque Kafka-sourced payloads gated by maker-checker.
+// The payload schema is unknown to this service — it is stored and forwarded as-is.
+type UtilityService interface {
+	// HandleKafkaMessage creates (or updates) a pending CPS action from an incoming Kafka message.
+	HandleKafkaMessage(ctx context.Context, msg imodel.UtilityKafkaMessage) error
+	// Authorize is called by the CPS dispatcher when a checker approves a utility action.
+	// On approval it publishes the CurrentAction bytes to the configured output Kafka topic.
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	// GetByUniqueToken returns the CurrentAction payload for a utility CPS action as a generic map.
+	GetByUniqueToken(ctx context.Context, uniqueToken, department string) (map[string]interface{}, error)
 }

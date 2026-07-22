@@ -23,12 +23,10 @@ import (
 	service_cache "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/catch/service"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type servicesService struct {
 	repo            storage.ServicesRepository
-	ussdMerchant    storage.UssdMerchantRepository
 	cps             service.CPSActionService
 	core            coreio.CBECoreAPIInterface
 	logger          utils.Logger
@@ -36,10 +34,9 @@ type servicesService struct {
 	accessListCache accessList_cache.AccessListCatch
 }
 
-func NewServicesService(repo storage.ServicesRepository, ussdMerchant storage.UssdMerchantRepository, cps service.CPSActionService, core coreio.CBECoreAPIInterface, serviceCache service_cache.ServiceCatch, accessListCache accessList_cache.AccessListCatch, logger utils.Logger) *servicesService {
+func NewServicesService(repo storage.ServicesRepository, cps service.CPSActionService, core coreio.CBECoreAPIInterface, serviceCache service_cache.ServiceCatch, accessListCache accessList_cache.AccessListCatch, logger utils.Logger) *servicesService {
 	return &servicesService{
 		repo:            repo,
-		ussdMerchant:    ussdMerchant,
 		cps:             cps,
 		core:            core,
 		serviceCache:    serviceCache,
@@ -75,7 +72,7 @@ func (s *servicesService) Create(ctx context.Context, req service_dto.CreateServ
 	if req.ProductGlAccount != "" {
 		var accountDetail *model.AccountDetail
 		var accountDetailForPl model.AccountDetail
-		if !*req.IsPlAccount && req.ProductGlAccount != "" {
+		if req.IsPlAccount != nil && !*req.IsPlAccount && req.ProductGlAccount != "" {
 			accountDetail, err = s.ValidateAccountNumberWithExternalAPI(ctx, req.ProductGlAccount)
 			if err != nil {
 				log.Errorf("[servicesService][Authorize] account number validation failed for account number %s: %v", req.ProductGlAccount, err)
@@ -264,17 +261,12 @@ func (s *servicesService) DeleteServices(ctx context.Context, id string) error {
 		return errors.New("There is an active donation connected with this service")
 	}
 
-	// Check ussd_merchants
-	if s.ussdMerchant != nil {
-		ussdMerchant, err := s.ussdMerchant.Find(ctx, bson.M{
-			"service": id,
-		})
-		if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
-			return err
-		}
-		if strings.EqualFold(ussdMerchant.Service, id) {
-			return errors.New("There is an active ussd merchant connected with this service")
-		}
+	ussdMerchant, err := s.repo.FindUSSDMerchantByServiceId(ctx, id)
+	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+		return err
+	}
+	if ussdMerchant {
+		return errors.New("There is an active ussd merchant connected with this service")
 	}
 
 	deleted := core.BuildServiceDeleteSnapshot(*prev)
@@ -482,7 +474,7 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 			return nil, localization.ErrorInvalidActionData
 		}
 		s.logger.Infof("[servicesService][Authorize] Authorizing create service with data: %+v", serviceDoc)
-		err = s.repo.Create(ctx, serviceDoc.ProductGlAccount, serviceDoc)
+		serviceID, err := s.repo.Create(ctx, serviceDoc.ProductGlAccount, serviceDoc)
 		if err == nil {
 			action.CurrentAction = serviceDoc
 		}
@@ -491,7 +483,7 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 
 		for _, c := range serviceDoc.Cap {
 			values = append(values, service_cache.ServiceData{
-				ServiceID:          action.UniqueId,
+				ServiceID:          serviceID,
 				AccessListID:       serviceDoc.ServiceKeyId,
 				ServiceKey:         serviceDoc.ServiceKey,
 				ServiceCode:        serviceDoc.ServiceCode,
@@ -548,7 +540,7 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 		if unmarshalErr != nil {
 			return nil, localization.ErrorInvalidActionData
 		}
-		err = s.repo.CreateServiceKey(ctx, listDoc)
+		accessListID, err := s.repo.CreateServiceKey(ctx, listDoc)
 		if err == nil {
 			action.CurrentAction = listDoc
 		}
@@ -564,7 +556,7 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 		}
 
 		s.accessListCache.Set(ctx, accessList_cache.AccessListData{
-			ID:          action.UniqueId,
+			ID:          accessListID,
 			Source:      source,
 			ServiceName: listDoc.ServiceName,
 			ServiceKey:  listDoc.ServiceKey,

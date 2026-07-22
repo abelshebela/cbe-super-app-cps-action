@@ -17,6 +17,10 @@ func InitRedis(ctx context.Context, cfg *sharedConfig.VaultConfig, logger utils.
 		logger.Errorf("Failed to initialize Redis connection: %v", err)
 		return nil, nil, err
 	}
+	// redisClient := redis.NewClient(&redis.Options{
+	// 	Addr: "localhost:6379",
+	// 	DB:   0,
+	// })
 
 	client := sharedRedis.NewRedisClient(redisClient, *cfg)
 

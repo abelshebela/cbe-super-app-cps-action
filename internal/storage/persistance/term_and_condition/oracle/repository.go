@@ -254,3 +254,16 @@ func (r *repository) FindAllWithPagination(ctx context.Context, filterParam type
 
 	return &types.PaginatedResponse[[]imodel.AccountOpeningTerms]{Data: out, Meta: meta}, nil
 }
+
+func (r *repository) EnableOrDisable(ctx context.Context, id string, enable bool) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+	log.Infof("[TACOracle][EnableOrDisable] id=%s enable=%v", id, enable)
+
+	q := `UPDATE ACCOUNT_OPENING_TERMS SET IS_ENABLED = :1, LAST_MODIFIED_AT = :2 WHERE ID = HEXTORAW(:3)`
+	_, err := r.db.ExecContext(ctx, q, enable, time.Now(), id)
+	if err != nil {
+		log.Errorf("[TACOracle][EnableOrDisable] err: %v", err)
+		return local_util.HandleDBError(err)
+	}
+	return nil
+}

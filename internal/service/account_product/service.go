@@ -70,6 +70,7 @@ func (s *accountProductService) Authorize(ctx context.Context, cpsAction *model.
 
 	switch constants.RequestAction(cpsAction.RequestAction) {
 	case constants.RequestCreateAccountProduct:
+
 		if err := s.repo.Create(ctx, &ap); err != nil {
 			span.AddEvent("create failed", trace.WithAttributes(attribute.String("error", err.Error())))
 			log.Errorf("[APSvc][Authorize] create err: %v", err)
@@ -154,7 +155,7 @@ func (s *accountProductService) Create(ctx context.Context, req ap_dto.CreateAPR
 		log.Errorf("[APSvc][Create] incomplete user")
 		return nil, errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
-
+	//   bypass for test
 	existing, err := s.repo.FindByCBSCode(ctx, req.CBSProductCode)
 	if err != nil && !strings.Contains(err.Error(), localization.ErrorResourceNotFound.Code) {
 		log.Errorf("[APSvc][Create] dup check err: %v", err)
@@ -184,28 +185,30 @@ func (s *accountProductService) Create(ctx context.Context, req ap_dto.CreateAPR
 	log.Infof("[AccountProduct][Create] Cover Image: %v", coverImageURL)
 
 	payload := imodel.AccountProduct{
-		CBSProductCode:        req.CBSProductCode,
-		ProductName:           req.ProductName,
-		ProductTagLine:        req.ProductTagLine,
-		AccountCategoryID:     req.AccountCategoryID,
-		AccountCurrency:       strings.ToUpper(req.AccountCurrency),
-		MinimumOpeningBalance: req.MinimumOpeningBalance,
-		MinimumMaintenanceFee: req.MinimumMaintenanceFee,
-		InterestFee:           req.InterestFee,
-		FaqURL:                req.FaqURL,
-		ProductFeatures:       req.ProductFeatures,
-		HasPhysicalCard:       req.HasPhysicalCard,
-		HasVirtualCard:        req.HasVirtualCard,
+		CBSProductCode:          req.CBSProductCode,
+		ProductName:             req.ProductName,
+		ProductTagLine:          req.ProductTagLine,
+		AccountCategoryID:       req.AccountCategoryID,
+		AccountCurrency:         strings.ToUpper(req.AccountCurrency),
+		MinimumOpeningBalance:   req.MinimumOpeningBalance,
+		MinimumMaintenanceFee:   req.MinimumMaintenanceFee,
+		InterestFee:             req.InterestFee,
+		FaqURL:                  req.FaqURL,
+		ProductFeatures:         req.ProductFeatures,
+		HasPhysicalCard:         req.HasPhysicalCard,
+		HasVirtualCard:          req.HasVirtualCard,
+		InterestRate:            req.InterestRate,
+		IsAvailableForOnbording: req.IsAvailableForOnbording,
 		// ProductIcon:           iconURL,
 		ProductCoverImage: coverImageURL,
 		IsEnabled:         true,
 	}
-
+	//bypass 2
 	if s.categoryRepo != nil {
 		if cat, err := s.categoryRepo.FindByID(ctx, req.AccountCategoryID); err == nil {
-			payload.CategoryName    = cat.CategoryName
+			payload.CategoryName = cat.CategoryName
 			payload.CBSCategoryCode = cat.CBSCategoryCode
-			payload.AccountType     = cat.AccountType
+			payload.AccountType = cat.AccountType
 		} else {
 			log.Errorf("[APSvc][Create] category lookup err: %v", err)
 		}
@@ -258,9 +261,9 @@ func (s *accountProductService) Update(ctx context.Context, id string, req ap_dt
 		updated.AccountCategoryID = req.AccountCategoryID
 		if s.categoryRepo != nil {
 			if cat, err := s.categoryRepo.FindByID(ctx, req.AccountCategoryID); err == nil {
-				updated.CategoryName    = cat.CategoryName
+				updated.CategoryName = cat.CategoryName
 				updated.CBSCategoryCode = cat.CBSCategoryCode
-				updated.AccountType     = cat.AccountType
+				updated.AccountType = cat.AccountType
 			} else {
 				log.Errorf("[APSvc][Update] category lookup err: %v", err)
 			}
@@ -289,6 +292,9 @@ func (s *accountProductService) Update(ctx context.Context, id string, req ap_dt
 	}
 	if req.HasVirtualCard != nil {
 		updated.HasVirtualCard = *req.HasVirtualCard
+	}
+	if req.IsAvailableForOnbording != nil {
+		updated.IsAvailableForOnbording = *req.IsAvailableForOnbording
 	}
 
 	if req.CoverImage != nil {
