@@ -275,6 +275,10 @@ func (s *customerKYCService) PickKycReview(ctx context.Context, id string, reaso
 		return err
 	}
 
+	if kycInReview.ReviewStatus != string(imodel.KYCStatusInReview) {
+		return fmt.Errorf("This KYC is already been: %s", kycInReview.ReviewStatus)
+	}
+
 	if kycInReview == nil {
 		log.Warnf("[CustKycSvc][PickKycReview] no active review found for kyc id: %s", id)
 		return errors.New("No active review found for this KYC request")
@@ -309,11 +313,27 @@ func (s *customerKYCService) PickKycReview(ctx context.Context, id string, reaso
 		PickReason: reason,
 	}
 
-	cpsActionData := lib.CpsModelBuilder(id, makerUser, nil, newReq, string(constants.RequestPickKycReview), constants.CREATE)
+	// cpsActionData := lib.CpsModelBuilder(id, makerUser, nil, newReq, string(constants.RequestPickKycReview), constants.CREATE)
 
-	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
-		log.Errorf("[CustKycSvc][StartKycReview] cps action err: %v", err)
-		return err
+	// if err := s.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
+	// 	log.Errorf("[CustKycSvc][StartKycReview] cps action err: %v", err)
+	// 	return err
+	// }
+
+	expiresAt := now.Add(30 * time.Minute)
+
+	kycInReview.PickedAt = &now
+	kycInReview.StartedAt = &now
+	kycInReview.ExpiresAt = &expiresAt
+	kycInReview.Reviewer = *newReq.PickedBy
+	kycInReview.PickedBy = newReq.PickedBy
+	kycInReview.PickReason = newReq.PickReason
+	kycInReview.PickCount += 1
+
+	_, err = s.repo.UpdateKycReview(ctx, id, kycInReview)
+	if err != nil {
+		log.Errorf("[CustKycSvc][PickKycReview] failed to update review expiration: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	return nil
