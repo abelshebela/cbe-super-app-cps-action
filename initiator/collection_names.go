@@ -68,6 +68,7 @@ var (
 	SurveyFeedbackCollection         = "survey_feedbacks"
 	UserActionLogsCollection         = "user_action_logs"
 	RoleDelegationCollection         = "role_delegations"
+	TransactionLimitsCollection      = "transaction_limits"
 )
 
 // Minio Bucket Names

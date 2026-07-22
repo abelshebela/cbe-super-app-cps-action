@@ -64,6 +64,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/wallet"
 
 	"cbe-super-app-cps-action/internal/storage/persistance/bulk_service"
+	transaction_limit_repo "cbe-super-app-cps-action/internal/storage/persistance/transaction_limit"
 	user_action_log_repo "cbe-super-app-cps-action/internal/storage/persistance/user_action_log"
 
 	"github.com/hugokessem/coreio/core"
@@ -143,9 +144,10 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreInterface cor
 		LogisticsMerchantPersistence: logistics_merchant_repository.NewLogisticsMerchantRepository(client, cfg, dbName, LogisticsMerchantsCollection, logger),
 		// CustomerKYCPersistence:       persistence_kyc.NewCustomerKYCRepository(client, cfg, dbName, CustomersKYCCollection, logger),
 		// UssdMerchantPersistence:   ussd_merchant_repo.NewUssdMerchant(client, dbName, UssdMerchantCollection, cfg, logger),
-		UserActionLogPersistence:  user_action_log_repo.NewUserActionLogRepository(client, cfg, dbName, UserActionLogsCollection, logger),
-		ServicesPersistence:       nil,                                                                                                                                                         // Services repository is commented out - using Oracle instead
-		RoleDelegationPersistence: role_delegation_repo.NewRoleDelegationRepository(client, cfg, dbName, []string{RoleDelegationCollection, CPSUsersCollection, BranchUserCollection}, logger), // Initialized in service.go to avoid circular dependency
+		UserActionLogPersistence:    user_action_log_repo.NewUserActionLogRepository(client, cfg, dbName, UserActionLogsCollection, logger),
+		ServicesPersistence:         nil,                                                                                                                                                         // Services repository is commented out - using Oracle instead
+		RoleDelegationPersistence:   role_delegation_repo.NewRoleDelegationRepository(client, cfg, dbName, []string{RoleDelegationCollection, CPSUsersCollection, BranchUserCollection}, logger), // Initialized in service.go to avoid circular dependency
+		TransactionLimitPersistence: transaction_limit_repo.NewTransactionLimitRepository(client, cfg, dbName, TransactionLimitsCollection, logger),
 	}
 
 	return data

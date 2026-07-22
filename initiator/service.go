@@ -67,6 +67,7 @@ import (
 	"cbe-super-app-cps-action/internal/service/roles"
 	services_svc "cbe-super-app-cps-action/internal/service/services"
 	sitota_service "cbe-super-app-cps-action/internal/service/sitota"
+	transaction_service "cbe-super-app-cps-action/internal/service/transaction"
 	superapp_role "cbe-super-app-cps-action/internal/service/superapp_role"
 	"cbe-super-app-cps-action/internal/service/topup"
 	"cbe-super-app-cps-action/internal/service/unlink"
@@ -348,6 +349,8 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	utilityService := utility_svc.NewUtilityService(cpsActionService, clientOrchestrationProducer, logger)
 	serviceContainer.UtilityContainer = utilityService
 
+	vaultTransactionService := transaction_service.NewVaultTransactionService(nil, persistence.TransactionLimitPersistence, logger)
+
 	return service.ServiceLayer{
 		RoleService:                   RoleService,
 		JobRoleService:                jobRoleService,
@@ -414,5 +417,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		AccountOpeningTerms:           accountOpeningTermsService,
 		TokenProvider:                 tokenProviderService,
 		Utility:                       utilityService,
+		TransactionService:            vaultTransactionService,
 	}
 }
