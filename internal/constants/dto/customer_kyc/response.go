@@ -34,9 +34,9 @@ type CustomerKYCResponse struct {
 
 	Reviewer *imodel.UserInfo `json:"reviewer,omitempty"`
 
-	ServerTime time.Time `json:"server-time"`
-	CreatedAt  string    `json:"created_at"`
-	UpdatedAt  string    `json:"updated_at"`
+	ServerTime string `json:"server-time,omitempty"`
+	CreatedAt  string `json:"created_at"`
+	UpdatedAt  string `json:"updated_at"`
 }
 
 type PersonalInformation struct {

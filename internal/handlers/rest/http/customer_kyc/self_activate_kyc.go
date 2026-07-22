@@ -74,7 +74,7 @@ func (c *selfActivationKYCAdapter) GetSelfActivateKYCRequest(w http.ResponseWrit
 		return
 	}
 
-	res.ServerTime = time.Now()
+	res.ServerTime = time.Now().UTC().Format(time.RFC3339)
 	localization.SendSuccessResponse(w, localization.SuccessDataRetrieved, res)
 }
 

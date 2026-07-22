@@ -103,7 +103,7 @@ func (c *customerKYCAdapter) GetKYCRequest(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	res.ServerTime = time.Now()
+	res.ServerTime = time.Now().UTC().Format(time.RFC3339)
 	localization.SendSuccessResponse(w, localization.SuccessDataRetrieved, res)
 }
 
