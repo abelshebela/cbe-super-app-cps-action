@@ -274,6 +274,10 @@ func (s *selfActivationKYCService) PickKycReview(ctx context.Context, id string,
 		return err
 	}
 
+	if kycInReview.ReviewStatus != string(imodel.KYCStatusInReview) {
+		return fmt.Errorf("This KYC is already been: %s", kycInReview.ReviewStatus)
+	}
+
 	if kycInReview == nil {
 		log.Warnf("[SelfActivationKYC][PickKycReview] no active review found for kyc id: %s", id)
 		return errors.New("No active review found for this KYC request")
@@ -308,11 +312,27 @@ func (s *selfActivationKYCService) PickKycReview(ctx context.Context, id string,
 		PickReason: reason,
 	}
 
-	cpsActionData := lib.CpsModelBuilder(id, makerUser, nil, newReq, string(constants.RequestPickSelfActivateKycReview), constants.CREATE)
+	// cpsActionData := lib.CpsModelBuilder(id, makerUser, nil, newReq, string(constants.RequestPickSelfActivateKycReview), constants.CREATE)
 
-	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
-		log.Errorf("[SelfActivationKYC][PickKycReview] cps action err: %v", err)
-		return err
+	// if err := s.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
+	// 	log.Errorf("[SelfActivationKYC][PickKycReview] cps action err: %v", err)
+	// 	return err
+	// }
+
+	expiresAt := now.Add(30 * time.Minute)
+
+	kycInReview.PickedAt = &now
+	kycInReview.StartedAt = &now
+	kycInReview.ExpiresAt = &expiresAt
+	kycInReview.Reviewer = *newReq.PickedBy
+	kycInReview.PickedBy = newReq.PickedBy
+	kycInReview.PickReason = newReq.PickReason
+	kycInReview.PickCount += 1
+
+	_, err = s.repo.UpdateKycReviewSA(ctx, id, kycInReview)
+	if err != nil {
+		log.Errorf("[SelfActivationKYC][PickKycReview] failed to update review expiration: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	return nil
@@ -511,35 +531,35 @@ func (s *selfActivationKYCService) Authorize(ctx context.Context, cpsAction *mod
 			}()
 		}
 
-	case string(constants.RequestPickSelfActivateKycReview):
-		reviewData, err := local_util.JsonUnmarshal[imodel.StartedKycReview](cpsAction.CurrentAction)
-		if err != nil {
-			return nil, err
-		}
+		// case string(constants.RequestPickSelfActivateKycReview):
+		// 	reviewData, err := local_util.JsonUnmarshal[imodel.StartedKycReview](cpsAction.CurrentAction)
+		// 	if err != nil {
+		// 		return nil, err
+		// 	}
 
-		existingReview,
-			err := s.repo.FindKycInReviewSA(ctx, cpsAction.UniqueId)
-		if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
-			log.Errorf("[SelfActivationKYC][Authorize] failed to check existing review: %v", err)
-			return nil, errors.New(localization.ErrorUnexpectedError.Code)
-		}
-		now := time.Now()
-		expiresAt := now.Add(30 * time.Minute)
+		// 	existingReview,
+		// 		err := s.repo.FindKycInReviewSA(ctx, cpsAction.UniqueId)
+		// 	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+		// 		log.Errorf("[SelfActivationKYC][Authorize] failed to check existing review: %v", err)
+		// 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		// 	}
+		// 	now := time.Now()
+		// 	expiresAt := now.Add(30 * time.Minute)
 
-		existingReview.PickedAt = &now
-		existingReview.StartedAt = &now
-		existingReview.ExpiresAt = &expiresAt
-		existingReview.Reviewer = *reviewData.PickedBy
-		existingReview.PickedBy = reviewData.PickedBy
-		existingReview.PickReason = reviewData.PickReason
-		existingReview.PickCount += 1
+		// 	existingReview.PickedAt = &now
+		// 	existingReview.StartedAt = &now
+		// 	existingReview.ExpiresAt = &expiresAt
+		// 	existingReview.Reviewer = *reviewData.PickedBy
+		// 	existingReview.PickedBy = reviewData.PickedBy
+		// 	existingReview.PickReason = reviewData.PickReason
+		// 	existingReview.PickCount += 1
 
-		_, err = s.repo.UpdateKycReviewSA(ctx, cpsAction.UniqueId, existingReview)
-		if err != nil {
-			log.Errorf("[SelfActivationKYC][Authorize] failed to update review expiration: %v", err)
-			return nil, errors.New(localization.ErrorUnexpectedError.Code)
-		}
-		return cpsAction, nil
+		// 	_, err = s.repo.UpdateKycReviewSA(ctx, cpsAction.UniqueId, existingReview)
+		// 	if err != nil {
+		// 		log.Errorf("[SelfActivationKYC][Authorize] failed to update review expiration: %v", err)
+		// 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		// 	}
+		// 	return cpsAction, nil
 
 	default:
 		return nil, fmt.Errorf("unsupported action: %s", cpsAction.RequestAction)
