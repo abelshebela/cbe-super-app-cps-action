@@ -586,34 +586,34 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 			}()
 		}
 
-	case string(constants.RequestPickKycReview):
-		reviewData, err := local_util.JsonUnmarshal[imodel.StartedKycReview](cpsAction.CurrentAction)
-		if err != nil {
-			return nil, err
-		}
+	// case string(constants.RequestPickKycReview):
+	// 	reviewData, err := local_util.JsonUnmarshal[imodel.StartedKycReview](cpsAction.CurrentAction)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
 
-		existingReview, err := s.repo.FindKycInReview(ctx, cpsAction.UniqueId)
-		if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
-			log.Errorf("[CustKycSvc][Authorize] failed to check existing review: %v", err)
-			return nil, errors.New(localization.ErrorUnexpectedError.Code)
-		}
-		now := time.Now()
-		expiresAt := time.Now().Add(30 * time.Minute)
+	// 	existingReview, err := s.repo.FindKycInReview(ctx, cpsAction.UniqueId)
+	// 	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+	// 		log.Errorf("[CustKycSvc][Authorize] failed to check existing review: %v", err)
+	// 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	// 	}
+	// 	now := time.Now()
+	// 	expiresAt := time.Now().Add(30 * time.Minute)
 
-		existingReview.PickedAt = &now
-		existingReview.StartedAt = &now
-		existingReview.ExpiresAt = &expiresAt
-		existingReview.Reviewer = *reviewData.PickedBy
-		existingReview.PickedBy = reviewData.PickedBy
-		existingReview.PickReason = reviewData.PickReason
-		existingReview.PickCount += 1
+	// 	existingReview.PickedAt = &now
+	// 	existingReview.StartedAt = &now
+	// 	existingReview.ExpiresAt = &expiresAt
+	// 	existingReview.Reviewer = *reviewData.PickedBy
+	// 	existingReview.PickedBy = reviewData.PickedBy
+	// 	existingReview.PickReason = reviewData.PickReason
+	// 	existingReview.PickCount += 1
 
-		_, err = s.repo.UpdateKycReview(ctx, cpsAction.UniqueId, existingReview)
-		if err != nil {
-			log.Errorf("[CustKycSvc][Authorize] failed to update review expiration: %v", err)
-			return nil, errors.New(localization.ErrorUnexpectedError.Code)
-		}
-		return cpsAction, nil
+	// 	_, err = s.repo.UpdateKycReview(ctx, cpsAction.UniqueId, existingReview)
+	// 	if err != nil {
+	// 		log.Errorf("[CustKycSvc][Authorize] failed to update review expiration: %v", err)
+	// 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	// 	}
+	// 	return cpsAction, nil
 
 	default:
 		return nil, fmt.Errorf("unsupported action: %s", cpsAction.RequestAction)
