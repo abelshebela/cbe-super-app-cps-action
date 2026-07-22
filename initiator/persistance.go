@@ -66,6 +66,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/bulk_service"
 	user_action_log_repo "cbe-super-app-cps-action/internal/storage/persistance/user_action_log"
 	ussd_merchant_repo "cbe-super-app-cps-action/internal/storage/persistance/ussd_merchant"
+	transaction_limit_repo "cbe-super-app-cps-action/internal/storage/persistance/transaction_limit"
 
 	"github.com/hugokessem/coreio/core"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
@@ -146,7 +147,8 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreInterface cor
 		UssdMerchantPersistence:   ussd_merchant_repo.NewUssdMerchant(client, dbName, UssdMerchantCollection, cfg, logger),
 		UserActionLogPersistence:  user_action_log_repo.NewUserActionLogRepository(client, cfg, dbName, UserActionLogsCollection, logger),
 		ServicesPersistence:       nil,                                                                                                                                                         // Services repository is commented out - using Oracle instead
-		RoleDelegationPersistence: role_delegation_repo.NewRoleDelegationRepository(client, cfg, dbName, []string{RoleDelegationCollection, CPSUsersCollection, BranchUserCollection}, logger), // Initialized in service.go to avoid circular dependency
+		RoleDelegationPersistence:   role_delegation_repo.NewRoleDelegationRepository(client, cfg, dbName, []string{RoleDelegationCollection, CPSUsersCollection, BranchUserCollection}, logger), // Initialized in service.go to avoid circular dependency
+		TransactionLimitPersistence: transaction_limit_repo.NewTransactionLimitRepository(client, cfg, dbName, TransactionLimitsCollection, logger),
 	}
 
 	return data

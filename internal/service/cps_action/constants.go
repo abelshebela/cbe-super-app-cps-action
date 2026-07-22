@@ -1243,10 +1243,14 @@ var RequestActionGroups = map[string][]constants.RequestAction{
 		RequestDisableShortVideo,
 	},
 	"CUSTOMER": {
-		RequestEnableDisableCustomer,
 		RequestApproveFaydaCustomer,
+	},
+	"BARECUSTOMER": {
 		RequestBlockCustomer,
 		RequestUnblockCustomer,
+	},
+	"DISABLECUSTOMER": {
+		RequestEnableDisableCustomer,
 	},
 	"NEWSCATEGORY": {
 		constants.RequestAction("CREATE_NEWS_CATEGORY"),
