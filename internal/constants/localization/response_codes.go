@@ -10400,4 +10400,12 @@ var (
 		Message:    "Utility action retrieved successfully",
 		Type:       "success",
 	}
+
+	// Transaction limit response codes
+	SuccessTransactionLimitRetrieved = ResponseCode{
+		Code:       "SUCCESS_TRANSACTION_LIMIT_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    "Transaction limit retrieved successfully",
+		Type:       "success",
+	}
 )

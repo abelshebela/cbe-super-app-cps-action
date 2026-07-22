@@ -900,6 +900,7 @@ type TransactionService interface {
 	FetchTransactionByID(ctx context.Context, id string) (transaction_dto.VaultTransaction, error)
 	FetchAllTransactions(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]transaction_dto.VaultTransaction], error)
 	FindTransactionByCifOrAccountNumberOrFT(ctx context.Context, identifier string) (transaction_dto.VaultTransaction, error)
+	FetchTransactionLimitByCustomerNumber(ctx context.Context, customerNumber string) (*imodel.TransactionLimit, error)
 }
 type CPSActionRoleService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)

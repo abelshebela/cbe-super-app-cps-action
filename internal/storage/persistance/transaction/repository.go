@@ -373,6 +373,7 @@ FETCH FIRST 1 ROWS ONLY`
 	return transaction, nil
 }
 
+
 func NewTransactionRepository(db *sql.DB, logger utils.Logger) storage.TransactionRepository {
 	return &TransactionRepository{
 		db:     db,
