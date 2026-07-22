@@ -1023,7 +1023,7 @@ func (a *AccountBlockStorage) GetBranchByDAOCode(ctx context.Context, code strin
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			log.Infof("[AccountBlockStorage][GetBranchByCode] branch not found: %s", code)
-			return nil, nil
+			return nil, local_util.HandleDBError(err)
 		}
 		log.Errorf("[AccountBlockStorage][GetBranchByCode] failed to fetch branch: %v", err)
 		return nil, localization.ErrorUnexpectedError
