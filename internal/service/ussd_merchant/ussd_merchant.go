@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 
@@ -62,11 +61,9 @@ func (s *ussdMerchantService) CreateUssdMerchant(ctx context.Context, req ussd_m
 	}
 
 	existing, err := s.repo.FindByOr(ctx, req.PhoneNumber, req.Email, req.AccountNumber)
-	if err != nil {
-		if err.Error() != localization.ErrorResourceNotFound.Code {
-			log.Errorf("[UssdMerchSvc][Create] exist check err: %v", err)
-			return err
-		}
+	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+		log.Errorf("[UssdMerchSvc][Create] exist check err: %v", err)
+		return err
 	}
 
 	if req.Service != "" {
@@ -90,14 +87,10 @@ func (s *ussdMerchantService) CreateUssdMerchant(ctx context.Context, req ussd_m
 		return errors.New(localization.ErrorFileUploadFailed.Code)
 	}
 
-	log.Infof("[UssdMerchSvc][Create] creating cps action****************1")
 	ussdMerchant := core.UssdMerchant(req)
-
-	log.Infof("[UssdMerchSvc][Create] creating cps action****************2")
 
 	ussdMerchant.Logo = URL
 	core.CreateCredentials(&ussdMerchant, s.cfg)
-	log.Infof("[UssdMerchSvc][Create] creating cps action****************3")
 
 	cspActionModel := lib.CpsModelBuilder(constants.Empty, makerData, nil, ussdMerchant, constants.RequestCreateUssdMerchant, constants.CREATE)
 	if err := s.cpsService.CreateCPSAction(ctx, &cspActionModel); err != nil {
@@ -323,18 +316,17 @@ func (s *ussdMerchantService) Authorize(ctx context.Context, cpsAction *model.CP
 			return nil, errors.New(localization.ErrorUnhandledServer.Code)
 		}
 	case string(constants.RequestUpdateUssdMerchant):
-		update := core.ModelToBson(curMerchant)
-		if err := s.repo.Update(ctx, cpsAction.UniqueId, update); err != nil {
+		if err := s.repo.Update(ctx, cpsAction.UniqueId, curMerchant); err != nil {
 			log.Errorf("[UssdMerchSvc][Authorize] update err: %v", err)
 			return nil, errors.New(localization.ErrorUnhandledServer.Code)
 		}
 	case string(constants.RequestEnableUssdMerchant):
-		if err := s.repo.Update(ctx, cpsAction.UniqueId, bson.M{"enabled": true}); err != nil {
+		if err := s.repo.EnableOrDisable(ctx, cpsAction.UniqueId, true); err != nil {
 			log.Errorf("[UssdMerchSvc][Authorize] enable err: %v", err)
 			return nil, err
 		}
 	case string(constants.RequestDisableUssdMerchant):
-		if err := s.repo.Update(ctx, cpsAction.UniqueId, bson.M{"enabled": false}); err != nil {
+		if err := s.repo.EnableOrDisable(ctx, cpsAction.UniqueId, false); err != nil {
 			log.Errorf("[UssdMerchSvc][Authorize] disable err: %v", err)
 			return nil, err
 		}

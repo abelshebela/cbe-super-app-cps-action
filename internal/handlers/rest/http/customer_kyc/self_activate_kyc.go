@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -73,6 +74,7 @@ func (c *selfActivationKYCAdapter) GetSelfActivateKYCRequest(w http.ResponseWrit
 		return
 	}
 
+	res.ServerTime = time.Now().UTC().Format(time.RFC3339)
 	localization.SendSuccessResponse(w, localization.SuccessDataRetrieved, res)
 }
 

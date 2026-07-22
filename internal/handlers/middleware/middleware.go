@@ -66,7 +66,7 @@ func CORS(cfg *config.VaultConfig) func(http.Handler) http.Handler {
 		AllowedOrigins: allowedOrigins,
 
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"},
-		AllowedHeaders:   []string{"Content-Type", "Authorization", "X-Requested-With", "X-CSRF-Token", "Accept", "Origin", "x-api-applicationid", "x-source-secret", "X-Api-Key", "x-api-key", "enable_encryption", "X-Session-ID", "Date"},
+		AllowedHeaders:   []string{"Content-Type", "Authorization", "X-Requested-With", "X-CSRF-Token", "Accept", "Origin", "x-api-applicationid", "x-source-secret", "X-Api-Key", "x-api-key", "enable_encryption", "X-Session-ID"},
 		ExposedHeaders:   []string{"X-Refreshed-Token", "x-action-code"},
 		AllowCredentials: allowCredentials,
 		MaxAge:           300,

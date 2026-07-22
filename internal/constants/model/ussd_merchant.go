@@ -3,12 +3,10 @@ package model
 import (
 	"cbe-super-app-cps-action/internal/constants"
 	"time"
-
-	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type UssdMerchant struct {
-	ID               bson.ObjectID              `bson:"_id" json:"id"`
+	ID               string                     `bson:"_id" json:"id"`
 	MerchantCode     string                     `bson:"merchant_code" json:"merchant_code"`
 	Credential       string                     `bson:"credential" json:"credential"`
 	Name             string                     `bson:"name" json:"name"`
