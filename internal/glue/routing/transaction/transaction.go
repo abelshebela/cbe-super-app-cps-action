@@ -13,7 +13,7 @@ func Init(router chi.Router, transactionHandler transaction.TransactionInterface
 	routes := []glue.Route{
 		{
 			Method:  http.MethodGet,
-			Path:    "/transaction/{customer_number}",
+			Path:    "/transaction/{customer_no}",
 			Handler: transactionHandler.FetchTransactionLimitByUserCode,
 			Middlewares: []func(http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
