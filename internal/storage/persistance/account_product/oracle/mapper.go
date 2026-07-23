@@ -13,7 +13,7 @@ const apSelectCols = `
 	ap.MINIMUM_OPENING_BALANCE, ap.MINIMUM_MAINTENANCE_FEE, ap.INTEREST_FEE,
 	ap.FAQ_URL, ap.PRODUCT_FEATURES, ap.HAS_PHYSICAL_CARD, ap.HAS_VIRTUAL_CARD,
 	ap.PRODUCT_ICON, ap.PRODUCT_COVER_IMAGE, ap.IS_ENABLED, ap.IS_DELETED,
-	ap.CREATED_AT, ap.LAST_MODIFIED_AT,ap.IS_AVAILABE_FOR_ONBORDING,ap.INTEREST_RATE
+	ap.CREATED_AT, ap.LAST_MODIFIED_AT,ap.IS_AVAILABE_FOR_ONBORDING
 `
 
 const apFromTable = ` FROM ACCOUNT_PRODUCTS ap LEFT JOIN ACCOUNT_CATEGORIES ac ON ap.ACCOUNT_CATEGORY_ID = ac.ID `
@@ -27,7 +27,7 @@ func scanAPRow(s rowScanner) (*imodel.AccountProduct, error) {
 		id, cbsCode, productName, tagLine                      string
 		accountCategoryID, categoryName, cbsCategoryCode, accountType string
 		accountCurrency                                        string
-		minOpeningBalance, minMaintenanceFee ,interestRate        float64
+		minOpeningBalance, minMaintenanceFee         float64
 		interestFee                                  float64
 		faqURL, productFeatures                      sql.NullString
 		productIcon, productCoverImage               sql.NullString
@@ -44,7 +44,7 @@ func scanAPRow(s rowScanner) (*imodel.AccountProduct, error) {
 		&hasPhysicalCard, &hasVirtualCard,
 		&productIcon, &productCoverImage,
 		&isEnabled, &isDeleted,
-		&createdAt, &lastModifiedAt,&isAvailableForOnbording,&interestRate,
+		&createdAt, &lastModifiedAt,&isAvailableForOnbording,
 	); err != nil {
 		return nil, err
 	}
@@ -73,6 +73,6 @@ func scanAPRow(s rowScanner) (*imodel.AccountProduct, error) {
 		CreatedAt:             createdAt,
 		LastModifiedAt:        lastModifiedAt,
 		IsAvailableForOnbording: isAvailableForOnbording ==1,
-		InterestRate: interestRate,
+		// InterestRate: interestRate,
 	}, nil
 }
