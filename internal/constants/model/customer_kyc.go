@@ -7,18 +7,10 @@ import (
 )
 
 type (
-	KYCStatus string
-	Vendor    string
+	Vendor string
 )
 
 const (
-	KYCStatusPending     KYCStatus = "PENDING"
-	KYCStatusInReview    KYCStatus = "IN_REVIEW"
-	KYCStatusApproved    KYCStatus = "APPROVED"
-	KYCStatusRejected    KYCStatus = "REJECTED"
-	KYCStatusExpired     KYCStatus = "EXPIRED"
-	KYCStatusTransferred KYCStatus = "TRANSFERRED"
-
 	Fayda    Vendor = "FAYDA"
 	Verigram Vendor = "Verigram"
 )

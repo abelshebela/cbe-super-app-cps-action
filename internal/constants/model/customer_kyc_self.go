@@ -7,18 +7,13 @@ import (
 )
 
 type ReviewStatus string
-type ReviewDecision string
 
 const (
-	DecisionApproved ReviewDecision = "APPROVED"
-	DecisionRejected ReviewDecision = "REJECTED"
-)
-
-const (
-	ReviewPending   ReviewStatus = "PENDING"
-	ReviewStarted   ReviewStatus = "STARTED"
-	ReviewCompleted ReviewStatus = "COMPLETED"
-	ReviewCancelled ReviewStatus = "CANCELLED"
+	KYCStatusPending   ReviewStatus = "PENDING"
+	KYCStatusInReview  ReviewStatus = "IN_REVIEW"
+	KYCStatusCancelled ReviewStatus = "CANCELLED"
+	KYCStatusApproved  ReviewStatus = "APPROVED"
+	KYCStatusRejected  ReviewStatus = "REJECTED"
 )
 
 type SelfActivationUser struct {
@@ -61,10 +56,9 @@ type KYCReview struct {
 }
 
 type KYCReviewDecision struct {
-	Outcome         ReviewDecision `json:"outcome" bson:"outcome"`
-	RejectionReason string         `json:"rejection_reason" bson:"rejection_reason"`
-	ReviewedAt      *time.Time     `json:"reviewed_at" bson:"reviewed_at"`
-	Reviewer        *UserInfo      `json:"reviewer" bson:"reviewer"`
+	RejectionReason string     `json:"rejection_reason" bson:"rejection_reason"`
+	ReviewedAt      *time.Time `json:"reviewed_at" bson:"reviewed_at"`
+	Reviewer        *UserInfo  `json:"reviewer" bson:"reviewer"`
 }
 
 type KYCReviewAssignment struct {
