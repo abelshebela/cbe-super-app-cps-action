@@ -2,7 +2,6 @@ package customerkyc
 
 import (
 	imodel "cbe-super-app-cps-action/internal/constants/model"
-	"time"
 )
 
 type CustomerKYCResponse struct {
@@ -22,21 +21,36 @@ type CustomerKYCResponse struct {
 	AccountNumbers       []string             `json:"account_numbers,omitempty"`
 	CustomerStatus       string               `json:"customer_status"`
 
-	KYCStatus string  `json:"kyc_status,omitempty"`
-	KYC       KycInfo `bson:"kyc" json:"kyc"`
+	KYC        KycInfo           `bson:"kyc" json:"kyc"`
+	ComplyCube imodel.ComplyCube `bson:"complycube" json:"complycube"`
 
 	MoneyLaunderingFree *bool  `json:"money_laundering_free"`
 	KYCRejectReason     string `bson:"kyc_reject_reason,omitempty" json:"kyc_reject_reason,omitempty"`
 	TermsAndConditions  string `json:"terms_and_conditions,omitempty"`
 
-	KYCReviewStartedAt *time.Time `json:"started_at,omitempty"`
-	KYCReviewExpiresAt *time.Time `json:"expires_at,omitempty"`
+	Reviewer *imodel.UserInfo  `json:"reviewer,omitempty"`
+	Review   *imodel.KYCReview `json:"review"`
 
-	Reviewer *imodel.UserInfo `json:"reviewer,omitempty"`
+	LinkedAccount []LinkedAccounts `json:"linked_account,omitempty"`
 
 	ServerTime string `json:"server-time,omitempty"`
 	CreatedAt  string `json:"created_at"`
 	UpdatedAt  string `json:"updated_at"`
+}
+
+type LinkedAccounts struct {
+	AccountHolderName  string `json:"account_holder_name"`
+	PhoneNumber        string `json:"phone_number"`
+	AccountType        string `json:"account_type"`
+	ProductCode        string `json:"product_code"`
+	LinkedChannel      string `json:"linked_channel"`
+	Currency           string `json:"currency"`
+	BranchName         string `json:"branch_name"`
+	BranchCode         string `json:"branch_code"`
+	InActive           string `json:"in_active"`
+	PostingRestriction string `json:"posting_restriction"`
+	RestrictionType    string `json:"restriction_type"`
+	AndorAccount       *bool  `json:"and_or_account"`
 }
 
 type PersonalInformation struct {

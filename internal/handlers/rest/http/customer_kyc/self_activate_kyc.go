@@ -178,6 +178,7 @@ func (c *selfActivationKYCAdapter) StartSelfActivateKycReview(w http.ResponseWri
 		return
 	}
 
+	newReview.ServerTime = time.Now().UTC().Format(time.RFC3339)
 	localization.SendSuccessResponse(w, localization.SuccessKYCReviewStarted, newReview)
 }
 

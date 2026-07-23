@@ -6,6 +6,21 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
+type ReviewStatus string
+type ReviewDecision string
+
+const (
+	DecisionApproved ReviewDecision = "APPROVED"
+	DecisionRejected ReviewDecision = "REJECTED"
+)
+
+const (
+	ReviewPending   ReviewStatus = "PENDING"
+	ReviewStarted   ReviewStatus = "STARTED"
+	ReviewCompleted ReviewStatus = "COMPLETED"
+	ReviewCancelled ReviewStatus = "CANCELLED"
+)
+
 type SelfActivationUser struct {
 	ID             bson.ObjectID   `bson:"_id,omitempty" json:"id"`
 	Sub            string          `bson:"sub" json:"sub"`
@@ -28,11 +43,33 @@ type SelfActivationUser struct {
 	KYC        KycInfo    `bson:"kyc" json:"kyc"`
 	ComplyCube ComplyCube `bson:"complycube" json:"complycube"`
 
-	KYCRejectReason string `bson:"kyc_reject_reason,omitempty" json:"kyc_reject_reason,omitempty"`
+	Review *KYCReview `json:"review" bson:"review"`
 
 	CreatedAt      time.Time `bson:"created_at" json:"created_at"`
 	LastModifiedAt time.Time `bson:"last_modified_at" json:"last_modified_at"`
 	UpdatedAt      time.Time `bson:"updated_at" json:"updated_at"`
+}
+
+type KYCReview struct {
+	Assignments     []KYCReviewAssignment `json:"assignments,omitempty" bson:"assignments"`
+	PickCount       int                   `json:"pick_count,omitempty" bson:"pick_count"`
+	Status          ReviewStatus          `json:"status" bson:"status"`
+	Decision        *KYCReviewDecision    `json:"decision,omitempty" bson:"decision"`
+	ReviewStartedAt *time.Time            `json:"review_started_at" bson:"review_started_at"`
+	ReviewExpiresAt *time.Time            `json:"review_expires_at" bson:"review_expires_at"`
+}
+
+type KYCReviewDecision struct {
+	Outcome         ReviewDecision `json:"outcome" bson:"outcome"`
+	RejectionReason string         `json:"rejection_reason" bson:"rejection_reason"`
+	ReviewedAt      *time.Time     `json:"reviewed_at" bson:"reviewed_at"`
+	Reviewer        *UserInfo      `json:"reviewer" bson:"reviewer"`
+}
+
+type KYCReviewAssignment struct {
+	PickedAt   *time.Time `json:"picked_at" bson:"picked_at"`
+	PickedBy   *UserInfo  `json:"picked_by" bson:"picked_by"`
+	PickReason string     `json:"pick_reason" bson:"pick_reason"`
 }
 
 type CustomerAddress struct {
@@ -43,10 +80,10 @@ type CustomerAddress struct {
 }
 
 type KycInfo struct {
-	PhoneMismatch  bool   `bson:"phone_mismatch" json:"phone_mismatch"`
-	BelowThreshold bool   `bson:"below_threshold" json:"below_threshold"`
-	ContainsANDOR  bool   `bson:"contains_and_or" json:"contains_and_or"`
-	KYCStatus      string `bson:"kyc_status" json:"kyc_status"`
+	PhoneMismatch  bool `bson:"phone_mismatch" json:"phone_mismatch"`
+	BelowThreshold bool `bson:"below_threshold" json:"below_threshold"`
+	ContainsANDOR  bool `bson:"contains_and_or" json:"contains_and_or"`
+	// KYCStatus      string `bson:"kyc_status" json:"kyc_status"`
 }
 
 type ComplyCube struct {
