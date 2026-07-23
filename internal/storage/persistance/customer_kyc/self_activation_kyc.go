@@ -149,13 +149,12 @@ func (r *selfActivationRepository) ApproveOrRejectSA(ctx context.Context, id, st
 
 	now := time.Now()
 	update := bson.M{
-		"review.status": imodel.ReviewCompleted,
+		"review.status": status,
 		"enabled":       approved,
 		"updated_at":    now,
 	}
 
-	if status != string(imodel.ReviewCancelled) {
-		update["review.decision.outcome"] = status
+	if status != string(imodel.KYCStatusCancelled) {
 		update["review.decision.reviewed_at"] = now
 	}
 
@@ -202,9 +201,6 @@ func (r *selfActivationRepository) UpdateKYCSA(ctx context.Context, id string, d
 			update["review.assignments"] = data.Review.Assignments
 		}
 		if data.Review.Decision != nil {
-			if data.Review.Decision.Outcome != "" {
-				update["review.decision.outcome"] = string(data.Review.Decision.Outcome)
-			}
 			if data.Review.Decision.RejectionReason != "" {
 				update["review.decision.rejection_reason"] = data.Review.Decision.RejectionReason
 			}

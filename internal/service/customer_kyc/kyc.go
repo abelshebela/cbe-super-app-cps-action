@@ -118,12 +118,12 @@ func (s *customerKYCService) EnableOrDisable(ctx context.Context, id, reason str
 		return errors.New("The KYC review period has expired.")
 	}
 
-	if result.Enabled && enable && string(result.Review.Decision.Outcome) == string(imodel.KYCStatusApproved) {
+	if result.Enabled && enable && string(result.Review.Status) == string(imodel.KYCStatusApproved) {
 		log.Warnf("[CustKycSvc][EnableDisable] already in state id: %s, enabled: %v", id, enable)
 		return errors.New("Customer KYC is already approved")
 	}
 
-	if !enable && string(result.Review.Decision.Outcome) == string(imodel.KYCStatusRejected) {
+	if !enable && string(result.Review.Status) == string(imodel.KYCStatusRejected) {
 		log.Warnf("[CustKycSvc][EnableDisable] already rejected id: %s", id)
 		return errors.New("Customer KYC is already rejected")
 	}
@@ -138,9 +138,9 @@ func (s *customerKYCService) EnableOrDisable(ctx context.Context, id, reason str
 	newReq := *result
 	newReq.Enabled = enable
 	if enable {
-		newReq.Review.Status = imodel.ReviewStatus(imodel.DecisionApproved)
+		newReq.Review.Status = imodel.KYCStatusApproved
 	} else {
-		newReq.Review.Status = imodel.ReviewStatus(imodel.DecisionRejected)
+		newReq.Review.Status = imodel.KYCStatusRejected
 		newReq.Review.Decision.RejectionReason = reason
 	}
 
@@ -465,7 +465,7 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 		// 	return nil, err
 		// }
 
-		err = s.repo.ApproveOrReject(ctx, cpsAction.UniqueId, string(imodel.DecisionApproved), "", true)
+		err = s.repo.ApproveOrReject(ctx, cpsAction.UniqueId, string(imodel.KYCStatusApproved), "", true)
 		if err != nil {
 			return nil, err
 		}
@@ -498,7 +498,7 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 			return nil, errors.New("rejection reason is required")
 		}
 
-		err = s.repo.ApproveOrReject(ctx, cpsAction.UniqueId, string(imodel.DecisionRejected), rejectionReason, false)
+		err = s.repo.ApproveOrReject(ctx, cpsAction.UniqueId, string(imodel.KYCStatusRejected), rejectionReason, false)
 		if err != nil {
 			return nil, err
 		}
