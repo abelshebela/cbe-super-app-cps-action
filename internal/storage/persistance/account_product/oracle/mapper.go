@@ -13,7 +13,7 @@ const apSelectCols = `
 	ap.MINIMUM_OPENING_BALANCE, ap.MINIMUM_MAINTENANCE_FEE, ap.INTEREST_FEE,
 	ap.FAQ_URL, ap.PRODUCT_FEATURES, ap.HAS_PHYSICAL_CARD, ap.HAS_VIRTUAL_CARD,
 	ap.PRODUCT_ICON, ap.PRODUCT_COVER_IMAGE, ap.IS_ENABLED, ap.IS_DELETED,
-	ap.CREATED_AT, ap.LAST_MODIFIED_AT,ap.IS_AVAILABE_FOR_ONBORDING
+	ap.CREATED_AT, ap.LAST_MODIFIED_AT,ap.IS_AVAILABE_FOR_ONBORDING,ap.ACCOUNT_DESCRIPTION
 `
 
 const apFromTable = ` FROM ACCOUNT_PRODUCTS ap LEFT JOIN ACCOUNT_CATEGORIES ac ON ap.ACCOUNT_CATEGORY_ID = ac.ID `
@@ -24,16 +24,16 @@ type rowScanner interface {
 
 func scanAPRow(s rowScanner) (*imodel.AccountProduct, error) {
 	var (
-		id, cbsCode, productName, tagLine                      string
+		id, cbsCode, productName, tagLine                             string
 		accountCategoryID, categoryName, cbsCategoryCode, accountType string
-		accountCurrency                                        string
-		minOpeningBalance, minMaintenanceFee         float64
-		interestFee                                  float64
-		faqURL, productFeatures                      sql.NullString
-		productIcon, productCoverImage               sql.NullString
-		hasPhysicalCard, hasVirtualCard              int
-		isEnabled, isDeleted , isAvailableForOnbording                       int
-		createdAt, lastModifiedAt                    time.Time
+		accountCurrency                                               string
+		minOpeningBalance, minMaintenanceFee                          float64
+		interestFee                                                   float64
+		faqURL, productFeatures, product_description                  sql.NullString
+		productIcon, productCoverImage                                sql.NullString
+		hasPhysicalCard, hasVirtualCard                               int
+		isEnabled, isDeleted, isAvailableForOnbording                 int
+		createdAt, lastModifiedAt                                     time.Time
 	)
 
 	if err := s.Scan(
@@ -44,35 +44,45 @@ func scanAPRow(s rowScanner) (*imodel.AccountProduct, error) {
 		&hasPhysicalCard, &hasVirtualCard,
 		&productIcon, &productCoverImage,
 		&isEnabled, &isDeleted,
-		&createdAt, &lastModifiedAt,&isAvailableForOnbording,
+		&createdAt, &lastModifiedAt, &isAvailableForOnbording, &product_description,
 	); err != nil {
 		return nil, err
 	}
 
+	product_features_list, err := ParseOverviewHTML(productFeatures.String)
+	if err != nil {
+		return nil, err
+	}
+
+	// if err := json.Unmarshal([]byte(productFeatures.String), &product_features) ; err != nil{
+	// 	return nil,err
+	// }
+
 	return &imodel.AccountProduct{
-		ID:                    id,
-		CBSProductCode:        cbsCode,
-		ProductName:           productName,
-		ProductTagLine:        tagLine,
-		AccountCategoryID:     accountCategoryID,
-		CategoryName:          categoryName,
-		CBSCategoryCode:       cbsCategoryCode,
-		AccountType:           accountType,
-		AccountCurrency:       accountCurrency,
-		MinimumOpeningBalance: minOpeningBalance,
-		MinimumMaintenanceFee: minMaintenanceFee,
-		InterestFee:           interestFee,
-		FaqURL:                faqURL.String,
-		ProductFeatures:       productFeatures.String,
-		HasPhysicalCard:       hasPhysicalCard == 1,
-		HasVirtualCard:        hasVirtualCard == 1,
-		ProductIcon:           productIcon.String,
-		ProductCoverImage:     productCoverImage.String,
-		IsEnabled:             isEnabled == 1,
-		IsDeleted:             isDeleted == 1,
-		CreatedAt:             createdAt,
-		LastModifiedAt:        lastModifiedAt,
-		IsAvailableForOnbording: isAvailableForOnbording ==1,
+		ID:                      id,
+		CBSProductCode:          cbsCode,
+		ProductName:             productName,
+		ProductTagLine:          tagLine,
+		AccountCategoryID:       accountCategoryID,
+		CategoryName:            categoryName,
+		CBSCategoryCode:         cbsCategoryCode,
+		AccountType:             accountType,
+		AccountCurrency:         accountCurrency,
+		MinimumOpeningBalance:   minOpeningBalance,
+		MinimumMaintenanceFee:   minMaintenanceFee,
+		InterestFee:             interestFee,
+		FaqURL:                  faqURL.String,
+		ProductFeatures:         product_features_list,
+		HasPhysicalCard:         hasPhysicalCard == 1,
+		HasVirtualCard:          hasVirtualCard == 1,
+		ProductIcon:             productIcon.String,
+		ProductCoverImage:       productCoverImage.String,
+		IsEnabled:               isEnabled == 1,
+		IsDeleted:               isDeleted == 1,
+		CreatedAt:               createdAt,
+		LastModifiedAt:          lastModifiedAt,
+		IsAvailableForOnbording: isAvailableForOnbording == 1,
+		ProductDescription:      product_description.String,
 		// InterestRate: interestRate,
 	}, nil
 }

@@ -284,7 +284,7 @@ func (s *accountProductService) Update(ctx context.Context, id string, req ap_dt
 	if req.FaqURL != "" {
 		updated.FaqURL = req.FaqURL
 	}
-	if req.ProductFeatures != "" {
+	if req.ProductFeatures[0] != "" {
 		updated.ProductFeatures = req.ProductFeatures
 	}
 	if req.HasPhysicalCard != nil {

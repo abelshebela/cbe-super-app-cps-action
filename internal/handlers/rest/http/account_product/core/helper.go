@@ -1,6 +1,7 @@
 package account_product_handler_core
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -66,7 +67,17 @@ func ParseCreateRequest(r *http.Request, logger utils.Logger) (ap_dto.CreateAPRe
 	req.AccountCategoryID = strings.TrimSpace(r.FormValue("account_category"))
 	req.AccountCurrency = strings.ToUpper(strings.TrimSpace(r.FormValue("account_currency")))
 	req.FaqURL = strings.TrimSpace(r.FormValue("faq_url"))
-	req.ProductFeatures = strings.TrimSpace(r.FormValue("product_features"))
+	var features []string
+
+	err = json.Unmarshal(
+		[]byte(r.FormValue("product_features")),
+		&features,
+	)
+
+	req.ProductFeatures = features
+	// req.Eligibility = strings.TrimSpace(r.FormValue("eligibility"))
+	req.ProductDescription = strings.TrimSpace(r.FormValue("product_description"))
+	
 
 	if v := r.FormValue("interest_rate"); v != "" {
 		f, err := strconv.ParseFloat(v, 64)
@@ -152,8 +163,17 @@ func ParseUpdateRequest(r *http.Request, logger utils.Logger) (ap_dto.UpdateAPRe
 	req.AccountCategoryID = strings.TrimSpace(r.FormValue("account_category"))
 	req.AccountCurrency = strings.ToUpper(strings.TrimSpace(r.FormValue("account_currency")))
 	req.FaqURL = strings.TrimSpace(r.FormValue("faq_url"))
-	req.ProductFeatures = strings.TrimSpace(r.FormValue("product_features"))
+	var features []string
 
+	err = json.Unmarshal(
+		[]byte(r.FormValue("product_features")),
+		&features,
+	)
+
+	req.ProductFeatures = features
+	// req.Eligibility = strings.TrimSpace(r.FormValue("eligibility"))
+	req.ProductDescription = strings.TrimSpace(r.FormValue("product_description"))
+	
 	if v := r.FormValue("interest_rate"); v != "" {
 		f, err := strconv.ParseFloat(v, 64)
 		if err != nil {

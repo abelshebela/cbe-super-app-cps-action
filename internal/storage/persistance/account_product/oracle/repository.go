@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"golang.org/x/net/html"
 	"strings"
 	"time"
 
@@ -66,8 +67,10 @@ func (r *repository) createInner(ctx context.Context, ap *imodel.AccountProduct)
 		 ACCOUNT_CATEGORY_ID, ACCOUNT_CURRENCY,
 		 MINIMUM_OPENING_BALANCE, MINIMUM_MAINTENANCE_FEE, INTEREST_FEE,
 		 FAQ_URL, PRODUCT_FEATURES, HAS_PHYSICAL_CARD, HAS_VIRTUAL_CARD,
-		 PRODUCT_ICON, PRODUCT_COVER_IMAGE, IS_ENABLED, IS_DELETED,IS_AVAILABE_FOR_ONBORDING)
-		VALUES (:1, :2, :3, HEXTORAW(:4), :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16,:17)`
+		 PRODUCT_ICON, PRODUCT_COVER_IMAGE, IS_ENABLED, IS_DELETED,IS_AVAILABE_FOR_ONBORDING,PRODUCT_DESCRIPTION)
+		VALUES (:1, :2, :3, HEXTORAW(:4), :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16,:17,:18)`
+
+	formatedHtml := BuildOverviewHTML("Product Features",ap.ProductFeatures)
 
 	if _, err := r.db.ExecContext(ctx, q,
 		ap.CBSProductCode,
@@ -79,7 +82,7 @@ func (r *repository) createInner(ctx context.Context, ap *imodel.AccountProduct)
 		ap.MinimumMaintenanceFee,
 		ap.InterestFee,
 		ap_core.NullStringFromString(ap.FaqURL),
-		ap_core.NullStringFromString(ap.ProductFeatures),
+		ap_core.NullStringFromString(formatedHtml),
 		ap_core.BoolToInt(ap.HasPhysicalCard),
 		ap_core.BoolToInt(ap.HasVirtualCard),
 		ap_core.NullStringFromString(ap.ProductIcon),
@@ -87,6 +90,7 @@ func (r *repository) createInner(ctx context.Context, ap *imodel.AccountProduct)
 		ap_core.BoolToInt(ap.IsEnabled),
 		ap_core.BoolToInt(ap.IsDeleted),
 		ap_core.BoolToInt(ap.IsAvailableForOnbording),
+		ap_core.NullStringFromString(ap.ProductDescription),
 		// ap.InterestRate,
 	); err != nil {
 		log.Errorf("[APOracle][Create] insert: %v", err)
@@ -105,9 +109,10 @@ func (r *repository) Update(ctx context.Context, id string, ap *imodel.AccountPr
 		    MINIMUM_OPENING_BALANCE = :6, MINIMUM_MAINTENANCE_FEE = :7, INTEREST_FEE = :8,
 		    FAQ_URL = :9, PRODUCT_FEATURES = :10, HAS_PHYSICAL_CARD = :11,
 		    HAS_VIRTUAL_CARD = :12, PRODUCT_ICON = :13, PRODUCT_COVER_IMAGE = :14,
-		    LAST_MODIFIED_AT = :15,IS_AVAILABE_FOR_ONBORDING = :16
-		WHERE ID = HEXTORAW(:17) AND IS_DELETED = 0`
+		    LAST_MODIFIED_AT = :15,IS_AVAILABE_FOR_ONBORDING = :16,PRODUCT_DESCRIPTION = :17
+		WHERE ID = HEXTORAW(:18) AND IS_DELETED = 0`
 
+	formatedHtml := BuildOverviewHTML("Product Features",ap.ProductFeatures)
 	res, err := r.db.ExecContext(ctx, q,
 		ap.CBSProductCode,
 		ap.ProductName,
@@ -118,14 +123,16 @@ func (r *repository) Update(ctx context.Context, id string, ap *imodel.AccountPr
 		ap.MinimumMaintenanceFee,
 		ap.InterestFee,
 		ap_core.NullStringFromString(ap.FaqURL),
-		ap_core.NullStringFromString(ap.ProductFeatures),
+
+		ap_core.NullStringFromString(formatedHtml),
 		ap_core.BoolToInt(ap.HasPhysicalCard),
 		ap_core.BoolToInt(ap.HasVirtualCard),
 		ap_core.NullStringFromString(ap.ProductIcon),
 		ap_core.NullStringFromString(ap.ProductCoverImage),
 		time.Now(),
 		ap_core.BoolToInt(ap.IsAvailableForOnbording),
-		// ap.InterestRate,
+		ap_core.NullStringFromString(ap.ProductDescription),
+		// ap.InterestRate,,
 		id,
 	)
 	if err != nil {
@@ -136,6 +143,49 @@ func (r *repository) Update(ctx context.Context, id string, ap *imodel.AccountPr
 		return errors.New(localization.ErrorResourceNotFound.Code)
 	}
 	return nil
+}
+func BuildOverviewHTML(title string, items []string) string {
+	var b strings.Builder
+
+	b.WriteString("<h3>")
+	b.WriteString(title)
+	b.WriteString("</h3><ul>")
+
+	for _, item := range items {
+		b.WriteString("<li>")
+		b.WriteString(html.EscapeString(item))
+		b.WriteString("</li>")
+	}
+
+	b.WriteString("</ul>")
+
+	return b.String()
+}
+
+func ParseOverviewHTML(input string) ([]string, error) {
+	doc, err := html.Parse(strings.NewReader(input))
+	if err != nil {
+		return nil, err
+	}
+
+	var items []string
+
+	var walk func(*html.Node)
+	walk = func(n *html.Node) {
+		if n.Type == html.ElementNode && n.Data == "li" {
+			if n.FirstChild != nil {
+				items = append(items, n.FirstChild.Data)
+			}
+		}
+
+		for child := n.FirstChild; child != nil; child = child.NextSibling {
+			walk(child)
+		}
+	}
+
+	walk(doc)
+
+	return items, nil
 }
 
 func (r *repository) Delete(ctx context.Context, id string) error {
