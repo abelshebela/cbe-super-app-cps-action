@@ -197,7 +197,7 @@ func (c *customerAdapter) DisableCustomer(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if payload.Channel != "BOTH" && payload.Channel != "SUPPERAPP" && payload.Channel != "USSD" {
+	if payload.Channel != "BOTH" && payload.Channel != "SUPERAPP" && payload.Channel != "USSD" {
 		log.Errorf("[CustomerH][Disable] invalid channel: %s", payload.Channel)
 		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidInputParameter.Code)
 		return

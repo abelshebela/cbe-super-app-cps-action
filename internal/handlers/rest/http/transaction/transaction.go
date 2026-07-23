@@ -141,7 +141,7 @@ func (t *TransactionHandler) FetchTransactionLimitByUserCode(w http.ResponseWrit
 	defer span.End()
 	log := local_utils.LoggerFromCtx(ctx, t.logger)
 
-	customerNumber := chi.URLParam(r, "customer_number")
+	customerNumber := chi.URLParam(r, "customer_no")
 	if customerNumber == "" {
 		span.AddEvent("Missing customer_number", trace.WithAttributes(attribute.String("error", "customer_number required")))
 		localization.SendErrorByCodeResponse(w, localization.ErrorNoDataProvided.Code)
