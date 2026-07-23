@@ -250,6 +250,10 @@ func (r *roleDelegation) CreateWithNewUser(ctx context.Context, roleDelegation i
 		// validate delegated user's branch existence for bps user type
 		if branch, err := r.branchRepo.GetBranchByDAOCode(ctx, roleDelegation.DelegatedUserDepartmentOrBranch); err != nil || branch == nil {
 			r.logger.Errorf("[RoleDelegation/Create] Branch not found: %s", roleDelegation.DelegatedUserDepartmentOrBranch)
+			if err.Error() != localization.ErrorResourceNotFound.Code {
+				r.logger.Errorf("[RoleDelegation/Create] Failed to find branch: %v", err)
+				return localization.ErrorUnexpectedError
+			}
 			return localization.ErrorInvalidDelegationBranch
 		}
 	} else {

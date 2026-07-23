@@ -61,7 +61,7 @@ func (q *accessListSegmentationOracle) BulkDisable(ctx context.Context, req acce
 	var stmt string
 	switch req.SegmentationType {
 	case "account":
-		filter = fmt.Sprintf("SUPERAPP_ROLE_ID = HEXTORAW(:1) AND ACCESS_LIST_ID IN (%s)", strings.Join(inClause, ","))
+		filter = fmt.Sprintf("SUPERAPP_ROLE_ID = (%s) AND ACCESS_LIST_ID IN (%s)", req.SegmentationType, strings.Join(inClause, ","))
 		stmt = "DELETE FROM ACCESS_LIST_BY_SUPERAPP_ROLE WHERE " + filter
 	case "block":
 		filter = fmt.Sprintf("LOCATION_ID = :1 AND ACCESS_LIST_ID IN (%s)", strings.Join(inClause, ","))
