@@ -171,7 +171,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	RoleService := roles.NewRoleService(persistence.RolePersistence, persistence.PortalCardPersistence, persistence.CPSActionApproveIndexPersistence, persistence.JobRolePersistence, persistence.BPSActionApproveIndexPersistence, nil, *cfg, logger)
 	// CPSRolesService := cps_role.NewCPSRoleService(oracle.NewCPSRolesStorage, nil, coreInterface, logger)
 	customerKYCService := kyc_service.NewCustomerKYCService(oracle.CustomerKYC, nil, persistence.CpsUserPersistence, accountLookupAdapter, coreInterface, tokenProviderService, logger, minioClient, cfg.S3BucketName, cfg, smsService)
-	selfActivationKYCService := kyc_service.NewSelfActivationKYCService(oracle.SelfActivationKYC, nil, persistence.CpsUserPersistence, accountLookupAdapter, coreInterface, tokenProviderService, logger, cfg.S3BucketName, cfg, smsService, minioClient)
+	selfActivationKYCService := kyc_service.NewSelfActivationKYCService(oracle.SelfActivationKYC, nil, persistence.CpsUserPersistence, customerService, accountLookupAdapter, coreInterface, tokenProviderService, logger, cfg.S3BucketName, cfg, smsService, minioClient)
 	customerGroupService := customer_group.NewCustomerGroupService(oracle.CustomerGroup, nil, logger)
 	superAppRoleService := superapp_role.NewSuperAppRoleService(oracle.SuperAppRole, nil, coreInterface, logger)
 	roleDelegationService := role_delegation_service.NewRoleDelegationService(persistence.RoleDelegationPersistence, persistence.JobRolePersistence, persistence.CpsUserPersistence, persistence.BPSUserPersistence, persistence.DepartmentPersistence, persistence.RolePersistence, oracle.AccountBlock, nil, minioClient, cfg.S3BucketName, *cfg, notificationProducer, logger)
@@ -338,7 +338,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	RoleService = roles.NewRoleService(persistence.RolePersistence, persistence.PortalCardPersistence, persistence.CPSActionApproveIndexPersistence, persistence.JobRolePersistence, persistence.BPSActionApproveIndexPersistence, cpsActionService, *cfg, logger)
 	// CPSRolesService = cps_role.NewCPSRoleService(oracle.NewCPSRolesStorage, cpsActionService, coreInterface, logger)
 	customerKYCService = kyc_service.NewCustomerKYCService(oracle.CustomerKYC, cpsActionService, persistence.CpsUserPersistence, accountLookupAdapter, coreInterface, tokenProviderService, logger, minioClient, cfg.S3BucketName, cfg, smsService)
-	selfActivationKYCService = kyc_service.NewSelfActivationKYCService(oracle.SelfActivationKYC, cpsActionService, persistence.CpsUserPersistence, accountLookupAdapter, coreInterface, tokenProviderService, logger, cfg.S3BucketName, cfg, smsService, minioClient)
+	selfActivationKYCService = kyc_service.NewSelfActivationKYCService(oracle.SelfActivationKYC, cpsActionService, persistence.CpsUserPersistence, customerService, accountLookupAdapter, coreInterface, tokenProviderService, logger, cfg.S3BucketName, cfg, smsService, minioClient)
 	customerGroupService = customer_group.NewCustomerGroupService(oracle.CustomerGroup, cpsActionService, logger)
 	serviceContainer.CustomerGroupContainer = customerGroupService
 	superAppRoleService = superapp_role.NewSuperAppRoleService(oracle.SuperAppRole, cpsActionService, coreInterface, logger)

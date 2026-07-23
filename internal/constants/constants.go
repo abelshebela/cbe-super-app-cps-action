@@ -1132,19 +1132,12 @@ const (
 	RequestDeleteShortVideo  string = "DELETE_SHORT_VIDEO"
 
 	// Customer KYC
-	// RequestCreateCustomerKYC  RequestAction = "CREATE_CUSTOMER_KYC"
 	RequestApproveCustomerKYC RequestAction = "APPROVE_CUSTOMER_KYC"
 	RequestRejectCustomerKYC  RequestAction = "REJECT_CUSTOMER_KYC"
-	// RequestStartKycReview     RequestAction = "START_KYC_REVIEW"
-	RequestPickKycReview RequestAction = "PICK_KYC_REVIEW"
-	// RequestUpdateCustomerKYC RequestAction = "UPDATE_CUSTOMER_KYC"
-	// RequestDeleteCustomerKYC RequestAction = "DELETE_CUSTOMER_KYC"
 
 	// Self Activate KYC
-	RequestStartSelfActivateKy       RequestAction = "START_SELF_ACTIVATE_KYC"
-	RequestApproveSelfActivateKyc    RequestAction = "APPROVE_SELF_ACTIVATE_KYC"
-	RequestRejectSelfActivateKyc     RequestAction = "REJECT_SELF_ACTIVATE_KYC"
-	RequestPickSelfActivateKycReview RequestAction = "PICK_SELF_ACTIVATE_KYC_REVIEW"
+	RequestApproveSelfActivateKyc RequestAction = "APPROVE_SELF_ACTIVATE_KYC"
+	RequestRejectSelfActivateKyc  RequestAction = "REJECT_SELF_ACTIVATE_KYC"
 )
 
 const (
