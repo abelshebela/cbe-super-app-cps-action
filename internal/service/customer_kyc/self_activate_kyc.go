@@ -151,12 +151,12 @@ func (s *selfActivationKYCService) EnableOrDisable(ctx context.Context, id, reas
 		return errors.New("The KYC review period has expired.")
 	}
 
-	if result.Enabled && enable && string(result.Review.Decision.Outcome) == string(imodel.KYCStatusApproved) {
+	if result.Enabled && enable && string(result.Review.Status) == string(imodel.KYCStatusApproved) {
 		log.Warnf("[CustKycSvc][EnableDisable] already in state id: %s, enabled: %v", id, enable)
 		return errors.New("Self activation KYC is already approved")
 	}
 
-	if !enable && string(result.Review.Decision.Outcome) == string(imodel.KYCStatusRejected) {
+	if !enable && string(result.Review.Status) == string(imodel.KYCStatusRejected) {
 		log.Warnf("[CustKycSvc][EnableDisable] already rejected id: %s", id)
 		return errors.New("Self activation KYC is already rejected")
 	}
@@ -171,9 +171,9 @@ func (s *selfActivationKYCService) EnableOrDisable(ctx context.Context, id, reas
 	newReq := *result
 	newReq.Enabled = enable
 	if enable {
-		newReq.Review.Status = imodel.ReviewStatus(imodel.DecisionApproved)
+		newReq.Review.Status = imodel.KYCStatusApproved
 	} else {
-		newReq.Review.Status = imodel.ReviewStatus(imodel.DecisionRejected)
+		newReq.Review.Status = imodel.KYCStatusRejected
 		newReq.Review.Decision.RejectionReason = reason
 	}
 
@@ -419,7 +419,7 @@ func (s *selfActivationKYCService) Authorize(ctx context.Context, cpsAction *mod
 		if exists {
 			s.logger.Errorf("This user exists and has linked account: %v", err)
 
-			err := s.repo.ApproveOrRejectSA(ctx, cpsAction.UniqueId, string(imodel.ReviewCancelled), "", false)
+			err := s.repo.ApproveOrRejectSA(ctx, cpsAction.UniqueId, string(imodel.KYCStatusCancelled), "", false)
 			if err != nil {
 				return nil, err
 			}
@@ -427,7 +427,7 @@ func (s *selfActivationKYCService) Authorize(ctx context.Context, cpsAction *mod
 			return nil, fmt.Errorf("The user has already been approved through a branch. This request has been cancelled.")
 		} else {
 
-			err := s.repo.ApproveOrRejectSA(ctx, cpsAction.UniqueId, string(imodel.DecisionApproved), "", true)
+			err := s.repo.ApproveOrRejectSA(ctx, cpsAction.UniqueId, string(imodel.KYCStatusApproved), "", true)
 			if err != nil {
 				return nil, err
 			}
@@ -461,7 +461,7 @@ func (s *selfActivationKYCService) Authorize(ctx context.Context, cpsAction *mod
 			return nil, errors.New("rejection reason is required")
 		}
 
-		err = s.repo.ApproveOrRejectSA(ctx, cpsAction.UniqueId, string(imodel.DecisionRejected), rejectionReason, false)
+		err = s.repo.ApproveOrRejectSA(ctx, cpsAction.UniqueId, string(imodel.KYCStatusRejected), rejectionReason, false)
 		if err != nil {
 			return nil, err
 		}
