@@ -225,6 +225,7 @@ func MapSelfActivationUserToResponse(u *imodel.SelfActivationUser) *dto.Customer
 			Region: u.Address.Region,
 		},
 		FinancialInformation: dto.FinancialInformation{},
+		LinkedAccount:        u.LinkedAccount,
 		CapturedDocuments: dto.CapturedDocuments{
 			Photo:         u.Picture,
 			LivenessVideo: u.SelfiePhoto,
@@ -235,7 +236,11 @@ func MapSelfActivationUserToResponse(u *imodel.SelfActivationUser) *dto.Customer
 			BelowThreshold: u.KYC.BelowThreshold,
 			ContainsANDOR:  u.KYC.ContainsANDOR,
 		},
-		ComplyCube: u.ComplyCube,
+		ComplyCube: dto.ComplyCube{
+			DocumentType:    u.ComplyCube.DocumentType,
+			IdentityOutcome: u.ComplyCube.IdentityOutcome,
+			IdentityStatus:  u.ComplyCube.IdentityStatus,
+		},
 
 		Review: u.Review,
 
