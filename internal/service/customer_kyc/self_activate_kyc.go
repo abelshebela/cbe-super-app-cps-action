@@ -94,34 +94,34 @@ func (s *selfActivationKYCService) FindByID(ctx context.Context, id string) (*dt
 
 	mappedResponse := core.MapSelfActivationUserToResponse(result)
 
-	userData, err := s.customerSvc.SearchCustomerByCIF(ctx, result.CustomerNumber)
-	if err != nil {
-		return nil, err
-	}
+	// userData, err := s.customerSvc.SearchCustomerByCIF(ctx, result.CustomerNumber)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	chosenAccounts := make(map[string]struct{}, len(result.ChosenAccounts))
-	for _, account := range result.ChosenAccounts {
-		chosenAccounts[account] = struct{}{}
-	}
+	// chosenAccounts := make(map[string]struct{}, len(result.ChosenAccounts))
+	// for _, account := range result.ChosenAccounts {
+	// 	chosenAccounts[account] = struct{}{}
+	// }
 
-	for _, user := range userData {
-		if _, ok := chosenAccounts[user.AccountName]; ok {
-			mappedResponse.LinkedAccount = append(mappedResponse.LinkedAccount, dto.LinkedAccounts{
-				AccountHolderName:  user.CustomerName,
-				PhoneNumber:        user.Phone,
-				AccountType:        user.AccountType,
-				ProductCode:        "-",
-				LinkedChannel:      "-",
-				Currency:           user.Currency,
-				BranchName:         user.BranchName,
-				BranchCode:         user.BranchCode,
-				InActive:           user.InactiveFlag,
-				PostingRestriction: "-",
-				RestrictionType:    user.RestrictionType,
-				AndorAccount:       nil,
-			})
-		}
-	}
+	// for _, user := range userData {
+	// 	if _, ok := chosenAccounts[user.AccountName]; ok {
+	// 		mappedResponse.LinkedAccount = append(mappedResponse.LinkedAccount, dto.LinkedAccounts{
+	// 			AccountHolderName:  user.CustomerName,
+	// 			PhoneNumber:        user.Phone,
+	// 			AccountType:        user.AccountType,
+	// 			ProductCode:        "-",
+	// 			LinkedChannel:      "-",
+	// 			Currency:           user.Currency,
+	// 			BranchName:         user.BranchName,
+	// 			BranchCode:         user.BranchCode,
+	// 			InActive:           user.InactiveFlag,
+	// 			PostingRestriction: "-",
+	// 			RestrictionType:    user.RestrictionType,
+	// 			AndorAccount:       nil,
+	// 		})
+	// 	}
+	// }
 
 	return mappedResponse, nil
 }
