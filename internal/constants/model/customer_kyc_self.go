@@ -40,8 +40,9 @@ type SelfActivationUser struct {
 	IssueDate      string          `bson:"issue_date" json:"issue_date"`
 	SelfiePhoto    string          `json:"selfie_photo" bson:"selfie_photo"`
 
-	KYC        KycInfo    `bson:"kyc" json:"kyc"`
-	ComplyCube ComplyCube `bson:"complycube" json:"complycube"`
+	KYC           KycInfo          `bson:"kyc" json:"kyc"`
+	ComplyCube    ComplyCube       `bson:"complycube" json:"complycube"`
+	LinkedAccount []LinkedAccounts `json:"linked_account,omitempty"`
 
 	Review *KYCReview `json:"review" bson:"review"`
 
@@ -72,6 +73,21 @@ type KYCReviewAssignment struct {
 	PickReason string     `json:"pick_reason" bson:"pick_reason"`
 }
 
+type LinkedAccounts struct {
+	AccountHolderName  string `json:"account_holder_name"`
+	PhoneNumber        string `json:"phone_number"`
+	AccountType        string `json:"account_type"`
+	ProductCode        string `json:"product_code"`
+	LinkedChannel      string `json:"linked_channel"`
+	Currency           string `json:"currency"`
+	BranchName         string `json:"branch_name"`
+	BranchCode         string `json:"branch_code"`
+	InActive           string `json:"in_active"`
+	PostingRestriction string `json:"posting_restriction"`
+	RestrictionType    string `json:"restriction_type"`
+	AndorAccount       *bool  `json:"and_or_account"`
+}
+
 type CustomerAddress struct {
 	Zone   string `bson:"zone" json:"zone"`
 	Kebele string `bson:"kebele" json:"kebele"`
@@ -83,7 +99,6 @@ type KycInfo struct {
 	PhoneMismatch  bool `bson:"phone_mismatch" json:"phone_mismatch"`
 	BelowThreshold bool `bson:"below_threshold" json:"below_threshold"`
 	ContainsANDOR  bool `bson:"contains_and_or" json:"contains_and_or"`
-	// KYCStatus      string `bson:"kyc_status" json:"kyc_status"`
 }
 
 type ComplyCube struct {
