@@ -756,7 +756,7 @@ const (
 	MsgAccountRestricted                 = "Account number is restricted "
 	MsgMerchantCodeAlreadyExists         = "Merchant code already exist"
 	MsgPhonenumberAlreadyExists          = "Phone number already exists"
-	MsgUsernameAlreadyExists             = "Username already exists"
+	MsgUsernameAlreadyExists             = "Empower ID already exists"
 	MsgEmailAlreadyExists                = "this email already exist"
 	MsgPhoneAlreadyExists                = "this phone number already exist"
 	MsgCodeAlreadyExists                 = "Ecommerce merchant with this code/id already exists"

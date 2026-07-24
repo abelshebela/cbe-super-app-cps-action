@@ -587,7 +587,7 @@ func (c *customerOracleRepository) DisableCustomerByChannel(ctx context.Context,
 	switch channel {
 	case "BOTH":
 		query = `UPDATE users SET IS_SUPERAPP_ENABLED = 0, IS_USSD_ENABLED = 0 WHERE user_code = :1`
-	case "SUPPERAPP":
+	case "SUPERAPP":
 		query = `UPDATE users SET IS_SUPERAPP_ENABLED = 0 WHERE user_code = :1`
 	case "USSD":
 		query = `UPDATE users SET IS_USSD_ENABLED = 0 WHERE user_code = :1`

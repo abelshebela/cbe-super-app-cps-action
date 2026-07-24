@@ -28,7 +28,6 @@ import (
 type customerKYCRepository struct {
 	oracleDB         *sql.DB
 	dal              dal.MongoDal[imodel.CustomerKYC, imodel.CustomerKYC]
-	kycDal           dal.MongoDal[imodel.StartedKycReview, imodel.StartedKycReview]
 	logger           utils.Logger
 	coll             *mongo.Collection
 	membersCol       *mongo.Collection
@@ -39,7 +38,6 @@ func NewCustomerKYCRepository(client *mongo.Client, oracleDB *sql.DB, cfg *confi
 	return &customerKYCRepository{
 		oracleDB:         oracleDB,
 		dal:              dal.NewMongoDal[imodel.CustomerKYC, imodel.CustomerKYC](client, cfg, dbName, custKycCollection),
-		kycDal:           dal.NewMongoDal[imodel.StartedKycReview, imodel.StartedKycReview](client, cfg, dbName, "started_kyc_reviews"),
 		logger:           logger,
 		coll:             client.Database(dbName).Collection(custKycCollection),
 		membersCol:       client.Database(dbName).Collection("members"),
@@ -52,7 +50,7 @@ func (r *customerKYCRepository) FindAllWithPagination(ctx context.Context, filte
 
 	log.Infof("[CustomerKYC][FindAllWithPagination] fetching kyc requests")
 
-	allowed := []string{"kyc_status", "enabled", "created_at"}
+	allowed := []string{"review.status", "enabled", "created_at"}
 	filter, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, allowed)
 
 	filter["is_deleted"] = bson.M{"$ne": true}
@@ -64,7 +62,7 @@ func (r *customerKYCRepository) FindAllWithPagination(ctx context.Context, filte
 			{"kyc_data.phone_number": q},
 			{"kyc_data.email": q},
 			{"kyc_data.origin_id": q},
-			{"kyc_status": q},
+			{"review.status": q},
 			{"user_id": q},
 		}
 	}
@@ -119,6 +117,7 @@ func (r *customerKYCRepository) FindByID(ctx context.Context, id string) (*imode
 
 	return result, nil
 }
+
 func (r *customerKYCRepository) CreateUser(ctx context.Context, userAccount *coreio.CusteomerAccountCreationResponse, userData imodel.CustomerKYC) error {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
@@ -168,7 +167,7 @@ INSERT INTO USERS (
 	FIRST_NAME, LAST_NAME, MIDDLE_NAME, FULL_NAME,
 	GENDER, BIRTH_OF_DATE,
 	PIN, PIN_HISTORY, FAILED_LOGIN_ATTEMPT, IS_LOCKED,
-	IS_SUPERAPP_ENABLED, IS_USSD_ENABLED, IS_USSD_ACTIVE, IS_BLOCKED, IS_SUPPERAPP_ACTIVE,
+	IS_SUPERAPP_ENABLED, IS_USSD_ENABLED, IS_USSD_ACTIVE, IS_BLOCKED, IS_SUPERAPP_ACTIVE,
 	LANGUAGE, PUSH_TOKEN, BRANCH_CODE, IS_BUDGET_ENABLED, EXPIRY_AT,
 	PIN_CREATED_AT, CREATED_AT, LAST_MODIFIED_AT
 ) VALUES (
@@ -345,118 +344,91 @@ INSERT INTO LINKED_ACCOUNTS (
 	return nil
 }
 
-func (r *customerKYCRepository) UpdateKYCStatus(ctx context.Context, id, status, rejectionReason string, approved bool) error {
+func (r *customerKYCRepository) ApproveOrReject(ctx context.Context, id, status, rejectionReason string, approved bool) error {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
-	log.Infof("[CustomerKYC][UpdateKYCStatus] updating kyc status for id: %s to %s", id, status)
+	log.Infof("[customerKYCRepository][ApproveOrReject] updating review for id: %s to %s", id, status)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		log.Errorf("[CustomerKYC][UpdateKYCStatus] invalid object id: %v", err)
+		log.Errorf("[customerKYCRepository][ApproveOrReject] invalid object id: %v", err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
+	now := time.Now()
 	update := bson.M{
-		"kyc_status":       status,
-		"kyc_approved":     approved,
-		"enabled":          approved,
-		"last_modified_at": time.Now(),
+		"review.status": status,
+		"enabled":       approved,
+		"updated_at":    now,
 	}
+
+	if status != string(imodel.KYCStatusCancelled) {
+		update["review.decision.reviewed_at"] = now
+	}
+
 	if rejectionReason != "" {
-		update["kyc_reject_reason"] = rejectionReason
+		update["review.decision.rejection_reason"] = rejectionReason
 	}
 
 	filter := bson.M{"_id": objID}
 
 	if _, err := r.dal.UpdateOne(ctx, filter, update); err != nil {
-		log.Errorf("[CustomerKYC][UpdateKYCStatus] failed to update kyc status: %v", err)
+		log.Errorf("[customerKYCRepository][ApproveOrReject] failed to update review: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	return nil
 }
 
-// func (r *customerKYCRepository) Delete(ctx context.Context, id string) error {
-
-// 	log.Infof("[CustomerKYC][Delete] hard deleting kyc for id: %s", id)
-// 	objID, err := bson.ObjectIDFromHex(id)
-// 	if err != nil {
-// 		log.Errorf("[CustomerKYC][Delete] invalid object id: %v", err)
-// 		return errors.New(localization.ErrorInvalidID.Code)
-// 	}
-
-// 	filter := bson.M{"_id": objID}
-// 	if err := r.dal.DeleteOneH(ctx, filter); err != nil {
-// 		log.Errorf("[CustomerKYC][Delete] failed to delete kyc: %v", err)
-// 		return errors.New(localization.ErrorUnexpectedError.Code)
-// 	}
-
-// 	return nil
-// }
-
-func (r *customerKYCRepository) FindKycInReview(ctx context.Context, kycID string) (*imodel.StartedKycReview, error) {
+func (r *customerKYCRepository) UpdateKYC(ctx context.Context, id string, data *imodel.CustomerKYC) (*imodel.CustomerKYC, error) {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
-	log.Infof("[CustomerKYC][FindKycInReview] fetching started kyc by id: %s", kycID)
-	objID, err := bson.ObjectIDFromHex(kycID)
+	log.Infof("[customerKYCRepository][UpdateKYC] updating kyc for id: %s", id)
+	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		log.Errorf("[CustomerKYC][FindKycInReview] invalid object id: %v", err)
+		log.Errorf("[customerKYCRepository][UpdateKYC] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
 
-	filter := bson.M{"kyc_id": objID}
-	result, err := r.kycDal.FindOne(ctx, filter, nil)
-	if err != nil {
-		log.Errorf("[CustomerKYC][FindKycInReview] failed to find kyc: %v", err)
-		return nil, local_util.HandleDBError(err)
+	update := bson.M{}
+
+	if data.Review != nil {
+		if data.Review.Status != "" {
+			update["review.status"] = string(data.Review.Status)
+		}
+		if data.Review.ReviewStartedAt != nil {
+			update["review.review_started_at"] = data.Review.ReviewStartedAt
+		}
+		if data.Review.ReviewExpiresAt != nil {
+			update["review.review_expires_at"] = data.Review.ReviewExpiresAt
+		}
+		if data.Review.PickCount != 0 {
+			update["review.pick_count"] = data.Review.PickCount
+		}
+		if data.Review.Assignments != nil {
+			update["review.assignments"] = data.Review.Assignments
+		}
+		if data.Review.Decision != nil {
+			if data.Review.Decision.RejectionReason != "" {
+				update["review.decision.rejection_reason"] = data.Review.Decision.RejectionReason
+			}
+			if data.Review.Decision.ReviewedAt != nil {
+				update["review.decision.reviewed_at"] = data.Review.Decision.ReviewedAt
+			}
+			if data.Review.Decision.Reviewer != nil {
+				update["review.decision.reviewer"] = data.Review.Decision.Reviewer
+			}
+		}
 	}
 
-	return result, nil
-}
+	filter := bson.M{"_id": objID}
 
-func (r *customerKYCRepository) StartKycReview(ctx context.Context, reviewData *imodel.StartedKycReview) (*imodel.StartedKycReview, error) {
-	log := local_util.LoggerFromCtx(ctx, r.logger)
-
-	log.Debugf("[CustomerKYC][StartKycReview] inserting started review: %+v", reviewData)
-
-	result, err := r.kycDal.InsertOne(ctx, *reviewData)
+	result, err := r.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		log.Errorf("[CustomerKYC][StartKycReview] failed to insert started kyc review: %v", err)
-		log.Debugf("[CustomerKYC][StartKycReview] payload: %+v", reviewData)
-		return nil, local_util.HandleDBError(err)
-	}
-
-	return &result, nil
-}
-
-func (r *customerKYCRepository) UpdateKycReview(ctx context.Context, kycID string, reviewData *imodel.StartedKycReview) (*imodel.StartedKycReview, error) {
-	log := local_util.LoggerFromCtx(ctx, r.logger)
-
-	log.Infof("[UpdateKycReview] updating kyc review for id: %s", kycID)
-	objID, err := bson.ObjectIDFromHex(kycID)
-	if err != nil {
-		log.Errorf("[UpdateKycReview] invalid object id: %v", err)
-		return nil, errors.New(localization.ErrorInvalidID.Code)
-	}
-
-	filter := bson.M{"kyc_id": objID}
-	update := bson.M{
-		"review_status": reviewData.ReviewStatus,
-		"picked_at":     reviewData.PickedAt,
-		"started_at":    reviewData.StartedAt,
-		"expires_at":    reviewData.ExpiresAt,
-		"reviewer":      reviewData.Reviewer,
-		"picked_by":     reviewData.PickedBy,
-		"pick_reason":   reviewData.PickReason,
-		"pick_count":    reviewData.PickCount,
-	}
-
-	result, err := r.kycDal.UpdateOne(ctx, filter, update)
-	if err != nil {
-		log.Errorf("[UpdateKycReview] failed to update kyc review: %v", err)
+		log.Errorf("[customerKYCRepository][UpdateKYC] failed to update kyc: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	return &result, nil
+	return &result, err
 }
 
 func t24Gender(g string) sharedconst.Gender {

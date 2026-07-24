@@ -44,3 +44,8 @@ func (t *TransactionService) FetchTransactionByID(ctx context.Context, id string
 func (t *TransactionService) FetchTransactionLimitByCustomerNumber(ctx context.Context, customerNumber string) (*imodel.TransactionLimit, error) {
 	return t.limitRepo.FindByCustomerNumber(ctx, customerNumber)
 }
+
+// FetchAllTransactionLimits implements service.TransactionService.
+func (t *TransactionService) FetchAllTransactionLimits(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]imodel.TransactionLimit], error) {
+	return t.limitRepo.FindAllWithPagination(ctx, filterParams)
+}

@@ -95,8 +95,9 @@ func MapCustomerKYCToResponsePaginated(c *types.PaginatedResponse[[]imodel.Custo
 				IDCardBack:    item.KYCData.DocumentBack,
 			},
 
+			Review: item.Review,
+
 			CustomerStatus:      boolToCustomerStatus(item.Enabled),
-			KYCStatus:           string(item.KYCStatus),
 			MoneyLaunderingFree: nil,
 			TermsAndConditions:  "",
 
@@ -167,8 +168,9 @@ func MapCustomerKYCToResponse(c *model.CustomerKYC) *dto.CustomerKYCResponse {
 			IDCardBack:    c.KYCData.DocumentBack,
 		},
 
+		Review: c.Review,
+
 		CustomerStatus:      boolToCustomerStatus(c.Enabled),
-		KYCStatus:           string(c.KYCStatus),
 		MoneyLaunderingFree: nil,
 		TermsAndConditions:  "",
 
@@ -223,18 +225,25 @@ func MapSelfActivationUserToResponse(u *imodel.SelfActivationUser) *dto.Customer
 			Region: u.Address.Region,
 		},
 		FinancialInformation: dto.FinancialInformation{},
+		LinkedAccount:        u.LinkedAccount,
 		CapturedDocuments: dto.CapturedDocuments{
 			Photo:         u.Picture,
 			LivenessVideo: u.SelfiePhoto,
 		},
-		CustomerStatus:  "NEW",
-		KYCRejectReason: u.KYCRejectReason,
+		CustomerStatus: "NEW",
 		KYC: dto.KycInfo{
-			KYCStatus:      u.KYC.KYCStatus,
 			PhoneMismatch:  u.KYC.PhoneMismatch,
 			BelowThreshold: u.KYC.BelowThreshold,
 			ContainsANDOR:  u.KYC.ContainsANDOR,
 		},
+		ComplyCube: dto.ComplyCube{
+			DocumentType:    u.ComplyCube.DocumentType,
+			IdentityOutcome: u.ComplyCube.IdentityOutcome,
+			IdentityStatus:  u.ComplyCube.IdentityStatus,
+		},
+
+		Review: u.Review,
+
 		MoneyLaunderingFree: nil,
 		TermsAndConditions:  "",
 		CreatedAt:           u.CreatedAt.Format(time.RFC3339),

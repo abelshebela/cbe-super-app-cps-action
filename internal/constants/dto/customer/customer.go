@@ -14,7 +14,7 @@ type CustomerEnableDTO struct {
 }
 type CustomerDisableDTO struct {
 	DisableReason string `json:"disable_reason"`
-	Channel       string `json:"channel"` // BOTH, SUPPERAPP, USSD
+	Channel       string `json:"channel"` // BOTH, SUPERAPP, USSD
 }
 
 type CustomerEnableSessionResponse struct {
@@ -43,7 +43,7 @@ type BlockCustomerRequest struct {
 }
 
 type DisableCustomerRequest struct {
-	Channel       string `json:"channel"` // BOTH,SUPPERAPP,USSD
+	Channel       string `json:"channel"` // BOTH,SUPERAPP,USSD
 	DisableReason string `json:"disable_reason"`
 }
 

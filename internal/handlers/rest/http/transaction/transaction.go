@@ -159,6 +159,42 @@ func (t *TransactionHandler) FetchTransactionLimitByUserCode(w http.ResponseWrit
 	localization.SendSuccessResponse(w, localization.SuccessTransactionLimitRetrieved, limit)
 }
 
+// FetchAllTransactionLimits godoc
+//
+//	@Summary		Get all customer transaction limits
+//	@Description	Returns a paginated list of customer transaction limits. Supports search by customer_number.
+//	@Tags			Transactions
+//	@Produce		json
+//	@Param			page		query		int		false	"Page number"		default(1)
+//	@Param			per_page	query		int		false	"Items per page"	default(10)
+//	@Param			search		query		string	false	"Search by customer number"
+//	@Success		200	{object}	localization.StandardResponse{data=object}	"Transaction limits retrieved successfully"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}		"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/transaction/limits [get]
+func (t *TransactionHandler) FetchAllTransactionLimits(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_utils.TraceLogger(r.Context(), "handler", "transaction", "TransactionHandler", "FetchAllTransactionLimits")
+	defer span.End()
+	log := local_utils.LoggerFromCtx(ctx, t.logger)
+
+	filterParams, err := local_utils.ExtractFilterParams(r)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	limits, err := t.service.FetchAllTransactionLimits(ctx, *filterParams)
+	if err != nil {
+		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error())))
+		log.Errorf("[TxnH][GetAllLimits] svc err: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	span.AddEvent("Transaction limits retrieved", trace.WithAttributes(attribute.Int("count", len(limits.Data))))
+	localization.SendSuccessResponse(w, localization.SuccessTransactionLimitRetrieved, limits)
+}
+
 // FetchTransactionByID implements transaction.TransactionInterface.
 func (t *TransactionHandler) FetchTransactionByID(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_utils.TraceLogger(r.Context(), "handler", "transaction", "TransactionHandler", "FetchTransactionByID")
