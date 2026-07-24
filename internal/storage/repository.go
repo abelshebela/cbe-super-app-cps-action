@@ -832,6 +832,7 @@ type TransactionRepository interface {
 
 type TransactionLimitRepository interface {
 	FindByCustomerNumber(ctx context.Context, customerNumber string) (*local_model.TransactionLimit, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.TransactionLimit], error)
 }
 
 type EventMerchantRepository interface {
