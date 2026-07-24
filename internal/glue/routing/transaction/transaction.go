@@ -45,7 +45,7 @@ func Init(router chi.Router, transactionHandler transaction.TransactionInterface
 		// },
 		{
 			Method:  http.MethodGet,
-			Path:    "/transactions",
+			Path:    "/transaction",
 			Handler: transactionHandler.FetchAllTransactionLimits,
 			Middlewares: []func(http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
