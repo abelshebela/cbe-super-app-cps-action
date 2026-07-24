@@ -473,7 +473,7 @@ func (r *customerKYCRepository) FindKYCOnboardingForExport(ctx context.Context, 
 				"registration_date": "$last_modified_at",
 				"rejection_reason":  "$kyc_reject_reason_failed",
 				"customer_status":   "NEW",
-				"kyc_status":        "$kyc_status",
+				"kyc_status":        "$review.status",
 			},
 		}},
 	}
