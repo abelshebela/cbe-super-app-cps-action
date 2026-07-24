@@ -346,14 +346,8 @@ func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 
 	// Base match: only active users (include legacy docs without is_deleted)
-	match := bpsUserActiveFilter()
-	match, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, []string{})
+	match, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, []string{"enabled", "created_at"})
 	match["is_deleted"] = bson.M{"$ne": true}
-
-	// Search filters
-	if enabledVal, ok := filterParam.Filters["enabled"]; ok {
-		match["enabled"] = enabledVal
-	}
 	filterParam.Search = strings.TrimSpace(filterParam.Search)
 	if strings.HasPrefix(filterParam.Search, "09") || strings.HasPrefix(filterParam.Search, "07") {
 		filterParam.Search = filterParam.Search[1:]
