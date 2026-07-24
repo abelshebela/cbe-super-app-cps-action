@@ -3,6 +3,7 @@ package bps_user
 import (
 	// "cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants"
+	"cbe-super-app-cps-action/internal/constants/lib"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
@@ -346,6 +347,9 @@ func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 
 	// Base match: only active users (include legacy docs without is_deleted)
 	match := bpsUserActiveFilter()
+	match, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, []string{})
+	match["is_deleted"] = bson.M{"$ne": true}
+
 	// Search filters
 	if enabledVal, ok := filterParam.Filters["enabled"]; ok {
 		match["enabled"] = enabledVal
@@ -454,8 +458,8 @@ func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 		bson.D{{Key: "$sort", Value: bson.D{
 			{Key: "created_at", Value: -1},
 		}}},
-		bson.D{{Key: "$skip", Value: filterParam.PerPage * (filterParam.Page - 1)}},
-		bson.D{{Key: "$limit", Value: filterParam.PerPage}},
+		bson.D{{Key: "$skip", Value: skip}},
+		bson.D{{Key: "$limit", Value: limit}},
 	}
 
 	//  Execute aggregation
