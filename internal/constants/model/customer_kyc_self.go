@@ -35,9 +35,10 @@ type SelfActivationUser struct {
 	IssueDate      string          `bson:"issue_date" json:"issue_date"`
 	SelfiePhoto    string          `json:"selfie_photo" bson:"selfie_photo"`
 
-	KYC           KycInfo          `bson:"kyc" json:"kyc"`
-	ComplyCube    ComplyCube       `bson:"complycube" json:"complycube"`
-	LinkedAccount []LinkedAccounts `json:"linked_account,omitempty"`
+	KYC             KycInfo          `bson:"kyc" json:"kyc"`
+	CorePhoneNumber string           `bson:"core_phone_number" json:"core_phone_number"`
+	ComplyCube      ComplyCube       `bson:"complycube" json:"complycube"`
+	LinkedAccount   []LinkedAccounts `json:"linked_account,omitempty"`
 
 	Review *KYCReview `json:"review" bson:"review"`
 

@@ -21,8 +21,9 @@ type CustomerKYCResponse struct {
 	AccountNumbers       []string             `json:"account_numbers,omitempty"`
 	CustomerStatus       string               `json:"customer_status"`
 
-	KYC        KycInfo    `bson:"kyc" json:"kyc"`
-	ComplyCube ComplyCube `bson:"complycube" json:"complycube"`
+	KYC             KycInfo    `bson:"kyc" json:"kyc"`
+	CorePhoneNumber string     `json:"core_phone_number"`
+	ComplyCube      ComplyCube `bson:"complycube" json:"complycube"`
 
 	MoneyLaunderingFree *bool  `json:"money_laundering_free"`
 	KYCRejectReason     string `bson:"kyc_reject_reason,omitempty" json:"kyc_reject_reason,omitempty"`

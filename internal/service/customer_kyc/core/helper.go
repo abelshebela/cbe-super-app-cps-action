@@ -236,6 +236,7 @@ func MapSelfActivationUserToResponse(u *imodel.SelfActivationUser) *dto.Customer
 			BelowThreshold: u.KYC.BelowThreshold,
 			ContainsANDOR:  u.KYC.ContainsANDOR,
 		},
+		CorePhoneNumber: u.CorePhoneNumber,
 		ComplyCube: dto.ComplyCube{
 			DocumentType:    u.ComplyCube.DocumentType,
 			IdentityOutcome: u.ComplyCube.IdentityOutcome,
