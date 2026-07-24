@@ -67,8 +67,8 @@ func (r *repository) createInner(ctx context.Context, ap *imodel.AccountProduct)
 		 ACCOUNT_CATEGORY_ID, ACCOUNT_CURRENCY,
 		 MINIMUM_OPENING_BALANCE, MINIMUM_MAINTENANCE_FEE, INTEREST_FEE,
 		 FAQ_URL, PRODUCT_FEATURES, HAS_PHYSICAL_CARD, HAS_VIRTUAL_CARD,
-		 PRODUCT_ICON, PRODUCT_COVER_IMAGE, IS_ENABLED, IS_DELETED,IS_AVAILABE_FOR_ONBORDING,PRODUCT_DESCRIPTION)
-		VALUES (:1, :2, :3, HEXTORAW(:4), :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16,:17,:18)`
+		 PRODUCT_ICON, PRODUCT_COVER_IMAGE, IS_ENABLED, IS_DELETED,IS_AVAILABE_FOR_ONBORDING,PRODUCT_DESCRIPTION,ELIGIBILITY)
+		VALUES (:1, :2, :3, HEXTORAW(:4), :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16,:17,:18,:19)`
 
 	formatedHtml := BuildOverviewHTML("Product Features",ap.ProductFeatures)
 
@@ -91,6 +91,7 @@ func (r *repository) createInner(ctx context.Context, ap *imodel.AccountProduct)
 		ap_core.BoolToInt(ap.IsDeleted),
 		ap_core.BoolToInt(ap.IsAvailableForOnbording),
 		ap_core.NullStringFromString(ap.ProductDescription),
+		ap_core.NullStringFromString(ap.Eligibility),
 		// ap.InterestRate,
 	); err != nil {
 		log.Errorf("[APOracle][Create] insert: %v", err)
@@ -109,8 +110,8 @@ func (r *repository) Update(ctx context.Context, id string, ap *imodel.AccountPr
 		    MINIMUM_OPENING_BALANCE = :6, MINIMUM_MAINTENANCE_FEE = :7, INTEREST_FEE = :8,
 		    FAQ_URL = :9, PRODUCT_FEATURES = :10, HAS_PHYSICAL_CARD = :11,
 		    HAS_VIRTUAL_CARD = :12, PRODUCT_ICON = :13, PRODUCT_COVER_IMAGE = :14,
-		    LAST_MODIFIED_AT = :15,IS_AVAILABE_FOR_ONBORDING = :16,PRODUCT_DESCRIPTION = :17
-		WHERE ID = HEXTORAW(:18) AND IS_DELETED = 0`
+		    LAST_MODIFIED_AT = :15,IS_AVAILABE_FOR_ONBORDING = :16,PRODUCT_DESCRIPTION = :17,ELIGIBILITY=:18
+		WHERE ID = HEXTORAW(:19) AND IS_DELETED = 0`
 
 	formatedHtml := BuildOverviewHTML("Product Features",ap.ProductFeatures)
 	res, err := r.db.ExecContext(ctx, q,
@@ -132,6 +133,7 @@ func (r *repository) Update(ctx context.Context, id string, ap *imodel.AccountPr
 		time.Now(),
 		ap_core.BoolToInt(ap.IsAvailableForOnbording),
 		ap_core.NullStringFromString(ap.ProductDescription),
+		ap_core.NullStringFromString(ap.Eligibility),
 		// ap.InterestRate,,
 		id,
 	)

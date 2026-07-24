@@ -202,6 +202,7 @@ func (s *accountProductService) Create(ctx context.Context, req ap_dto.CreateAPR
 		// ProductIcon:           iconURL,
 		ProductCoverImage: coverImageURL,
 		IsEnabled:         true,
+		Eligibility: req.Eligibility,
 	}
 	//bypass 2
 	if s.categoryRepo != nil {
@@ -256,6 +257,9 @@ func (s *accountProductService) Update(ctx context.Context, id string, req ap_dt
 	}
 	if req.ProductTagLine != "" {
 		updated.ProductTagLine = req.ProductTagLine
+	}
+	if req.Eligibility != ""{
+		updated.Eligibility =req.Eligibility
 	}
 	if req.AccountCategoryID != "" {
 		updated.AccountCategoryID = req.AccountCategoryID

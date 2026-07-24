@@ -75,7 +75,7 @@ func ParseCreateRequest(r *http.Request, logger utils.Logger) (ap_dto.CreateAPRe
 	)
 
 	req.ProductFeatures = features
-	// req.Eligibility = strings.TrimSpace(r.FormValue("eligibility"))
+	req.Eligibility = strings.TrimSpace(r.FormValue("eligibility"))
 	req.ProductDescription = strings.TrimSpace(r.FormValue("product_description"))
 	
 
@@ -171,7 +171,7 @@ func ParseUpdateRequest(r *http.Request, logger utils.Logger) (ap_dto.UpdateAPRe
 	)
 
 	req.ProductFeatures = features
-	// req.Eligibility = strings.TrimSpace(r.FormValue("eligibility"))
+	req.Eligibility = strings.TrimSpace(r.FormValue("eligibility"))
 	req.ProductDescription = strings.TrimSpace(r.FormValue("product_description"))
 	
 	if v := r.FormValue("interest_rate"); v != "" {

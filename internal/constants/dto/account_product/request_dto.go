@@ -20,7 +20,7 @@ type CreateAPRequest struct {
 	IsAvailableForOnbording bool                 `json:"is_available_for_onbording"`
 	InterestRate            float64               `json:"interest_rate"`
 	ProductDescription     string                  `json:"product_description"`
-	// Eligibility            string                   `json:"eligibility"`
+	Eligibility            string                   `json:"eligibility"`
 }
 
 type UpdateAPRequest struct {
@@ -35,7 +35,7 @@ type UpdateAPRequest struct {
 	FaqURL                string                `json:"faq_url"`
 	ProductFeatures       []string                `json:"product_features"`
 	ProductDescription     string                  `json:"product_description"`
-	// Eligibility            string                   `json:"eligibility"`
+	Eligibility            string                   `json:"eligibility"`
 	HasPhysicalCard       *bool                 `json:"has_atm_and_debit_card"`
 	HasVirtualCard        *bool                 `json:"has_virtual_debit_card"`
 	Icon                  *multipart.FileHeader `json:"icon"`

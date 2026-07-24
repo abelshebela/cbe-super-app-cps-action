@@ -13,7 +13,7 @@ const apSelectCols = `
 	ap.MINIMUM_OPENING_BALANCE, ap.MINIMUM_MAINTENANCE_FEE, ap.INTEREST_FEE,
 	ap.FAQ_URL, ap.PRODUCT_FEATURES, ap.HAS_PHYSICAL_CARD, ap.HAS_VIRTUAL_CARD,
 	ap.PRODUCT_ICON, ap.PRODUCT_COVER_IMAGE, ap.IS_ENABLED, ap.IS_DELETED,
-	ap.CREATED_AT, ap.LAST_MODIFIED_AT,ap.IS_AVAILABE_FOR_ONBORDING,ap.ACCOUNT_DESCRIPTION
+	ap.CREATED_AT, ap.LAST_MODIFIED_AT,ap.IS_AVAILABE_FOR_ONBORDING,ap.PRODUCT_DESCRIPTION,ap.ELIGIBILITY
 `
 
 const apFromTable = ` FROM ACCOUNT_PRODUCTS ap LEFT JOIN ACCOUNT_CATEGORIES ac ON ap.ACCOUNT_CATEGORY_ID = ac.ID `
@@ -29,7 +29,7 @@ func scanAPRow(s rowScanner) (*imodel.AccountProduct, error) {
 		accountCurrency                                               string
 		minOpeningBalance, minMaintenanceFee                          float64
 		interestFee                                                   float64
-		faqURL, productFeatures, product_description                  sql.NullString
+		faqURL, productFeatures, product_description,eligibility                 sql.NullString
 		productIcon, productCoverImage                                sql.NullString
 		hasPhysicalCard, hasVirtualCard                               int
 		isEnabled, isDeleted, isAvailableForOnbording                 int
@@ -44,7 +44,7 @@ func scanAPRow(s rowScanner) (*imodel.AccountProduct, error) {
 		&hasPhysicalCard, &hasVirtualCard,
 		&productIcon, &productCoverImage,
 		&isEnabled, &isDeleted,
-		&createdAt, &lastModifiedAt, &isAvailableForOnbording, &product_description,
+		&createdAt, &lastModifiedAt, &isAvailableForOnbording, &product_description,&eligibility,
 	); err != nil {
 		return nil, err
 	}
@@ -83,6 +83,7 @@ func scanAPRow(s rowScanner) (*imodel.AccountProduct, error) {
 		LastModifiedAt:          lastModifiedAt,
 		IsAvailableForOnbording: isAvailableForOnbording == 1,
 		ProductDescription:      product_description.String,
+		Eligibility: eligibility.String,
 		// InterestRate: interestRate,
 	}, nil
 }

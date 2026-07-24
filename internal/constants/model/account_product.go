@@ -30,4 +30,5 @@ type AccountProduct struct {
 	CreatedAt             time.Time  `bson:"created_at" json:"created_at"`
 	LastModifiedAt        time.Time  `bson:"last_modified_at" json:"last_modified_at"`
 	DeletedAt             *time.Time `bson:"deleted_at" json:"deleted_at"`
+	Eligibility           string      `json:"eligibility"`
 }
