@@ -58,20 +58,15 @@ func (r *customerKYCRepository) FindAllWithPagination(ctx context.Context, filte
 	if filterParam.Search != "" {
 		q := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		filter["$or"] = []bson.M{
-			{"kyc_data.full_name": q},
-			{"kyc_data.phone_number": q},
-			{"kyc_data.email": q},
-			{"kyc_data.origin_id": q},
-			{"review.status": q},
-			{"user_id": q},
+			{"name": q},
+			{"phone_number": q},
 		}
 	}
 
 	nestedFieldMap := map[string]string{
-		"vendor":           "kyc_data.vendor",
-		"account_type":     "kyc_data.account_type",
-		"sub_account_type": "kyc_data.sub_account_type",
+		"kyc_status": "review.status",
 	}
+
 	for param, mongoField := range nestedFieldMap {
 		if v, ok := filterParam.Filters[param]; ok && v != nil && v != "" {
 			filter[mongoField] = v
