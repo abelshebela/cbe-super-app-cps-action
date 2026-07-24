@@ -244,7 +244,7 @@ func (r *CPSUserStorage) Update(ctx context.Context, userCode string, cpsUser *i
 			"delegated_user_id":                   cpsUser.UserName,
 			"delegated_user_job_title":            cpsUser.JobTitle,
 			"delegated_user_phone_number":         cpsUser.PhoneNumber,
-		}); err != nil {
+		}); err != nil && err != mongo.ErrNoDocuments {
 			log.Errorf("[CPSUserStorage][Update] failed to update role delegation: %v", err)
 			return nil, local_util.HandleDBError(err)
 		}
