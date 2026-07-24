@@ -21,7 +21,7 @@ func Init(router chi.Router, transactionHandler transaction.TransactionInterface
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/transactions/{id}",
+			Path:    "/transaction/{id}",
 			Handler: transactionHandler.FetchTransactionByID,
 			Middlewares: []func(http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -29,7 +29,7 @@ func Init(router chi.Router, transactionHandler transaction.TransactionInterface
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/transactions/search/{identifier}",
+			Path:    "/transaction/search/{identifier}",
 			Handler: transactionHandler.FindTransactionByCifOrAccountNumberOrFT,
 			Middlewares: []func(http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
