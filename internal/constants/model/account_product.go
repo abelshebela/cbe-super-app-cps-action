@@ -17,7 +17,8 @@ type AccountProduct struct {
 	MinimumMaintenanceFee float64    `bson:"minimum_maintenance_fee" json:"minimum_maintenance_fee"`
 	InterestFee           float64    `bson:"interest_fee" json:"interest_fee"`
 	FaqURL                string     `bson:"faq_url" json:"faq_url"`
-	ProductFeatures       string     `bson:"product_features" json:"product_features"`
+	ProductFeatures       []string     `bson:"product_features" json:"product_features"`
+	ProductDescription     string                  `json:"product_description"`
 	HasPhysicalCard       bool       `bson:"has_physical_card" json:"has_physical_card"`
 	HasVirtualCard        bool       `bson:"has_virtual_card" json:"has_virtual_card"`
 	ProductIcon           string     `bson:"product_icon" json:"product_icon"`
@@ -29,4 +30,5 @@ type AccountProduct struct {
 	CreatedAt             time.Time  `bson:"created_at" json:"created_at"`
 	LastModifiedAt        time.Time  `bson:"last_modified_at" json:"last_modified_at"`
 	DeletedAt             *time.Time `bson:"deleted_at" json:"deleted_at"`
+	Eligibility           string      `json:"eligibility"`
 }

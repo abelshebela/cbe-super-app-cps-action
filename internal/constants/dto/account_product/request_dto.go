@@ -12,13 +12,15 @@ type CreateAPRequest struct {
 	MinimumMaintenanceFee float64               `json:"minimum_balance_to_maintain_account"`
 	InterestFee           float64               `json:"interest_fee"`
 	FaqURL                string                `json:"faq_url"`
-	ProductFeatures       string                `json:"product_features"`
+	ProductFeatures       []string                `json:"product_features"`
 	HasPhysicalCard       bool                  `json:"has_atm_and_debit_card"`
 	HasVirtualCard        bool                  `json:"has_virtual_debit_card"`
 	Icon                  *multipart.FileHeader `json:"icon"`
 	CoverImage            *multipart.FileHeader `json:"cover_image"`
 	IsAvailableForOnbording bool                 `json:"is_available_for_onbording"`
 	InterestRate            float64               `json:"interest_rate"`
+	ProductDescription     string                  `json:"product_description"`
+	Eligibility            string                   `json:"eligibility"`
 }
 
 type UpdateAPRequest struct {
@@ -31,7 +33,9 @@ type UpdateAPRequest struct {
 	MinimumMaintenanceFee float64               `json:"minimum_balance_to_maintain_account"`
 	InterestFee           float64               `json:"interest_fee"`
 	FaqURL                string                `json:"faq_url"`
-	ProductFeatures       string                `json:"product_features"`
+	ProductFeatures       []string                `json:"product_features"`
+	ProductDescription     string                  `json:"product_description"`
+	Eligibility            string                   `json:"eligibility"`
 	HasPhysicalCard       *bool                 `json:"has_atm_and_debit_card"`
 	HasVirtualCard        *bool                 `json:"has_virtual_debit_card"`
 	Icon                  *multipart.FileHeader `json:"icon"`
@@ -83,13 +87,15 @@ type APResponse struct {
 	MinimumMaintenanceFee float64           `json:"minimum_maintenance_fee"`
 	InterestFee           float64           `json:"interest_fee"`
 	FaqURL                string            `json:"faq_url"`
-	ProductFeatures       string            `json:"product_features"`
+	ProductFeatures       []string            `json:"product_features"`
 	HasPhysicalCard       bool              `json:"has_physical_card"`
 	HasVirtualCard        bool              `json:"has_virtual_card"`
 	ProductIcon           string            `json:"product_icon"`
 	ProductCoverImage     string            `json:"product_cover_image"`
 	IsAvailableForOnbording bool                 `json:"is_available_for_onbording"`
 	InterestRate            float64               `json:"interest_rate"`
+	ProductDescription     string                  `json:"product_description"`
+	Eligibility            string                   `json:"eligibility"`
 	IsEnabled             bool              `json:"is_enabled"`
 	IsDeleted             bool              `json:"is_deleted"`
 	CreatedAt             string            `json:"created_at"`
