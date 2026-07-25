@@ -32,7 +32,7 @@ type CustomerKYCResponse struct {
 	Reviewer *imodel.UserInfo  `json:"reviewer,omitempty"`
 	Review   *imodel.KYCReview `json:"review"`
 
-	LinkedAccount []imodel.LinkedAccounts `json:"linked_account,omitempty"`
+	LinkedAccount []imodel.LinkedAccounts `json:"linked_account"`
 
 	ServerTime string `json:"server-time,omitempty"`
 	CreatedAt  string `json:"created_at"`
