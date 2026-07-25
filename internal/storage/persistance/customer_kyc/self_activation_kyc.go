@@ -224,7 +224,7 @@ func (r *selfActivationRepository) UpdateKYCSA(ctx context.Context, id string, d
 	return &result, err
 }
 
-func (r *selfActivationRepository) FindForExport(ctx context.Context, from, to time.Time, customerName string) ([]imodel.ExportSelfActivationRequest, error) {
+func (r *selfActivationRepository) FindForExport(ctx context.Context, from, to time.Time, status, customerName string) ([]imodel.ExportSelfActivationRequest, error) {
 	matchFilter := bson.M{
 		"created_at": bson.M{
 			"$gte": from,
@@ -232,6 +232,9 @@ func (r *selfActivationRepository) FindForExport(ctx context.Context, from, to t
 		},
 		"is_deleted": bson.M{"$ne": true},
 	}
+
+	statuses := local_util.StringSliceFromFilterValue(status)
+	matchFilter["review.status"] = bson.M{"$in": statuses}
 
 	if customerName != "" {
 		matchFilter["name"] = bson.M{

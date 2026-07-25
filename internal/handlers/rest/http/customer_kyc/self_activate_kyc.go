@@ -220,10 +220,21 @@ func (c *selfActivationKYCAdapter) ExportUserSelfActivation(w http.ResponseWrite
 	startDateRaw := strings.TrimSpace(r.URL.Query().Get("created_at_from"))
 	endDateRaw := strings.TrimSpace(r.URL.Query().Get("created_at_to"))
 	customerName := strings.TrimSpace(r.URL.Query().Get("name"))
+	status := strings.TrimSpace(r.URL.Query().Get("kyc_status"))
 
-	if fileType == "" || startDateRaw == "" || endDateRaw == "" {
+	if fileType == "" || startDateRaw == "" || endDateRaw == "" || status == "" {
 		log.Warnf("[ExportUserSelfActivation] missing required params: file_type=%q, created_at_from=%q, created_at_to=%q", fileType, startDateRaw, endDateRaw)
 		localization.SendBadRequestResponse(w, localization.ErrorRequiredFieldMissing.Message)
+		return
+	}
+
+	validStatus := map[string]bool{
+		"PENDING,IN_REVIEW": true,
+		"APPROVED":          true,
+		"REJECTED":          true,
+	}
+	if !validStatus[status] {
+		localization.SendBadRequestResponse(w, "status should be either PENDING,IN_REVIEW, APPROVED or REJECTED")
 		return
 	}
 
@@ -240,7 +251,7 @@ func (c *selfActivationKYCAdapter) ExportUserSelfActivation(w http.ResponseWrite
 		return
 	}
 
-	fileLink, err := c.svc.ExportUserSelfActivation(ctx, from, to, fileType, customerName)
+	fileLink, err := c.svc.ExportUserSelfActivation(ctx, from, to, fileType, status, customerName)
 	if err != nil {
 		log.Errorf("[ExportUserSelfActivation] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
