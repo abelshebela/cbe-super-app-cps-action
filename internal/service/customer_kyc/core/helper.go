@@ -206,7 +206,6 @@ func MapSelfActivationUserToResponse(u *imodel.SelfActivationUser) *dto.Customer
 
 	response := dto.CustomerKYCResponse{
 		ID:             u.ID.Hex(),
-		Sub:            u.Sub,
 		CustomerNumber: u.CustomerNumber,
 		PersonalInformation: dto.PersonalInformation{
 			FullName:       u.Name,

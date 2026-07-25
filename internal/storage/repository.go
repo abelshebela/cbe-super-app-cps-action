@@ -943,7 +943,7 @@ type CPSRolesRepository interface {
 type CustomerKYCRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.CustomerKYC], error)
 	FindByID(ctx context.Context, id string) (*imodel.CustomerKYC, error)
-	FindKYCOnboardingForExport(ctx context.Context, from, to time.Time, customerName string) ([]imodel.ExportSelfActivationRequest, error)
+	FindKYCOnboardingForExport(ctx context.Context, from, to time.Time, status, customerName string) ([]imodel.ExportSelfActivationRequest, error)
 	CreateUser(ctx context.Context, userAccount *coreio.CusteomerAccountCreationResponse, userData imodel.CustomerKYC) error
 	ApproveOrReject(ctx context.Context, id, status, rejectionReason string, approved bool) error
 	UpdateKYC(ctx context.Context, id string, data *imodel.CustomerKYC) (*imodel.CustomerKYC, error)
@@ -952,7 +952,7 @@ type CustomerKYCRepository interface {
 type SelfActivationKYCRepository interface {
 	FindAllWithPaginationSA(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.SelfActivationUser], error)
 	FindByIDSA(ctx context.Context, id string) (*imodel.SelfActivationUser, error)
-	FindForExport(ctx context.Context, from, to time.Time, customerName string) ([]imodel.ExportSelfActivationRequest, error)
+	FindForExport(ctx context.Context, from, to time.Time, status, customerName string) ([]imodel.ExportSelfActivationRequest, error)
 	CheckIfUserOrAccountExists(ctx context.Context, userData *imodel.SelfActivationUser) (bool, error)
 	ApproveOrRejectSA(ctx context.Context, id, status, rejectionReason string, approved bool) error
 	UpdateKYCSA(ctx context.Context, id string, data *imodel.SelfActivationUser) (*imodel.SelfActivationUser, error)

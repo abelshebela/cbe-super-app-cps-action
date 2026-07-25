@@ -249,10 +249,21 @@ func (c *customerKYCAdapter) ExportKYCOnboarding(w http.ResponseWriter, r *http.
 	startDateRaw := strings.TrimSpace(r.URL.Query().Get("created_at_from"))
 	endDateRaw := strings.TrimSpace(r.URL.Query().Get("created_at_to"))
 	customerName := strings.TrimSpace(r.URL.Query().Get("name"))
+	status := strings.TrimSpace(r.URL.Query().Get("kyc_status"))
 
-	if fileType == "" || startDateRaw == "" || endDateRaw == "" {
+	if fileType == "" || startDateRaw == "" || endDateRaw == "" || status == "" {
 		log.Warnf("[ExportKYCOnboarding] missing required params: file_type=%q, created_at_from=%q, created_at_to=%q", fileType, startDateRaw, endDateRaw)
 		localization.SendBadRequestResponse(w, localization.ErrorRequiredFieldMissing.Message)
+		return
+	}
+
+	validStatus := map[string]bool{
+		"PENDING,IN_REVIEW": true,
+		"APPROVED":          true,
+		"REJECTED":          true,
+	}
+	if !validStatus[status] {
+		localization.SendBadRequestResponse(w, "status should be either PENDING,IN_REVIEW, APPROVED or REJECTED")
 		return
 	}
 
@@ -269,7 +280,7 @@ func (c *customerKYCAdapter) ExportKYCOnboarding(w http.ResponseWriter, r *http.
 		return
 	}
 
-	fileLink, err := c.svc.ExportKYCOnboarding(ctx, from, to, fileType, customerName)
+	fileLink, err := c.svc.ExportKYCOnboarding(ctx, from, to, fileType, status, customerName)
 	if err != nil {
 		log.Errorf("[ExportKYCOnboarding] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())

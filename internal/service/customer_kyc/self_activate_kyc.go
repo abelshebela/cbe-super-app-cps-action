@@ -334,7 +334,7 @@ func (s *selfActivationKYCService) PickKycReview(ctx context.Context, id string,
 	return nil
 }
 
-func (s *selfActivationKYCService) ExportUserSelfActivation(ctx context.Context, from, to time.Time, fileType, customerName string) (string, error) {
+func (s *selfActivationKYCService) ExportUserSelfActivation(ctx context.Context, from, to time.Time, fileType, status, customerName string) (string, error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 
 	if s.minioClient == nil {
@@ -347,7 +347,7 @@ func (s *selfActivationKYCService) ExportUserSelfActivation(ctx context.Context,
 		return "", errors.New(localization.ErrorInvalidRequest.Code)
 	}
 
-	data, err := s.repo.FindForExport(ctx, from, to, customerName)
+	data, err := s.repo.FindForExport(ctx, from, to, status, customerName)
 	if err != nil {
 		log.Errorf("[ExportUserSelfActivation] failed to fetch self activation requests: %v", err)
 		return "", err
