@@ -697,6 +697,13 @@ func (s *cpsUserService) GetCpsUserDetailByCode(ctx context.Context, userCode st
 		return imodel.CPSUser{}, err
 	}
 
+	// fetch department
+	curDpt, err := s.departmentRepo.FindByID(ctx, data.Department.Hex())
+	if err != nil {
+		span.AddEvent("failed to find department", trace.WithAttributes(attribute.String("error", err.Error())))
+		return imodel.CPSUser{}, localization.ErrorUnexpectedError
+	}
+	data.DepartmentName = curDpt.Department
 	return data, nil
 
 }

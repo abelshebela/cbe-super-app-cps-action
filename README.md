@@ -1,5 +1,5 @@
 <<<<<<< HEAD
-# CBE Super App - CPS Action Module
+# CBE Super App - CPS Action Module 
 
 This is the CPS (Customer and Partner Services) Action module for the CBE Super App. It provides a comprehensive set of APIs for managing various aspects of customer and partner services.
 

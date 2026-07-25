@@ -367,14 +367,14 @@ func (c *customerService) DisableCustomerByID(ctx context.Context, id string, di
 
 	if disable.Channel == "BOTH" && !customer.ISuperappEnabled && !customer.IsUSSDEnabled {
 		return fmt.Errorf("Both channels are already disabled")
-	} else if disable.Channel == "SUPPERAPP" && !customer.ISuperappEnabled {
+	} else if disable.Channel == "SUPERAPP" && !customer.ISuperappEnabled {
 		return fmt.Errorf("Supperapp channel is already disabled")
 	} else if disable.Channel == "USSD" && !customer.IsUSSDEnabled {
 		return fmt.Errorf("USSD channel is already disabled")
 	}
 
 	channel := disable.Channel
-	if channel != "BOTH" && channel != "SUPPERAPP" && channel != "USSD" {
+	if channel != "BOTH" && channel != "SUPERAPP" && channel != "USSD" {
 		log.Errorf("[CustomerSvc][Disable] invalid channel: %s", channel)
 		span.AddEvent("Invalid channel", trace.WithAttributes(
 			attribute.String("error", localization.ErrorInvalidInputParameter.Code),
@@ -807,6 +807,7 @@ func (d *customerService) GetCustomerDetailByID(ctx context.Context, id string) 
 		cr := coreRes[0]
 		if cr.BirthOfDate != "" {
 			res.PersonalInfo.DateOfBirth = cr.BirthOfDate
+			res.PersonalInfo.CustomerCategory = cr.CustomerID
 		}
 		if cr.Email != "" {
 			res.PersonalInfo.Email = cr.Email
