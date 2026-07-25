@@ -108,7 +108,7 @@ func InitOraclePersistence(client *mongo.Client, db *sql.DB, cfg *config.VaultCo
 			clientOrchestrationProducer,
 		),
 		CustomerKYC:             customer_kyc.NewCustomerKYCRepository(client, db, cfg, cfg.MongoDBDatabase, CustomersKYCCollection, log),
-		SelfActivationKYC:       customer_kyc.NewSelfActivationRepository(client, db, cfg, cfg.MongoDBDatabase, SelfActivationKYCCollection, log),
+		SelfActivationKYC:       customer_kyc.NewSelfActivationRepository(client, db, cfg, cfg.MongoDBDatabase, SelfActivationKYCCollection, CPSActionsCollection, log),
 		CustomerGroup:           customergroup.NewCustomerGroupRepository(cfg, db, log),
 		SuperAppRole:            superapprole.NewSuperAppRoleRepository(db, log),
 		LogisticsMerchantOracle: logistics_merchant_oracle.NewLogisticsMerchantOracle(db, cfg, log),

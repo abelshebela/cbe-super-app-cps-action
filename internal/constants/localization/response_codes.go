@@ -93,6 +93,8 @@ var ResponseCodesList = []ResponseCode{
 	SuccessUserLogin,
 	SuccessUserLogout,
 	SuccessOTPSent,
+	SuccessDataRetrieved,
+	SuccessActionLogRetrieved,
 	SuccessDonationCompanyLogoUploaded,
 	SuccessDonationCompanyLogoUpdated,
 	SuccessDonationCompanyFetched,
@@ -1352,6 +1354,13 @@ var (
 		Code:       "SUCCESS_DATA_RETRIEVED",
 		StatusCode: StatusOK,
 		Message:    MsgDataRetrievedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessActionLogRetrieved = ResponseCode{
+		Code:       "SUCCESS_ACTION_LOG_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    "Action log retrieved successfully",
 		Type:       "success",
 	}
 

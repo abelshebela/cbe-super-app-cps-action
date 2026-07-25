@@ -953,6 +953,7 @@ type SelfActivationKYCRepository interface {
 	FindAllWithPaginationSA(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.SelfActivationUser], error)
 	FindByIDSA(ctx context.Context, id string) (*imodel.SelfActivationUser, error)
 	FindForExport(ctx context.Context, from, to time.Time, status, customerName string) ([]imodel.ExportSelfActivationRequest, error)
+	GetUsersActionLog(ctx context.Context, customerNumber string) (*types.PaginatedResponse[[]imodel.SelfActivationActionLog], error)
 	CheckIfUserOrAccountExists(ctx context.Context, userData *imodel.SelfActivationUser) (bool, error)
 	ApproveOrRejectSA(ctx context.Context, id, status, rejectionReason string, approved bool) error
 	UpdateKYCSA(ctx context.Context, id string, data *imodel.SelfActivationUser) (*imodel.SelfActivationUser, error)
