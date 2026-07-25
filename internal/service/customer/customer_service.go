@@ -807,6 +807,7 @@ func (d *customerService) GetCustomerDetailByID(ctx context.Context, id string) 
 		cr := coreRes[0]
 		if cr.BirthOfDate != "" {
 			res.PersonalInfo.DateOfBirth = cr.BirthOfDate
+			res.PersonalInfo.CustomerCategory = cr.CustomerID
 		}
 		if cr.Email != "" {
 			res.PersonalInfo.Email = cr.Email
