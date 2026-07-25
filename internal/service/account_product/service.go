@@ -192,7 +192,7 @@ func (s *accountProductService) Create(ctx context.Context, req ap_dto.CreateAPR
 		AccountCurrency:         strings.ToUpper(req.AccountCurrency),
 		MinimumOpeningBalance:   req.MinimumOpeningBalance,
 		MinimumMaintenanceFee:   req.MinimumMaintenanceFee,
-		InterestFee:             req.InterestFee,
+		InterestFee:             req.InterestRate,
 		FaqURL:                  req.FaqURL,
 		ProductFeatures:         req.ProductFeatures,
 		HasPhysicalCard:         req.HasPhysicalCard,
@@ -203,6 +203,7 @@ func (s *accountProductService) Create(ctx context.Context, req ap_dto.CreateAPR
 		ProductCoverImage: coverImageURL,
 		IsEnabled:         true,
 		Eligibility: req.Eligibility,
+		ProductDescription: req.ProductDescription,
 	}
 	//bypass 2
 	if s.categoryRepo != nil {
@@ -282,8 +283,8 @@ func (s *accountProductService) Update(ctx context.Context, id string, req ap_dt
 	if req.MinimumMaintenanceFee > 0 {
 		updated.MinimumMaintenanceFee = req.MinimumMaintenanceFee
 	}
-	if req.InterestFee > 0 {
-		updated.InterestFee = req.InterestFee
+	if req.InterestRate > 0 {
+		updated.InterestFee = req.InterestRate
 	}
 	if req.FaqURL != "" {
 		updated.FaqURL = req.FaqURL
@@ -315,7 +316,6 @@ func (s *accountProductService) Update(ctx context.Context, id string, req ap_dt
 		}
 		updated.ProductCoverImage = coverImageURL
 	}
-
 	action := lib.CpsModelBuilder(id, makerData, existing, updated,
 		string(constants.RequestUpdateAccountProduct), constants.UPDATE)
 
