@@ -70,6 +70,7 @@ type KYCReviewAssignment struct {
 
 type LinkedAccounts struct {
 	AccountHolderName  string `json:"account_holder_name" bson:"account_holder_name"`
+	AccountNumber      string `json:"account_number" bson:"account_number"`
 	AccountType        string `json:"account_type" bson:"account_type"`
 	ProductCode        string `json:"product_code" bson:"product_code"`
 	Currency           string `json:"currency" bson:"currency"`
