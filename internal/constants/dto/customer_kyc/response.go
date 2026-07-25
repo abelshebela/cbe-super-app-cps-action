@@ -65,7 +65,7 @@ type CapturedDocuments struct {
 	SelfiePhoto string `json:"selfie_photo"`
 	IDCardFront string `json:"id_card_front"`
 	IDCardBack  string `json:"id_card_back"`
-	YellowCard  string `json:"yellow_card"`
+	YellowCard  string `json:"yellow_card,omitempty"`
 }
 
 type FinancialInformation struct {
