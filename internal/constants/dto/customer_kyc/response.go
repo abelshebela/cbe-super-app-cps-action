@@ -32,7 +32,7 @@ type CustomerKYCResponse struct {
 	Reviewer *imodel.UserInfo  `json:"reviewer,omitempty"`
 	Review   *imodel.KYCReview `json:"review"`
 
-	LinkedAccount []imodel.LinkedAccounts `json:"linked_account"`
+	LinkedAccount []imodel.LinkedAccounts `json:"linked_accounts"`
 
 	ServerTime string `json:"server-time,omitempty"`
 	CreatedAt  string `json:"created_at"`
@@ -61,10 +61,11 @@ type KycInfo struct {
 }
 
 type CapturedDocuments struct {
-	Photo         string `json:"photo"`
-	LivenessVideo string `json:"liveness_video,omitempty"`
-	IDCardFront   string `json:"id_card_front"`
-	IDCardBack    string `json:"id_card_back"`
+	FaydaPhoto  string `json:"fayda_photo"`
+	SelfiePhoto string `json:"selfie_photo"`
+	IDCardFront string `json:"id_card_front"`
+	IDCardBack  string `json:"id_card_back"`
+	YellowCard  string `json:"yellow_card"`
 }
 
 type FinancialInformation struct {

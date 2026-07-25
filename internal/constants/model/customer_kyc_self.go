@@ -38,7 +38,7 @@ type SelfActivationUser struct {
 	KYC             KycInfo          `bson:"kyc" json:"kyc"`
 	CorePhoneNumber string           `bson:"core_phone_number" json:"core_phone_number"`
 	ComplyCube      ComplyCube       `bson:"complycube" json:"complycube"`
-	LinkedAccount   []LinkedAccounts `json:"linked_account,omitempty"`
+	LinkedAccount   []LinkedAccounts `json:"linked_accounts" bson:"linked_accounts"`
 
 	Review *KYCReview `json:"review" bson:"review"`
 
