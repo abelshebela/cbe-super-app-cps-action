@@ -294,7 +294,7 @@ func (s *customerKYCService) PickKycReview(ctx context.Context, id string, reaso
 	return nil
 }
 
-func (s *customerKYCService) ExportKYCOnboarding(ctx context.Context, from, to time.Time, fileType, customerName string) (string, error) {
+func (s *customerKYCService) ExportKYCOnboarding(ctx context.Context, from, to time.Time, fileType, status, customerName string) (string, error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 
 	if s.minio == nil {
@@ -307,7 +307,7 @@ func (s *customerKYCService) ExportKYCOnboarding(ctx context.Context, from, to t
 		return "", errors.New(localization.ErrorInvalidRequest.Code)
 	}
 
-	data, err := s.repo.FindKYCOnboardingForExport(ctx, from, to, customerName)
+	data, err := s.repo.FindKYCOnboardingForExport(ctx, from, to, status, customerName)
 	if err != nil {
 		log.Errorf("[ExportKYCOnboarding] failed to fetch onboarding requests: %v", err)
 		return "", err
