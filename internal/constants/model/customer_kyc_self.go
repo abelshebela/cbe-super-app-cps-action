@@ -180,3 +180,15 @@ type ExportSelfActivationRequest struct {
 	CustomerStatus   string    `json:"customer_status" bson:"customer_status"`
 	KYCStatus        string    `json:"kyc_status" bson:"kyc_status"`
 }
+
+// Action Log
+type SelfActivationActionLog struct {
+	ActionID        string    `json:"action_id"`
+	ActionRequest   string    `json:"action_request"`
+	ActionType      string    `json:"action_type"`
+	MakerUser       string    `json:"maker_user"`
+	Reason          string    `json:"reason"`
+	Status          string    `json:"status"`
+	ActionTakeAt    time.Time `json:"action_take_at"`
+	ActionUpdatedAt time.Time `json:"action_updated_at"`
+}
