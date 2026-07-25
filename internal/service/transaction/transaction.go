@@ -68,7 +68,11 @@ func (t *TransactionService) FetchTransactionLimitByCustomerNumber(ctx context.C
 
 	if result.Detail == nil || result.Detail.GUserChannel == nil {
 		log.Warnf("[TxnSvc][FetchLimit] CoreIO returned empty channel data for customer=%s", customerNumber)
-		return nil, errors.New(localization.ErrorResourceNotFound.Code)
+		return &imodel.TransactionLimit{
+			CustomerNumber: customerNumber,
+			ChannelLimits:  []imodel.TransactionLimitChannel{},
+			UpdatedAt:      time.Now(),
+		}, nil
 	}
 
 	log.Infof("[TxnSvc][FetchLimit] CoreIO returned %d channels for customer=%s",
@@ -92,7 +96,7 @@ func mapCIFResultToTransactionLimit(customerNumber string, result *core.Customer
 			continue
 		}
 
-		var services []imodel.TransactionLimitEntry
+		services := make([]imodel.TransactionLimitEntry, 0)
 		if ch.SGServiceType != nil {
 			for _, svc := range ch.SGServiceType.Services {
 				maxAmount, _ := strconv.ParseFloat(strings.TrimSpace(svc.ServiceMaxAmt), 64)
