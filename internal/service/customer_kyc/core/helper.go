@@ -55,11 +55,6 @@ func MapCustomerKYCToResponsePaginated(c *types.PaginatedResponse[[]imodel.Custo
 	responses := make([]dto.CustomerKYCResponse, 0, len(c.Data))
 
 	for _, item := range c.Data {
-		var livenessVideo string
-		if item.ComplyCube != nil {
-			livenessVideo = item.ComplyCube.LiveVideoID
-		}
-
 		response := dto.CustomerKYCResponse{
 			ID: item.ID.Hex(),
 
@@ -89,10 +84,10 @@ func MapCustomerKYCToResponsePaginated(c *types.PaginatedResponse[[]imodel.Custo
 			},
 
 			CapturedDocuments: dto.CapturedDocuments{
-				Photo:         item.KYCData.Picture,
-				LivenessVideo: livenessVideo,
-				IDCardFront:   item.KYCData.DocumentFront,
-				IDCardBack:    item.KYCData.DocumentBack,
+				FaydaPhoto:  item.KYCData.Picture,
+				SelfiePhoto: item.KYCData.SelfiePhoto,
+				IDCardFront: item.KYCData.DocumentFront,
+				IDCardBack:  item.KYCData.DocumentBack,
 			},
 
 			Review: item.Review,
@@ -128,11 +123,6 @@ func MapCustomerKYCToResponse(c *model.CustomerKYC) *dto.CustomerKYCResponse {
 		return nil
 	}
 
-	var livenessVideo string
-	if c.ComplyCube != nil {
-		livenessVideo = c.ComplyCube.LiveVideoID
-	}
-
 	response := dto.CustomerKYCResponse{
 		ID: c.ID.Hex(),
 
@@ -162,10 +152,10 @@ func MapCustomerKYCToResponse(c *model.CustomerKYC) *dto.CustomerKYCResponse {
 		},
 
 		CapturedDocuments: dto.CapturedDocuments{
-			Photo:         c.KYCData.Picture,
-			LivenessVideo: livenessVideo,
-			IDCardFront:   c.KYCData.DocumentFront,
-			IDCardBack:    c.KYCData.DocumentBack,
+			FaydaPhoto:  c.KYCData.Picture,
+			SelfiePhoto: c.KYCData.SelfiePhoto,
+			IDCardFront: c.KYCData.DocumentFront,
+			IDCardBack:  c.KYCData.DocumentBack,
 		},
 
 		Review: c.Review,
@@ -226,8 +216,11 @@ func MapSelfActivationUserToResponse(u *imodel.SelfActivationUser) *dto.Customer
 		FinancialInformation: dto.FinancialInformation{},
 		LinkedAccount:        u.LinkedAccount,
 		CapturedDocuments: dto.CapturedDocuments{
-			Photo:         u.Picture,
-			LivenessVideo: u.SelfiePhoto,
+			FaydaPhoto:  u.Picture,
+			SelfiePhoto: u.SelfiePhoto,
+			// IDCardFront:,
+			// IDCardBack: ,
+			// YellowCard:
 		},
 		CustomerStatus: "NEW",
 		KYC: dto.KycInfo{
