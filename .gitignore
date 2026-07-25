@@ -68,6 +68,7 @@ db/migrations/accounts_block_migration.sql
 .codex
 .agents
 .claude
+.mimocode
 .gocache
 .continue
 *Request*
