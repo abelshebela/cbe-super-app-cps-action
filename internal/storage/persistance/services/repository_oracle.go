@@ -44,9 +44,8 @@ func NewServicesRepository(db *sql.DB, cfg *config.VaultConfig, kafkaProducer ka
 }
 
 const (
-	servicesTable   = "services"
-	accessListTable = "access_lists"
-	// serviceKeysTable     = "service_keys"
+	servicesTable        = "services"
+	accessListTable      = "access_lists"
 	maxPaginationDefault = 50
 )
 
@@ -770,7 +769,7 @@ func (s *ServicesStorage) FindDonationByServiceId(ctx context.Context, serviceID
 			return false, nil
 		}
 		log.Errorf("[ServiceRepo][FindDonationByAccessList] query failed: %v", err)
-		return false, err
+		return false, local_util.HandleDBError(err)
 	}
 	return true, nil
 }
@@ -778,7 +777,7 @@ func (s *ServicesStorage) FindDonationByServiceId(ctx context.Context, serviceID
 func (s *ServicesStorage) FindUSSDMerchantByServiceId(ctx context.Context, serviceID string) (bool, error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 
-	const q = `SELECT ID FROM USSD_MERCHANTS_SERVICE WHERE SERVICE_ID = HEXTORAW(:1)`
+	const q = `SELECT ID FROM USSD_MERCHANT_SERVICE WHERE SERVICE_ID = HEXTORAW(:1)`
 
 	var id string
 	err := s.db.QueryRowContext(ctx, q, serviceID).Scan(&id)
@@ -787,7 +786,7 @@ func (s *ServicesStorage) FindUSSDMerchantByServiceId(ctx context.Context, servi
 			return false, nil
 		}
 		log.Errorf("[ServiceRepo][FindUSSDMerchantByServiceId] query failed: %v", err)
-		return false, err
+		return false, local_util.HandleDBError(err)
 	}
 	return true, nil
 }

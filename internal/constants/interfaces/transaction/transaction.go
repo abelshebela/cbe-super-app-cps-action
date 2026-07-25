@@ -7,4 +7,5 @@ type TransactionInterface interface {
 	FindTransactionByCifOrAccountNumberOrFT(w http.ResponseWriter, r *http.Request)
 	FetchAllTransactions(w http.ResponseWriter, r *http.Request)
 	FetchTransactionLimitByUserCode(w http.ResponseWriter, r *http.Request)
+	FetchAllTransactionLimits(w http.ResponseWriter, r *http.Request)
 }

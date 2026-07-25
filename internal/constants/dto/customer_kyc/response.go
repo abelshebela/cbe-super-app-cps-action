@@ -2,7 +2,6 @@ package customerkyc
 
 import (
 	imodel "cbe-super-app-cps-action/internal/constants/model"
-	"time"
 )
 
 type CustomerKYCResponse struct {
@@ -22,17 +21,18 @@ type CustomerKYCResponse struct {
 	AccountNumbers       []string             `json:"account_numbers,omitempty"`
 	CustomerStatus       string               `json:"customer_status"`
 
-	KYCStatus string  `json:"kyc_status,omitempty"`
-	KYC       KycInfo `bson:"kyc" json:"kyc"`
+	KYC             KycInfo    `bson:"kyc" json:"kyc"`
+	CorePhoneNumber string     `json:"core_phone_number"`
+	ComplyCube      ComplyCube `bson:"complycube" json:"complycube"`
 
 	MoneyLaunderingFree *bool  `json:"money_laundering_free"`
 	KYCRejectReason     string `bson:"kyc_reject_reason,omitempty" json:"kyc_reject_reason,omitempty"`
 	TermsAndConditions  string `json:"terms_and_conditions,omitempty"`
 
-	KYCReviewStartedAt *time.Time `json:"started_at,omitempty"`
-	KYCReviewExpiresAt *time.Time `json:"expires_at,omitempty"`
+	Reviewer *imodel.UserInfo  `json:"reviewer,omitempty"`
+	Review   *imodel.KYCReview `json:"review"`
 
-	Reviewer *imodel.UserInfo `json:"reviewer,omitempty"`
+	LinkedAccount []imodel.LinkedAccounts `json:"linked_accounts"`
 
 	ServerTime string `json:"server-time,omitempty"`
 	CreatedAt  string `json:"created_at"`
@@ -55,17 +55,17 @@ type PersonalInformation struct {
 }
 
 type KycInfo struct {
-	PhoneMismatch  bool   `bson:"phone_mismatch" json:"phone_mismatch"`
-	BelowThreshold bool   `bson:"below_threshold" json:"below_threshold"`
-	ContainsANDOR  bool   `bson:"contains_and_or" json:"contains_and_or"`
-	KYCStatus      string `bson:"kyc_status" json:"kyc_status"`
+	PhoneMismatch  bool `bson:"phone_mismatch" json:"phone_mismatch"`
+	BelowThreshold bool `bson:"below_threshold" json:"below_threshold"`
+	ContainsANDOR  bool `bson:"contains_and_or" json:"contains_and_or"`
 }
 
 type CapturedDocuments struct {
-	Photo         string `json:"photo"`
-	LivenessVideo string `json:"liveness_video,omitempty"`
-	IDCardFront   string `json:"id_card_front"`
-	IDCardBack    string `json:"id_card_back"`
+	FaydaPhoto  string `json:"fayda_photo"`
+	SelfiePhoto string `json:"selfie_photo"`
+	IDCardFront string `json:"id_card_front"`
+	IDCardBack  string `json:"id_card_back"`
+	YellowCard  string `json:"yellow_card,omitempty"`
 }
 
 type FinancialInformation struct {
@@ -84,4 +84,10 @@ type ResidentialAddress struct {
 	Wereda      string `json:"wereda,omitempty"`
 	Kebele      string `json:"kebele,omitempty"`
 	HouseNumber string `json:"house_number,omitempty"`
+}
+
+type ComplyCube struct {
+	DocumentType    string `bson:"document_type" json:"document_type"`
+	IdentityOutcome string `bson:"identity_outcome" json:"identity_outcome"`
+	IdentityStatus  string `bson:"identity_status" json:"identity_status"`
 }

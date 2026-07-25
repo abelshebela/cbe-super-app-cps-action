@@ -6,6 +6,16 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
+type ReviewStatus string
+
+const (
+	KYCStatusPending   ReviewStatus = "PENDING"
+	KYCStatusInReview  ReviewStatus = "IN_REVIEW"
+	KYCStatusCancelled ReviewStatus = "CANCELLED"
+	KYCStatusApproved  ReviewStatus = "APPROVED"
+	KYCStatusRejected  ReviewStatus = "REJECTED"
+)
+
 type SelfActivationUser struct {
 	ID             bson.ObjectID   `bson:"_id,omitempty" json:"id"`
 	Sub            string          `bson:"sub" json:"sub"`
@@ -25,14 +35,51 @@ type SelfActivationUser struct {
 	IssueDate      string          `bson:"issue_date" json:"issue_date"`
 	SelfiePhoto    string          `json:"selfie_photo" bson:"selfie_photo"`
 
-	KYC        KycInfo    `bson:"kyc" json:"kyc"`
-	ComplyCube ComplyCube `bson:"complycube" json:"complycube"`
+	KYC             KycInfo          `bson:"kyc" json:"kyc"`
+	CorePhoneNumber string           `bson:"core_phone_number" json:"core_phone_number"`
+	ComplyCube      ComplyCube       `bson:"complycube" json:"complycube"`
+	LinkedAccount   []LinkedAccounts `json:"linked_accounts" bson:"linked_accounts"`
 
-	KYCRejectReason string `bson:"kyc_reject_reason,omitempty" json:"kyc_reject_reason,omitempty"`
+	Review *KYCReview `json:"review" bson:"review"`
 
 	CreatedAt      time.Time `bson:"created_at" json:"created_at"`
 	LastModifiedAt time.Time `bson:"last_modified_at" json:"last_modified_at"`
 	UpdatedAt      time.Time `bson:"updated_at" json:"updated_at"`
+}
+
+type KYCReview struct {
+	Assignments     []KYCReviewAssignment `json:"assignments,omitempty" bson:"assignments"`
+	PickCount       int                   `json:"pick_count,omitempty" bson:"pick_count"`
+	Status          ReviewStatus          `json:"status" bson:"status"`
+	Decision        *KYCReviewDecision    `json:"decision,omitempty" bson:"decision"`
+	ReviewStartedAt *time.Time            `json:"review_started_at" bson:"review_started_at"`
+	ReviewExpiresAt *time.Time            `json:"review_expires_at" bson:"review_expires_at"`
+}
+
+type KYCReviewDecision struct {
+	RejectionReason string     `json:"rejection_reason" bson:"rejection_reason"`
+	ReviewedAt      *time.Time `json:"reviewed_at" bson:"reviewed_at"`
+	Reviewer        *UserInfo  `json:"reviewer" bson:"reviewer"`
+}
+
+type KYCReviewAssignment struct {
+	PickedAt   *time.Time `json:"picked_at" bson:"picked_at"`
+	PickedBy   *UserInfo  `json:"picked_by" bson:"picked_by"`
+	PickReason string     `json:"pick_reason" bson:"pick_reason"`
+}
+
+type LinkedAccounts struct {
+	AccountHolderName  string `json:"account_holder_name" bson:"account_holder_name"`
+	AccountNumber      string `json:"account_number" bson:"account_number"`
+	AccountType        string `json:"account_type" bson:"account_type"`
+	ProductCode        string `json:"product_code" bson:"product_code"`
+	Currency           string `json:"currency" bson:"currency"`
+	BranchName         string `json:"branch_name" bson:"branch_name"`
+	BranchCode         string `json:"branch_code" bson:"branch_code"`
+	InActive           string `json:"in_active" bson:"in_active"`
+	PostingRestriction string `json:"posting_restriction" bson:"posting_restriction"`
+	RestrictionType    string `json:"restriction_type" bson:"restriction_type"`
+	AndorAccount       *bool  `json:"and_or_account" bson:"and_or_account"`
 }
 
 type CustomerAddress struct {
@@ -43,10 +90,9 @@ type CustomerAddress struct {
 }
 
 type KycInfo struct {
-	PhoneMismatch  bool   `bson:"phone_mismatch" json:"phone_mismatch"`
-	BelowThreshold bool   `bson:"below_threshold" json:"below_threshold"`
-	ContainsANDOR  bool   `bson:"contains_and_or" json:"contains_and_or"`
-	KYCStatus      string `bson:"kyc_status" json:"kyc_status"`
+	PhoneMismatch  bool `bson:"phone_mismatch" json:"phone_mismatch"`
+	BelowThreshold bool `bson:"below_threshold" json:"below_threshold"`
+	ContainsANDOR  bool `bson:"contains_and_or" json:"contains_and_or"`
 }
 
 type ComplyCube struct {

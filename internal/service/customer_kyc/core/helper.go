@@ -55,11 +55,6 @@ func MapCustomerKYCToResponsePaginated(c *types.PaginatedResponse[[]imodel.Custo
 	responses := make([]dto.CustomerKYCResponse, 0, len(c.Data))
 
 	for _, item := range c.Data {
-		var livenessVideo string
-		if item.ComplyCube != nil {
-			livenessVideo = item.ComplyCube.LiveVideoID
-		}
-
 		response := dto.CustomerKYCResponse{
 			ID: item.ID.Hex(),
 
@@ -89,14 +84,15 @@ func MapCustomerKYCToResponsePaginated(c *types.PaginatedResponse[[]imodel.Custo
 			},
 
 			CapturedDocuments: dto.CapturedDocuments{
-				Photo:         item.KYCData.Picture,
-				LivenessVideo: livenessVideo,
-				IDCardFront:   item.KYCData.DocumentFront,
-				IDCardBack:    item.KYCData.DocumentBack,
+				FaydaPhoto:  item.KYCData.Picture,
+				SelfiePhoto: item.KYCData.SelfiePhoto,
+				IDCardFront: item.KYCData.DocumentFront,
+				IDCardBack:  item.KYCData.DocumentBack,
 			},
 
+			Review: item.Review,
+
 			CustomerStatus:      boolToCustomerStatus(item.Enabled),
-			KYCStatus:           string(item.KYCStatus),
 			MoneyLaunderingFree: nil,
 			TermsAndConditions:  "",
 
@@ -125,11 +121,6 @@ func MapCustomerKYCToResponse(c *model.CustomerKYC) *dto.CustomerKYCResponse {
 
 	if c == nil {
 		return nil
-	}
-
-	var livenessVideo string
-	if c.ComplyCube != nil {
-		livenessVideo = c.ComplyCube.LiveVideoID
 	}
 
 	response := dto.CustomerKYCResponse{
@@ -161,14 +152,15 @@ func MapCustomerKYCToResponse(c *model.CustomerKYC) *dto.CustomerKYCResponse {
 		},
 
 		CapturedDocuments: dto.CapturedDocuments{
-			Photo:         c.KYCData.Picture,
-			LivenessVideo: livenessVideo,
-			IDCardFront:   c.KYCData.DocumentFront,
-			IDCardBack:    c.KYCData.DocumentBack,
+			FaydaPhoto:  c.KYCData.Picture,
+			SelfiePhoto: c.KYCData.SelfiePhoto,
+			IDCardFront: c.KYCData.DocumentFront,
+			IDCardBack:  c.KYCData.DocumentBack,
 		},
 
+		Review: c.Review,
+
 		CustomerStatus:      boolToCustomerStatus(c.Enabled),
-		KYCStatus:           string(c.KYCStatus),
 		MoneyLaunderingFree: nil,
 		TermsAndConditions:  "",
 
@@ -204,7 +196,6 @@ func MapSelfActivationUserToResponse(u *imodel.SelfActivationUser) *dto.Customer
 
 	response := dto.CustomerKYCResponse{
 		ID:             u.ID.Hex(),
-		Sub:            u.Sub,
 		CustomerNumber: u.CustomerNumber,
 		PersonalInformation: dto.PersonalInformation{
 			FullName:       u.Name,
@@ -223,18 +214,29 @@ func MapSelfActivationUserToResponse(u *imodel.SelfActivationUser) *dto.Customer
 			Region: u.Address.Region,
 		},
 		FinancialInformation: dto.FinancialInformation{},
+		LinkedAccount:        u.LinkedAccount,
 		CapturedDocuments: dto.CapturedDocuments{
-			Photo:         u.Picture,
-			LivenessVideo: u.SelfiePhoto,
+			FaydaPhoto:  u.Picture,
+			SelfiePhoto: u.SelfiePhoto,
+			// IDCardFront:,
+			// IDCardBack: ,
+			// YellowCard:
 		},
-		CustomerStatus:  "NEW",
-		KYCRejectReason: u.KYCRejectReason,
+		CustomerStatus: "NEW",
 		KYC: dto.KycInfo{
-			KYCStatus:      u.KYC.KYCStatus,
 			PhoneMismatch:  u.KYC.PhoneMismatch,
 			BelowThreshold: u.KYC.BelowThreshold,
 			ContainsANDOR:  u.KYC.ContainsANDOR,
 		},
+		CorePhoneNumber: u.CorePhoneNumber,
+		ComplyCube: dto.ComplyCube{
+			DocumentType:    u.ComplyCube.DocumentType,
+			IdentityOutcome: u.ComplyCube.IdentityOutcome,
+			IdentityStatus:  u.ComplyCube.IdentityStatus,
+		},
+
+		Review: u.Review,
+
 		MoneyLaunderingFree: nil,
 		TermsAndConditions:  "",
 		CreatedAt:           u.CreatedAt.Format(time.RFC3339),

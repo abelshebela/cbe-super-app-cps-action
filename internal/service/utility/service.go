@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"os"
 
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/lib"
@@ -133,7 +132,7 @@ func (s *utilityService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 
-		topic := os.Getenv("KAFKA_UTILITY_APPROVED_TOPIC")
+		topic := "KAFKA_UTILITY_APPROVED_TOPIC"
 		if err := s.producer.PublishMessage(ctx, json.RawMessage(data), "utility_approved", topic, "UTILITY.APPROVE"); err != nil {
 			log.Errorf("[UtilitySvc][Authorize] publish failed for token %s: %v", cpsAction.UniqueId, err)
 			return nil, errors.New(localization.ErrorUnexpectedError.Code)
@@ -165,8 +164,6 @@ func (s *utilityService) GetByUniqueToken(ctx context.Context, uniqueToken, depa
 	return *payload, nil
 }
 
-// injectMakerContext injects maker identity fields into the context so that
-// ExtractUserFromContext returns the correct maker info for CpsModelBuilder.
 func injectMakerContext(ctx context.Context, m imodel.UtilityMakerInfo) context.Context {
 	ctx = context.WithValue(ctx, constants.ContextKey("user_id"), m.UserID)
 	ctx = context.WithValue(ctx, constants.ContextKey("username"), m.Username)

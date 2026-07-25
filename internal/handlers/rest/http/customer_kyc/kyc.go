@@ -134,11 +134,11 @@ func (c *customerKYCAdapter) ApproveKycRequest(w http.ResponseWriter, r *http.Re
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
 		log.Infof("[ApproveKycRequest] request submitted for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
-		localization.SendSuccessResponse(w, localization.CustomerKycApprovalRequestSubmittedSuccessfully, nil)
+		localization.SendSuccessResponse(w, localization.CustomerKycRequestApprovedSuccessfully, nil)
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.CustomerKycRequestApprovedSuccessfully, nil)
+	localization.SendSuccessResponse(w, localization.CustomerKycApprovalRequestSubmittedSuccessfully, nil)
 }
 
 func (c *customerKYCAdapter) RejectKycRequest(w http.ResponseWriter, r *http.Request) {
@@ -181,11 +181,11 @@ func (c *customerKYCAdapter) RejectKycRequest(w http.ResponseWriter, r *http.Req
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
 		log.Infof("[RejectKycRequest] request submitted for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
-		localization.SendSuccessResponse(w, localization.CustomerKycRejectRequestSubmittedSuccessfully, nil)
+		localization.SendSuccessResponse(w, localization.CustomerKycRequestRejectedSuccessfully, nil)
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.CustomerKycRequestRejectedSuccessfully, nil)
+	localization.SendSuccessResponse(w, localization.CustomerKycRejectRequestSubmittedSuccessfully, nil)
 }
 
 func (c *customerKYCAdapter) StartKycReview(w http.ResponseWriter, r *http.Request) {
@@ -207,6 +207,7 @@ func (c *customerKYCAdapter) StartKycReview(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	newReview.ServerTime = time.Now().UTC().Format(time.RFC3339)
 	localization.SendSuccessResponse(w, localization.SuccessOperationCompleted, newReview)
 }
 
@@ -236,7 +237,7 @@ func (c *customerKYCAdapter) PickKycReview(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessOperationCompleted, nil)
+	localization.SendSuccessResponse(w, localization.SuccessKYCReviewPicked, nil)
 }
 
 func (c *customerKYCAdapter) ExportKYCOnboarding(w http.ResponseWriter, r *http.Request) {
@@ -248,10 +249,21 @@ func (c *customerKYCAdapter) ExportKYCOnboarding(w http.ResponseWriter, r *http.
 	startDateRaw := strings.TrimSpace(r.URL.Query().Get("created_at_from"))
 	endDateRaw := strings.TrimSpace(r.URL.Query().Get("created_at_to"))
 	customerName := strings.TrimSpace(r.URL.Query().Get("name"))
+	status := strings.TrimSpace(r.URL.Query().Get("kyc_status"))
 
-	if fileType == "" || startDateRaw == "" || endDateRaw == "" {
+	if fileType == "" || startDateRaw == "" || endDateRaw == "" || status == "" {
 		log.Warnf("[ExportKYCOnboarding] missing required params: file_type=%q, created_at_from=%q, created_at_to=%q", fileType, startDateRaw, endDateRaw)
 		localization.SendBadRequestResponse(w, localization.ErrorRequiredFieldMissing.Message)
+		return
+	}
+
+	validStatus := map[string]bool{
+		"PENDING,IN_REVIEW": true,
+		"APPROVED":          true,
+		"REJECTED":          true,
+	}
+	if !validStatus[status] {
+		localization.SendBadRequestResponse(w, "status should be either PENDING,IN_REVIEW, APPROVED or REJECTED")
 		return
 	}
 
@@ -268,7 +280,7 @@ func (c *customerKYCAdapter) ExportKYCOnboarding(w http.ResponseWriter, r *http.
 		return
 	}
 
-	fileLink, err := c.svc.ExportKYCOnboarding(ctx, from, to, fileType, customerName)
+	fileLink, err := c.svc.ExportKYCOnboarding(ctx, from, to, fileType, status, customerName)
 	if err != nil {
 		log.Errorf("[ExportKYCOnboarding] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
