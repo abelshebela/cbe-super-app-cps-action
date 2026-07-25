@@ -121,6 +121,7 @@ type CustomerListResponse struct {
 	BranchCode         string `json:"branch_code" bson:"branch_code"`
 	Gender             string `json:"gender" bson:"gender"`
 	AccountNumber      string `json:"account_number" bson:"account_number"`
+	IsSelfActivated    bool   `json:"is_self_activated" bson:"is_self_activated"`
 	Avatar             string `json:"avatar" bson:"avatar"`
 	CreatedAt          string `json:"created_at" bson:"created_at"`
 	IsBlocked          bool   `json:"is_blocked" bson:"is_blocked"`
