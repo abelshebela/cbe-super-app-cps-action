@@ -70,6 +70,7 @@ type KYCReviewAssignment struct {
 
 type LinkedAccounts struct {
 	AccountHolderName  string `json:"account_holder_name" bson:"account_holder_name"`
+	AccountNumber      string `json:"account_number" bson:"account_number"`
 	AccountType        string `json:"account_type" bson:"account_type"`
 	ProductCode        string `json:"product_code" bson:"product_code"`
 	Currency           string `json:"currency" bson:"currency"`
@@ -78,6 +79,7 @@ type LinkedAccounts struct {
 	InActive           string `json:"in_active" bson:"in_active"`
 	PostingRestriction string `json:"posting_restriction" bson:"posting_restriction"`
 	RestrictionType    string `json:"restriction_type" bson:"restriction_type"`
+	AndorAccount       *bool  `json:"and_or_account" bson:"and_or_account"`
 }
 
 type CustomerAddress struct {
@@ -177,4 +179,16 @@ type ExportSelfActivationRequest struct {
 	RejectionReason  string    `json:"rejection_reason" bson:"rejection_reason"`
 	CustomerStatus   string    `json:"customer_status" bson:"customer_status"`
 	KYCStatus        string    `json:"kyc_status" bson:"kyc_status"`
+}
+
+// Action Log
+type SelfActivationActionLog struct {
+	ActionID        string    `json:"action_id"`
+	ActionRequest   string    `json:"action_request"`
+	ActionType      string    `json:"action_type"`
+	MakerUser       string    `json:"maker_user"`
+	Reason          string    `json:"reason"`
+	Status          string    `json:"status"`
+	ActionTakeAt    time.Time `json:"action_take_at"`
+	ActionUpdatedAt time.Time `json:"action_updated_at"`
 }

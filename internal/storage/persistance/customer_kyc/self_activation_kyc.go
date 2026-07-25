@@ -19,6 +19,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type selfActivationRepository struct {
@@ -26,14 +27,16 @@ type selfActivationRepository struct {
 	selfActivationDal dal.MongoDal[imodel.SelfActivationUser, imodel.SelfActivationUser]
 	logger            utils.Logger
 	coll              *mongo.Collection
+	actionColl        *mongo.Collection
 }
 
-func NewSelfActivationRepository(client *mongo.Client, oracleDB *sql.DB, cfg *config.VaultConfig, dbName, collection string, logger utils.Logger) storage.SelfActivationKYCRepository {
+func NewSelfActivationRepository(client *mongo.Client, oracleDB *sql.DB, cfg *config.VaultConfig, dbName, selfActColl, cpsActionColl string, logger utils.Logger) storage.SelfActivationKYCRepository {
 	return &selfActivationRepository{
 		oracleDB:          oracleDB,
-		selfActivationDal: dal.NewMongoDal[imodel.SelfActivationUser, imodel.SelfActivationUser](client, cfg, dbName, collection),
+		selfActivationDal: dal.NewMongoDal[imodel.SelfActivationUser, imodel.SelfActivationUser](client, cfg, dbName, selfActColl),
 		logger:            logger,
-		coll:              client.Database(dbName).Collection(collection),
+		coll:              client.Database(dbName).Collection(selfActColl),
+		actionColl:        client.Database(dbName).Collection(cpsActionColl),
 	}
 }
 
@@ -278,4 +281,75 @@ func (r *selfActivationRepository) FindForExport(ctx context.Context, from, to t
 	}
 
 	return result, nil
+}
+
+func (r *selfActivationRepository) GetUsersActionLog(ctx context.Context, customerNumber string) (*types.PaginatedResponse[[]imodel.SelfActivationActionLog], error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("[SelfActivationKYC][GetUsersActionLog] fetching action logs for customer: %s", customerNumber)
+
+	filter := bson.M{
+		"current_action.customer_number": customerNumber,
+	}
+
+	sort := bson.D{{Key: "created_at", Value: -1}}
+
+	cursor, err := r.actionColl.Find(ctx, filter, options.Find().SetSort(sort))
+	if err != nil {
+		log.Errorf("[SelfActivationKYC][GetUsersActionLog] failed to query cps_actions: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	defer cursor.Close(ctx)
+
+	var actions []imodel.CPSAction
+	if err := cursor.All(ctx, &actions); err != nil {
+		log.Errorf("[SelfActivationKYC][GetUsersActionLog] failed to decode cps_actions: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	logs := make([]imodel.SelfActivationActionLog, 0, len(actions))
+	for _, a := range actions {
+		logs = append(logs, mapCPSActionToActionLog(a))
+	}
+
+	total := int64(len(logs))
+	meta := local_util.BuildPaginationMeta(total, 1, len(logs))
+
+	return &types.PaginatedResponse[[]imodel.SelfActivationActionLog]{
+		Data: logs,
+		Meta: meta,
+	}, nil
+}
+
+func mapCPSActionToActionLog(a imodel.CPSAction) imodel.SelfActivationActionLog {
+	logEntry := imodel.SelfActivationActionLog{
+		ActionID:        a.ID.Hex(),
+		ActionRequest:   a.RequestAction,
+		ActionType:      a.ActionType,
+		MakerUser:       a.MakerName,
+		Status:          a.ActionStatus,
+		ActionTakeAt:    a.MakerActionTime,
+		ActionUpdatedAt: a.LastModifiedAt,
+	}
+
+	if a.CurrentAction != nil {
+		bsonBytes, err := bson.Marshal(a.CurrentAction)
+		if err == nil {
+			var user imodel.SelfActivationUser
+			if err := bson.Unmarshal(bsonBytes, &user); err == nil {
+				if user.Review != nil && user.Review.Decision != nil {
+					logEntry.Reason = user.Review.Decision.RejectionReason
+				}
+			}
+		}
+	}
+
+	if logEntry.Reason == "" {
+		logEntry.Reason = a.RejectionReason
+		if logEntry.Reason == "" {
+			logEntry.Reason = a.CanceledReason
+		}
+	}
+
+	return logEntry
 }

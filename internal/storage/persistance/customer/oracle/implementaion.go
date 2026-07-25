@@ -462,6 +462,7 @@ func (c *customerOracleRepository) SearchCustomerByCIForAccountNumber(ctx contex
 				 u.contact_phone,
 				 NVL(co.BRANCH_CODE, '') AS branch_code,
 				 u.gender,
+				 u.is_self_activated,
 				 u.is_blocked,
 				 NVL(ac.account_number, '') AS account_number,
 				 u.IS_SUPERAPP_ENABLED,
@@ -491,11 +492,11 @@ func (c *customerOracleRepository) SearchCustomerByCIForAccountNumber(ctx contex
 		id, userCode, email, customerNumber, fullName, phoneNumber, branchCode, gender, accountNumber string
 		branchName, accountType, districtName, regionName, federalRegionName, daoCode                 string
 		createdAt                                                                                     time.Time
-		isBlocked, isSupperAppEnabled, isUssdEnabled                                                  int
+		isBlocked, isSelfActivated, isSupperAppEnabled, isUssdEnabled                                 int
 	)
 	err := row.Scan(
 		&id, &userCode, &email, &customerNumber, &fullName, &phoneNumber, &branchCode,
-		&gender, &isBlocked, &accountNumber, &isSupperAppEnabled, &isUssdEnabled,
+		&gender, &isSelfActivated, &isBlocked, &accountNumber, &isSupperAppEnabled, &isUssdEnabled,
 		&branchName, &accountType, &districtName, &regionName, &federalRegionName, &daoCode,
 	)
 	if err != nil {
@@ -514,6 +515,7 @@ func (c *customerOracleRepository) SearchCustomerByCIForAccountNumber(ctx contex
 		CustomerNumber:     customerNumber,
 		FullName:           fullName,
 		PhoneNumber:        phoneNumber,
+		IsSelfActivated:    isSelfActivated == 1,
 		BranchCode:         branchCode,
 		BranchName:         branchName,
 		AccountType:        accountType,
