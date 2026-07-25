@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
-	"os"
+
+	// "fmt"
 
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/lib"
@@ -76,7 +76,7 @@ func (s *utilityService) resolveActionParams(ctx context.Context, msg imodel.Uti
 		}
 		existing, err := s.cpsService.GetCPSActionByID(ctx, msg.ID, "")
 		if err != nil {
-			return nil, fmt.Errorf("existing CPS action not found (id=%s): %w", msg.ID, err)
+			return nil, errors.New("existing CPS action not found (id=%s): %w", msg.ID, err)
 		}
 		p.uniqueId = existing.UniqueId
 		if prev, _ := local_util.JsonUnmarshal[map[string]interface{}](existing.CurrentAction); prev != nil {
@@ -85,7 +85,7 @@ func (s *utilityService) resolveActionParams(ctx context.Context, msg imodel.Uti
 		return p, nil
 
 	default:
-		return nil, fmt.Errorf("unsupported utility action: %s", msg.Action)
+		return nil, errors.New("unsupported utility action: %s", msg.Action)
 	}
 }
 
@@ -95,7 +95,7 @@ func (s *utilityService) HandleKafkaMessage(ctx context.Context, msg imodel.Util
 	var payload map[string]interface{}
 	if err := json.Unmarshal(msg.Payload, &payload); err != nil {
 		log.Errorf("[UtilitySvc][HandleKafkaMessage] invalid payload: %v", err)
-		return fmt.Errorf("invalid payload: %w", err)
+		return errors.New("invalid payload: %w", err)
 	}
 
 	ctx = injectMakerContext(ctx, msg.Maker)
@@ -133,7 +133,7 @@ func (s *utilityService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 
-		topic := os.Getenv("KAFKA_UTILITY_APPROVED_TOPIC")
+		topic := "KAFKA_UTILITY_APPROVED_TOPIC"
 		if err := s.producer.PublishMessage(ctx, json.RawMessage(data), "utility_approved", topic, "UTILITY.APPROVE"); err != nil {
 			log.Errorf("[UtilitySvc][Authorize] publish failed for token %s: %v", cpsAction.UniqueId, err)
 			return nil, errors.New(localization.ErrorUnexpectedError.Code)
@@ -143,7 +143,7 @@ func (s *utilityService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 		return cpsAction, nil
 
 	default:
-		return nil, fmt.Errorf("unsupported utility action: %s", cpsAction.RequestAction)
+		return nil, errors.New("unsupported utility action: %s", cpsAction.RequestAction)
 	}
 }
 
