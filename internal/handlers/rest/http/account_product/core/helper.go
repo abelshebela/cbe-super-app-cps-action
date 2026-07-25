@@ -1,7 +1,6 @@
 package account_product_handler_core
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -67,17 +66,28 @@ func ParseCreateRequest(r *http.Request, logger utils.Logger) (ap_dto.CreateAPRe
 	req.AccountCategoryID = strings.TrimSpace(r.FormValue("account_category"))
 	req.AccountCurrency = strings.ToUpper(strings.TrimSpace(r.FormValue("account_currency")))
 	req.FaqURL = strings.TrimSpace(r.FormValue("faq_url"))
+	// var features []string
+
+	// err = json.Unmarshal(
+	// 	[]byte(r.FormValue("product_features")),
+	// 	&features,
+	// )
+
+	// req.ProductFeatures = features
+
+	rawFeatures := r.Form["product_features"]
 	var features []string
 
-	err = json.Unmarshal(
-		[]byte(r.FormValue("product_features")),
-		&features,
-	)
-
+	// 2. Loop through and clean up each string item (Optional but recommended)
+	for _, feature := range rawFeatures {
+		trimmed := strings.TrimSpace(feature)
+		if trimmed != "" { // Avoid adding empty values to your struct
+			features = append(features, trimmed)
+		}
+	}
 	req.ProductFeatures = features
 	req.Eligibility = strings.TrimSpace(r.FormValue("eligibility"))
 	req.ProductDescription = strings.TrimSpace(r.FormValue("product_description"))
-	
 
 	if v := r.FormValue("interest_rate"); v != "" {
 		f, err := strconv.ParseFloat(v, 64)
@@ -123,7 +133,6 @@ func ParseCreateRequest(r *http.Request, logger utils.Logger) (ap_dto.CreateAPRe
 		req.InterestFee = f
 	}
 
-
 	if v := r.FormValue("has_atm_and_debit_card"); v != "" {
 		b, err := strconv.ParseBool(v)
 		if err != nil {
@@ -163,17 +172,22 @@ func ParseUpdateRequest(r *http.Request, logger utils.Logger) (ap_dto.UpdateAPRe
 	req.AccountCategoryID = strings.TrimSpace(r.FormValue("account_category"))
 	req.AccountCurrency = strings.ToUpper(strings.TrimSpace(r.FormValue("account_currency")))
 	req.FaqURL = strings.TrimSpace(r.FormValue("faq_url"))
+	rawFeatures := r.Form["product_features"]
 	var features []string
 
-	err = json.Unmarshal(
-		[]byte(r.FormValue("product_features")),
-		&features,
-	)
+	// 2. Loop through and clean up each string item (Optional but recommended)
+	for _, feature := range rawFeatures {
+		trimmed := strings.TrimSpace(feature)
+		if trimmed != "" { // Avoid adding empty values to your struct
+			features = append(features, trimmed)
+		}
+	}
+	req.ProductFeatures = features
 
 	req.ProductFeatures = features
 	req.Eligibility = strings.TrimSpace(r.FormValue("eligibility"))
 	req.ProductDescription = strings.TrimSpace(r.FormValue("product_description"))
-	
+
 	if v := r.FormValue("interest_rate"); v != "" {
 		f, err := strconv.ParseFloat(v, 64)
 		if err != nil {
@@ -210,13 +224,13 @@ func ParseUpdateRequest(r *http.Request, logger utils.Logger) (ap_dto.UpdateAPRe
 		}
 		req.MinimumMaintenanceFee = f
 	}
-	if v := r.FormValue("interest_fee"); v != "" {
-		f, err := strconv.ParseFloat(v, 64)
-		if err != nil {
-			return req, fmt.Errorf("interest_fee must be a number")
-		}
-		req.InterestFee = f
-	}
+	// if v := r.FormValue("interest_fee"); v != "" {
+	// 	f, err := strconv.ParseFloat(v, 64)
+	// 	if err != nil {
+	// 		return req, fmt.Errorf("interest_fee must be a number")
+	// 	}
+	// 	req.InterestFee = f
+	// }
 
 	if v := r.FormValue("has_atm_and_debit_card"); v != "" {
 		b, err := strconv.ParseBool(v)
@@ -256,14 +270,16 @@ func MapToResponse(m *imodel.AccountProduct) ap_dto.APResponse {
 		ProductFeatures:       m.ProductFeatures,
 		HasPhysicalCard:       m.HasPhysicalCard,
 		HasVirtualCard:        m.HasVirtualCard,
+		ProductDescription:    m.ProductDescription,
+		Eligibility:           m.Eligibility,
 		// ProductIcon:           m.ProductIcon,
 		IsAvailableForOnbording: m.IsAvailableForOnbording,
-		InterestRate: m.InterestRate,
-		ProductCoverImage: m.ProductCoverImage,
-		IsEnabled:         m.IsEnabled,
-		IsDeleted:         m.IsDeleted,
-		CreatedAt:         m.CreatedAt.String(),
-		LastModifiedAt:    m.LastModifiedAt.String(),
+		// InterestRate:            m.InterestRate,
+		ProductCoverImage:       m.ProductCoverImage,
+		IsEnabled:               m.IsEnabled,
+		IsDeleted:               m.IsDeleted,
+		CreatedAt:               m.CreatedAt.String(),
+		LastModifiedAt:          m.LastModifiedAt.String(),
 	}
 }
 
