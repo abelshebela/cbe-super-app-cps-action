@@ -55,10 +55,9 @@ type PersonalInformation struct {
 }
 
 type KycInfo struct {
-	PhoneMismatch  bool   `bson:"phone_mismatch" json:"phone_mismatch"`
-	BelowThreshold bool   `bson:"below_threshold" json:"below_threshold"`
-	ContainsANDOR  bool   `bson:"contains_and_or" json:"contains_and_or"`
-	KYCStatus      string `bson:"kyc_status" json:"kyc_status"`
+	PhoneMismatch  bool `bson:"phone_mismatch" json:"phone_mismatch"`
+	BelowThreshold bool `bson:"below_threshold" json:"below_threshold"`
+	ContainsANDOR  bool `bson:"contains_and_or" json:"contains_and_or"`
 }
 
 type CapturedDocuments struct {

@@ -438,7 +438,7 @@ func t24Date(yyyymmdd string) time.Time {
 	return t
 }
 
-func (r *customerKYCRepository) FindKYCOnboardingForExport(ctx context.Context, from, to time.Time, customerName string) ([]imodel.ExportSelfActivationRequest, error) {
+func (r *customerKYCRepository) FindKYCOnboardingForExport(ctx context.Context, from, to time.Time, status, customerName string) ([]imodel.ExportSelfActivationRequest, error) {
 	matchFilter := bson.M{
 		"created_at": bson.M{
 			"$gte": from,
@@ -446,6 +446,9 @@ func (r *customerKYCRepository) FindKYCOnboardingForExport(ctx context.Context, 
 		},
 		"is_deleted": bson.M{"$ne": true},
 	}
+
+	statuses := local_util.StringSliceFromFilterValue(status)
+	matchFilter["review.status"] = bson.M{"$in": statuses}
 
 	if customerName != "" {
 		matchFilter["name"] = bson.M{
