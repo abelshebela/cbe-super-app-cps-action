@@ -2,16 +2,16 @@ package transaction
 
 import (
 	transaction_dto "cbe-super-app-cps-action/internal/constants/dto/transaction"
+	"cbe-super-app-cps-action/internal/constants/localization"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/storage"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	account_lookup "cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/hugokessem/coreio/core"
@@ -21,15 +21,15 @@ import (
 type TransactionService struct {
 	repo          storage.TransactionRepository
 	limitRepo     storage.TransactionLimitRepository
-	accountLookup account_lookup.Account
+	coreInterface core.CBECoreAPIInterface
 	logger        utils.Logger
 }
 
-func NewVaultTransactionService(repo storage.TransactionRepository, limitRepo storage.TransactionLimitRepository, accountLookup account_lookup.Account, logger utils.Logger) service.TransactionService {
+func NewVaultTransactionService(repo storage.TransactionRepository, limitRepo storage.TransactionLimitRepository, coreInterface core.CBECoreAPIInterface, logger utils.Logger) service.TransactionService {
 	return &TransactionService{
 		repo:          repo,
 		limitRepo:     limitRepo,
-		accountLookup: accountLookup,
+		coreInterface: coreInterface,
 		logger:        logger,
 	}
 }
@@ -49,22 +49,31 @@ func (t *TransactionService) FetchTransactionByID(ctx context.Context, id string
 	return t.repo.FindTransactionByID(ctx, id)
 }
 
-// FetchTransactionLimitByCustomerNumber fetches real-time limits from CoreIO.
+// FetchTransactionLimitByCustomerNumber fetches real-time customer limits from CoreIO.
 func (t *TransactionService) FetchTransactionLimitByCustomerNumber(ctx context.Context, customerNumber string) (*imodel.TransactionLimit, error) {
 	log := local_util.LoggerFromCtx(ctx, t.logger)
 
-	result, err := t.accountLookup.SearchCustomerServiceLimitByCIF(ctx, customerNumber)
+	result, err := t.coreInterface.CustomerLimitFetchByCustomerNumber(ctx, core.CustomerLimitFetchByCIFParam{
+		CustomerNumber: customerNumber,
+	})
 	if err != nil {
 		log.Errorf("[TxnSvc][FetchLimit] CoreIO error for customer=%s: %v", customerNumber, err)
 		return nil, err
 	}
-	if !result.Success || len(result.Detail) == 0 {
-		log.Warnf("[TxnSvc][FetchLimit] CoreIO returned no records for customer=%s: %v", customerNumber, result.Messages)
+
+	if !result.Success {
+		log.Warnf("[TxnSvc][FetchLimit] CoreIO unsuccessful for customer=%s: %v", customerNumber, result.Messages)
 		return nil, errors.New(localization.ErrorResourceNotFound.Code)
 	}
 
-	log.Infof("[TxnSvc][FetchLimit] CoreIO returned %d entries for customer=%s", len(result.Detail), customerNumber)
-	return mapCoreIOToTransactionLimit(customerNumber, result), nil
+	if result.Detail == nil || result.Detail.GUserChannel == nil {
+		log.Warnf("[TxnSvc][FetchLimit] CoreIO returned empty channel data for customer=%s", customerNumber)
+		return nil, errors.New(localization.ErrorResourceNotFound.Code)
+	}
+
+	log.Infof("[TxnSvc][FetchLimit] CoreIO returned %d channels for customer=%s",
+		len(result.Detail.GUserChannel.MUserChannel), customerNumber)
+	return mapCIFResultToTransactionLimit(customerNumber, result), nil
 }
 
 // FetchAllTransactionLimits implements service.TransactionService.
@@ -72,23 +81,32 @@ func (t *TransactionService) FetchAllTransactionLimits(ctx context.Context, filt
 	return t.limitRepo.FindAllWithPagination(ctx, filterParams)
 }
 
-// mapCoreIOToTransactionLimit groups CoreIO detail rows into the internal TransactionLimit model.
-func mapCoreIOToTransactionLimit(customerNumber string, result *core.CustomerLimitFetchByCIFReturnServiceResult) *imodel.TransactionLimit {
-	channelMap := make(map[string][]imodel.TransactionLimitEntry)
-	for _, d := range result.Detail {
-		maxAmount, _ := strconv.ParseFloat(d.Limit, 64)
-		freq, _ := strconv.Atoi(d.Count)
-		channelMap[d.Channel] = append(channelMap[d.Channel], imodel.TransactionLimitEntry{
-			ServiceName:          d.ServiceName,
-			MaximumAmount:        maxAmount,
-			TransactionFrequency: freq,
-		})
-	}
+// mapCIFResultToTransactionLimit converts a CoreIO CustomerLimitView response into
+// the internal TransactionLimit model, grouping services by channel.
+func mapCIFResultToTransactionLimit(customerNumber string, result *core.CustomerLimitFetchByCIFResult) *imodel.TransactionLimit {
+	channels := make([]imodel.TransactionLimitChannel, 0)
 
-	channels := make([]imodel.TransactionLimitChannel, 0, len(channelMap))
-	for ch, services := range channelMap {
+	for _, ch := range result.Detail.GUserChannel.MUserChannel {
+		channelName := strings.TrimSpace(ch.UserChannelType)
+		if channelName == "" {
+			continue
+		}
+
+		var services []imodel.TransactionLimitEntry
+		if ch.SGServiceType != nil {
+			for _, svc := range ch.SGServiceType.Services {
+				maxAmount, _ := strconv.ParseFloat(strings.TrimSpace(svc.ServiceMaxAmt), 64)
+				freq, _ := strconv.Atoi(strings.TrimSpace(svc.UserMaxCnt))
+				services = append(services, imodel.TransactionLimitEntry{
+					ServiceName:          strings.TrimSpace(svc.Name),
+					MaximumAmount:        maxAmount,
+					TransactionFrequency: freq,
+				})
+			}
+		}
+
 		channels = append(channels, imodel.TransactionLimitChannel{
-			Channel:  ch,
+			Channel:  channelName,
 			Services: services,
 		})
 	}
