@@ -165,8 +165,6 @@ func (s *utilityService) GetByUniqueToken(ctx context.Context, uniqueToken, depa
 	return *payload, nil
 }
 
-// injectMakerContext injects maker identity fields into the context so that
-// ExtractUserFromContext returns the correct maker info for CpsModelBuilder.
 func injectMakerContext(ctx context.Context, m imodel.UtilityMakerInfo) context.Context {
 	ctx = context.WithValue(ctx, constants.ContextKey("user_id"), m.UserID)
 	ctx = context.WithValue(ctx, constants.ContextKey("username"), m.Username)

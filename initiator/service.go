@@ -241,6 +241,11 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	dispatcher := cpsaction.NewDispatcher(serviceContainer)
 	cpsActionService := cpsaction.NewCPSActionService(persistence.CPSActionRolePersistence, persistence.CPSAction, persistence.UserActionLogPersistence, logger, *dispatcher, minioClient, cfg.S3BucketName, cfg.MinioPublicEndPoint, *cfg)
 	cpsActionService = cpsaction.WithActionRolePolicy(cpsActionService, persistence.CPSActionRolePersistence, logger)
+
+	// Wire utility service into the container now so the second dispatcher rebuild (below) captures it.
+	utilityService := utility_svc.NewUtilityService(cpsActionService, clientOrchestrationProducer, logger)
+	serviceContainer.UtilityContainer = utilityService
+
 	ussdMerchant = ussd_merchant.NewUssdMerchantService(oracle.UssdMerchant, oracle.ServicesPersistence, minioClient, cpsActionService, cfg.S3BucketName, *cfg, logger)
 
 	eventService = event.NewEventService(persistence.EventPersistence, cpsActionService, ecommerceMerchantService, persistence.UserPersistence, minioClient, minioPubUrl, cfg.S3BucketName, cfg, logger)
@@ -346,7 +351,8 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	roleDelegationService = role_delegation_service.NewRoleDelegationService(persistence.RoleDelegationPersistence, persistence.JobRolePersistence, persistence.CpsUserPersistence, persistence.BPSUserPersistence, persistence.DepartmentPersistence, persistence.RolePersistence, oracle.AccountBlock, cpsActionService, minioClient, cfg.S3BucketName, *cfg, notificationProducer, logger)
 	serviceContainer.RoleDelegationContainer = roleDelegationService
 
-	utilityService := utility_svc.NewUtilityService(cpsActionService, clientOrchestrationProducer, logger)
+	// Recreate with the final cpsActionService so Kafka consumer uses the fully-wired version.
+	utilityService = utility_svc.NewUtilityService(cpsActionService, clientOrchestrationProducer, logger)
 	serviceContainer.UtilityContainer = utilityService
 
 	vaultTransactionService := transaction_service.NewVaultTransactionService(nil, persistence.TransactionLimitPersistence, logger)
