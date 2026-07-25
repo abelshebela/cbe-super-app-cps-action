@@ -1465,7 +1465,9 @@ const (
 	MsgAccessListSegmentationUpdatedSuccessfully    = "Access list segmentation update request sent successfully"
 	MsgAccessListSegmentationUpdatedSuccessfullySP  = "Access list segmentation updated successfully"
 	MsgAccessListSegmentationEnabledSuccessfully    = "Access list segmentation enabled successfully"
+	MsgAccessListSegmentationEnabledSuccessfullySP  = "Access list segmentation enabled requested successfully"
 	MsgAccessListSegmentationDisabledSuccessfully   = "Access list segmentation disabled successfully"
+	MsgAccessListSegmentationDisabledSuccessfullySP = "Access list segmentation disable requested successfully"
 	MsgAccessListSegmentationsRetrievedSuccessfully = "Access list segmentations retrieved successfully"
 
 	MsgAccessListSegmentationRetrievedSuccessfully = "Access list segmentation retrieved successfully"
