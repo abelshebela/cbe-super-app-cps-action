@@ -402,6 +402,13 @@ func (s *selfActivationKYCService) ExportUserSelfActivation(ctx context.Context,
 	return url, nil
 }
 
+func (s *selfActivationKYCService) GetUsersActionLog(ctx context.Context, customerNumber string) (*types.PaginatedResponse[[]imodel.SelfActivationActionLog], error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "GetUsersActionLog", "SelfActivationKYC", "GetUsersActionLog")
+	defer span.End()
+
+	return s.repo.GetUsersActionLog(ctx, customerNumber)
+}
+
 func (s *selfActivationKYCService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "SelfActivationKYC", "Authorize")
 	defer span.End()
