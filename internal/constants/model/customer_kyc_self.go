@@ -69,18 +69,15 @@ type KYCReviewAssignment struct {
 }
 
 type LinkedAccounts struct {
-	AccountHolderName  string `json:"account_holder_name"`
-	PhoneNumber        string `json:"phone_number"`
-	AccountType        string `json:"account_type"`
-	ProductCode        string `json:"product_code"`
-	LinkedChannel      string `json:"linked_channel"`
-	Currency           string `json:"currency"`
-	BranchName         string `json:"branch_name"`
-	BranchCode         string `json:"branch_code"`
-	InActive           string `json:"in_active"`
-	PostingRestriction string `json:"posting_restriction"`
-	RestrictionType    string `json:"restriction_type"`
-	AndorAccount       *bool  `json:"and_or_account"`
+	AccountHolderName  string `json:"account_holder_name" bson:"account_holder_name"`
+	AccountType        string `json:"account_type" bson:"account_type"`
+	ProductCode        string `json:"product_code" bson:"product_code"`
+	Currency           string `json:"currency" bson:"currency"`
+	BranchName         string `json:"branch_name" bson:"branch_name"`
+	BranchCode         string `json:"branch_code" bson:"branch_code"`
+	InActive           string `json:"in_active" bson:"in_active"`
+	PostingRestriction string `json:"posting_restriction" bson:"posting_restriction"`
+	RestrictionType    string `json:"restriction_type" bson:"restriction_type"`
 }
 
 type CustomerAddress struct {
