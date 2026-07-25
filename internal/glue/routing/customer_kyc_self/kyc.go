@@ -67,6 +67,14 @@ func Init(router chi.Router, handler customer_kyc.SelfActivationKyc, authMiddlew
 				authMiddleware.AuthenticateToken,
 			},
 		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/customers/self-activation/logs",
+			Handler: handler.GetUsersActionLog,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
 	}
 
 	glue.RegisterRoutes(router, routes)
