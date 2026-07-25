@@ -78,6 +78,7 @@ type LinkedAccounts struct {
 	InActive           string `json:"in_active" bson:"in_active"`
 	PostingRestriction string `json:"posting_restriction" bson:"posting_restriction"`
 	RestrictionType    string `json:"restriction_type" bson:"restriction_type"`
+	AndorAccount       *bool  `json:"and_or_account" bson:"and_or_account"`
 }
 
 type CustomerAddress struct {
