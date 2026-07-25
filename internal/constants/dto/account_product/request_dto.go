@@ -31,7 +31,7 @@ type UpdateAPRequest struct {
 	AccountCurrency       string                `json:"account_currency"`
 	MinimumOpeningBalance float64               `json:"minimum_opening_balance"`
 	MinimumMaintenanceFee float64               `json:"minimum_balance_to_maintain_account"`
-	InterestFee           float64               `json:"interest_fee"`
+	// InterestFee           float64               `json:"interest_fee"`
 	FaqURL                string                `json:"faq_url"`
 	ProductFeatures       []string                `json:"product_features"`
 	ProductDescription     string                  `json:"product_description"`
@@ -93,7 +93,7 @@ type APResponse struct {
 	ProductIcon           string            `json:"product_icon"`
 	ProductCoverImage     string            `json:"product_cover_image"`
 	IsAvailableForOnbording bool                 `json:"is_available_for_onbording"`
-	InterestRate            float64               `json:"interest_rate"`
+	// InterestRate            float64               `json:"interest_rate"`
 	ProductDescription     string                  `json:"product_description"`
 	Eligibility            string                   `json:"eligibility"`
 	IsEnabled             bool              `json:"is_enabled"`
