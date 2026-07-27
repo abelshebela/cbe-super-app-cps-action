@@ -149,9 +149,9 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.CustomerContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(constants.RequestAction(action), "DISABLECUSTOMER"):
 		return d.app.CustomerContainer.Authorize(ctx, cpsAction)
-	case IsActionInGroup(constants.RequestAction(action), "BARCUSTOMER"):
+	case IsActionInGroup(constants.RequestAction(action), "BARECUSTOMER"):
 		return d.app.CustomerContainer.Authorize(ctx, cpsAction)
-	case IsActionInGroup(constants.RequestAction(action), "UNBARCUSTOMER"):
+	case IsActionInGroup(constants.RequestAction(action), "UNBARECUSTOMER"):
 		return d.app.CustomerContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(constants.RequestAction(action), "NEWSTAG"):
 		return d.app.NewsTagsServiceContainer.Authorize(ctx, cpsAction)
