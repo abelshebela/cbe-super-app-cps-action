@@ -463,7 +463,10 @@ func (c *customerOracleRepository) SearchCustomerByCIForAccountNumber(ctx contex
 				 NVL(co.BRANCH_CODE, '') AS branch_code,
 				 u.gender,
 				 u.is_self_activated,
+				 u.superapp_role,
 				 u.is_blocked,
+				 u.created_at,
+				 u.expiry_at,
 				 NVL(ac.account_number, '') AS account_number,
 				 u.IS_SUPERAPP_ENABLED,
 				 u.IS_USSD_ENABLED,
@@ -490,13 +493,13 @@ func (c *customerOracleRepository) SearchCustomerByCIForAccountNumber(ctx contex
 	row := c.db.QueryRowContext(ctx, query, number, number, number, number)
 	var (
 		id, userCode, email, customerNumber, fullName, phoneNumber, branchCode, gender, accountNumber string
-		branchName, accountType, districtName, regionName, federalRegionName, daoCode                 string
-		createdAt                                                                                     time.Time
+		branchName, accountType, districtName, regionName, federalRegionName, daoCode, superappRole   string
+		createdAt, expiryAt                                                                           time.Time
 		isBlocked, isSelfActivated, isSupperAppEnabled, isUssdEnabled                                 int
 	)
 	err := row.Scan(
 		&id, &userCode, &email, &customerNumber, &fullName, &phoneNumber, &branchCode,
-		&gender, &isSelfActivated, &isBlocked, &accountNumber, &isSupperAppEnabled, &isUssdEnabled,
+		&gender, &isSelfActivated, &superappRole, &isBlocked, &createdAt, &expiryAt, &accountNumber, &isSupperAppEnabled, &isUssdEnabled,
 		&branchName, &accountType, &districtName, &regionName, &federalRegionName, &daoCode,
 	)
 	if err != nil {
@@ -510,12 +513,16 @@ func (c *customerOracleRepository) SearchCustomerByCIForAccountNumber(ctx contex
 	return &customer.CustomerListResponse{
 		ID:                 id,
 		UserID:             id,
+		SuperAppID:         "SA" + customerNumber,
 		UserCode:           userCode,
 		Email:              email,
 		CustomerNumber:     customerNumber,
 		FullName:           fullName,
 		PhoneNumber:        phoneNumber,
 		IsSelfActivated:    isSelfActivated == 1,
+		SupperAppRole:      superappRole,
+		ActivationDate:     createdAt,
+		ExpiryDate:         expiryAt,
 		BranchCode:         branchCode,
 		BranchName:         branchName,
 		AccountType:        accountType,
@@ -524,7 +531,6 @@ func (c *customerOracleRepository) SearchCustomerByCIForAccountNumber(ctx contex
 		FederalRegionName:  federalRegionName,
 		DaoCode:            daoCode,
 		Gender:             gender,
-		CreatedAt:          createdAt.Format(time.RFC3339),
 		IsBlocked:          isBlocked == 1,
 		AccountNumber:      accountNumber,
 		IsSupperAppEnabled: isSupperAppEnabled == 1,
