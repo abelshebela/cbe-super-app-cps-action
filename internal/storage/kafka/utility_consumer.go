@@ -11,8 +11,8 @@ import (
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
-	cfg "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"github.com/IBM/sarama"
+	cfg "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -113,6 +113,8 @@ func (uc *UtilityConsumer) handleUtilityMessage(ctx context.Context, message *sa
 	log := local_util.LoggerFromCtx(ctx, uc.logger)
 	log.Infof("[UtilityConsumer] received message topic=%s partition=%d offset=%d",
 		message.Topic, message.Partition, message.Offset)
+
+	log.Infof("[UtilityConsumer] received message=%+v", message)
 
 	var kafkaMsg imodel.UtilityKafkaMessage
 	if err := json.Unmarshal(message.Value, &kafkaMsg); err != nil {
