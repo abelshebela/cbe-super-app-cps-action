@@ -809,8 +809,9 @@ const (
 	RequestApproveFaydaCustomer  RequestAction = "APPROVE_FAYDA_CUSTOMER"
 	RequestDisableFaydaAccount   RequestAction = "DISABLE_FAYDA_ACCOUNT"
 	RequestEnableFaydaAccount    RequestAction = "ENABLE_FAYDA_ACCOUNT"
-	RequestUnblockCustomer       RequestAction = "UNBLOCK_CUSTOMER"
-	RequestBlockCustomer         RequestAction = "BLOCK_CUSTOMER"
+
+	RequestUnblockCustomer RequestAction = "UNBLOCK_CUSTOMER"
+	RequestBlockCustomer   RequestAction = "BLOCK_CUSTOMER"
 
 	// Wallet
 	RequestCreateWallet         RequestAction = "CREATE_WALLET"

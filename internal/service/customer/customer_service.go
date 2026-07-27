@@ -646,6 +646,7 @@ func (d *customerService) SearchCustomerByCIForAccountNumber(ctx context.Context
 			log.Errorf("[CustomerSvc][SearchByCI] account lookup failed (restriction skipped): %v", lookupErr)
 		} else if accountDetail != nil {
 			customer.Restriction = accountDetail.Restriction
+			customer.CIFBranch = accountDetail.BranchName
 		}
 	}
 

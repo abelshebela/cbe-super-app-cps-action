@@ -111,29 +111,33 @@ type CustomerDetailResponse struct {
 }
 
 type CustomerListResponse struct {
-	ID                 string `json:"id" bson:"_id"`
-	UserCode           string `json:"user_code" bson:"user_code"`
-	UserID             string `json:"user_id" bson:"user_id"`
-	Email              string `json:"email" bson:"email"`
-	FullName           string `json:"full_name" bson:"full_name"`
-	PhoneNumber        string `json:"phone_number" bson:"phone_number"`
-	CustomerNumber     string `json:"customer_number" bson:"customer_number"`
-	BranchCode         string `json:"branch_code" bson:"branch_code"`
-	Gender             string `json:"gender" bson:"gender"`
-	AccountNumber      string `json:"account_number" bson:"account_number"`
-	IsSelfActivated    bool   `json:"is_self_activated" bson:"is_self_activated"`
-	Avatar             string `json:"avatar" bson:"avatar"`
-	CreatedAt          string `json:"created_at" bson:"created_at"`
-	IsBlocked          bool   `json:"is_blocked" bson:"is_blocked"`
-	IsSupperAppEnabled bool   `json:"is_supper_app_enabled" bson:"is_superapp_enabled"`
-	IsUssdEnabled      bool   `json:"is_ussd_enabled" bson:"is_ussd_enabled"`
-	BranchName         string `json:"branch_name"`
-	AccountType        string `json:"account_type"`
-	DistrictName       string `json:"district_name"`
-	RegionName         string `json:"region_name"`
-	FederalRegionName  string `json:"federal_region_name"`
-	DaoCode            string `json:"dao_code"`
-	Restriction        string `json:"restriction"`
+	ID                 string    `json:"id" bson:"_id"`
+	SuperAppID         string    `json:"super_app_id"` // SA + CIF
+	UserCode           string    `json:"user_code" bson:"user_code"`
+	UserID             string    `json:"user_id" bson:"user_id"`
+	Email              string    `json:"email" bson:"email"`
+	FullName           string    `json:"full_name" bson:"full_name"`
+	PhoneNumber        string    `json:"phone_number" bson:"phone_number"`
+	CustomerNumber     string    `json:"customer_number" bson:"customer_number"`
+	BranchCode         string    `json:"branch_code" bson:"branch_code"`
+	Gender             string    `json:"gender" bson:"gender"`
+	AccountNumber      string    `json:"account_number" bson:"account_number"`
+	IsSelfActivated    bool      `json:"is_self_activated" bson:"is_self_activated"`
+	CIFBranch          string    `json:"cif_branch"`
+	ActivationDate     time.Time `json:"activation_date"`
+	ExpiryDate         time.Time `json:"expiry_date"`
+	SupperAppRole      string    `json:"super_app_role"`
+	Avatar             string    `json:"avatar" bson:"avatar"`
+	IsBlocked          bool      `json:"is_blocked" bson:"is_blocked"`
+	IsSupperAppEnabled bool      `json:"is_supper_app_enabled" bson:"is_superapp_enabled"`
+	IsUssdEnabled      bool      `json:"is_ussd_enabled" bson:"is_ussd_enabled"`
+	BranchName         string    `json:"branch_name"`
+	AccountType        string    `json:"account_type"`
+	DistrictName       string    `json:"district_name"`
+	RegionName         string    `json:"region_name"`
+	FederalRegionName  string    `json:"federal_region_name"`
+	DaoCode            string    `json:"dao_code"`
+	Restriction        string    `json:"restriction"`
 }
 
 type CustomerServiceLimitResponse struct {
