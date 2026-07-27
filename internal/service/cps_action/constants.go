@@ -460,6 +460,10 @@ const (
 	RequestDeleteTermAndCondition constants.RequestAction = "DELETE_TERM_AND_CONDITION"
 
 	// Utility — opaque Kafka-sourced payloads gated by maker-checker
+	RequestCreateCollection  constants.RequestAction = "CREATE_COLLECTION"
+	RequestDisableCollection constants.RequestAction = "DISABLE_COLLECTION"
+	RequestCreateGroup       constants.RequestAction = "CREATE_GROUP"
+
 	RequestCreateUtility  constants.RequestAction = "CREATE_UTILITY"
 	RequestUpdateUtility  constants.RequestAction = "UPDATE_UTILITY"
 	RequestEnableUtility  constants.RequestAction = "ENABLE_UTILITY"
@@ -837,6 +841,10 @@ var validRequestActions = map[constants.RequestAction]struct{}{
 	RequestEnableUtility:  {},
 	RequestDisableUtility: {},
 	RequestDeleteUtility:  {},
+
+	RequestCreateCollection:  {},
+	RequestDisableCollection: {},
+	RequestCreateGroup:       {},
 }
 
 func IsValidRequestAction(requestAction string) bool {
@@ -1382,6 +1390,9 @@ var RequestActionGroups = map[string][]constants.RequestAction{
 		RequestEnableUtility,
 		RequestDisableUtility,
 		RequestDeleteUtility,
+		RequestCreateCollection,
+		RequestDisableCollection,
+		RequestCreateGroup,
 	},
 }
 
