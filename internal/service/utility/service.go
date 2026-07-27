@@ -97,6 +97,8 @@ func (s *utilityService) HandleKafkaMessage(ctx context.Context, msg imodel.Util
 		return fmt.Errorf("invalid payload: %w", err)
 	}
 
+	log.Infof("[UtilitySvc][HandleKafkaMessage] body sent: %+v", payload)
+
 	ctx = injectMakerContext(ctx, msg.Maker)
 	makerUser := local_util.ExtractUserFromContext(ctx)
 
