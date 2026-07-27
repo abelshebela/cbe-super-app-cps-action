@@ -122,7 +122,7 @@ func (uc *UtilityConsumer) handleUtilityMessage(ctx context.Context, message *sa
 		return fmt.Errorf("invalid utility message format: %w", err)
 	}
 
-	log.Infof("[UtilityConsumer] received kafkabody=%+v", kafkaMsg)
+	log.Infof("[UtilityConsumer] received kafka body=%+v", kafkaMsg)
 
 	if kafkaMsg.Action == "" {
 		log.Errorf("[UtilityConsumer] message missing action field")
