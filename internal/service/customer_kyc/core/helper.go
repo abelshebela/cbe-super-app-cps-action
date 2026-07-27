@@ -6,6 +6,7 @@ import (
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	accountLookup "cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"fmt"
 	"strings"
@@ -61,7 +62,7 @@ func MapCustomerKYCToResponsePaginated(c *types.PaginatedResponse[[]imodel.Custo
 			PersonalInformation: dto.PersonalInformation{
 				FullName:      item.KYCData.FullName,
 				MotherName:    item.KYCData.MothersName,
-				PhoneNumber:   item.KYCData.PhoneNumber,
+				PhoneNumber:   local_util.FormatPhoneNumber(item.KYCData.PhoneNumber),
 				Gender:        item.KYCData.Gender,
 				Nationality:   item.KYCData.Nationality,
 				DateOfBirth:   item.KYCData.BirthDate.Format(time.RFC3339),
@@ -129,7 +130,7 @@ func MapCustomerKYCToResponse(c *model.CustomerKYC) *dto.CustomerKYCResponse {
 		PersonalInformation: dto.PersonalInformation{
 			FullName:      c.KYCData.FullName,
 			MotherName:    c.KYCData.MothersName,
-			PhoneNumber:   c.KYCData.PhoneNumber,
+			PhoneNumber:   local_util.FormatPhoneNumber(c.KYCData.PhoneNumber),
 			Gender:        c.KYCData.Gender,
 			Nationality:   c.KYCData.Nationality,
 			DateOfBirth:   c.KYCData.BirthDate.Format(time.RFC3339),
@@ -200,7 +201,7 @@ func MapSelfActivationUserToResponse(u *imodel.SelfActivationUser) *dto.Customer
 		PersonalInformation: dto.PersonalInformation{
 			FullName:       u.Name,
 			Email:          u.Email,
-			PhoneNumber:    u.PhoneNumber,
+			PhoneNumber:    local_util.FormatPhoneNumber(u.PhoneNumber),
 			Gender:         u.Gender,
 			Nationality:    u.Nationality,
 			DateOfBirth:    u.BirthDate,
@@ -228,7 +229,7 @@ func MapSelfActivationUserToResponse(u *imodel.SelfActivationUser) *dto.Customer
 			BelowThreshold: u.KYC.BelowThreshold,
 			ContainsANDOR:  u.KYC.ContainsANDOR,
 		},
-		CorePhoneNumber: u.CorePhoneNumber,
+		CorePhoneNumber: local_util.FormatPhoneNumber(u.CorePhoneNumber),
 		ComplyCube: dto.ComplyCube{
 			DocumentType:    u.ComplyCube.DocumentType,
 			IdentityOutcome: u.ComplyCube.IdentityOutcome,
@@ -257,7 +258,7 @@ func MapSelfActivationUserInfo(u *imodel.UserInfo) *imodel.UserInfo {
 		FullName:    u.FullName,
 		Email:       u.Email,
 		Department:  u.Department,
-		PhoneNumber: u.PhoneNumber,
+		PhoneNumber: local_util.FormatPhoneNumber(u.PhoneNumber),
 	}
 }
 
@@ -269,7 +270,7 @@ func BuildRow(request imodel.ExportSelfActivationRequest) []string {
 
 	return []string{
 		request.CustomerName,
-		request.PhoneNumber,
+		local_util.FormatPhoneNumber(request.PhoneNumber),
 		request.Gender,
 		request.DateOfBirth,
 		request.Region,
