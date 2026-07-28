@@ -1481,11 +1481,11 @@ const (
 	MsgCustomerSegmentationCodeNotFound            = "Customer segmentation code not found"
 	MsgCustomerSegmentationEnableSuccessfully      = "Customer segmentation enable request submitted successfully"
 	MsgCustomerSegmentationDisableSuccessfully     = "Customer segmentation disable request submitted successfully"
-	MsgAccessListKeysRequired                      = "Access List Keys are required"
-	MsgCustomerAlreadyUnBlocked                    = "Customer Already UnBlocked"
-	MsgCustomerAlreadyBlocked                      = "Customer Already Blocked"
+	MsgAccessListKeysRequired                      = "Access list keys are required"
+	MsgCustomerAlreadyUnBlocked                    = "Customer already unblocked"
+	MsgCustomerAlreadyBlocked                      = "Customer already blocked"
 	MsgSegmentationTypeRequired                    = "Segmentation type is required"
-	MsgAccessListSegmentationKeyNotFound           = "Access List Segmentation Key not found"
+	MsgAccessListSegmentationKeyNotFound           = "Access list segmentation key not found"
 
 	MsgUserNotFoundOrDisabled = "User not found or disabled"
 
