@@ -682,6 +682,8 @@ var ResponseCodesList = []ResponseCode{
 	CustomerDisabledSuccessfully,
 	CustomerEnableRequestCreatedSuccessfully,
 	ErrorCustomerAlreadyDisabled,
+	ErrorCustomerAlreadyBarred,
+	ErrorCustomerAlreadyUnbarred,
 	ErrorCustomerAlreadyEnabled,
 	ErrorCustomerNotFound,
 	ErrorIdNotSetOnQueryParam,
@@ -9098,6 +9100,20 @@ var (
 		Code:       "ERROR_CUSTOMER_ALREADY_DISABLED",
 		StatusCode: StatusConflict,
 		Message:    "Customer is already disabled",
+		Type:       "error",
+	}
+
+	ErrorCustomerAlreadyBarred = ResponseCode{
+		Code:       "ERROR_CUSTOMER_ALREADY_BARRED",
+		StatusCode: StatusConflict,
+		Message:    "Customer is already barred",
+		Type:       "error",
+	}
+
+	ErrorCustomerAlreadyUnbarred = ResponseCode{
+		Code:       "ERROR_CUSTOMER_ALREADY_UNBARRED",
+		StatusCode: StatusConflict,
+		Message:    "Customer is already unbarred",
 		Type:       "error",
 	}
 

@@ -92,7 +92,7 @@ type CustomerByCIFResponse struct {
 	IsResetPin                   bool       `json:"is_reset_pin"`
 	IsTerminated                 bool       `json:"is_terminated"`
 	TerminationCounter           int        `json:"termination_counter"`
-	HasChange                    bool       `json:"has_change"`
+	HasChange                    string     `json:"has_change"`
 	IsSelfActivated              bool       `json:"is_self_activated"`
 	SelfActivationRuleExpiration *time.Time `json:"self_activation_rule_expiration,omitempty"`
 	IsSelfActivationRuleOverided bool       `json:"is_self_activation_rule_overided"`
