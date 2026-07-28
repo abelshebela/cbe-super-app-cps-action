@@ -437,7 +437,7 @@ func (c *customerService) BlockCustomerSession(ctx context.Context, id, BlockedR
 			attribute.String("error", localization.ErrorCustomerAlreadyBlocked.Code),
 			attribute.String("id", id),
 		))
-		return fmt.Errorf("%s", localization.ErrorCustomerAlreadyBlocked.Code)
+		return errors.New(localization.ErrorCustomerAlreadyBlocked.Code)
 	}
 
 	new_customer := *customer
@@ -499,7 +499,7 @@ func (c *customerService) UnBlockCustomerSession(ctx context.Context, id, reason
 			attribute.String("error", localization.ErrorCustomerAlreadyUnBlocked.Code),
 			attribute.String("id", id),
 		))
-		return fmt.Errorf("%s", localization.ErrorCustomerAlreadyUnBlocked.Code)
+		return errors.New(localization.ErrorCustomerAlreadyUnBlocked.Code)
 	}
 
 	new_customer := *customer
@@ -806,6 +806,7 @@ func (d *customerService) GetCustomerDetailByID(ctx context.Context, id string) 
 
 	if len(coreRes) > 0 {
 		cr := coreRes[0]
+		res.PersonalInfo.CIFBranch = cr.BranchName
 		if cr.BirthOfDate != "" {
 			res.PersonalInfo.DateOfBirth = cr.BirthOfDate
 			res.PersonalInfo.CustomerCategory = cr.CustomerID
