@@ -89,4 +89,5 @@ type Persistence struct {
 	UserActionLogPersistence          storage.UserActionLogRepository
 	RoleDelegationPersistence         storage.RoleDelegationRepository
 	TransactionLimitPersistence       storage.TransactionLimitRepository
+	SurveySamplingPersistence         storage.SurveySamplingRepository
 }

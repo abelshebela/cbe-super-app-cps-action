@@ -8,7 +8,6 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 // SeedCPSActionList upserts the UTILITY service action into cps_action_list on startup.
@@ -28,14 +27,14 @@ func SeedCPSActionList(ctx context.Context, client *mongo.Client, dbName string,
 		},
 	}
 
-	result, err := coll.UpdateOne(ctx, filter, update, options.UpdateOne().SetUpsert(true))
-	if err != nil {
-		logger.Errorf("SeedCPSActionList: failed to upsert UTILITY action: %v", err)
-		return
+	data := coll.FindOne(ctx, filter)
+	if data == nil {
+		_, err := coll.InsertOne(ctx, update["$setOnInsert"])
+		if err != nil {
+			logger.Errorf("SeedCPSActionList: failed to upsert UTILITY action: %v", err)
+			return
+		}
+
 	}
-	if result.UpsertedCount > 0 {
-		logger.Infof("SeedCPSActionList: inserted UTILITY action into cps_action_list")
-	} else {
-		logger.Infof("SeedCPSActionList: UTILITY action already exists in cps_action_list, skipping")
-	}
+
 }

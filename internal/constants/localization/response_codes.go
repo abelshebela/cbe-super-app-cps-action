@@ -118,6 +118,19 @@ var ResponseCodesList = []ResponseCode{
 	SuccessTACUploaded,
 	SuccessTACUploadRequestSent,
 
+	SuccessSurveySamplingCreatedRequestSent,
+	SuccessSurveySamplingCreatedSP,
+	SuccessSurveySamplingUpdatedRequestSent,
+	SuccessSurveySamplingUpdatedSP,
+	SuccessSurveySamplingEnabledRequestSent,
+	SuccessSurveySamplingEnabledSP,
+	SuccessSurveySamplingDisabledRequestSent,
+	SuccessSurveySamplingDisabledSP,
+	SuccessSurveySamplingDeletedRequestSent,
+	SuccessSurveySamplingDeletedSP,
+	SuccessSurveySamplingsFetchedSuccessfully,
+	SuccessSurveySamplingFetchedSuccessfully,
+
 	SuccessDonationImageUploaded,
 	SuccessDonationImagesUpdated,
 	SuccessNotificationConstructed,
@@ -10468,6 +10481,80 @@ var (
 		Code:       "SUCCESS_TRANSACTION_LIMIT_RETRIEVED",
 		StatusCode: StatusOK,
 		Message:    "Transaction limit retrieved successfully",
+		Type:       "success",
+	}
+
+	// Survey Sampling Config response codes
+	SuccessSurveySamplingCreatedRequestSent = ResponseCode{
+		Code:       "SUCCESS_SURVEY_SAMPLING_CREATED_REQUEST_SENT",
+		StatusCode: StatusCreated,
+		Message:    MsgSurveySamplingCreatedRequestSent,
+		Type:       "success",
+	}
+	SuccessSurveySamplingCreatedSP = ResponseCode{
+		Code:       "SUCCESS_SURVEY_SAMPLING_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgSurveySamplingCreatedSP,
+		Type:       "success",
+	}
+	SuccessSurveySamplingUpdatedRequestSent = ResponseCode{
+		Code:       "SUCCESS_SURVEY_SAMPLING_UPDATED_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgSurveySamplingUpdatedRequestSent,
+		Type:       "success",
+	}
+	SuccessSurveySamplingUpdatedSP = ResponseCode{
+		Code:       "SUCCESS_SURVEY_SAMPLING_UPDATED",
+		StatusCode: StatusOK,
+		Message:    MsgSurveySamplingUpdatedSP,
+		Type:       "success",
+	}
+	SuccessSurveySamplingEnabledRequestSent = ResponseCode{
+		Code:       "SUCCESS_SURVEY_SAMPLING_ENABLED_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgSurveySamplingEnabledRequestSent,
+		Type:       "success",
+	}
+	SuccessSurveySamplingEnabledSP = ResponseCode{
+		Code:       "SUCCESS_SURVEY_SAMPLING_ENABLED",
+		StatusCode: StatusOK,
+		Message:    MsgSurveySamplingEnabledSP,
+		Type:       "success",
+	}
+	SuccessSurveySamplingDisabledRequestSent = ResponseCode{
+		Code:       "SUCCESS_SURVEY_SAMPLING_DISABLED_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgSurveySamplingDisabledRequestSent,
+		Type:       "success",
+	}
+	SuccessSurveySamplingDisabledSP = ResponseCode{
+		Code:       "SUCCESS_SURVEY_SAMPLING_DISABLED",
+		StatusCode: StatusOK,
+		Message:    MsgSurveySamplingDisabledSP,
+		Type:       "success",
+	}
+	SuccessSurveySamplingDeletedRequestSent = ResponseCode{
+		Code:       "SUCCESS_SURVEY_SAMPLING_DELETED_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgSurveySamplingDeletedRequestSent,
+		Type:       "success",
+	}
+	SuccessSurveySamplingDeletedSP = ResponseCode{
+		Code:       "SUCCESS_SURVEY_SAMPLING_DELETED",
+		StatusCode: StatusOK,
+		Message:    MsgSurveySamplingDeletedSP,
+		Type:       "success",
+	}
+	SuccessSurveySamplingsFetchedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_SURVEY_SAMPLINGS_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgSurveySamplingsFetchedSuccessfully,
+		Type:       "success",
+	}
+	SuccessSurveySamplingFetchedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_SURVEY_SAMPLING_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgSurveySamplingFetchedSuccessfully,
 		Type:       "success",
 	}
 )
