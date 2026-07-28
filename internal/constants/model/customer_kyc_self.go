@@ -184,7 +184,7 @@ type ExportSelfActivationRequest struct {
 
 // Action Log
 type SelfActivationActionLog struct {
-	ActionCode      string             `json:"action_log"`
+	ActionCode      string             `json:"action_code"`
 	ActionID        string             `json:"action_id"`
 	ActionRequest   string             `json:"action_request"`
 	ActionType      string             `json:"action_type"`
