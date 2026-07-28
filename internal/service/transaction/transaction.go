@@ -87,7 +87,7 @@ func (t *TransactionService) FetchTransactionLimitByCustomerNumber(ctx context.C
 			Data: []imodel.TransactionLimitChannel{},
 		}, localization.ErrorUnexpectedError
 	}
-
+	log.Infof("[TxnSvc][FetchLimit] core customer lookup succeeded for customer=%+v", customerNumber, coreCustomerDetail.CustomerInfos)
 	segmentLookupKey := fmt.Sprintf(
 		"%s:%s:%s",
 		strings.TrimSpace(coreCustomerDetail.CustomerInfos.CustomerGroup),
@@ -104,7 +104,7 @@ func (t *TransactionService) FetchTransactionLimitByCustomerNumber(ctx context.C
 			Data: []imodel.TransactionLimitChannel{},
 		}, localization.ErrorUnexpectedError
 	}
-
+	log.Infof("[TxnSvc][FetchLimit] superapp segment lookup succeeded for key=%s checksum=%s: %+v", segmentLookupKey, segmentChecksum, segmentConfig)
 	// Try to find the customer in superapp database to get self-activation status and expiration.
 	customerInfo := customer.CustomerByCIFResponse{}
 	if t.customerRepo == nil {
@@ -116,6 +116,8 @@ func (t *TransactionService) FetchTransactionLimitByCustomerNumber(ctx context.C
 		}
 	}
 
+	log.Infof("[TxnSvc][FetchLimit] customer info for customer=%s: %+v", customerNumber, customerInfo)
+
 	defaultServiceCode := resolveTransactionLimitServiceCode(segmentConfig.SuperappRole, customerInfo)
 
 	segmentLimitResp, serviceErr := t.coreInterface.CustomerLimitFetchByService(ctx, core.CustomerLimitFetchByServiceParam{
@@ -125,12 +127,16 @@ func (t *TransactionService) FetchTransactionLimitByCustomerNumber(ctx context.C
 		log.Warnf("[TxnSvc][FetchLimit] CoreIO service lookup failed for service=%s: %v", defaultServiceCode, serviceErr)
 	}
 
+	log.Infof("[TxnSvc][FetchLimit] CoreIO service lookup succeeded for service=%s: %+v", defaultServiceCode, segmentLimitResp)
+
 	individualLimitResp, err := t.coreInterface.CustomerLimitFetchByCustomerNumber(ctx, core.CustomerLimitFetchByCIFParam{
 		CustomerNumber: customerNumber,
 	})
 	if err != nil {
 		log.Warnf("[TxnSvc][FetchLimit] CoreIO customer lookup failed for customer=%s: %v", customerNumber, err)
 	}
+
+	log.Infof("[TxnSvc][FetchLimit] CoreIO customer lookup succeeded for customer=%s: %+v", customerNumber, individualLimitResp)
 
 	baseChannels := make([]imodel.TransactionLimitChannel, 0)
 	if segmentLimitResp != nil && segmentLimitResp.Success {
@@ -157,6 +163,8 @@ func (t *TransactionService) FetchTransactionLimitByCustomerNumber(ctx context.C
 			}
 		}
 	}
+
+	log.Infof("[TxnSvc][FetchLimit] merged %d channels for customer=%s, filtered to %d channels with search=%s", len(mergedChannels), customerNumber, len(filteredChannels), search)
 
 	totalDocs := int64(len(filteredChannels))
 	meta := local_util.BuildPaginationMeta(totalDocs, page, perPage)
