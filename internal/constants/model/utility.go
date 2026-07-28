@@ -17,7 +17,7 @@ type UtilityKafkaMessage struct {
 type UtilityMakerInfo struct {
 	UserID      string `json:"user_id"`
 	Username    string `json:"username"`
-	RoleCode    string `json:"role_code"` // maker's role code
 	FullName    string `json:"full_name"`
 	PhoneNumber string `json:"phone_number"`
+	RoleCode string `json:"role_code"`
 }
