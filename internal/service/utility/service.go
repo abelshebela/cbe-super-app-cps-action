@@ -66,7 +66,7 @@ func (s *utilityService) resolveActionParams(ctx context.Context, msg imodel.Uti
 		}
 		return &utilityActionParams{
 			uniqueId:      msg.UniqueTokens[0],
-			requestAction: string(cpsaction.RequestCreateUtility),
+			requestAction: string(cpsaction.RequestCreateCollection),
 			actionType:    string(constants.CREATE),
 		}, nil
 
@@ -76,7 +76,7 @@ func (s *utilityService) resolveActionParams(ctx context.Context, msg imodel.Uti
 		}
 		return &utilityActionParams{
 			uniqueId:      msg.UniqueTokens[0],
-			requestAction: string(cpsaction.RequestCreateUtility),
+			requestAction: string(cpsaction.RequestDisableCollection),
 			actionType:    string(constants.CREATE),
 		}, nil
 
@@ -86,7 +86,7 @@ func (s *utilityService) resolveActionParams(ctx context.Context, msg imodel.Uti
 		}
 		return &utilityActionParams{
 			uniqueId:      msg.UniqueTokens[0],
-			requestAction: string(cpsaction.RequestCreateUtility),
+			requestAction: string(cpsaction.RequestCreateGroup),
 			actionType:    string(constants.CREATE),
 		}, nil
 

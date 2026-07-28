@@ -213,6 +213,7 @@ var ResponseCodesList = []ResponseCode{
 	// Ad related success response codes
 	SuccessAdvertCreatedSP,
 	SuccessAdvertCreateRequestSent,
+	SuccessActiveStatusUpdated,
 	SuccessAdvertUpdatedSP,
 	SuccessAdvertUpdateRequestSent,
 	SuccessAdvertDeletedSP,
@@ -4202,6 +4203,13 @@ var (
 		Code:       "SUCCESS_ADVERT_CREATED_REQUEST_SENT",
 		StatusCode: StatusCreated,
 		Message:    MsgAdvertCreatedRequestSent,
+		Type:       "success",
+	}
+
+	SuccessActiveStatusUpdated = ResponseCode{
+		Code:       "SUCCESS_ACTIVE_STATE",
+		StatusCode: StatusOK,
+		Message:    "Your Active State Updated Through middleware",
 		Type:       "success",
 	}
 
