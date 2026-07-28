@@ -349,6 +349,7 @@ func parseIntOrZero(value string) int {
 }
 
 func resolveTransactionLimitServiceCode(serviceCode string, customerInfo customer.CustomerByCIFResponse) string {
+	fmt.Printf("[TxnSvc][ResolveServiceCode] Resolving service code for initial serviceCode=%s, customerInfo=%+v\n", serviceCode, customerInfo)
 	if serviceCode == "" {
 		serviceCode = strings.TrimSpace(customerInfo.CustomerSegmentation)
 	}
