@@ -93,6 +93,8 @@ var ResponseCodesList = []ResponseCode{
 	SuccessUserLogin,
 	SuccessUserLogout,
 	SuccessOTPSent,
+	SuccessDataRetrieved,
+	SuccessActionLogRetrieved,
 	SuccessDonationCompanyLogoUploaded,
 	SuccessDonationCompanyLogoUpdated,
 	SuccessDonationCompanyFetched,
@@ -211,6 +213,7 @@ var ResponseCodesList = []ResponseCode{
 	// Ad related success response codes
 	SuccessAdvertCreatedSP,
 	SuccessAdvertCreateRequestSent,
+	SuccessActiveStatusUpdated,
 	SuccessAdvertUpdatedSP,
 	SuccessAdvertUpdateRequestSent,
 	SuccessAdvertDeletedSP,
@@ -676,6 +679,7 @@ var ResponseCodesList = []ResponseCode{
 	CustomerActionLogRetrievedSuccessfully,
 	CustomerDisableRequestCreatedSuccessfully,
 	CustomerDisableRequestSubmittedSuccessfully,
+	CustomerDisabledSuccessfully,
 	CustomerEnableRequestCreatedSuccessfully,
 	ErrorCustomerAlreadyDisabled,
 	ErrorCustomerAlreadyEnabled,
@@ -933,6 +937,9 @@ var ResponseCodesList = []ResponseCode{
 	SuccessAccessListSegmentationCreatedSP,
 	SuccessAccessListSegmentationUpdated,
 	SuccessAccessListSegmentationEnabled,
+	SuccessAccessListSegmentationDisabled,
+	SuccessAccessListSegmentationEnabledSP,
+	SuccessAccessListSegmentationDisabledSP,
 	SuccessAccessListSegmentationDisabled,
 	SuccessAccessListSegmentationsRetrieved,
 	SuccessAccessListSegmentationRetrieved,
@@ -1349,6 +1356,13 @@ var (
 		Code:       "SUCCESS_DATA_RETRIEVED",
 		StatusCode: StatusOK,
 		Message:    MsgDataRetrievedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessActionLogRetrieved = ResponseCode{
+		Code:       "SUCCESS_ACTION_LOG_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    "Action log retrieved successfully",
 		Type:       "success",
 	}
 
@@ -4190,6 +4204,13 @@ var (
 		Code:       "SUCCESS_ADVERT_CREATED_REQUEST_SENT",
 		StatusCode: StatusCreated,
 		Message:    MsgAdvertCreatedRequestSent,
+		Type:       "success",
+	}
+
+	SuccessActiveStatusUpdated = ResponseCode{
+		Code:       "SUCCESS_ACTIVE_STATE",
+		StatusCode: StatusOK,
+		Message:    "Your Active State Updated Through middleware",
 		Type:       "success",
 	}
 
@@ -9052,6 +9073,13 @@ var (
 		Type:       "success",
 	}
 
+	CustomerDisabledSuccessfully = ResponseCode{
+		Code:       "SUCCESS_CUSTOMER_DISABLED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "Customer Disabled successfully",
+		Type:       "success",
+	}
+
 	CustomerDisableRequestCreatedSuccessfully = ResponseCode{
 		Code:       "SUCCESS_CUSTOMER_DISABLE_REQUEST_CREATED",
 		StatusCode: StatusOK,
@@ -9743,16 +9771,34 @@ var (
 		Message:    MsgAccessListSegmentationUpdatedSuccessfully,
 		Type:       "success",
 	}
+	SuccessAccessListSegmentationUpdatedSP = ResponseCode{
+		Code:       "ACCESS_LIST_SEGMENTATION_UPDATE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgAccessListSegmentationUpdatedSuccessfully,
+		Type:       "success",
+	}
 	SuccessAccessListSegmentationEnabled = ResponseCode{
 		Code:       "ACCESS_LIST_SEGMENTATION_ENABLED",
 		StatusCode: StatusOK,
 		Message:    MsgAccessListSegmentationEnabledSuccessfully,
 		Type:       "success",
 	}
+	SuccessAccessListSegmentationEnabledSP = ResponseCode{
+		Code:       "ACCESS_LIST_SEGMENTATION_ENABLED",
+		StatusCode: StatusOK,
+		Message:    MsgAccessListSegmentationEnabledSuccessfullySP,
+		Type:       "success",
+	}
 	SuccessAccessListSegmentationDisabled = ResponseCode{
 		Code:       "ACCESS_LIST_SEGMENTATION_DISABLED",
 		StatusCode: StatusOK,
 		Message:    MsgAccessListSegmentationDisabledSuccessfully,
+		Type:       "success",
+	}
+	SuccessAccessListSegmentationDisabledSP = ResponseCode{
+		Code:       "ACCESS_LIST_SEGMENTATION_DISABLE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgAccessListSegmentationDisabledSuccessfullySP,
 		Type:       "success",
 	}
 	SuccessAccessListSegmentationsRetrieved = ResponseCode{

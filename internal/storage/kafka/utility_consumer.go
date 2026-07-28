@@ -11,8 +11,8 @@ import (
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
-	cfg "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"github.com/IBM/sarama"
+	cfg "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -114,11 +114,15 @@ func (uc *UtilityConsumer) handleUtilityMessage(ctx context.Context, message *sa
 	log.Infof("[UtilityConsumer] received message topic=%s partition=%d offset=%d",
 		message.Topic, message.Partition, message.Offset)
 
+	log.Infof("[UtilityConsumer] received message=%+v", message)
+
 	var kafkaMsg imodel.UtilityKafkaMessage
 	if err := json.Unmarshal(message.Value, &kafkaMsg); err != nil {
 		log.Errorf("[UtilityConsumer] failed to unmarshal message: %v", err)
 		return fmt.Errorf("invalid utility message format: %w", err)
 	}
+
+	log.Infof("[UtilityConsumer] received kafka body=%+v", kafkaMsg)
 
 	if kafkaMsg.Action == "" {
 		log.Errorf("[UtilityConsumer] message missing action field")

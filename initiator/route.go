@@ -10,6 +10,7 @@ import (
 
 	cps_auth "cbe-super-app-cps-action/grpc/auth/proto"
 	access_list_segmentation "cbe-super-app-cps-action/internal/glue/routing/access_list_segmentaion"
+	active_state "cbe-super-app-cps-action/internal/glue/routing/active_state"
 	accountblock "cbe-super-app-cps-action/internal/glue/routing/account_block"
 	ap_routing "cbe-super-app-cps-action/internal/glue/routing/account_product"
 	apc_routing "cbe-super-app-cps-action/internal/glue/routing/account_product_category"
@@ -156,6 +157,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, encryptionMiddleware shared
 	ap_routing.Init(r, handlerLayer.AccountProductHandler, authMiddleware)
 	tac_routing.Init(r, handlerLayer.TermAndConditionHandler, authMiddleware)
 	eventhandler.Init(r, handlerLayer.EventHandler, authMiddleware)
+	active_state.Init(r, handlerLayer.ActiveStateHandler, authMiddleware)
 	wallet.Init(r, handlerLayer.WalletHandler, authMiddleware)
 	topup.Init(r, handlerLayer.TopupHandler, authMiddleware)
 	jobRole.Init(r, handlerLayer.jobRoleHandler, authMiddleware)

@@ -161,22 +161,42 @@ func (t *TransactionHandler) FetchTransactionLimitByUserCode(w http.ResponseWrit
 
 // FetchAllTransactionLimits godoc
 //
-//	@Summary		Get all customer transaction limits
-//	@Description	Returns a paginated list of customer transaction limits. Supports search by customer_number.
+//	@Summary		Get transaction limits
+//	@Description	When ?search=<customer_number> is provided, fetches real-time limits for that customer from CoreIO.
+//	@Description	Without a search value, returns a paginated list from the database.
 //	@Tags			Transactions
 //	@Produce		json
-//	@Param			page		query		int		false	"Page number"		default(1)
-//	@Param			per_page	query		int		false	"Items per page"	default(10)
-//	@Param			search		query		string	false	"Search by customer number"
+//	@Param			search		query		string	false	"Customer number — triggers single-customer CoreIO lookup"
+//	@Param			page		query		int		false	"Page number (paginated mode)"		default(1)
+//	@Param			per_page	query		int		false	"Items per page (paginated mode)"	default(10)
 //	@Success		200	{object}	localization.StandardResponse{data=object}	"Transaction limits retrieved successfully"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}		"Bad request"
 //	@Failure		500	{object}	localization.StandardResponse{data=nil}		"Internal server error"
 //	@Security		BearerAuth
-//	@Router			/transaction/limits [get]
+//	@Router			/transaction [get]
 func (t *TransactionHandler) FetchAllTransactionLimits(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_utils.TraceLogger(r.Context(), "handler", "transaction", "TransactionHandler", "FetchAllTransactionLimits")
 	defer span.End()
 	log := local_utils.LoggerFromCtx(ctx, t.logger)
 
+	customerNumber := r.URL.Query().Get("search")
+
+	if customerNumber != "" {
+		// Single-customer lookup via CoreIO
+		limit, err := t.service.FetchTransactionLimitByCustomerNumber(ctx, customerNumber)
+		if err != nil {
+			span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("customer_number", customerNumber)))
+			log.Errorf("[TxnH][GetLimit] svc err customer=%s: %v", customerNumber, err)
+			localization.SendErrorByCodeResponse(w, err.Error())
+			return
+		}
+
+		span.AddEvent("Transaction limit retrieved", trace.WithAttributes(attribute.String("customer_number", customerNumber)))
+		localization.SendSuccessResponse(w, localization.SuccessTransactionLimitRetrieved, limit)
+		return
+	}
+
+	// Paginated list from MongoDB
 	filterParams, err := local_utils.ExtractFilterParams(r)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())

@@ -58,22 +58,26 @@ func (r *customerKYCRepository) FindAllWithPagination(ctx context.Context, filte
 	if filterParam.Search != "" {
 		q := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		filter["$or"] = []bson.M{
-			{"name": q},
-			{"phone_number": q},
+			{"kyc_data.full_name": q},
+			{"kyc_data.phone_number": q},
 		}
 	}
 
 	nestedFieldMap := map[string]string{
 		"kyc_status": "review.status",
 	}
-
 	for param, mongoField := range nestedFieldMap {
-		if v, ok := filterParam.Filters[param]; ok && v != nil && v != "" {
-			filter[mongoField] = v
+		if v, ok := filterParam.Filters[param]; ok && v != nil {
+			statuses := local_util.StringSliceFromFilterValue(v)
+			if len(statuses) > 0 {
+				filter[mongoField] = bson.M{
+					"$in": statuses,
+				}
+			}
 		}
 	}
 
-	results, err := r.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	results, err := r.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		log.Errorf("[CustomerKYC][FindAllWithPagination] failed to fetch data: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)

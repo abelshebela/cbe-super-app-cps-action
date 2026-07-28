@@ -117,7 +117,12 @@ func (a *accessListSegmentation) DisableAccessListSegmentation(w http.ResponseWr
 	}
 
 	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
-	localization.SendSuccessResponse(w, localization.SuccessAccessListSegmentationEnabled, nil)
+	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+		localization.SendSuccessResponse(w, localization.SuccessAccessListSegmentationDisabled, nil)
+		return
+	}
+	localization.SendSuccessResponse(w, localization.SuccessAccessListSegmentationDisabledSP, nil)
 }
 
 // EnableAccessListSegmentation implements accesslistsegmentation.AccessListSegmentationHandler.
@@ -139,7 +144,12 @@ func (a *accessListSegmentation) EnableAccessListSegmentation(w http.ResponseWri
 		return
 	}
 	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
-	localization.SendSuccessResponse(w, localization.SuccessAccessListSegmentationEnabled, nil)
+	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+		localization.SendSuccessResponse(w, localization.SuccessAccessListSegmentationEnabled, nil)
+		return
+	}
+	localization.SendSuccessResponse(w, localization.SuccessAccessListSegmentationEnabledSP, nil)
 }
 
 // GetAccessListSegmentationForAccountByID godoc
@@ -279,8 +289,13 @@ func (a *accessListSegmentation) UpdateAccessListSegmentation(w http.ResponseWri
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+		localization.SendSuccessResponse(w, localization.SuccessAccessListSegmentationUpdated, nil)
+		return
+	}
 	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
-	localization.SendSuccessResponse(w, localization.SuccessAccessListSegmentationUpdated, nil)
+	localization.SendSuccessResponse(w, localization.SuccessAccessListSegmentationUpdatedSP, nil)
 }
 
 // GetAllAccessListSegmentationForGeographical godoc
