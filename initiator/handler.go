@@ -33,10 +33,11 @@ import (
 	sar_iface "cbe-super-app-cps-action/internal/constants/interfaces/superapp_role"
 	tac_interface "cbe-super-app-cps-action/internal/constants/interfaces/term_and_condition"
 	"cbe-super-app-cps-action/internal/constants/interfaces/transaction"
-	ussd_merchant_interface "cbe-super-app-cps-action/internal/constants/interfaces/ussd_merchant"
+	ussdMerchantInbound "cbe-super-app-cps-action/internal/constants/interfaces/ussd_merchant"
 	role_delegation_handler "cbe-super-app-cps-action/internal/handlers/rest/http/role_delegation"
 	"cbe-super-app-cps-action/internal/handlers/rest/http/ussd_merchant"
 
+	activeState "cbe-super-app-cps-action/internal/constants/interfaces/active_state"
 	cpsRoleInbound "cbe-super-app-cps-action/internal/constants/interfaces/cps_roles"
 	feedbackinterface "cbe-super-app-cps-action/internal/constants/interfaces/feedback"
 	hqInbound "cbe-super-app-cps-action/internal/constants/interfaces/hq"
@@ -51,9 +52,9 @@ import (
 	servicesInbound "cbe-super-app-cps-action/internal/constants/interfaces/services"
 	TopupInbound "cbe-super-app-cps-action/internal/constants/interfaces/topup"
 	unlinkInbound "cbe-super-app-cps-action/internal/constants/interfaces/unlink"
+	utilityInbound "cbe-super-app-cps-action/internal/constants/interfaces/utility"
 	vaultCategory "cbe-super-app-cps-action/internal/constants/interfaces/vault"
 	walletInbound "cbe-super-app-cps-action/internal/constants/interfaces/wallet"
-	utilityInbound "cbe-super-app-cps-action/internal/constants/interfaces/utility"
 	utility_handler "cbe-super-app-cps-action/internal/handlers/rest/http/utility"
 	"cbe-super-app-cps-action/internal/service"
 	queue "cbe-super-app-cps-action/internal/storage/queue_system"
@@ -128,10 +129,13 @@ import (
 	vaultcategoryhandler "cbe-super-app-cps-action/internal/handlers/rest/http/vault"
 	walletHandler "cbe-super-app-cps-action/internal/handlers/rest/http/wallet"
 
+	ActiveStateHandler "cbe-super-app-cps-action/internal/handlers/rest/http/active_state"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type Handler struct {
+	ActiveStateHandler            activeState.ActiveState
 	RoleHandler                   roleInbound.RolesInbound
 	jobRoleHandler                job_role_interface.RolesInbound
 	CpsActionHandler              actionInbound.CPSActionAdapter
@@ -184,13 +188,13 @@ type Handler struct {
 	CPSRolesHandler               cpsRoleInbound.CPSRolesAdapter
 	CustomerKYCHandler            customerKycInbound.CustomerKYC
 	SelfActivationKYCHandler      selfActivationKYCInbound.SelfActivationKyc
-	UssdMerchantHandler           ussd_merchant_interface.UssdMerchantInbound
 	SuperAppRoleHandler           sar_iface.SuperAppRole
 	RoleDelegationHandler         role_delegation_outbound.RoleDelegation
 	AccountProductCategoryHandler apc_interface.AccountProductCategoryHandler
 	AccountProductHandler         ap_interface.AccountProductHandler
 	TermAndConditionHandler       tac_interface.TermAndConditionHandler
 	UtilityHandler                utilityInbound.UtilityInbound
+	UssdMerchantHandler           ussdMerchantInbound.UssdMerchantInbound
 }
 
 func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger, queueManager *queue.QueueManager) Handler {
@@ -255,5 +259,6 @@ func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger, queueMa
 		AccountProductHandler:         ap_handler.InitAccountProductAdapter(serviceLayer.AccountProduct, logger),
 		TermAndConditionHandler:       tac_handler.InitTermAndConditionAdapter(serviceLayer.AccountOpeningTerms, logger),
 		UtilityHandler:                utility_handler.NewUtilityAdapter(serviceLayer.Utility, logger),
+		ActiveStateHandler:            ActiveStateHandler.NewActiveState(),
 	}
 }
