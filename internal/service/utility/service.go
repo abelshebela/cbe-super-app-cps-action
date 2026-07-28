@@ -147,6 +147,8 @@ func (s *utilityService) HandleKafkaMessage(ctx context.Context, msg imodel.Util
 		return err
 	}
 
+	payload["action"] = msg.Action
+
 	action := lib.CpsModelBuilder(params.uniqueId, makerUser, params.prevAction, payload, params.requestAction, params.actionType)
 	if err := s.cpsService.CreateCPSAction(ctx, &action); err != nil {
 		log.Errorf("[UtilitySvc][HandleKafkaMessage] create CPS action failed (uniqueId=%s): %v", params.uniqueId, err)
@@ -177,8 +179,21 @@ func (s *utilityService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 
+		action := requestActionResolver(cpsAction.RequestAction)
+
+		kafkaData := imodel.UtilityKafkaMessage{
+			Action:  action,
+			Payload: data,
+		}
+
+		rawMessage, err := json.Marshal(kafkaData)
+		if err != nil {
+			log.Errorf("[UtilitySvc][Authorize] marshal failed for token %s: %v", cpsAction.UniqueId, err)
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		}
+
 		topic := "KAFKA_UTILITY_APPROVED_TOPIC"
-		if err := s.producer.PublishMessage(ctx, json.RawMessage(data), "utility_approved", topic, "UTILITY.APPROVE"); err != nil {
+		if err := s.producer.PublishMessage(ctx, json.RawMessage(rawMessage), "utility_approved", topic, "UTILITY.APPROVE"); err != nil {
 			log.Errorf("[UtilitySvc][Authorize] publish failed for token %s: %v", cpsAction.UniqueId, err)
 			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
@@ -188,6 +203,40 @@ func (s *utilityService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 
 	default:
 		return nil, fmt.Errorf("unsupported utility action: %s", cpsAction.RequestAction)
+	}
+}
+
+func requestActionResolver(req string) string {
+	switch req {
+	case string(cpsaction.RequestCreateUtility):
+		return "create_utility"
+
+	case string(cpsaction.RequestCreateCollection):
+		return "create_collection"
+
+	case string(cpsaction.RequestCreateError):
+		return "error_create"
+
+	case string(cpsaction.RequestDisableCollection):
+		return "disable_collection"
+
+	case string(cpsaction.RequestCreateGroup):
+		return "create_group"
+
+	case string(cpsaction.RequestUpdateUtility):
+		return "update_utility"
+
+	case string(cpsaction.RequestEnableUtility):
+		return "enable_utility"
+
+	case string(cpsaction.RequestDisableUtility):
+		return "disable_utility"
+
+	case string(cpsaction.RequestDeleteUtility):
+		return "delete_utility"
+
+	default:
+		return ""
 	}
 }
 
