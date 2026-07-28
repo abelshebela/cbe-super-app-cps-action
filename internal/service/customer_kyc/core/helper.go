@@ -265,14 +265,19 @@ func MapSelfActivationUserInfo(u *imodel.UserInfo) *imodel.UserInfo {
 func BuildRow(request imodel.ExportSelfActivationRequest) []string {
 	var registrationDate string
 	if !request.RegistrationDate.IsZero() {
-		registrationDate = request.RegistrationDate.Format(time.RFC3339)
+		registrationDate = request.RegistrationDate.Format("2006-01-02")
+	}
+
+	dob := request.DateOfBirth
+	if t, err := time.Parse(time.RFC3339, request.DateOfBirth); err == nil {
+		dob = t.Format("2006-01-02")
 	}
 
 	return []string{
 		request.CustomerName,
 		local_util.FormatPhoneNumber(request.PhoneNumber),
 		request.Gender,
-		request.DateOfBirth,
+		dob,
 		request.Region,
 		registrationDate,
 		request.RejectionReason,
