@@ -355,7 +355,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	utilityService = utility_svc.NewUtilityService(cpsActionService, clientOrchestrationProducer, logger)
 	serviceContainer.UtilityContainer = utilityService
 
-	vaultTransactionService := transaction_service.NewVaultTransactionService(nil, persistence.TransactionLimitPersistence, coreInterface, logger)
+	vaultTransactionService := transaction_service.NewVaultTransactionService(nil, persistence.TransactionLimitPersistence, persistence.CustomerService, coreInterface, logger)
 
 	return service.ServiceLayer{
 		RoleService:                   RoleService,

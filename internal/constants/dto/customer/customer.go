@@ -47,6 +47,57 @@ type DisableCustomerRequest struct {
 	DisableReason string `json:"disable_reason"`
 }
 
+type CustomerByCIFResponse struct {
+	ID                           string     `json:"id"`
+	UserCode                     string     `json:"user_code"`
+	Username                     string     `json:"username"`
+	BranchCode                   string     `json:"branch_code"`
+	ContactEmail                 string     `json:"contact_email"`
+	ContactPhone                 string     `json:"contact_phone"`
+	CustomerNumber               string     `json:"customer_number"`
+	FirstName                    string     `json:"first_name"`
+	LastName                     string     `json:"last_name"`
+	MiddleName                   string     `json:"middle_name"`
+	FullName                     string     `json:"full_name"`
+	Gender                       string     `json:"gender"`
+	BirthOfDate                  *time.Time `json:"birth_of_date,omitempty"`
+	Avatar                       string     `json:"avatar"`
+	Sector                       string     `json:"sector"`
+	Ownership                    string     `json:"ownership"`
+	PushToken                    string     `json:"push_token"`
+	Industry                     string     `json:"industry"`
+	Language                     string     `json:"language"`
+	Pin                          string     `json:"pin"`
+	PinHistory                   string     `json:"pin_history"`
+	ExcludedAccessList           string     `json:"excluded_access_list"`
+	FailedLoginAttempt           int        `json:"failed_login_attempt"`
+	IsLocked                     bool       `json:"is_locked"`
+	IsBudgetEnabled              bool       `json:"is_budget_enabled"`
+	IsSuperappActive             bool       `json:"is_superapp_active"`
+	IsSuperappEnabled            bool       `json:"is_superapp_enabled"`
+	IsUssdActive                 bool       `json:"is_ussd_active"`
+	IsUssdEnabled                bool       `json:"is_ussd_enabled"`
+	IsBlocked                    bool       `json:"is_blocked"`
+	LockExpiresAt                *time.Time `json:"lock_expires_at,omitempty"`
+	PinCreatedAt                 *time.Time `json:"pin_created_at,omitempty"`
+	CreatedAt                    time.Time  `json:"created_at"`
+	LastLoginAt                  *time.Time `json:"last_login_at,omitempty"`
+	LastModifiedAt               time.Time  `json:"last_modified_at"`
+	ExpiryAt                     *time.Time `json:"expiry_at,omitempty"`
+	CustomerSegmentation         string     `json:"customer_segmentation"`
+	AccountType                  string     `json:"account_type"`
+	CustomerGroup                string     `json:"customer_group"`
+	CustomerSubsegment           string     `json:"customer_subsegment"`
+	SuperappRole                 string     `json:"superapp_role"`
+	IsResetPin                   bool       `json:"is_reset_pin"`
+	IsTerminated                 bool       `json:"is_terminated"`
+	TerminationCounter           int        `json:"termination_counter"`
+	HasChange                    bool       `json:"has_change"`
+	IsSelfActivated              bool       `json:"is_self_activated"`
+	SelfActivationRuleExpiration *time.Time `json:"self_activation_rule_expiration,omitempty"`
+	IsSelfActivationRuleOverided bool       `json:"is_self_activation_rule_overided"`
+}
+
 type CustomerDetailRespons struct {
 	ID             string   `json:"id" bson:"_id"`
 	CustomerCode   string   `json:"customer_code" bson:"user_code"`

@@ -663,6 +663,7 @@ type CustomerRepository interface {
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FetchLinkedAccount(ctx context.Context, id string) ([]model.LinkedAccount, error)
 	FindCustomerDetailByID(ctx context.Context, id string) (*customer_dto.CustomerDetailResponse, error)
+	GetCustomerByCifNumber(ctx context.Context, cif string) (customer_dto.CustomerByCIFResponse, error)
 	SearchCustomerByCIForAccountNumber(ctx context.Context, number string) (*customer_dto.CustomerListResponse, error)
 	FindCustomerByIDs(ctx context.Context, ids []string) ([]member.User, error)
 	FindCustomerByID(ctx context.Context, id string) (*member.User, error)
