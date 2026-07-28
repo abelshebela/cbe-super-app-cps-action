@@ -260,3 +260,24 @@ func (c *selfActivationKYCAdapter) ExportUserSelfActivation(w http.ResponseWrite
 
 	localization.SendSuccessResponse(w, localization.SucccessKYCExportedSuccessfully, fileLink)
 }
+
+func (c *selfActivationKYCAdapter) GetUsersActionLog(w http.ResponseWriter, r *http.Request) {
+	ctx, span := util.TraceLogger(r.Context(), "handler", "GetUsersActionLog", "handler", "self_activate_kyc")
+	defer span.End()
+	log := util.LoggerFromCtx(ctx, c.logger)
+
+	customerNumber := r.URL.Query().Get("number")
+	if customerNumber == "" {
+		localization.SendBadRequestResponse(w, localization.ErrorIdNotSetOnQueryParam.Code)
+		return
+	}
+
+	res, err := c.svc.GetUsersActionLog(ctx, customerNumber)
+	if err != nil {
+		log.Errorf("[GetUsersActionLog] failed to fetch KYC request: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessActionLogRetrieved, res)
+}

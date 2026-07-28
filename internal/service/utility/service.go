@@ -60,6 +60,36 @@ func (s *utilityService) resolveActionParams(ctx context.Context, msg imodel.Uti
 			actionType:    string(constants.CREATE),
 		}, nil
 
+	case "create_collection":
+		if len(msg.UniqueTokens) == 0 {
+			return nil, errors.New("unique_tokens required for create action")
+		}
+		return &utilityActionParams{
+			uniqueId:      msg.UniqueTokens[0],
+			requestAction: string(cpsaction.RequestCreateCollection),
+			actionType:    string(constants.CREATE),
+		}, nil
+
+	case "disable_collection":
+		if len(msg.UniqueTokens) == 0 {
+			return nil, errors.New("unique_tokens required for create action")
+		}
+		return &utilityActionParams{
+			uniqueId:      msg.UniqueTokens[0],
+			requestAction: string(cpsaction.RequestDisableCollection),
+			actionType:    string(constants.CREATE),
+		}, nil
+
+	case "create_group":
+		if len(msg.UniqueTokens) == 0 {
+			return nil, errors.New("unique_tokens required for create action")
+		}
+		return &utilityActionParams{
+			uniqueId:      msg.UniqueTokens[0],
+			requestAction: string(cpsaction.RequestCreateGroup),
+			actionType:    string(constants.CREATE),
+		}, nil
+
 	case "update", "enable", "disable", "delete":
 		p := &utilityActionParams{actionType: string(constants.UPDATE)}
 		switch msg.Action {
@@ -96,6 +126,8 @@ func (s *utilityService) HandleKafkaMessage(ctx context.Context, msg imodel.Util
 		log.Errorf("[UtilitySvc][HandleKafkaMessage] invalid payload: %v", err)
 		return fmt.Errorf("invalid payload: %w", err)
 	}
+
+	log.Infof("[UtilitySvc][HandleKafkaMessage] message sent:  %+v", msg)
 
 	ctx = injectMakerContext(ctx, msg.Maker)
 	makerUser := local_util.ExtractUserFromContext(ctx)
@@ -167,6 +199,7 @@ func (s *utilityService) GetByUniqueToken(ctx context.Context, uniqueToken, depa
 func injectMakerContext(ctx context.Context, m imodel.UtilityMakerInfo) context.Context {
 	ctx = context.WithValue(ctx, constants.ContextKey("user_id"), m.UserID)
 	ctx = context.WithValue(ctx, constants.ContextKey("username"), m.Username)
+	ctx = context.WithValue(ctx, constants.ContextKey("role_code"), m.RoleCode)
 	ctx = context.WithValue(ctx, constants.ContextKey("full_name"), m.FullName)
 	ctx = context.WithValue(ctx, constants.ContextKey("phone_number"), m.PhoneNumber)
 	return ctx
