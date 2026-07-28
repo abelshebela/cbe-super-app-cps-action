@@ -128,15 +128,16 @@ func (t *TransactionService) FetchTransactionLimitByCustomerNumber(ctx context.C
 	}
 
 	log.Infof("[TxnSvc][FetchLimit] CoreIO service lookup succeeded for service=%s: %+v", defaultServiceCode, segmentLimitResp)
+	// ///////////////////////////
 
 	individualLimitResp, err := t.coreInterface.CustomerLimitFetchByCustomerNumber(ctx, core.CustomerLimitFetchByCIFParam{
 		CustomerNumber: customerNumber,
 	})
-	if err != nil {
+	if err != nil || individualLimitResp == nil || !individualLimitResp.Success {
 		log.Warnf("[TxnSvc][FetchLimit] CoreIO customer lookup failed for customer=%s: %v", customerNumber, err)
+	} else {
+		log.Infof("[TxnSvc][FetchLimit] CoreIO customer lookup succeeded for customer=%s: %+v", customerNumber, individualLimitResp)
 	}
-
-	log.Infof("[TxnSvc][FetchLimit] CoreIO customer lookup succeeded for customer=%s: %+v", customerNumber, individualLimitResp)
 
 	baseChannels := make([]imodel.TransactionLimitChannel, 0)
 	if segmentLimitResp != nil && segmentLimitResp.Success {
@@ -153,8 +154,12 @@ func (t *TransactionService) FetchTransactionLimitByCustomerNumber(ctx context.C
 	}
 
 	mergedChannels := mergeTransactionLimitChannels(baseChannels, individualChannels)
+
 	filteredChannels := mergedChannels
 	search = strings.TrimSpace(strings.ToLower(search))
+	if search == strings.ToLower(strings.TrimSpace(customerNumber)) {
+		search = ""
+	}
 	if search != "" {
 		filteredChannels = make([]imodel.TransactionLimitChannel, 0, len(mergedChannels))
 		for _, channel := range mergedChannels {
