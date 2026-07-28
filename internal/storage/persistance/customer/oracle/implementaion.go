@@ -531,7 +531,6 @@ func (c *customerOracleRepository) SearchCustomerByCIForAccountNumber(ctx contex
 				 OR u.user_code = :1
 				 OR ac.account_number = :1
 			 )
-			 AND u.is_superapp_active = 1
 			 FETCH FIRST 1 ROWS ONLY`
 
 	row := c.db.QueryRowContext(ctx, query, number, number, number, number)
