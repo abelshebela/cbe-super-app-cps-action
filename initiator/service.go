@@ -108,6 +108,8 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	accessListCache := access_list_cache.NewAccessListCatch(*sharedRedisClient, cacheLogger)
 	bankCache := bank_cache.NewBankCatch(*sharedRedisClient, cacheLogger)
 
+	vaultTransactionService := transaction_service.NewVaultTransactionService(nil, oracle.SuperAppRole, persistence.TransactionLimitPersistence, persistence.CustomerService, coreInterface, logger)
+
 	feedbackService := feedback.NewFeedbackService(persistence.FeedbackPersistence, oracle.Customer, logger)
 	portalCardService := portalcard.NewportalCardService(persistence.PortalCardPersistence, logger)
 	avatarService := avatar.NewAvatarService(persistence.AvatarPersistence, nil, logger, minioClient, cfg.S3BucketName, minioPubUrl, *cfg)
@@ -181,6 +183,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		JobRoleContainer:                  jobRoleService,
 		EventContainer:                    eventService,
 		FeedbackContainer:                 feedbackService,
+		VaultTransactionContainer:         vaultTransactionService,
 		UnlinkContainer:                   unlinkService,
 		BPSUserContainer:                  bpsUserService,
 		CPSActionContainer:                nil,
@@ -355,13 +358,12 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	utilityService = utility_svc.NewUtilityService(cpsActionService, clientOrchestrationProducer, logger)
 	serviceContainer.UtilityContainer = utilityService
 
-	vaultTransactionService := transaction_service.NewVaultTransactionService(nil, oracle.SuperAppRole, persistence.TransactionLimitPersistence, persistence.CustomerService, coreInterface, logger)
-
 	return service.ServiceLayer{
-		RoleService:                   RoleService,
-		JobRoleService:                jobRoleService,
-		CPSAction:                     cpsActionService,
-		Feedback:                      feedbackService,
+		RoleService:    RoleService,
+		JobRoleService: jobRoleService,
+		CPSAction:      cpsActionService,
+		Feedback:       feedbackService,
+
 		EventService:                  eventService,
 		Avatar:                        avatarService,
 		Advert:                        adService,
