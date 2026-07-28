@@ -679,6 +679,7 @@ var ResponseCodesList = []ResponseCode{
 	CustomerActionLogRetrievedSuccessfully,
 	CustomerDisableRequestCreatedSuccessfully,
 	CustomerDisableRequestSubmittedSuccessfully,
+	CustomerDisabledSuccessfully,
 	CustomerEnableRequestCreatedSuccessfully,
 	ErrorCustomerAlreadyDisabled,
 	ErrorCustomerAlreadyEnabled,
@@ -9069,6 +9070,13 @@ var (
 		Code:       "SUCCESS_CUSTOMER_DISABLE_REQUEST_SUBMITTED_SUCCESSFULLY",
 		StatusCode: StatusOK,
 		Message:    "Customer Disable request submitted successfully",
+		Type:       "success",
+	}
+
+	CustomerDisabledSuccessfully = ResponseCode{
+		Code:       "SUCCESS_CUSTOMER_DISABLED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "Customer Disabled successfully",
 		Type:       "success",
 	}
 
