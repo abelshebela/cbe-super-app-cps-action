@@ -663,6 +663,7 @@ type CustomerRepository interface {
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FetchLinkedAccount(ctx context.Context, id string) ([]model.LinkedAccount, error)
 	FindCustomerDetailByID(ctx context.Context, id string) (*customer_dto.CustomerDetailResponse, error)
+	GetCustomerByCifNumber(ctx context.Context, cif string) (customer_dto.CustomerByCIFResponse, error)
 	SearchCustomerByCIForAccountNumber(ctx context.Context, number string) (*customer_dto.CustomerListResponse, error)
 	FindCustomerByIDs(ctx context.Context, ids []string) ([]member.User, error)
 	FindCustomerByID(ctx context.Context, id string) (*member.User, error)
@@ -1052,6 +1053,7 @@ type SuperAppRoleRepository interface {
 	FindAccessListRelations(ctx context.Context) ([]imodel.AccessItemRelation, error)
 	BulkDisableAccessLists(ctx context.Context, superappRole string, accessListIDs []string) error
 	BulkEnableAccessLists(ctx context.Context, superappRole string, accessListIDs []string) error
+	FindSegmentByCheckSum(ctx context.Context, checksum string) (imodel.Segment, error)
 }
 
 type AccountSubTypeOracleRepository interface {
