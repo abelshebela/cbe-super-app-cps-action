@@ -1146,6 +1146,12 @@ func (ca *cpsActionService) GetUserCreatedActions(ctx context.Context, userID st
 	levels := local_util.ExtractStringSlice(filterParams.Filters, "levels")
 	services := local_util.ExtractStringSlice(filterParams.Filters, "services")
 
+	// Always scope to the requesting maker so results are never cross-user.
+	filterParams.Filters["maker_id"] = userID
+	if statuses := local_util.ExtractStringSlice(filterParams.Filters, "action_status"); len(statuses) > 0 {
+		filterParams.Filters["action_status"] = statuses
+	}
+
 	if len(levels) > 0 || len(services) > 0 {
 		userData := local_util.ExtractUserFromContext(ctx)
 		// Log-only filters requested: query user_action_logs for matching codes.
@@ -1160,14 +1166,9 @@ func (ca *cpsActionService) GetUserCreatedActions(ctx context.Context, userID st
 			log.Errorf("[CpsActionSvc][GetUserCreatedActions] log filter err: %v", err)
 			return nil, "", err
 		}
-		filterParams.Filters["action_codes"] = actionCodes
-	} else {
-		// No log-only filters: scope directly via maker_id on cps_actions.
-		// This covers all data including pre-log actions.
-		filterParams.Filters["maker_id"] = userID
-		if statuses := local_util.ExtractStringSlice(filterParams.Filters, "action_status"); len(statuses) > 0 {
-			filterParams.Filters["action_status"] = statuses
-		}
+		// action_code_in is consumed by SanitizedFindAllWithPagination at the
+		// action_code_in block (empty slice triggers never-match intentionally).
+		filterParams.Filters["action_code_in"] = actionCodes
 	}
 
 	result, err := ca.repo.SanitizedFindAllWithPagination(ctx, *filterParams, "")

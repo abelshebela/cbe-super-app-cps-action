@@ -776,7 +776,6 @@ func (a *cpsActionAdapter) GetUserCreatedActions(w http.ResponseWriter, r *http.
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
-	services, _ := filterParams.Filters["services"].(string)
 
 	log := local_util.LoggerFromCtx(r.Context(), a.logger)
 
@@ -800,7 +799,7 @@ func (a *cpsActionAdapter) GetUserCreatedActions(w http.ResponseWriter, r *http.
 		return
 	}
 
-	if services != "" {
+	if len(local_util.ExtractStringSlice(filterParams.Filters, "services")) > 0 {
 		filterParams, _, err = cpsactioncore.ParameterProvider(ctx, filterParams, span, constants.Maker, idxRepo, log)
 		if err != nil {
 			localization.SendErrorByCodeResponse(w, err.Error())
