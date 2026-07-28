@@ -134,6 +134,8 @@ func Init(ctx context.Context) {
 	persistence := InitPersistanceLayer(mongoClient, cfg.MongoDBDatabase, coreInterface, notificationApi, *notificationProducer, sharedKafkaProducer, *clientOrchestrationProducer, *accessListSegmentationProducer, redisRepository, cfg, logger)
 	logger.Infof("Persistence initialized")
 
+	SeedCPSActionList(ctx, mongoClient, cfg.MongoDBDatabase, logger)
+
 	// Initialize CPS Action Guard (role_id + action_name authorization with TTL cache)
 	mid.InitCPSActionGuard(persistence.CPSActionApproveIndexPersistence, persistence.BPSActionApproveIndexPersistence, persistence.RolePersistence, persistence.CPSActionRolePersistence, 5*time.Minute, logger)
 	oracleDB := InitOracle(cfg.OracleConnectionString, logger)
