@@ -224,7 +224,7 @@ func (c *customerAdapter) DisableCustomer(w http.ResponseWriter, r *http.Request
 	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 
 	if md.IsMakerOnly {
-		localization.SendSuccessResponse(w, localization.CustomerSegmentationCreated, nil)
+		localization.SendSuccessResponse(w, localization.CustomerDisabledSuccessfully, nil)
 		return
 	}
 
