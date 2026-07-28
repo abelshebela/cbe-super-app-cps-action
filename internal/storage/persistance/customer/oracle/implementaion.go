@@ -737,15 +737,15 @@ func (c *customerOracleRepository) GetCustomerByCifNumber(ctx context.Context, c
 		WHERE CUSTOMER_NUMBER = :1`
 
 	var (
-		id, userCode, username, branchCode, contactEmail, contactPhone, customerNumber               sql.NullString
-		firstName, lastName, middleName, fullName, gender, avatar, sector, ownership, pushToken      sql.NullString
-		industry, language, pin, pinHistory, excludedAccessList, customerSegmentation, accountType   sql.NullString
-		customerGroup, customerSubsegment, superappRole                                              sql.NullString
-		failedLoginAttempt, isLocked, isBudgetEnabled, isSuperappActive, isSuperappEnabled           sql.NullInt64
-		isUssdActive, isUssdEnabled, isBlocked, isResetPin, isTerminated, hasChange, isSelfActivated sql.NullInt64
-		terminationCounter, isSelfActivationRuleOverided                                             sql.NullInt64
-		birthOfDate, lockExpiresAt, pinCreatedAt, createdAt, lastLoginAt, lastModifiedAt, expiryAt   sql.NullTime
-		selfActivationRuleExpiration                                                                 sql.NullTime
+		id, userCode, username, branchCode, contactEmail, contactPhone, customerNumber             sql.NullString
+		firstName, lastName, middleName, fullName, gender, avatar, sector, ownership, pushToken    sql.NullString
+		industry, language, pin, pinHistory, excludedAccessList, customerSegmentation, accountType sql.NullString
+		customerGroup, customerSubsegment, superappRole, hasChange                                 sql.NullString
+		failedLoginAttempt, isLocked, isBudgetEnabled, isSuperappActive, isSuperappEnabled         sql.NullInt64
+		isUssdActive, isUssdEnabled, isBlocked, isResetPin, isTerminated, isSelfActivated          sql.NullInt64
+		terminationCounter, isSelfActivationRuleOverided                                           sql.NullInt64
+		birthOfDate, lockExpiresAt, pinCreatedAt, createdAt, lastLoginAt, lastModifiedAt, expiryAt sql.NullTime
+		selfActivationRuleExpiration                                                               sql.NullTime
 	)
 
 	err := c.db.QueryRowContext(ctx, query, cif).Scan(
@@ -835,7 +835,7 @@ func (c *customerOracleRepository) GetCustomerByCifNumber(ctx context.Context, c
 		IsResetPin:                   toBool(isResetPin),
 		IsTerminated:                 toBool(isTerminated),
 		TerminationCounter:           toInt(terminationCounter),
-		HasChange:                    toBool(hasChange),
+		HasChange:                    toString(hasChange),
 		IsSelfActivated:              toBool(isSelfActivated),
 		SelfActivationRuleExpiration: toTimePtr(selfActivationRuleExpiration),
 		IsSelfActivationRuleOverided: toBool(isSelfActivationRuleOverided),
