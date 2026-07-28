@@ -492,13 +492,11 @@ func (c *customerOracleRepository) FindCustomerLinkedAccountByUserID(ctx context
 	return linkedAccount, nil
 }
 
-// SearchCustomerByCIForAccountNumber implements [storage.CustomerRepository].
 func (c *customerOracleRepository) SearchCustomerByCIForAccountNumber(ctx context.Context, number string) (*customer.CustomerListResponse, error) {
 	log := local_util.LoggerFromCtx(ctx, c.logger)
 
 	log.Infof("[CustomerRepository][SearchCustomerByCIForAccountNumber] searching members by value: %s", number)
 
-	// Oracle SQL: join USERS and LINKED_ACCOUNTS, search by phone, customer number, user code, or account id (as hex string)
 	query := `
 			 SELECT
 				 RAWTOHEX(u.id) AS id,
@@ -534,7 +532,6 @@ func (c *customerOracleRepository) SearchCustomerByCIForAccountNumber(ctx contex
 				 OR ac.account_number = :1
 			 )
 			 AND u.is_superapp_active = 1
-			 AND (la.is_active = 1 OR la.is_active IS NULL)
 			 FETCH FIRST 1 ROWS ONLY`
 
 	row := c.db.QueryRowContext(ctx, query, number, number, number, number)
