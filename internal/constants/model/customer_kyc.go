@@ -29,10 +29,11 @@ type CustomerKYC struct {
 
 	Review *KYCReview `json:"review" bson:"review"`
 
-	IsDeleted      bool      `json:"is_deleted" bson:"is_deleted"`
-	CreatedAt      time.Time `json:"created_at" bson:"created_at"`
-	LastModifiedAt time.Time `json:"last_modified_at" bson:"last_modified_at"`
-	DeletedAt      time.Time `json:"deleted_at" bson:"deleted_at"`
+	IsDeleted        bool      `json:"is_deleted" bson:"is_deleted"`
+	RegistrationDate time.Time `bson:"registration_time" json:"registration_time"`
+	CreatedAt        time.Time `json:"created_at" bson:"created_at"`
+	LastModifiedAt   time.Time `json:"last_modified_at" bson:"last_modified_at"`
+	DeletedAt        time.Time `json:"deleted_at" bson:"deleted_at"`
 }
 
 // KYC Review related models

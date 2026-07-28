@@ -42,9 +42,10 @@ type SelfActivationUser struct {
 
 	Review *KYCReview `json:"review" bson:"review"`
 
-	CreatedAt      time.Time `bson:"created_at" json:"created_at"`
-	LastModifiedAt time.Time `bson:"last_modified_at" json:"last_modified_at"`
-	UpdatedAt      time.Time `bson:"updated_at" json:"updated_at"`
+	RegistrationDate time.Time `bson:"registration_time" json:"registration_time"`
+	CreatedAt        time.Time `bson:"created_at" json:"created_at"`
+	LastModifiedAt   time.Time `bson:"last_modified_at" json:"last_modified_at"`
+	UpdatedAt        time.Time `bson:"updated_at" json:"updated_at"`
 }
 
 type KYCReview struct {
