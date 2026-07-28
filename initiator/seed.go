@@ -7,7 +7,7 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
-	// "go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 // SeedCPSActionList upserts the UTILITY service action into cps_action_list on startup.
