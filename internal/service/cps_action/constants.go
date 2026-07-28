@@ -1235,7 +1235,7 @@ var RequestActionGroups = map[string][]constants.RequestAction{
 	"BARECUSTOMER": {
 		RequestBlockCustomer,
 	},
-	"UNBARECUSTOMER": {
+	"UNBARREDUSER": {
 		RequestUnblockCustomer,
 	},
 	"DISABLECUSTOMER": {
