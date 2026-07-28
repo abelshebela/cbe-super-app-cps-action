@@ -1053,6 +1053,7 @@ type SuperAppRoleRepository interface {
 	FindAccessListRelations(ctx context.Context) ([]imodel.AccessItemRelation, error)
 	BulkDisableAccessLists(ctx context.Context, superappRole string, accessListIDs []string) error
 	BulkEnableAccessLists(ctx context.Context, superappRole string, accessListIDs []string) error
+	FindSegmentByCheckSum(ctx context.Context, checksum string) (imodel.Segment, error)
 }
 
 type AccountSubTypeOracleRepository interface {
