@@ -4208,7 +4208,7 @@ var (
 
 	SuccessActiveStatusUpdated = ResponseCode{
 		Code:       "SUCCESS_ACTIVE_STATE",
-		StatusCode: StatusOk,
+		StatusCode: StatusOK,
 		Message:    "Your Active State Updated Through middleware",
 		Type:       "success",
 	}
