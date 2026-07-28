@@ -57,7 +57,7 @@ func (t *TransactionService) FetchTransactionByID(ctx context.Context, id string
 
 // FetchTransactionLimitByCustomerNumber fetches real-time customer limits from CoreIO.
 // Results are normalized into channel rows and paginated in the same style as customer service lookups.
-func (t *TransactionService) FetchTransactionLimitByCustomerNumber(ctx context.Context, filterParams *types.Filter, customerNumber string) (types.PaginatedResponse[[]imodel.TransactionLimitChannel], error) {
+func (t *TransactionService) FetchTransactionLimitByCustomerNumber(ctx context.Context, filterParams *types.Filter, customerNumber string) (resp types.PaginatedResponse[[]imodel.TransactionLimitChannel], err error) {
 	log := local_util.LoggerFromCtx(ctx, t.logger)
 	log.Infof("[TxnSvc][FetchLimit] Fetching transaction limits for customer=%s", customerNumber)
 
@@ -81,11 +81,10 @@ func (t *TransactionService) FetchTransactionLimitByCustomerNumber(ctx context.C
 	coreCustomerDetail, err := t.coreInterface.CustomerDetail(ctx, core.CustomerDetailParam{
 		CustomerNumber: customerNumber,
 	})
-	if err != nil || coreCustomerDetail == nil {
+	if err != nil || coreCustomerDetail == nil || !coreCustomerDetail.Success || coreCustomerDetail.CustomerInfos == nil {
 		log.Warnf("[TxnSvc][FetchLimit] core customer lookup failed for customer=%s: %v", customerNumber, err)
 		return types.PaginatedResponse[[]imodel.TransactionLimitChannel]{
 			Data: []imodel.TransactionLimitChannel{},
-			Meta: local_util.BuildPaginationMeta(0, page, perPage),
 		}, localization.ErrorUnexpectedError
 	}
 
@@ -103,14 +102,18 @@ func (t *TransactionService) FetchTransactionLimitByCustomerNumber(ctx context.C
 		log.Warnf("[TxnSvc][FetchLimit] superapp segment lookup failed for key=%s checksum=%s: %+v", segmentLookupKey, segmentChecksum, err)
 		return types.PaginatedResponse[[]imodel.TransactionLimitChannel]{
 			Data: []imodel.TransactionLimitChannel{},
-			Meta: local_util.BuildPaginationMeta(0, page, perPage),
 		}, localization.ErrorUnexpectedError
 	}
 
 	// Try to find the customer in superapp database to get self-activation status and expiration.
-	customerInfo, err := t.customerRepo.GetCustomerByCifNumber(ctx, customerNumber)
-	if err != nil {
-		log.Warnf("[TxnSvc][FetchLimit] oracle customer lookup failed for customer=%s: %+v", customerNumber, err)
+	customerInfo := customer.CustomerByCIFResponse{}
+	if t.customerRepo == nil {
+		log.Warnf("[TxnSvc][FetchLimit] customerRepo is nil, proceeding with segment-only defaults for customer=%s", customerNumber)
+	} else {
+		customerInfo, err = t.customerRepo.GetCustomerByCifNumber(ctx, customerNumber)
+		if err != nil {
+			log.Warnf("[TxnSvc][FetchLimit] oracle customer lookup failed for customer=%s: %+v", customerNumber, err)
+		}
 	}
 
 	defaultServiceCode := resolveTransactionLimitServiceCode(segmentConfig.SuperappRole, customerInfo)
@@ -346,6 +349,7 @@ func parseIntOrZero(value string) int {
 }
 
 func resolveTransactionLimitServiceCode(serviceCode string, customerInfo customer.CustomerByCIFResponse) string {
+	fmt.Printf("[TxnSvc][ResolveServiceCode] Resolving service code for initial serviceCode=%s, customerInfo=%+v\n", serviceCode, customerInfo)
 	if serviceCode == "" {
 		serviceCode = strings.TrimSpace(customerInfo.CustomerSegmentation)
 	}
