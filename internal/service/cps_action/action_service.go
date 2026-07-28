@@ -936,7 +936,13 @@ func (ca *cpsActionService) GetCPSActionByID(ctx context.Context, id, department
 		log.Errorf("[CpsActionSvc][GetByID] parse id err")
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	action, err := ca.repo.SanitizedFindOne(ctx, bson.M{"_id": objID, "department": department})
+	// Omit department filter when empty: utility Kafka-created CPS actions have no
+	// department field in the shared model, so {department: ""} never matches.
+	findFilter := bson.M{"_id": objID}
+	if department != "" {
+		findFilter["department"] = department
+	}
+	action, err := ca.repo.SanitizedFindOne(ctx, findFilter)
 	if err != nil {
 		span.AddEvent("failed to find one", trace.WithAttributes(attribute.String("error", err.Error())))
 		return nil, err
@@ -1147,13 +1153,21 @@ func (ca *cpsActionService) GetUserCreatedActions(ctx context.Context, userID st
 	services := local_util.ExtractStringSlice(filterParams.Filters, "services")
 
 	// Always scope to the requesting maker so results are never cross-user.
-	filterParams.Filters["maker_id"] = userID
+	// Kafka-created utility actions may store maker_id as the user's ObjectID string
+	// instead of the login username, so include both in the filter.
+	ctxUser := local_util.ExtractUserFromContext(ctx)
+	if ctxUser.UserID != "" && ctxUser.UserID != userID {
+		filterParams.Filters["maker_id"] = map[string]interface{}{"$in": []interface{}{userID, ctxUser.UserID}}
+	} else {
+		filterParams.Filters["maker_id"] = userID
+	}
+
 	if statuses := local_util.ExtractStringSlice(filterParams.Filters, "action_status"); len(statuses) > 0 {
 		filterParams.Filters["action_status"] = statuses
 	}
 
 	if len(levels) > 0 || len(services) > 0 {
-		userData := local_util.ExtractUserFromContext(ctx)
+		userData := ctxUser
 		// Log-only filters requested: query user_action_logs for matching codes.
 		// Pre-log actions won't appear here — they have no log metadata.
 		actionCodes, err := ca.actionLogRepo.GetActionCodesByActionLogFilter(ctx, imodel.UserActionLogActionCodeFilter{
