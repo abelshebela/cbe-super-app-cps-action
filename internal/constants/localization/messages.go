@@ -1103,7 +1103,7 @@ const (
 	// Customer related error messages
 	MsgCustomerCountFailed                         = "Failed to count customers"
 	MsgCustomerConvertIDFailed                     = "Failed to convert customer ID"
-	MsgCustomerNotFound                            = "Customer not found"
+	MsgCustomerNotFound                            = "Customer is not found or terminated"
 	MsgCustomerFetchFailed                         = "Failed to get customer"
 	MsgCustomerCIFMustContainOnlyNumbers           = "CIF must contain only numbers"
 	MsgCustomerAccountNumberMustContainOnlyNumbers = "Account number must contain only numbers"
