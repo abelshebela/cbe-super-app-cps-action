@@ -728,6 +728,7 @@ type ServiceLayer struct {
 
 type ServiceContainer struct {
 	RoleContainer                      RoleService
+	VaultTransactionContainer          TransactionService
 	JobRoleContainer                   JobRoleService
 	AccountBlockContainer              AccountBlockService
 	AccountContainer                   AccountValidationService
