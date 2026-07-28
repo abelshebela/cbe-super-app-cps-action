@@ -64,6 +64,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/wallet"
 
 	"cbe-super-app-cps-action/internal/storage/persistance/bulk_service"
+	survey_sampling_persistence "cbe-super-app-cps-action/internal/storage/persistance/survey_sampling"
 	transaction_limit_repo "cbe-super-app-cps-action/internal/storage/persistance/transaction_limit"
 	user_action_log_repo "cbe-super-app-cps-action/internal/storage/persistance/user_action_log"
 
@@ -147,7 +148,8 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreInterface cor
 		UserActionLogPersistence:    user_action_log_repo.NewUserActionLogRepository(client, cfg, dbName, UserActionLogsCollection, logger),
 		ServicesPersistence:         nil,                                                                                                                                                         // Services repository is commented out - using Oracle instead
 		RoleDelegationPersistence:   role_delegation_repo.NewRoleDelegationRepository(client, cfg, dbName, []string{RoleDelegationCollection, CPSUsersCollection, BranchUserCollection}, logger), // Initialized in service.go to avoid circular dependency
-		TransactionLimitPersistence: transaction_limit_repo.NewTransactionLimitRepository(client, cfg, dbName, TransactionLimitsCollection, logger),
+		TransactionLimitPersistence:  transaction_limit_repo.NewTransactionLimitRepository(client, cfg, dbName, TransactionLimitsCollection, logger),
+		SurveySamplingPersistence:    survey_sampling_persistence.NewSurveySamplingRepository(client, cfg, dbName, SurveySamplingConfigsCollection, logger),
 	}
 
 	return data

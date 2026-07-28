@@ -200,6 +200,8 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.RoleDelegationContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(constants.RequestAction(action), "UTILITY"):
 		return d.app.UtilityContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(constants.RequestAction(action), "SURVEYSAMPLING"):
+		return d.app.SurveySamplingContainer.Authorize(ctx, cpsAction)
 	default:
 		span.AddEvent("unsupported action", trace.WithAttributes(attribute.String("action", action)))
 		return nil, errors.New(localization.ErrorUnsupportedAction.Code)

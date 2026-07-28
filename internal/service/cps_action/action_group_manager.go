@@ -73,6 +73,7 @@ var modulePriority = []string{
 	"EVENTMERCHANT",
 	"USSDMERCHANT",
 	"UTILITY",
+	"SURVEYSAMPLING",
 }
 
 func (m *actionGroupManager) ResolveModuleFor(action string) (string, bool) {

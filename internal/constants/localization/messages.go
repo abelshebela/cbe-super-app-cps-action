@@ -1574,4 +1574,18 @@ const (
 	MsgTACRetrieved         = "Term and condition retrieved successfully"
 	MsgTACNotFound          = "Term and condition not found"
 	MsgTACAlreadyExists     = "A term and condition with this product and version already exists"
+
+	// Survey Sampling Config messages
+	MsgSurveySamplingCreatedRequestSent  = "Survey sampling config create request sent successfully"
+	MsgSurveySamplingCreatedSP           = "Survey sampling config created successfully"
+	MsgSurveySamplingUpdatedRequestSent  = "Survey sampling config update request sent successfully"
+	MsgSurveySamplingUpdatedSP           = "Survey sampling config updated successfully"
+	MsgSurveySamplingEnabledRequestSent  = "Survey sampling config enable request sent successfully"
+	MsgSurveySamplingEnabledSP           = "Survey sampling config enabled successfully"
+	MsgSurveySamplingDisabledRequestSent = "Survey sampling config disable request sent successfully"
+	MsgSurveySamplingDisabledSP          = "Survey sampling config disabled successfully"
+	MsgSurveySamplingDeletedRequestSent  = "Survey sampling config delete request sent successfully"
+	MsgSurveySamplingDeletedSP           = "Survey sampling config deleted successfully"
+	MsgSurveySamplingsFetchedSuccessfully = "Survey sampling configs fetched successfully"
+	MsgSurveySamplingFetchedSuccessfully  = "Survey sampling config fetched successfully"
 )

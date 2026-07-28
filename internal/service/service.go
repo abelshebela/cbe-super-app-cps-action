@@ -724,6 +724,7 @@ type ServiceLayer struct {
 	AccountOpeningTerms           AccountOpeningTermsService
 	TokenProvider                 TokenProviderService
 	Utility                       UtilityService
+	SurveySampling                SurveySamplingService
 }
 
 type ServiceContainer struct {
@@ -802,6 +803,7 @@ type ServiceContainer struct {
 	AccountProductContainer            AccountProductService
 	AccountOpeningTermsContainer       AccountOpeningTermsService
 	UtilityContainer                   UtilityService
+	SurveySamplingContainer            SurveySamplingService
 }
 
 type BPSActionRoleService interface {
@@ -990,4 +992,15 @@ type UtilityService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	// GetByUniqueToken returns the CurrentAction payload for a utility CPS action as a generic map.
 	GetByUniqueToken(ctx context.Context, uniqueToken, department string) (map[string]interface{}, error)
+}
+
+type SurveySamplingService interface {
+	Create(ctx context.Context, req imodel.SurveySamplingConfig) error
+	Update(ctx context.Context, id string, req imodel.SurveySamplingConfig) error
+	Enable(ctx context.Context, id string) error
+	Disable(ctx context.Context, id string) error
+	Delete(ctx context.Context, id string) error
+	GetAll(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]imodel.SurveySamplingConfig], error)
+	GetByID(ctx context.Context, id string) (*imodel.SurveySamplingConfig, error)
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }

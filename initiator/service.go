@@ -72,6 +72,7 @@ import (
 	transaction_service "cbe-super-app-cps-action/internal/service/transaction"
 	"cbe-super-app-cps-action/internal/service/unlink"
 	ussd_merchant "cbe-super-app-cps-action/internal/service/ussd_merchant"
+	survey_sampling_svc "cbe-super-app-cps-action/internal/service/survey_sampling"
 	utility_svc "cbe-super-app-cps-action/internal/service/utility"
 	"cbe-super-app-cps-action/internal/service/wallet"
 	"cbe-super-app-cps-action/internal/storage/persistance"
@@ -358,6 +359,9 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	utilityService = utility_svc.NewUtilityService(cpsActionService, clientOrchestrationProducer, logger)
 	serviceContainer.UtilityContainer = utilityService
 
+	surveySamplingService := survey_sampling_svc.NewSurveySamplingService(persistence.SurveySamplingPersistence, cpsActionService, logger)
+	serviceContainer.SurveySamplingContainer = surveySamplingService
+
 	return service.ServiceLayer{
 		RoleService:    RoleService,
 		JobRoleService: jobRoleService,
@@ -426,5 +430,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		TokenProvider:                 tokenProviderService,
 		Utility:                       utilityService,
 		TransactionService:            vaultTransactionService,
+		SurveySampling:                surveySamplingService,
 	}
 }
