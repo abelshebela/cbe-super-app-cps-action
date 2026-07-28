@@ -470,6 +470,12 @@ const (
 	RequestEnableUtility  constants.RequestAction = "ENABLE_UTILITY"
 	RequestDisableUtility constants.RequestAction = "DISABLE_UTILITY"
 	RequestDeleteUtility  constants.RequestAction = "DELETE_UTILITY"
+
+	RequestCreateSurveySampling  constants.RequestAction = "CREATE_SURVEY_SAMPLING"
+	RequestUpdateSurveySampling  constants.RequestAction = "UPDATE_SURVEY_SAMPLING"
+	RequestEnableSurveySampling  constants.RequestAction = "ENABLE_SURVEY_SAMPLING"
+	RequestDisableSurveySampling constants.RequestAction = "DISABLE_SURVEY_SAMPLING"
+	RequestDeleteSurveySampling  constants.RequestAction = "DELETE_SURVEY_SAMPLING"
 )
 
 var validRequestActions = map[constants.RequestAction]struct{}{
@@ -1398,6 +1404,13 @@ var RequestActionGroups = map[string][]constants.RequestAction{
 		RequestDisableCollection,
 		RequestCreateGroup,
 		RequestCreateError,
+	},
+	"SURVEYSAMPLING": {
+		RequestCreateSurveySampling,
+		RequestUpdateSurveySampling,
+		RequestEnableSurveySampling,
+		RequestDisableSurveySampling,
+		RequestDeleteSurveySampling,
 	},
 }
 

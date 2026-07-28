@@ -1096,3 +1096,13 @@ type AccountOpeningTermsRepository interface {
 	FindByProductAndVersion(ctx context.Context, productID, versionLabel string) (*imodel.AccountOpeningTerms, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.AccountOpeningTerms], error)
 }
+
+type SurveySamplingRepository interface {
+	Create(ctx context.Context, config imodel.SurveySamplingConfig) error
+	Update(ctx context.Context, id string, config imodel.SurveySamplingConfig) error
+	SetEnabled(ctx context.Context, id string, enabled bool) error
+	Delete(ctx context.Context, id string) error
+	FindByID(ctx context.Context, id string) (*imodel.SurveySamplingConfig, error)
+	FindByMethod(ctx context.Context, method string) (*imodel.SurveySamplingConfig, error)
+	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]imodel.SurveySamplingConfig], error)
+}

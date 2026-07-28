@@ -53,9 +53,11 @@ import (
 	TopupInbound "cbe-super-app-cps-action/internal/constants/interfaces/topup"
 	unlinkInbound "cbe-super-app-cps-action/internal/constants/interfaces/unlink"
 	utilityInbound "cbe-super-app-cps-action/internal/constants/interfaces/utility"
+	survey_sampling_interface "cbe-super-app-cps-action/internal/constants/interfaces/survey_sampling"
 	vaultCategory "cbe-super-app-cps-action/internal/constants/interfaces/vault"
 	walletInbound "cbe-super-app-cps-action/internal/constants/interfaces/wallet"
 	utility_handler "cbe-super-app-cps-action/internal/handlers/rest/http/utility"
+	survey_sampling_handler "cbe-super-app-cps-action/internal/handlers/rest/http/survey_sampling"
 	"cbe-super-app-cps-action/internal/service"
 	queue "cbe-super-app-cps-action/internal/storage/queue_system"
 
@@ -195,6 +197,7 @@ type Handler struct {
 	TermAndConditionHandler       tac_interface.TermAndConditionHandler
 	UtilityHandler                utilityInbound.UtilityInbound
 	UssdMerchantHandler           ussdMerchantInbound.UssdMerchantInbound
+	SurveySamplingHandler         survey_sampling_interface.SurveySamplingInbound
 }
 
 func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger, queueManager *queue.QueueManager) Handler {
@@ -259,6 +262,7 @@ func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger, queueMa
 		AccountProductHandler:         ap_handler.InitAccountProductAdapter(serviceLayer.AccountProduct, logger),
 		TermAndConditionHandler:       tac_handler.InitTermAndConditionAdapter(serviceLayer.AccountOpeningTerms, logger),
 		UtilityHandler:                utility_handler.NewUtilityAdapter(serviceLayer.Utility, logger),
+		SurveySamplingHandler:         survey_sampling_handler.NewSurveySamplingHandler(serviceLayer.SurveySampling, logger),
 		ActiveStateHandler:            ActiveStateHandler.NewActiveState(),
 	}
 }
