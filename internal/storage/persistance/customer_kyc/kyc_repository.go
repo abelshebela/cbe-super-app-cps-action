@@ -58,8 +58,8 @@ func (r *customerKYCRepository) FindAllWithPagination(ctx context.Context, filte
 	if filterParam.Search != "" {
 		q := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		filter["$or"] = []bson.M{
-			{"name": q},
-			{"phone_number": q},
+			{"kyc_data.full_name": q},
+			{"kyc_data.phone_number": q},
 		}
 	}
 
