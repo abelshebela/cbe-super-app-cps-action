@@ -463,6 +463,7 @@ const (
 	RequestCreateCollection  constants.RequestAction = "CREATE_COLLECTION"
 	RequestDisableCollection constants.RequestAction = "DISABLE_COLLECTION"
 	RequestCreateGroup       constants.RequestAction = "CREATE_GROUP"
+	RequestCreateError       constants.RequestAction = "CREATE_ERROR"
 
 	RequestCreateUtility  constants.RequestAction = "CREATE_UTILITY"
 	RequestUpdateUtility  constants.RequestAction = "UPDATE_UTILITY"
@@ -845,6 +846,7 @@ var validRequestActions = map[constants.RequestAction]struct{}{
 	RequestCreateCollection:  {},
 	RequestDisableCollection: {},
 	RequestCreateGroup:       {},
+	RequestCreateError:       {},
 }
 
 func IsValidRequestAction(requestAction string) bool {
@@ -1395,6 +1397,7 @@ var RequestActionGroups = map[string][]constants.RequestAction{
 		RequestCreateCollection,
 		RequestDisableCollection,
 		RequestCreateGroup,
+		RequestCreateError,
 	},
 }
 
