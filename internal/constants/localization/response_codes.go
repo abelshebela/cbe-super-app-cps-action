@@ -213,6 +213,7 @@ var ResponseCodesList = []ResponseCode{
 	// Ad related success response codes
 	SuccessAdvertCreatedSP,
 	SuccessAdvertCreateRequestSent,
+	SuccessActiveStatusUpdated,
 	SuccessAdvertUpdatedSP,
 	SuccessAdvertUpdateRequestSent,
 	SuccessAdvertDeletedSP,
@@ -678,6 +679,7 @@ var ResponseCodesList = []ResponseCode{
 	CustomerActionLogRetrievedSuccessfully,
 	CustomerDisableRequestCreatedSuccessfully,
 	CustomerDisableRequestSubmittedSuccessfully,
+	CustomerDisabledSuccessfully,
 	CustomerEnableRequestCreatedSuccessfully,
 	ErrorCustomerAlreadyDisabled,
 	ErrorCustomerAlreadyEnabled,
@@ -4202,6 +4204,13 @@ var (
 		Code:       "SUCCESS_ADVERT_CREATED_REQUEST_SENT",
 		StatusCode: StatusCreated,
 		Message:    MsgAdvertCreatedRequestSent,
+		Type:       "success",
+	}
+
+	SuccessActiveStatusUpdated = ResponseCode{
+		Code:       "SUCCESS_ACTIVE_STATE",
+		StatusCode: StatusOK,
+		Message:    "Your Active State Updated Through middleware",
 		Type:       "success",
 	}
 
@@ -9061,6 +9070,13 @@ var (
 		Code:       "SUCCESS_CUSTOMER_DISABLE_REQUEST_SUBMITTED_SUCCESSFULLY",
 		StatusCode: StatusOK,
 		Message:    "Customer Disable request submitted successfully",
+		Type:       "success",
+	}
+
+	CustomerDisabledSuccessfully = ResponseCode{
+		Code:       "SUCCESS_CUSTOMER_DISABLED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "Customer Disabled successfully",
 		Type:       "success",
 	}
 

@@ -60,6 +60,36 @@ func (s *utilityService) resolveActionParams(ctx context.Context, msg imodel.Uti
 			actionType:    string(constants.CREATE),
 		}, nil
 
+	case "create_collection":
+		if len(msg.UniqueTokens) == 0 {
+			return nil, errors.New("unique_tokens required for create action")
+		}
+		return &utilityActionParams{
+			uniqueId:      msg.UniqueTokens[0],
+			requestAction: string(cpsaction.RequestCreateCollection),
+			actionType:    string(constants.CREATE),
+		}, nil
+
+	case "disable_collection":
+		if len(msg.UniqueTokens) == 0 {
+			return nil, errors.New("unique_tokens required for create action")
+		}
+		return &utilityActionParams{
+			uniqueId:      msg.UniqueTokens[0],
+			requestAction: string(cpsaction.RequestDisableCollection),
+			actionType:    string(constants.CREATE),
+		}, nil
+
+	case "create_group":
+		if len(msg.UniqueTokens) == 0 {
+			return nil, errors.New("unique_tokens required for create action")
+		}
+		return &utilityActionParams{
+			uniqueId:      msg.UniqueTokens[0],
+			requestAction: string(cpsaction.RequestCreateGroup),
+			actionType:    string(constants.CREATE),
+		}, nil
+
 	case "update", "enable", "disable", "delete":
 		p := &utilityActionParams{actionType: string(constants.UPDATE)}
 		switch msg.Action {

@@ -322,11 +322,24 @@ func (r *selfActivationRepository) GetUsersActionLog(ctx context.Context, custom
 }
 
 func mapCPSActionToActionLog(a imodel.CPSAction) imodel.SelfActivationActionLog {
+	checkers := make([]imodel.MakerCheckerInfo, 0, len(a.CheckerUsers))
+	for _, checker := range a.CheckerUsers {
+		checkers = append(checkers, imodel.MakerCheckerInfo{
+			ID:       checker.CheckerID,
+			FullName: checker.CheckerName,
+		})
+	}
+
 	logEntry := imodel.SelfActivationActionLog{
-		ActionID:        a.ID.Hex(),
-		ActionRequest:   a.RequestAction,
-		ActionType:      a.ActionType,
-		MakerUser:       a.MakerName,
+		ActionID:      a.ID.Hex(),
+		ActionCode:    a.ActionCode,
+		ActionRequest: a.RequestAction,
+		ActionType:    a.ActionType,
+		Maker: &imodel.MakerCheckerInfo{
+			ID:       a.MakerID,
+			FullName: a.MakerName,
+		},
+		Checker:         checkers,
 		Status:          a.ActionStatus,
 		ActionTakeAt:    a.MakerActionTime,
 		ActionUpdatedAt: a.LastModifiedAt,

@@ -68,6 +68,17 @@ func NewCustomerKYCService(repo storage.CustomerKYCRepository,
 	}
 }
 
+func (r *customerKYCService) GetKYCReviewPeriod() time.Duration {
+	period := r.cfg.KYCReviewPeriodInDays
+
+	switch r.cfg.GoEnv {
+	case "dev", "qa", "uat":
+		return time.Duration(period) * time.Minute
+	default:
+		return time.Duration(period) * 24 * time.Hour
+	}
+}
+
 func (s *customerKYCService) FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]dto.CustomerKYCResponse], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "FindAllWithPagination", "CustomerKYC", "FindAllWithPagination")
 	defer span.End()
@@ -187,7 +198,7 @@ func (s *customerKYCService) StartKycReview(ctx context.Context, id string) (*dt
 	}
 
 	now := time.Now()
-	expiresAt := time.Now().Add(30 * time.Minute)
+	expiresAt := time.Now().Add(s.GetKYCReviewPeriod())
 	newReq := &imodel.CustomerKYC{
 		Review: &imodel.KYCReview{
 			Status:          imodel.ReviewStatus(imodel.KYCStatusInReview),
@@ -256,7 +267,7 @@ func (s *customerKYCService) PickKycReview(ctx context.Context, id string, reaso
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	expiresAt := now.Add(30 * time.Minute)
+	expiresAt := now.Add(s.GetKYCReviewPeriod())
 	assignment := imodel.KYCReviewAssignment{
 		PickedAt: &now,
 		PickedBy: &imodel.UserInfo{

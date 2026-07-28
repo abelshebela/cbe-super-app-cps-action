@@ -199,6 +199,7 @@ func (t *TransactionHandler) FetchAllTransactionLimits(w http.ResponseWriter, r 
 			localization.SendErrorByCodeResponse(w, err.Error())
 			return
 		}
+
 		span.AddEvent("Transaction limit retrieved", trace.WithAttributes(attribute.String("customer_number", customerNumber)))
 		localization.SendSuccessResponse(w, localization.SuccessTransactionLimitRetrieved, limit)
 		return

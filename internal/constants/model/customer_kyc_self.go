@@ -183,12 +183,19 @@ type ExportSelfActivationRequest struct {
 
 // Action Log
 type SelfActivationActionLog struct {
-	ActionID        string    `json:"action_id"`
-	ActionRequest   string    `json:"action_request"`
-	ActionType      string    `json:"action_type"`
-	MakerUser       string    `json:"maker_user"`
-	Reason          string    `json:"reason"`
-	Status          string    `json:"status"`
-	ActionTakeAt    time.Time `json:"action_take_at"`
-	ActionUpdatedAt time.Time `json:"action_updated_at"`
+	ActionCode      string             `json:"action_log"`
+	ActionID        string             `json:"action_id"`
+	ActionRequest   string             `json:"action_request"`
+	ActionType      string             `json:"action_type"`
+	Maker           *MakerCheckerInfo  `json:"maker"`
+	Checker         []MakerCheckerInfo `json:"checker"`
+	Reason          string             `json:"reason"`
+	Status          string             `json:"status"`
+	ActionTakeAt    time.Time          `json:"action_take_at"`
+	ActionUpdatedAt time.Time          `json:"action_updated_at"`
+}
+
+type MakerCheckerInfo struct {
+	ID       string `json:"id" bson:"id"`
+	FullName string `json:"full_name" bson:"full_name"`
 }

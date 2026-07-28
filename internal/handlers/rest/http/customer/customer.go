@@ -9,6 +9,7 @@ import (
 	"cbe-super-app-cps-action/internal/handlers/rest/http/customer/core"
 	"context"
 	"encoding/json"
+	"strconv"
 	"strings"
 
 	"cbe-super-app-cps-action/internal/service"
@@ -223,7 +224,7 @@ func (c *customerAdapter) DisableCustomer(w http.ResponseWriter, r *http.Request
 	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 
 	if md.IsMakerOnly {
-		localization.SendSuccessResponse(w, localization.CustomerSegmentationCreated, nil)
+		localization.SendSuccessResponse(w, localization.CustomerDisabledSuccessfully, nil)
 		return
 	}
 
@@ -544,6 +545,18 @@ func (c customerAdapter) SearchCustomerByCIForAccountNumber(w http.ResponseWrite
 		localization.SendBadRequestResponse(w, "invalid request: input value is required")
 		return
 	}
+
+	var isUserDisable bool
+	isUserDisableStr := strings.TrimSpace(r.URL.Query().Get("is_user_disable"))
+	if isUserDisableStr != "" {
+		var err error
+		isUserDisable, err = strconv.ParseBool(isUserDisableStr)
+		if err != nil {
+			localization.SendBadRequestResponse(w, "invalid query parameter: is_user_disable must be a boolean")
+			return
+		}
+	}
+
 	if err := core.ValidateCustomerLookupRequest(number); err != nil {
 		log.Errorf("[SearchCustomerByCIForAccountNumber] validation error: %v", err)
 		localization.SendBadRequestResponse(w, "invalid request: input value must be a valid CID, account number, or phone number")
@@ -556,6 +569,12 @@ func (c customerAdapter) SearchCustomerByCIForAccountNumber(w http.ResponseWrite
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+
+	if isUserDisable && (!customer.IsUssdEnabled && !customer.IsSupperAppEnabled) {
+		localization.SendErrorByCodeResponse(w, localization.ErrorCustomerAlreadyDisabled.Code)
+		return
+	}
+
 	localization.SendSuccessResponse(w, localization.SuccessCustomerDetailSuccessfullyFetched, customer)
 }
 

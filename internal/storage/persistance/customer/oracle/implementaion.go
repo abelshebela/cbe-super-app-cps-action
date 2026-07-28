@@ -282,8 +282,9 @@ func (c *customerOracleRepository) FindCustomerByUserCode(ctx context.Context, u
 // 		response.PersonalInfo.DateOfBirth = birthOfDate.Time.Format("2006-01-02")
 // 	}
 
-// 	return response, nil
-// }
+//		return response, nil
+//	}
+//
 
 // FindCustomerDetailByID implements [storage.CustomerRepository].
 func (c *customerOracleRepository) FindCustomerDetailByID(ctx context.Context, id string) (*customer.CustomerDetailResponse, error) {
@@ -291,32 +292,35 @@ func (c *customerOracleRepository) FindCustomerDetailByID(ctx context.Context, i
 
 	log.Infof("[CustomerRepository][FindCustomerDetailByID] fetching customer detail by user_code: %s", id)
 
-	// New query: join users, account_blocks, linked_accounts, accounts, fetch all required fields
 	query := `
-		       SELECT
-			       RAWTOHEX(u.id),
-			       u.full_name,
-			       u.gender,
-			       u.contact_phone,
-			       u.contact_email,
-			       u.customer_number,
-			       u.is_superapp_active,
-				   u.is_ussd_active,
-				   u.is_superapp_enabled,
-				   u.is_ussd_enabled,
-				   u.is_blocked,
-			       u.birth_of_date,
-			       a.account_holder_name,
-			       a.account_type,
-			       a.account_number,
-			       ab.BRANCH_NAME,
-			       ab.BRANCH_CODE,
-			       la.is_active
-		       FROM linked_accounts la
-		       LEFT JOIN accounts a ON a.id = la.account_id
-		       LEFT JOIN users u ON la.user_code = u.user_code
-		       LEFT JOIN COMPANY ab ON ab.DAO_CODE = u.branch_code
-		       WHERE la.user_code = :1`
+		SELECT
+			RAWTOHEX(u.id),
+			u.full_name,
+			u.gender,
+			u.contact_phone,
+			u.contact_email,
+			u.customer_number,
+			NVL(u.is_superapp_active, 0),
+			NVL(u.is_ussd_active, 0),
+			NVL(u.is_superapp_enabled, 0),
+			NVL(u.is_ussd_enabled, 0),
+			NVL(u.is_blocked, 0),
+			u.birth_of_date,
+			NVL(u.is_self_activated, 0),
+			u.superapp_role,
+			u.created_at,
+			u.expiry_at,
+			NVL(a.account_holder_name, '') AS account_holder_name,
+			NVL(a.account_type, '') AS account_type,
+			NVL(a.account_number, '') AS account_number,
+			NVL(ab.BRANCH_NAME, '') AS branch_name,
+			NVL(ab.BRANCH_CODE, '') AS branch_code,
+			NVL(la.is_active, 0)
+		FROM linked_accounts la
+		LEFT JOIN accounts a ON a.id = la.account_id
+		LEFT JOIN users u ON la.user_code = u.user_code
+		LEFT JOIN COMPANY ab ON ab.DAO_CODE = u.branch_code
+		WHERE la.user_code = :1`
 
 	rows, err := c.db.QueryContext(ctx, query, id)
 	if err != nil {
@@ -326,30 +330,53 @@ func (c *customerOracleRepository) FindCustomerDetailByID(ctx context.Context, i
 	defer rows.Close()
 
 	var (
-		userID, fullName, gender, phone, email, customerNumber                      string
-		isSuperAppActive, isUSSDActive, isBlocked, isSuperAppEnabled, isUSSDEnalbed int
-		birthOfDate                                                                 sql.NullTime
-		linkedAccounts                                                              []customer.LinkedAccount
-		fetchedFirstRow                                                             bool
+		userID, fullName, gender, phone, email, customerNumber, superAppRole                         string
+		isSuperAppActive, isUSSDActive, isSuperAppEnabled, isUSSDEnabled, isBlocked, isSelfActivated int
+		birthOfDate                                                                                  sql.NullTime
+		createdAt, expiryAt                                                                          time.Time
+		linkedAccounts                                                                               []customer.LinkedAccount
+		fetchedFirstRow                                                                              bool
 	)
 
 	for rows.Next() {
 		var (
-			accHolder, accType, accNum, branchName, branchCode                                          sql.NullString
-			isActiveAcc                                                                                 int
-			rowUserID, rowFullName, rowGender, rowPhone, rowEmail, rowCustomerNumber                    string
-			rowIsSuperAppActive, rowIsUSSDActive, rowIsUSSDEnabled, rowIsSupperAppEnabled, rowIsBlocked int
-			rowBirthOfDate                                                                              sql.NullTime
+			accHolder, accType, accNum, branchName, branchCode sql.NullString
+			isActiveAcc                                        int
+
+			rowUserID, rowFullName, rowGender, rowPhone, rowEmail, rowCustomerNumber, rowSuperAppRole                      string
+			rowIsSuperAppActive, rowIsUSSDActive, rowIsSuperAppEnabled, rowIsUSSDEnabled, rowIsBlocked, rowIsSelfActivated int
+			rowBirthOfDate                                                                                                 sql.NullTime
+			rowCreatedAt, rowExpiryAt                                                                                      sql.NullTime
 		)
+
 		if err := rows.Scan(
-			&rowUserID, &rowFullName, &rowGender, &rowPhone, &rowEmail, &rowCustomerNumber,
-			&rowIsSuperAppActive, &rowIsUSSDActive, &rowIsSupperAppEnabled, &rowIsUSSDEnabled, &rowIsBlocked, &rowBirthOfDate,
-			&accHolder, &accType, &accNum, &branchName, &branchCode, &isActiveAcc,
+			&rowUserID,
+			&rowFullName,
+			&rowGender,
+			&rowPhone,
+			&rowEmail,
+			&rowCustomerNumber,
+			&rowIsSuperAppActive,
+			&rowIsUSSDActive,
+			&rowIsSuperAppEnabled,
+			&rowIsUSSDEnabled,
+			&rowIsBlocked,
+			&rowBirthOfDate,
+			&rowIsSelfActivated,
+			&rowSuperAppRole,
+			&rowCreatedAt,
+			&rowExpiryAt,
+			&accHolder,
+			&accType,
+			&accNum,
+			&branchName,
+			&branchCode,
+			&isActiveAcc,
 		); err != nil {
 			log.Errorf("[CustomerRepository][FindCustomerDetailByID] scan failed: %v", err)
 			return nil, localization.ErrorUnexpectedError
 		}
-		// Set user info from first row
+
 		if !fetchedFirstRow {
 			userID = rowUserID
 			fullName = rowFullName
@@ -357,31 +384,51 @@ func (c *customerOracleRepository) FindCustomerDetailByID(ctx context.Context, i
 			phone = rowPhone
 			email = rowEmail
 			customerNumber = rowCustomerNumber
-			isBlocked = rowIsBlocked
 			isSuperAppActive = rowIsSuperAppActive
-			isSuperAppEnabled = rowIsSupperAppEnabled
 			isUSSDActive = rowIsUSSDActive
-			isUSSDEnalbed = rowIsUSSDEnabled
-			isUSSDActive = rowIsUSSDActive
+			isSuperAppEnabled = rowIsSuperAppEnabled
+			isUSSDEnabled = rowIsUSSDEnabled
+			isBlocked = rowIsBlocked
 			birthOfDate = rowBirthOfDate
+			isSelfActivated = rowIsSelfActivated
+			superAppRole = rowSuperAppRole
+
+			if rowCreatedAt.Valid {
+				createdAt = rowCreatedAt.Time
+			}
+
+			if rowExpiryAt.Valid {
+				expiryAt = rowExpiryAt.Time
+			}
+
 			fetchedFirstRow = true
 		}
+
 		linkedAccounts = append(linkedAccounts, customer.LinkedAccount{
 			AccountNumber:     accNum.String,
 			AccountHolderName: accHolder.String,
 			AccountType:       accType.String,
 			AccountBranchCode: branchCode.String,
-			IsActive:          isActiveAcc == 1 || isUSSDActive == 1,
 			AccountBranchName: branchName.String,
+			IsActive:          isActiveAcc == 1 || isUSSDActive == 1,
 		})
 	}
 
+	if err := rows.Err(); err != nil {
+		log.Errorf("[CustomerRepository][FindCustomerDetailByID] rows iteration failed: %v", err)
+		return nil, localization.ErrorUnexpectedError
+	}
+
 	if !fetchedFirstRow {
-		// No rows found
 		return nil, localization.ErrorResourceNotFound
 	}
 
-	response := &customer.CustomerDetailResponse{
+	dateOfBirth := ""
+	if birthOfDate.Valid {
+		dateOfBirth = birthOfDate.Time.Format("2006-01-02")
+	}
+
+	return &customer.CustomerDetailResponse{
 		ID:            userID,
 		LinkedAccount: linkedAccounts,
 		PersonalInfo: customer.PersonalInfo{
@@ -394,16 +441,16 @@ func (c *customerOracleRepository) FindCustomerDetailByID(ctx context.Context, i
 			IsSupperAppActivate: isSuperAppActive == 1,
 			IsUSSDActivate:      isUSSDActive == 1,
 			IsSupperAppEnabled:  isSuperAppEnabled == 1,
-			IsUSSDEnabled:       isUSSDEnalbed == 1,
+			IsUSSDEnabled:       isUSSDEnabled == 1,
 			IsBlocked:           isBlocked == 1,
-			DateOfBirth:         birthOfDate.Time.Format("2006-01-02"),
+			DateOfBirth:         dateOfBirth,
+			SuperAppID:          "SA" + customerNumber,
+			SupperAppRole:       superAppRole,
+			IsSelfActivated:     isSelfActivated == 1,
+			ActivationDate:      createdAt,
+			ExpiryDate:          expiryAt,
 		},
-	}
-	if birthOfDate.Valid {
-		response.PersonalInfo.DateOfBirth = birthOfDate.Time.Format("2006-01-02")
-	}
-
-	return response, nil
+	}, nil
 }
 
 // FindCustomerLinkedAccountByUserID implements [storage.CustomerRepository].
@@ -446,13 +493,11 @@ func (c *customerOracleRepository) FindCustomerLinkedAccountByUserID(ctx context
 	return linkedAccount, nil
 }
 
-// SearchCustomerByCIForAccountNumber implements [storage.CustomerRepository].
 func (c *customerOracleRepository) SearchCustomerByCIForAccountNumber(ctx context.Context, number string) (*customer.CustomerListResponse, error) {
 	log := local_util.LoggerFromCtx(ctx, c.logger)
 
 	log.Infof("[CustomerRepository][SearchCustomerByCIForAccountNumber] searching members by value: %s", number)
 
-	// Oracle SQL: join USERS and LINKED_ACCOUNTS, search by phone, customer number, user code, or account id (as hex string)
 	query := `
 			 SELECT
 				 RAWTOHEX(u.id) AS id,
@@ -464,7 +509,10 @@ func (c *customerOracleRepository) SearchCustomerByCIForAccountNumber(ctx contex
 				 NVL(co.BRANCH_CODE, '') AS branch_code,
 				 u.gender,
 				 u.is_self_activated,
+				 u.superapp_role,
 				 u.is_blocked,
+				 u.created_at,
+				 u.expiry_at,
 				 NVL(ac.account_number, '') AS account_number,
 				 u.IS_SUPERAPP_ENABLED,
 				 u.IS_USSD_ENABLED,
@@ -485,19 +533,18 @@ func (c *customerOracleRepository) SearchCustomerByCIForAccountNumber(ctx contex
 				 OR ac.account_number = :1
 			 )
 			 AND u.is_superapp_active = 1
-			 AND (la.is_active = 1 OR la.is_active IS NULL)
 			 FETCH FIRST 1 ROWS ONLY`
 
 	row := c.db.QueryRowContext(ctx, query, number, number, number, number)
 	var (
 		id, userCode, email, customerNumber, fullName, phoneNumber, branchCode, gender, accountNumber string
-		branchName, accountType, districtName, regionName, federalRegionName, daoCode                 string
-		createdAt                                                                                     time.Time
+		branchName, accountType, districtName, regionName, federalRegionName, daoCode, superappRole   string
+		createdAt, expiryAt                                                                           time.Time
 		isBlocked, isSelfActivated, isSupperAppEnabled, isUssdEnabled                                 int
 	)
 	err := row.Scan(
 		&id, &userCode, &email, &customerNumber, &fullName, &phoneNumber, &branchCode,
-		&gender, &isSelfActivated, &isBlocked, &accountNumber, &isSupperAppEnabled, &isUssdEnabled,
+		&gender, &isSelfActivated, &superappRole, &isBlocked, &createdAt, &expiryAt, &accountNumber, &isSupperAppEnabled, &isUssdEnabled,
 		&branchName, &accountType, &districtName, &regionName, &federalRegionName, &daoCode,
 	)
 	if err != nil {
@@ -511,12 +558,16 @@ func (c *customerOracleRepository) SearchCustomerByCIForAccountNumber(ctx contex
 	return &customer.CustomerListResponse{
 		ID:                 id,
 		UserID:             id,
+		SuperAppID:         "SA" + customerNumber,
 		UserCode:           userCode,
 		Email:              email,
 		CustomerNumber:     customerNumber,
 		FullName:           fullName,
 		PhoneNumber:        phoneNumber,
 		IsSelfActivated:    isSelfActivated == 1,
+		SupperAppRole:      superappRole,
+		ActivationDate:     createdAt,
+		ExpiryDate:         expiryAt,
 		BranchCode:         branchCode,
 		BranchName:         branchName,
 		AccountType:        accountType,
@@ -525,7 +576,6 @@ func (c *customerOracleRepository) SearchCustomerByCIForAccountNumber(ctx contex
 		FederalRegionName:  federalRegionName,
 		DaoCode:            daoCode,
 		Gender:             gender,
-		CreatedAt:          createdAt.Format(time.RFC3339),
 		IsBlocked:          isBlocked == 1,
 		AccountNumber:      accountNumber,
 		IsSupperAppEnabled: isSupperAppEnabled == 1,
