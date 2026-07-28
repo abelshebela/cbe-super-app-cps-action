@@ -409,7 +409,7 @@ func (c *customerOracleRepository) FindCustomerDetailByID(ctx context.Context, i
 			AccountType:       accType.String,
 			AccountBranchCode: branchCode.String,
 			AccountBranchName: branchName.String,
-			IsActive:          isActiveAcc == 1 || isUSSDActive == 1,
+			IsActive:          isActiveAcc == 1,
 		})
 	}
 
