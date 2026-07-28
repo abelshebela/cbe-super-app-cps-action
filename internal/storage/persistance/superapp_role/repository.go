@@ -535,3 +535,65 @@ func boolToInt(b bool) int {
 	}
 	return 0
 }
+
+func (r *superAppRoleStorage) FindSegmentByCheckSum(ctx context.Context, checksum string) (imodel.Segment, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+	log.Debugf("[SuperAppRoleRepo][FindSegmentByCheckSum] checksum: %s", checksum)
+	if checksum == "" {
+		return imodel.Segment{}, errors.New(localization.ErrorNoDataProvided.Code)
+	}
+
+	var (
+		segment     imodel.Segment
+		enabledFlag int
+		createdAt   sql.NullTime
+		updatedAt   sql.NullTime
+	)
+
+	err := r.db.QueryRowContext(ctx, `
+		SELECT RAWTOHEX(ID),
+		       CUSTOMER_GROUP,
+		       CUSTOMER_GROUP_LABEL,
+		       CUSTOMER_SEGMENT,
+		       CUSTOMER_SEGMENT_LABEL,
+		       CUSTOMER_SUBSEGMENT,
+		       CUSTOMER_SUBSEGMENT_LABEL,
+		       SUPERAPP_ROLE,
+		       SUPERAPP_ROLE_LABEL,
+		       CHECK_SUM,
+		       IS_ENABLED,
+		       CREATED_AT,
+		       LAST_MODIFIED_AT
+		FROM SEGMENTS
+		WHERE CHECK_SUM = :1`, checksum).Scan(
+		&segment.ID,
+		&segment.CustomerGroup,
+		&segment.CustomerGroupLabel,
+		&segment.CustomerSegment,
+		&segment.CustomerSegmentLabel,
+		&segment.CustomerSubsegment,
+		&segment.CustomerSubsegmentLabel,
+		&segment.SuperappRole,
+		&segment.SuperappRoleLabel,
+		&segment.CheckSum,
+		&enabledFlag,
+		&createdAt,
+		&updatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return imodel.Segment{}, errors.New(localization.ErrorResourceNotFound.Code)
+		}
+		log.Errorf("[SuperAppRoleRepo][FindSegmentByCheckSum] query err: %v", err)
+		return imodel.Segment{}, local_util.HandleDBError(err)
+	}
+	segment.IsEnabled = enabledFlag == 1
+	if createdAt.Valid {
+		segment.CreatedAt = createdAt.Time
+	}
+	if updatedAt.Valid {
+		segment.LastModifiedAt = updatedAt.Time
+	}
+
+	return segment, nil
+}
