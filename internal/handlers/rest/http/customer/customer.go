@@ -546,15 +546,33 @@ func (c customerAdapter) SearchCustomerByCIForAccountNumber(w http.ResponseWrite
 		return
 	}
 
-	var isUserDisable bool
-	isUserDisableStr := strings.TrimSpace(r.URL.Query().Get("is_user_disable"))
-	if isUserDisableStr != "" {
-		var err error
-		isUserDisable, err = strconv.ParseBool(isUserDisableStr)
+	var isUserDisable, isUserBarred, isUserUnbarred *bool
+
+	if value := strings.TrimSpace(r.URL.Query().Get("u")); value != "" {
+		b, err := strconv.ParseBool(value)
 		if err != nil {
-			localization.SendBadRequestResponse(w, "invalid query parameter: is_user_disable must be a boolean")
+			localization.SendBadRequestResponse(w, "invalid query parameter: u must be a boolean")
 			return
 		}
+		isUserDisable = &b
+	}
+
+	if value := strings.TrimSpace(r.URL.Query().Get("b")); value != "" {
+		b, err := strconv.ParseBool(value)
+		if err != nil {
+			localization.SendBadRequestResponse(w, "invalid query parameter: b must be a boolean")
+			return
+		}
+		isUserBarred = &b
+	}
+
+	if value := strings.TrimSpace(r.URL.Query().Get("un")); value != "" {
+		b, err := strconv.ParseBool(value)
+		if err != nil {
+			localization.SendBadRequestResponse(w, "invalid query parameter: un must be a boolean")
+			return
+		}
+		isUserUnbarred = &b
 	}
 
 	if err := core.ValidateCustomerLookupRequest(number); err != nil {
@@ -570,8 +588,18 @@ func (c customerAdapter) SearchCustomerByCIForAccountNumber(w http.ResponseWrite
 		return
 	}
 
-	if isUserDisable && (!customer.IsUssdEnabled && !customer.IsSupperAppEnabled) {
+	if isUserDisable != nil && (!customer.IsUssdEnabled && !customer.IsSupperAppEnabled) {
 		localization.SendErrorByCodeResponse(w, localization.ErrorCustomerAlreadyDisabled.Code)
+		return
+	}
+
+	if isUserBarred != nil && customer.IsBlocked {
+		localization.SendErrorByCodeResponse(w, localization.ErrorCustomerAlreadyBarred.Code)
+		return
+	}
+
+	if isUserUnbarred != nil && !customer.IsBlocked {
+		localization.SendErrorByCodeResponse(w, localization.ErrorCustomerAlreadyUnbarred.Code)
 		return
 	}
 
