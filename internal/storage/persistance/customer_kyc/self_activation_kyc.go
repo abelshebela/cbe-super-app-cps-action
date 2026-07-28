@@ -261,7 +261,7 @@ func (r *selfActivationRepository) FindForExport(ctx context.Context, from, to t
 				"gender":            1,
 				"date_of_birth":     "$birth_date",
 				"region":            "$address.region",
-				"registration_date": "$updated_at",
+				"registration_date": "$registration_time",
 				"rejection_reason":  "$kyc_reject_reason",
 				"customer_status":   "NEW",
 				"kyc_status":        "$review.status",

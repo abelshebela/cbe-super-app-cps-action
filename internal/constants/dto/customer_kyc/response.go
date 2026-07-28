@@ -2,6 +2,7 @@ package customerkyc
 
 import (
 	imodel "cbe-super-app-cps-action/internal/constants/model"
+	"time"
 )
 
 type CustomerKYCResponse struct {
@@ -29,10 +30,10 @@ type CustomerKYCResponse struct {
 	KYCRejectReason     string `bson:"kyc_reject_reason,omitempty" json:"kyc_reject_reason,omitempty"`
 	TermsAndConditions  string `json:"terms_and_conditions,omitempty"`
 
-	Reviewer *imodel.UserInfo  `json:"reviewer,omitempty"`
-	Review   *imodel.KYCReview `json:"review"`
-
-	LinkedAccount []imodel.LinkedAccounts `json:"linked_accounts"`
+	Reviewer         *imodel.UserInfo        `json:"reviewer,omitempty"`
+	Review           *imodel.KYCReview       `json:"review"`
+	RegistrationDate time.Time               `bson:"registration_time" json:"registration_time"`
+	LinkedAccount    []imodel.LinkedAccounts `json:"linked_accounts"`
 
 	ServerTime string `json:"server-time,omitempty"`
 	CreatedAt  string `json:"created_at"`

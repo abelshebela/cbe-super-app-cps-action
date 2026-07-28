@@ -162,6 +162,10 @@ func (s *utilityService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 
 	switch string(cpsAction.RequestAction) {
 	case string(cpsaction.RequestCreateUtility),
+		string(cpsaction.RequestCreateCollection),
+		string(cpsaction.RequestCreateError),
+		string(cpsaction.RequestDisableCollection),
+		string(cpsaction.RequestCreateGroup),
 		string(cpsaction.RequestUpdateUtility),
 		string(cpsaction.RequestEnableUtility),
 		string(cpsaction.RequestDisableUtility),

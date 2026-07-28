@@ -11,6 +11,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -409,7 +410,7 @@ func (c *customerOracleRepository) FindCustomerDetailByID(ctx context.Context, i
 			AccountType:       accType.String,
 			AccountBranchCode: branchCode.String,
 			AccountBranchName: branchName.String,
-			IsActive:          isActiveAcc == 1 || isUSSDActive == 1,
+			IsActive:          isActiveAcc == 1,
 		})
 	}
 
@@ -672,6 +673,175 @@ func (c *customerOracleRepository) SaveBarUnBarReason(ctx context.Context, entry
 
 func (c *customerOracleRepository) GetBarUnBarReasons(ctx context.Context, userID string) ([]*imodel.CustomerBarUnBarReason, error) {
 	panic("unimplemented")
+}
+
+func (c *customerOracleRepository) GetCustomerByCifNumber(ctx context.Context, cif string) (customer.CustomerByCIFResponse, error) {
+	log := local_util.LoggerFromCtx(ctx, c.logger)
+
+	cif = strings.TrimSpace(cif)
+	if cif == "" {
+		return customer.CustomerByCIFResponse{}, localization.ErrorNoDataProvided
+	}
+
+	query := `
+		SELECT
+			RAWTOHEX(ID),
+			USER_CODE,
+			USERNAME,
+			BRANCH_CODE,
+			CONTACT_EMAIL,
+			CONTACT_PHONE,
+			CUSTOMER_NUMBER,
+			FIRST_NAME,
+			LAST_NAME,
+			MIDDLE_NAME,
+			FULL_NAME,
+			GENDER,
+			BIRTH_OF_DATE,
+			AVATAR,
+			SECTOR,
+			OWNERSHIP,
+			PUSH_TOKEN,
+			INDUSTRY,
+			LANGUAGE,
+			PIN,
+			PIN_HISTORY,
+			EXCLUDED_ACCESS_LIST,
+			FAILED_LOGIN_ATTEMPT,
+			IS_LOCKED,
+			IS_BUDGET_ENABLED,
+			IS_SUPERAPP_ACTIVE,
+			IS_SUPERAPP_ENABLED,
+			IS_USSD_ACTIVE,
+			IS_USSD_ENABLED,
+			IS_BLOCKED,
+			LOCK_EXPIRES_AT,
+			PIN_CREATED_AT,
+			CREATED_AT,
+			LAST_LOGIN_AT,
+			LAST_MODIFIED_AT,
+			EXPIRY_AT,
+			CUSTOMER_SEGMENTATION,
+			ACCOUNT_TYPE,
+			CUSTOMER_GROUP,
+			CUSTOMER_SUBSEGMENT,
+			SUPERAPP_ROLE,
+			IS_RESET_PIN,
+			IS_TERMINATED,
+			TERMINATION_COUNTER,
+			HAS_CHANGE,
+			IS_SELF_ACTIVATED,
+			SELF_ACTIVATION_RULE_EXPIRATION,
+			IS_SELF_ACTIVATION_RULE_OVERIDED
+		FROM USERS
+		WHERE CUSTOMER_NUMBER = :1`
+
+	var (
+		id, userCode, username, branchCode, contactEmail, contactPhone, customerNumber               sql.NullString
+		firstName, lastName, middleName, fullName, gender, avatar, sector, ownership, pushToken      sql.NullString
+		industry, language, pin, pinHistory, excludedAccessList, customerSegmentation, accountType   sql.NullString
+		customerGroup, customerSubsegment, superappRole                                              sql.NullString
+		failedLoginAttempt, isLocked, isBudgetEnabled, isSuperappActive, isSuperappEnabled           sql.NullInt64
+		isUssdActive, isUssdEnabled, isBlocked, isResetPin, isTerminated, hasChange, isSelfActivated sql.NullInt64
+		terminationCounter, isSelfActivationRuleOverided                                             sql.NullInt64
+		birthOfDate, lockExpiresAt, pinCreatedAt, createdAt, lastLoginAt, lastModifiedAt, expiryAt   sql.NullTime
+		selfActivationRuleExpiration                                                                 sql.NullTime
+	)
+
+	err := c.db.QueryRowContext(ctx, query, cif).Scan(
+		&id, &userCode, &username, &branchCode, &contactEmail, &contactPhone, &customerNumber,
+		&firstName, &lastName, &middleName, &fullName, &gender, &birthOfDate, &avatar, &sector,
+		&ownership, &pushToken, &industry, &language, &pin, &pinHistory, &excludedAccessList,
+		&failedLoginAttempt, &isLocked, &isBudgetEnabled, &isSuperappActive, &isSuperappEnabled,
+		&isUssdActive, &isUssdEnabled, &isBlocked, &lockExpiresAt, &pinCreatedAt, &createdAt,
+		&lastLoginAt, &lastModifiedAt, &expiryAt, &customerSegmentation, &accountType, &customerGroup,
+		&customerSubsegment, &superappRole, &isResetPin, &isTerminated, &terminationCounter,
+		&hasChange, &isSelfActivated, &selfActivationRuleExpiration, &isSelfActivationRuleOverided,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			log.Errorf("[CustomerRepository][GetCustomerByCifNumber] customer not found for cif: %s", cif)
+			return customer.CustomerByCIFResponse{}, localization.ErrorResourceNotFound
+		}
+		log.Errorf("[CustomerRepository][GetCustomerByCifNumber] query failed: %v", err)
+		return customer.CustomerByCIFResponse{}, local_util.HandleDBError(err)
+	}
+
+	toString := func(v sql.NullString) string {
+		if v.Valid {
+			return v.String
+		}
+		return ""
+	}
+	toTimePtr := func(v sql.NullTime) *time.Time {
+		if v.Valid {
+			t := v.Time
+			return &t
+		}
+		return nil
+	}
+	toBool := func(v sql.NullInt64) bool {
+		return v.Valid && v.Int64 == 1
+	}
+	toInt := func(v sql.NullInt64) int {
+		if v.Valid {
+			return int(v.Int64)
+		}
+		return 0
+	}
+
+	response := customer.CustomerByCIFResponse{
+		ID:                           toString(id),
+		UserCode:                     toString(userCode),
+		Username:                     toString(username),
+		BranchCode:                   toString(branchCode),
+		ContactEmail:                 toString(contactEmail),
+		ContactPhone:                 toString(contactPhone),
+		CustomerNumber:               toString(customerNumber),
+		FirstName:                    toString(firstName),
+		LastName:                     toString(lastName),
+		MiddleName:                   toString(middleName),
+		FullName:                     toString(fullName),
+		Gender:                       toString(gender),
+		BirthOfDate:                  toTimePtr(birthOfDate),
+		Avatar:                       toString(avatar),
+		Sector:                       toString(sector),
+		Ownership:                    toString(ownership),
+		PushToken:                    toString(pushToken),
+		Industry:                     toString(industry),
+		Language:                     toString(language),
+		Pin:                          toString(pin),
+		PinHistory:                   toString(pinHistory),
+		ExcludedAccessList:           toString(excludedAccessList),
+		FailedLoginAttempt:           toInt(failedLoginAttempt),
+		IsLocked:                     toBool(isLocked),
+		IsBudgetEnabled:              toBool(isBudgetEnabled),
+		IsSuperappActive:             toBool(isSuperappActive),
+		IsSuperappEnabled:            toBool(isSuperappEnabled),
+		IsUssdActive:                 toBool(isUssdActive),
+		IsUssdEnabled:                toBool(isUssdEnabled),
+		IsBlocked:                    toBool(isBlocked),
+		LockExpiresAt:                toTimePtr(lockExpiresAt),
+		PinCreatedAt:                 toTimePtr(pinCreatedAt),
+		CreatedAt:                    createdAt.Time,
+		LastLoginAt:                  toTimePtr(lastLoginAt),
+		LastModifiedAt:               lastModifiedAt.Time,
+		ExpiryAt:                     toTimePtr(expiryAt),
+		CustomerSegmentation:         toString(customerSegmentation),
+		AccountType:                  toString(accountType),
+		CustomerGroup:                toString(customerGroup),
+		CustomerSubsegment:           toString(customerSubsegment),
+		SuperappRole:                 toString(superappRole),
+		IsResetPin:                   toBool(isResetPin),
+		IsTerminated:                 toBool(isTerminated),
+		TerminationCounter:           toInt(terminationCounter),
+		HasChange:                    toBool(hasChange),
+		IsSelfActivated:              toBool(isSelfActivated),
+		SelfActivationRuleExpiration: toTimePtr(selfActivationRuleExpiration),
+		IsSelfActivationRuleOverided: toBool(isSelfActivationRuleOverided),
+	}
+
+	return response, nil
 }
 
 func NewCustomerOracleRepository(db DBTX, cfg config.VaultConfig, logger utils.Logger) storage.CustomerRepository {
