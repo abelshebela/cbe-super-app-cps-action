@@ -238,6 +238,7 @@ func MapSelfActivationUserToResponse(u *imodel.SelfActivationUser) *dto.Customer
 
 		Review: u.Review,
 
+		RegistrationDate:    u.RegistrationDate,
 		MoneyLaunderingFree: nil,
 		TermsAndConditions:  "",
 		CreatedAt:           u.CreatedAt.Format(time.RFC3339),
