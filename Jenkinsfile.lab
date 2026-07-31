@@ -1,317 +1,136 @@
 pipeline {
-
     agent {
-
         kubernetes {
-
-            inheritFrom ''
-
             yaml '''
-
 apiVersion: v1
 kind: Pod
-
 metadata:
   labels:
     component: build-agent
-
-
 spec:
-
   containers:
-
-
   - name: golang
-
     image: golang:1.26-alpine
-
     command:
     - cat
-
     tty: true
-
-
     resources:
-
       requests:
         memory: "1Gi"
         cpu: "500m"
-
       limits:
         memory: "2Gi"
         cpu: "2000m"
 
-
-
   - name: docker
-
     image: docker:27-cli
-
     command:
     - cat
-
     tty: true
-
-
     resources:
-
       requests:
         memory: "512Mi"
         cpu: "250m"
-
       limits:
         memory: "1Gi"
         cpu: "1000m"
-
-
     volumeMounts:
-
     - name: docker-sock
-
       mountPath: /var/run/docker.sock
 
-
-
   volumes:
-
   - name: docker-sock
-
     hostPath:
-
       path: /var/run/docker.sock
-
 '''
-
         }
-
     }
-
-
 
     environment {
-
-
-        SERVICE_NAME = "cps-action"
-
-
+        SERVICE_NAME     = "cps-action"
         DOCKER_FILE_PATH = "scripts/Dockerfile"
-
-
-        HARBOR_REGISTRY = "registry.eaglelionsystems.com"
-
-
-        HARBOR_PROJECT = "cbe-superapp"
-
-
-        HARBOR_CREDS = credentials("harbor-creds")
-
+        HARBOR_REGISTRY  = "registry.eaglelionsystems.com"
+        HARBOR_PROJECT   = "cbe-superapp"
+        HARBOR_CREDS     = credentials("harbor-creds")
     }
-
-
 
     stages {
-
-
-
         stage('Checkout') {
-
-
             steps {
-
                 checkout scm
-
             }
-
         }
-
-
-
-
 
         stage('Go Build') {
-
-
             steps {
-
-
                 container('golang') {
-
-
                     sh '''
-
                     go version
-
                     go mod download
-
                     go build ./...
-
                     '''
-
                 }
-
-
             }
-
         }
-
-
-
-
-
 
         stage('Docker Build') {
-
-
             steps {
-
-
                 container('docker') {
-
-
                     sh '''
-
                     docker build \
-
-                    -f ${DOCKER_FILE_PATH} \
-
-                    -t ${SERVICE_NAME}:build-${BUILD_NUMBER} .
-
-
+                      -f ${DOCKER_FILE_PATH} \
+                      -t ${SERVICE_NAME}:build-${BUILD_NUMBER} .
                     '''
-
                 }
-
-
             }
-
         }
-
-
-
-
-
 
         stage('Login Harbor') {
-
-
             steps {
-
-
                 container('docker') {
-
-
                     sh '''
-
                     echo "$HARBOR_CREDS_PSW" | docker login \
-
-                    -u "$HARBOR_CREDS_USR" \
-
-                    --password-stdin \
-
-                    ${HARBOR_REGISTRY}
-
-
+                      -u "$HARBOR_CREDS_USR" \
+                      --password-stdin \
+                      ${HARBOR_REGISTRY}
                     '''
-
                 }
-
             }
-
         }
-
-
-
-
 
         stage('Tag Image') {
-
-
             steps {
-
-
                 container('docker') {
-
-
                     sh '''
-
                     docker tag \
-
-                    ${SERVICE_NAME}:build-${BUILD_NUMBER} \
-
-                    ${HARBOR_REGISTRY}/${HARBOR_PROJECT}/${SERVICE_NAME}:build-${BUILD_NUMBER}
-
-
+                      ${SERVICE_NAME}:build-${BUILD_NUMBER} \
+                      ${HARBOR_REGISTRY}/${HARBOR_PROJECT}/${SERVICE_NAME}:build-${BUILD_NUMBER}
                     '''
-
                 }
-
             }
-
         }
-
-
-
-
-
 
         stage('Push Harbor') {
-
-
             steps {
-
-
                 container('docker') {
-
-
                     sh '''
-
-
                     docker push \
-
-                    ${HARBOR_REGISTRY}/${HARBOR_PROJECT}/${SERVICE_NAME}:build-${BUILD_NUMBER}
-
-
+                      ${HARBOR_REGISTRY}/${HARBOR_PROJECT}/${SERVICE_NAME}:build-${BUILD_NUMBER}
                     '''
-
                 }
-
             }
-
         }
-
-
     }
-
-
-
-
 
     post {
-
-
         success {
-
             echo "BUILD SUCCESS"
-
         }
-
-
         failure {
-
             echo "BUILD FAILED"
-
         }
-
-
         always {
-
-
             echo "Pipeline finished"
-
         }
-
-
     }
-
-
 }
