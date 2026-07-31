@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	imodel "cbe-super-app-cps-action/internal/constants/model"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
 	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 

@@ -3,10 +3,10 @@ package donation_oracle
 import (
 	"context"
 
-	"cbe-super-app-cps-action/internal/constants"
-	imodel "cbe-super-app-cps-action/internal/constants/model"
-	"cbe-super-app-cps-action/internal/storage"
-	"cbe-super-app-cps-action/internal/storage/kafka"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage/kafka"
 )
 
 type publishingRepository struct {

@@ -1,9 +1,9 @@
 package newscategory_routing
 
 import (
-	newscategory_adaptor "cbe-super-app-cps-action/internal/constants/interfaces/news_category"
-	"cbe-super-app-cps-action/internal/glue"
-	"cbe-super-app-cps-action/internal/handlers/middleware"
+	newscategory_adaptor "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/interfaces/news_category"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/glue"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/handlers/middleware"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"

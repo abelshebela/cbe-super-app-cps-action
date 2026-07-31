@@ -3,9 +3,9 @@ package utility
 import (
 	"net/http"
 
-	utilityInbound "cbe-super-app-cps-action/internal/constants/interfaces/utility"
-	"cbe-super-app-cps-action/internal/glue"
-	"cbe-super-app-cps-action/internal/handlers/middleware"
+	utilityInbound "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/interfaces/utility"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/glue"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/handlers/middleware"
 
 	"github.com/go-chi/chi/v5"
 )

@@ -1,10 +1,10 @@
 package mini_app
 
 import (
-	"cbe-super-app-cps-action/internal/constants/lib"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/types"
-	"cbe-super-app-cps-action/internal/storage"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/lib"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
 	// "fmt"
@@ -13,14 +13,14 @@ import (
 
 	"time"
 
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	// "go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/v2/bson"
-	local_model "cbe-super-app-cps-action/internal/constants/model"
+	local_model "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
 
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )

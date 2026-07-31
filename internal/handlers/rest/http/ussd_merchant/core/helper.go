@@ -1,10 +1,10 @@
 package core
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
-	ussd_merchant_dto "cbe-super-app-cps-action/internal/constants/dto/ussd_merchant"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	ussd_merchant_dto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/ussd_merchant"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
 	"fmt"

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 

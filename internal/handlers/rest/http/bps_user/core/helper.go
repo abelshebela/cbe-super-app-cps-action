@@ -1,8 +1,8 @@
 package core
 
 import (
-	"cbe-super-app-cps-action/internal/constants/types"
-	"cbe-super-app-cps-action/pkgs/utils"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
+	"github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 	"strings"
 )
 

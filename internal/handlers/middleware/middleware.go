@@ -22,12 +22,12 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 
-	cps_auth "cbe-super-app-cps-action/grpc/auth/proto"
-	"cbe-super-app-cps-action/internal/constants"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
-	"cbe-super-app-cps-action/internal/storage"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	cps_auth "github.com/abelshebela/cbe-super-app-cps-action/grpc/auth/proto"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 )
 
 func SecurityHeaders(next http.Handler) http.Handler {

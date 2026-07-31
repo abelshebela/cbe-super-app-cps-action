@@ -1,7 +1,7 @@
 package device_history
 
 import (
-	"cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
 	"errors"
 
 	"go.mongodb.org/mongo-driver/v2/bson"

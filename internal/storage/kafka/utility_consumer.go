@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"cbe-super-app-cps-action/config"
-	imodel "cbe-super-app-cps-action/internal/constants/model"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"github.com/abelshebela/cbe-super-app-cps-action/config"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 
 	"github.com/IBM/sarama"
 	cfg "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"

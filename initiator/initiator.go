@@ -5,15 +5,15 @@ import (
 	"net/http"
 	"time"
 
-	"cbe-super-app-cps-action/cmd/client"
-	"cbe-super-app-cps-action/cmd/server"
-	local "cbe-super-app-cps-action/config"
-	"cbe-super-app-cps-action/internal/constants/lib"
-	"cbe-super-app-cps-action/internal/storage/api"
+	"github.com/abelshebela/cbe-super-app-cps-action/cmd/client"
+	"github.com/abelshebela/cbe-super-app-cps-action/cmd/server"
+	local "github.com/abelshebela/cbe-super-app-cps-action/config"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/lib"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage/api"
 
-	mid "cbe-super-app-cps-action/internal/handlers/middleware"
+	mid "github.com/abelshebela/cbe-super-app-cps-action/internal/handlers/middleware"
 
-	"cbe-super-app-cps-action/platform/telemetry"
+	"github.com/abelshebela/cbe-super-app-cps-action/platform/telemetry"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/middleware"
 	shared_producer "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/notification/producer"

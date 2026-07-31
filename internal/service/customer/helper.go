@@ -1,8 +1,8 @@
 package customer
 
 import (
-	"cbe-super-app-cps-action/internal/constants/dto/customer"
-	bps "cbe-super-app-cps-action/internal/constants/model"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/customer"
+	bps "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
 
 	// "strings"
 

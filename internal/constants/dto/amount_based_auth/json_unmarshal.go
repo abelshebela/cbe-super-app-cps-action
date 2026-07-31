@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"cbe-super-app-cps-action/internal/constants"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
 )
 
 // UnmarshalJSON accepts min_amount / MIN_AMOUNT and max_amount / MAX_AMOUNT (CPS/Oracle style).

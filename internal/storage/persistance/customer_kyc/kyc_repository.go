@@ -1,13 +1,13 @@
 package customer
 
 import (
-	"cbe-super-app-cps-action/internal/constants/lib"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	imodel "cbe-super-app-cps-action/internal/constants/model"
-	"cbe-super-app-cps-action/internal/constants/types"
-	"cbe-super-app-cps-action/internal/storage"
-	"cbe-super-app-cps-action/internal/storage/persistance/customer_kyc/core"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/lib"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage/persistance/customer_kyc/core"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"database/sql"
 	"errors"

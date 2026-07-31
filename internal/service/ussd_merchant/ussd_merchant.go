@@ -1,7 +1,7 @@
 package ussd_merchant_service
 
 import (
-	imodel "cbe-super-app-cps-action/internal/constants/model"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
 	"context"
 	"errors"
 	"strings"
@@ -11,15 +11,15 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 
-	"cbe-super-app-cps-action/internal/constants"
-	ussd_merchant_dto "cbe-super-app-cps-action/internal/constants/dto/ussd_merchant"
-	"cbe-super-app-cps-action/internal/constants/lib"
-	localization "cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/types"
-	"cbe-super-app-cps-action/internal/service"
-	"cbe-super-app-cps-action/internal/service/ussd_merchant/core"
-	"cbe-super-app-cps-action/internal/storage"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	ussd_merchant_dto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/ussd_merchant"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/lib"
+	localization "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/service"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/service/ussd_merchant/core"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"

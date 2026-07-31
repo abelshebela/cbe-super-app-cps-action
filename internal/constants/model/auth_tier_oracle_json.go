@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"cbe-super-app-cps-action/internal/constants"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
 )
 
 // UnmarshalJSON supports API JSON (min_amount) and CPS/Oracle-style keys (MIN_AMOUNT, MAX_AMOUNT).

@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"cbe-super-app-cps-action/internal/constants"
-	"cbe-super-app-cps-action/internal/constants/types"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
 )
 
 type ContextResponseWriter struct {

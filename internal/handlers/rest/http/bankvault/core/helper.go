@@ -1,7 +1,7 @@
 package core
 
 import (
-	helper "cbe-super-app-cps-action/internal/constants/dto/bankvault"
+	helper "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/bankvault"
 
 	"time"
 

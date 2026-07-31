@@ -1,14 +1,14 @@
 package logistics_merchant_repository
 
 import (
-	"cbe-super-app-cps-action/internal/constants/lib"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	local_model "cbe-super-app-cps-action/internal/constants/model"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/lib"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	local_model "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 
-	"cbe-super-app-cps-action/internal/constants/types"
-	"cbe-super-app-cps-action/internal/storage"
-	"cbe-super-app-cps-action/internal/storage/persistance/logistics_merchant/core"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage/persistance/logistics_merchant/core"
 	"context"
 	"errors"
 

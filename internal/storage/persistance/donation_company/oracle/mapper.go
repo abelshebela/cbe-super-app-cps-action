@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"time"
 
-	"cbe-super-app-cps-action/internal/constants/dto/donation_company"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/donation_company"
 )
 
 const donationCompanySelectCols = `RAWTOHEX(ID), COMPANY_NAME, COMPANY_CODE, COMPANY_LOGO, COMPANY_DESCRIPTION,

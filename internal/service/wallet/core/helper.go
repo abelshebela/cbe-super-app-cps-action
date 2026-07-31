@@ -1,20 +1,20 @@
 package core
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
-	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
-	"cbe-super-app-cps-action/internal/constants/lib"
-	"cbe-super-app-cps-action/internal/constants/model"
-	"cbe-super-app-cps-action/internal/storage"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	walletDto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/wallet"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/lib"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage"
 	"slices"
 	"time"
 
-	// "cbe-super-app-cps-action/internal/constants/types"
-	local_model "cbe-super-app-cps-action/internal/constants/model"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	// "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
+	local_model "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 
-	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/service"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/service"
 	"context"
 	"errors"
 	"fmt"

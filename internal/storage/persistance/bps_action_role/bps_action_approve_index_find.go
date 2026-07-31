@@ -4,9 +4,9 @@ import (
 	"context"
 	"strings"
 
-	imodel "cbe-super-app-cps-action/internal/constants/model"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
 
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )

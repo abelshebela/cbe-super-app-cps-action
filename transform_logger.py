@@ -15,12 +15,12 @@ import sys
 import os
 
 # Import needed
-IMPORT_TO_ADD = 'local_util "cbe-super-app-cps-action/pkgs/utils"'
-IMPORT_PATH = '"cbe-super-app-cps-action/pkgs/utils"'
+IMPORT_TO_ADD = 'local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"'
+IMPORT_PATH = '"github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"'
 
 def has_import(content: str) -> bool:
     """Check if local_util is already imported."""
-    return 'local_util "cbe-super-app-cps-action/pkgs/utils"' in content
+    return 'local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"' in content
 
 def add_import(content: str) -> str:
     """Add the local_util import to the import block."""

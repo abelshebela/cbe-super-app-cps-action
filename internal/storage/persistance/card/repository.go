@@ -1,7 +1,7 @@
 package card
 
 import (
-	"cbe-super-app-cps-action/internal/storage"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 

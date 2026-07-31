@@ -1,7 +1,7 @@
 package miniapp_oracle
 
 import (
-	"cbe-super-app-cps-action/internal/storage"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage"
 	"context"
 	"database/sql"
 	"errors"
@@ -9,13 +9,13 @@ import (
 	"strings"
 	"time"
 
-	querypkg "cbe-super-app-cps-action/internal/storage/persistance/mini_app/oracle/query"
+	querypkg "github.com/abelshebela/cbe-super-app-cps-action/internal/storage/persistance/mini_app/oracle/query"
 
 	// sharedModel "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
-	local_model "cbe-super-app-cps-action/internal/constants/model"
+	local_model "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
 
-	constants "cbe-super-app-cps-action/internal/constants/localization"
+	constants "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
 
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	// mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"

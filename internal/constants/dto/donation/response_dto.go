@@ -1,6 +1,6 @@
 package donation
 
-import "cbe-super-app-cps-action/internal/constants/types"
+import "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
 
 // types "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
 

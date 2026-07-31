@@ -1,22 +1,22 @@
 package bps_action
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
-	"cbe-super-app-cps-action/internal/constants/lib"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/types"
-	"cbe-super-app-cps-action/internal/storage"
-	bps_action_core "cbe-super-app-cps-action/internal/storage/persistance/cps_action/core"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/lib"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage"
+	bps_action_core "github.com/abelshebela/cbe-super-app-cps-action/internal/storage/persistance/cps_action/core"
 	"context"
 	"errors"
 	"strings"
 	"time"
 
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 
-	bpsActionDto "cbe-super-app-cps-action/internal/constants/dto/bps_action"
+	bpsActionDto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/bps_action"
 
-	bps_action "cbe-super-app-cps-action/internal/constants/model"
+	bps_action "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"

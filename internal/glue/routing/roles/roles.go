@@ -1,9 +1,9 @@
 package job_role
 
 import (
-	inbound "cbe-super-app-cps-action/internal/constants/interfaces/roles"
-	"cbe-super-app-cps-action/internal/glue"
-	"cbe-super-app-cps-action/internal/handlers/middleware"
+	inbound "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/interfaces/roles"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/glue"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/handlers/middleware"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"

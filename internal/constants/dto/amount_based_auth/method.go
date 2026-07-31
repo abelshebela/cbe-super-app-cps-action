@@ -3,7 +3,7 @@ package amount_based_auth
 import (
 	"strings"
 
-	"cbe-super-app-cps-action/internal/constants"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
 )
 
 // CanonicalMethodFromPath maps URL path segments (e.g. OTP_PIN from Swagger) to stored Method values (PIN_OTP).

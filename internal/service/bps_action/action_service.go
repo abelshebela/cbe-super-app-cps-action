@@ -1,35 +1,35 @@
 package bps_action
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
 	"time"
 
-	"cbe-super-app-cps-action/internal/constants/lib"
-	"cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/lib"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
 
-	imodel "cbe-super-app-cps-action/internal/constants/model"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
 
-	"cbe-super-app-cps-action/internal/constants/types"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
 
-	mid "cbe-super-app-cps-action/internal/handlers/middleware"
+	mid "github.com/abelshebela/cbe-super-app-cps-action/internal/handlers/middleware"
 
-	"cbe-super-app-cps-action/internal/service"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/service"
 
 	"strings"
 
-	bpsActionDto "cbe-super-app-cps-action/internal/constants/dto/bps_action"
-	customer_dto "cbe-super-app-cps-action/internal/constants/dto/customer"
+	bpsActionDto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/bps_action"
+	customer_dto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/customer"
 
-	"cbe-super-app-cps-action/internal/storage"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage"
 
-	lobal_util "cbe-super-app-cps-action/pkgs/utils"
+	lobal_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 
 	"context"
 
 	"errors"
 
 	// bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
-	bps_model "cbe-super-app-cps-action/internal/constants/model"
+	bps_model "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
@@ -41,7 +41,7 @@ import (
 
 	"go.opentelemetry.io/otel/attribute"
 
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 
 	"go.opentelemetry.io/otel/trace"
 )

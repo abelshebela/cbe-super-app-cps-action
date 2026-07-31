@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 	"github.com/IBM/sarama"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )

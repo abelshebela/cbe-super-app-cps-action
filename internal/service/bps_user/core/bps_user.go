@@ -5,9 +5,9 @@ import (
 	"strings"
 	"time"
 
-	"cbe-super-app-cps-action/internal/constants/localization"
-	local_model "cbe-super-app-cps-action/internal/constants/model"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	local_model "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
@@ -15,7 +15,7 @@ import (
 	// shared_types "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
 	// "go.mongodb.org/mongo-driver/v2/bson"
 	bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
-	// local_model "cbe-super-app-cps-action/internal/constants/model"
+	// local_model "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
 )
 
 func ExistingIdentifier(existing *bps_model.BPSUser, req bps_model.BPSUser) error {

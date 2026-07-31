@@ -1,8 +1,8 @@
 package cps_action
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
-	imodel "cbe-super-app-cps-action/internal/constants/model"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"

@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 
-	"cbe-super-app-cps-action/initiator"
+	"github.com/abelshebela/cbe-super-app-cps-action/initiator"
 )
 
 //	@title			CPS Action API

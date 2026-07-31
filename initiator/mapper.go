@@ -1,7 +1,7 @@
 package initiator
 
 import (
-	"cbe-super-app-cps-action/internal/service"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/service"
 )
 
 // ServiceContainerToServiceLayer maps a ServiceContainer to a ServiceLayer

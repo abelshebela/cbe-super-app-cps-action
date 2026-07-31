@@ -11,10 +11,10 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 
-	session "cbe-super-app-cps-action/grpc"
-	"cbe-super-app-cps-action/internal/constants/localization"
+	session "github.com/abelshebela/cbe-super-app-cps-action/grpc"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
 
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 

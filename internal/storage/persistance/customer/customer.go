@@ -1,16 +1,16 @@
 package customer
 
 // import (
-// 	"cbe-super-app-cps-action/internal/constants"
-// 	"cbe-super-app-cps-action/internal/constants/localization"
-// 	"cbe-super-app-cps-action/internal/storage/kafka"
+// 	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+// 	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+// 	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage/kafka"
 // 	"context"
 // 	"errors"
 // 	"fmt"
 // 	"strings"
 // 	"time"
 
-// 	"cbe-super-app-cps-action/internal/storage"
+// 	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage"
 
 // 	member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 // 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -20,11 +20,11 @@ package customer
 // 	"go.mongodb.org/mongo-driver/v2/bson"
 // 	"go.mongodb.org/mongo-driver/v2/mongo"
 
-// 	customer_dto "cbe-super-app-cps-action/internal/constants/dto/customer"
-// 	"cbe-super-app-cps-action/internal/constants/lib"
-// 	imodel "cbe-super-app-cps-action/internal/constants/model"
-// 	"cbe-super-app-cps-action/internal/constants/types"
-// 	local_util "cbe-super-app-cps-action/pkgs/utils"
+// 	customer_dto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/customer"
+// 	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/lib"
+// 	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
+// 	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
+// 	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 
 // 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 // )

@@ -3,9 +3,9 @@ package passwordrule
 import (
 	"net/http"
 
-	password "cbe-super-app-cps-action/internal/constants/interfaces/password_rule"
-	"cbe-super-app-cps-action/internal/glue"
-	"cbe-super-app-cps-action/internal/handlers/middleware"
+	password "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/interfaces/password_rule"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/glue"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/handlers/middleware"
 
 	"github.com/go-chi/chi/v5"
 )

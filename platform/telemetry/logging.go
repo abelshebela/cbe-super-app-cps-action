@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"cbe-super-app-cps-action/internal/constants"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
 
 	"go.opentelemetry.io/otel/trace"
 )

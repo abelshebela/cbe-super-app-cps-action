@@ -11,7 +11,7 @@ package main
 
 import (
     "fmt"
-    "cbe-super-app-cps-action/internal/handlers/middleware"
+    "github.com/abelshebela/cbe-super-app-cps-action/internal/handlers/middleware"
 )
 
 func main() {

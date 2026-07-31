@@ -5,12 +5,12 @@ import (
 	"database/sql"
 	"errors"
 
-	"cbe-super-app-cps-action/internal/constants"
-	"cbe-super-app-cps-action/internal/constants/lib"
-	localization "cbe-super-app-cps-action/internal/constants/localization"
-	imodel "cbe-super-app-cps-action/internal/constants/model"
-	"cbe-super-app-cps-action/internal/constants/types"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/lib"
+	localization "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.opentelemetry.io/otel/attribute"

@@ -1,15 +1,15 @@
 package miniapp_oracle
 
 import (
-	constants "cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/storage"
+	constants "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage"
 	"context"
 	"encoding/hex"
 	"strings"
 	"time"
 
-	local_model "cbe-super-app-cps-action/internal/constants/model"
-	querypkg "cbe-super-app-cps-action/internal/storage/persistance/mini_app/oracle/query"
+	local_model "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
+	querypkg "github.com/abelshebela/cbe-super-app-cps-action/internal/storage/persistance/mini_app/oracle/query"
 
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 

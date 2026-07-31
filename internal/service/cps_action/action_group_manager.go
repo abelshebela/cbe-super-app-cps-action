@@ -1,8 +1,8 @@
 package cpsaction
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
-	"cbe-super-app-cps-action/internal/constants/lib"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/lib"
 )
 
 // ActionGroupManager provides requestAction -> parent module resolution

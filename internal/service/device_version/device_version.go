@@ -1,23 +1,23 @@
 package deviceversion
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
-	deviceversion "cbe-super-app-cps-action/internal/constants/dto/device_version"
-	"cbe-super-app-cps-action/internal/constants/lib"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/types"
-	"cbe-super-app-cps-action/internal/service"
-	"cbe-super-app-cps-action/internal/service/device_version/core"
-	"cbe-super-app-cps-action/internal/storage"
-	"cbe-super-app-cps-action/internal/storage/kafka"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	deviceversion "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/device_version"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/lib"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/service"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/service/device_version/core"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage/kafka"
 	"context"
 	"errors"
 	"fmt"
 	"time"
 
-	imodel "cbe-super-app-cps-action/internal/constants/model"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
 
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 
 	sharedmodel "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"

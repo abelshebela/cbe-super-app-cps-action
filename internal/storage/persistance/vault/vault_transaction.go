@@ -1,9 +1,9 @@
 package vault
 
 import (
-	imodel "cbe-super-app-cps-action/internal/constants/model"
-	"cbe-super-app-cps-action/internal/constants/types"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"database/sql"
 )

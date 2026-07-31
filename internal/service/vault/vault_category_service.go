@@ -1,19 +1,19 @@
 package vault
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
-	vault_category_dto "cbe-super-app-cps-action/internal/constants/dto/vault"
-	"cbe-super-app-cps-action/internal/constants/lib"
-	localization "cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/types"
-	"cbe-super-app-cps-action/internal/service"
-	helperr "cbe-super-app-cps-action/internal/service/vault/core"
-	"cbe-super-app-cps-action/internal/storage"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	vault_category_dto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/vault"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/lib"
+	localization "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/service"
+	helperr "github.com/abelshebela/cbe-super-app-cps-action/internal/service/vault/core"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 	"encoding/json"
 	"strings"
 
-	imodel "cbe-super-app-cps-action/internal/constants/model"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
 
 	"context"
 	"database/sql"

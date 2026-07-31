@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	notify "cbe-super-app-cps-action/internal/constants/dto/notification"
-	localization "cbe-super-app-cps-action/internal/constants/localization"
+	notify "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/notification"
+	localization "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
 )
 
 // ParseAndValidateNotificationRequest parses and validates the notification request from JSON

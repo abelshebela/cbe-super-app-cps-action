@@ -1,8 +1,8 @@
 package active_state
 
 import (
-	"cbe-super-app-cps-action/internal/constants/interfaces/active_state"
-	"cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/interfaces/active_state"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
 
 	"net/http"
 )

@@ -1,7 +1,7 @@
 package core
 
 import (
-	"cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
 	"fmt"
 	"mime"
 	"mime/multipart"

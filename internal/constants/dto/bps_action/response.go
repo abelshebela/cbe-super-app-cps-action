@@ -3,8 +3,8 @@ package bps_action
 import (
 	"time"
 
-	customer_dto "cbe-super-app-cps-action/internal/constants/dto/customer"
-	bps_model "cbe-super-app-cps-action/internal/constants/model"
+	customer_dto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/customer"
+	bps_model "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )

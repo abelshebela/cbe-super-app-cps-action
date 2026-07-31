@@ -3,7 +3,7 @@ package utils
 import (
 	"context"
 
-	"cbe-super-app-cps-action/internal/constants"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )

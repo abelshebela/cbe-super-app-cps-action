@@ -1,11 +1,11 @@
 package bps_action
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
-	bps_model "cbe-super-app-cps-action/internal/constants/model"
-	"cbe-super-app-cps-action/internal/constants/types"
-	"cbe-super-app-cps-action/internal/storage"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	bps_model "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 	"context"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"

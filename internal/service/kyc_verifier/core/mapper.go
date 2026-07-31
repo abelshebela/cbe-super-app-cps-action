@@ -1,7 +1,7 @@
 package core
 
 import (
-	"cbe-super-app-cps-action/internal/constants/dto/kyc_verifier"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/kyc_verifier"
 
 	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"

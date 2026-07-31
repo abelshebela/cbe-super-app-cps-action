@@ -1,14 +1,14 @@
 package ad
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
-	"cbe-super-app-cps-action/internal/constants/lib"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/types"
-	"cbe-super-app-cps-action/internal/service"
-	"cbe-super-app-cps-action/internal/service/ad/core"
-	cpsaction "cbe-super-app-cps-action/internal/service/cps_action"
-	"cbe-super-app-cps-action/internal/storage"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/lib"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/service"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/service/ad/core"
+	cpsaction "github.com/abelshebela/cbe-super-app-cps-action/internal/service/cps_action"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
 	"mime/multipart"
@@ -16,7 +16,7 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"

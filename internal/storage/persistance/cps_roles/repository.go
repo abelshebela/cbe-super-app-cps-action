@@ -1,8 +1,8 @@
 package cpsroles
 
 import (
-	"cbe-super-app-cps-action/internal/storage"
-	"cbe-super-app-cps-action/internal/storage/kafka"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage/kafka"
 	"context"
 	"database/sql"
 	"encoding/json"
@@ -11,12 +11,12 @@ import (
 	"strings"
 	"time"
 
-	"cbe-super-app-cps-action/internal/constants"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/types"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 
-	imodel "cbe-super-app-cps-action/internal/constants/model"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"

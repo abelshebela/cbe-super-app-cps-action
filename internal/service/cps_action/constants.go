@@ -1,7 +1,7 @@
 package cpsaction
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
 )
 
 type ActionStatus string

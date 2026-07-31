@@ -1,7 +1,7 @@
 package bps_action
 
 import (
-	"cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )

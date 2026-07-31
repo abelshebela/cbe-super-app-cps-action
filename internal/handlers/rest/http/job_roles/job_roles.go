@@ -7,19 +7,19 @@ import (
 	"strings"
 	"time"
 
-	roles_dto "cbe-super-app-cps-action/internal/constants/dto/job_role"
-	inbound "cbe-super-app-cps-action/internal/constants/interfaces/job_role"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	imodel "cbe-super-app-cps-action/internal/constants/model"
-	service "cbe-super-app-cps-action/internal/service"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	roles_dto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/job_role"
+	inbound "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/interfaces/job_role"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
+	service "github.com/abelshebela/cbe-super-app-cps-action/internal/service"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	"github.com/go-chi/chi/v5"
 
-	"cbe-super-app-cps-action/internal/constants"
-	types "cbe-super-app-cps-action/internal/constants/types"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	types "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
 )
 
 // JobRoleHandler serves /job_roles routes backed by the roles collection (job_title ↔ role code)

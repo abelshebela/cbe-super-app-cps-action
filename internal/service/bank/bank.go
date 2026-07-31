@@ -1,12 +1,12 @@
 package bankService
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
-	bank_dto "cbe-super-app-cps-action/internal/constants/dto/bank"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	imodel "cbe-super-app-cps-action/internal/constants/model"
-	bank_core "cbe-super-app-cps-action/internal/service/bank/core"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	bank_dto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/bank"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
+	bank_core "github.com/abelshebela/cbe-super-app-cps-action/internal/service/bank/core"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -14,10 +14,10 @@ import (
 	"strings"
 	"time"
 
-	"cbe-super-app-cps-action/internal/constants/lib"
-	"cbe-super-app-cps-action/internal/constants/types"
-	"cbe-super-app-cps-action/internal/service"
-	"cbe-super-app-cps-action/internal/storage"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/lib"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/service"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage"
 	"context"
 
 	bank_catch "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/catch/bank"

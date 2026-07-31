@@ -3,17 +3,17 @@ package bps_action
 import (
 	"context"
 
-	bps_model "cbe-super-app-cps-action/internal/constants/model"
+	bps_model "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
-	"cbe-super-app-cps-action/internal/constants"
-	bpsActionDto "cbe-super-app-cps-action/internal/constants/dto/bps_action"
-	imodel "cbe-super-app-cps-action/internal/constants/model"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	bpsActionDto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/bps_action"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
 
-	"cbe-super-app-cps-action/internal/constants/types"
-	"cbe-super-app-cps-action/internal/service"
-	"cbe-super-app-cps-action/internal/storage"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/service"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage"
 )
 
 type bpsActionServiceWithRoles struct {

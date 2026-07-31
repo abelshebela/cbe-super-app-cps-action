@@ -3,7 +3,7 @@ package accountblock
 import (
 	"time"
 
-	imodel "cbe-super-app-cps-action/internal/constants/model"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
 )
 
 // AccountBlockResponse represents any region, district, city, or branch

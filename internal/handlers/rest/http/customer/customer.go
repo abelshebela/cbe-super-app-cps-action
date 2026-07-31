@@ -1,19 +1,19 @@
 package customer
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
-	dto "cbe-super-app-cps-action/internal/constants/dto/customer"
-	"cbe-super-app-cps-action/internal/constants/interfaces/customer"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/types"
-	"cbe-super-app-cps-action/internal/handlers/rest/http/customer/core"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	dto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/customer"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/interfaces/customer"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/handlers/rest/http/customer/core"
 	"context"
 	"encoding/json"
 	"strconv"
 	"strings"
 
-	"cbe-super-app-cps-action/internal/service"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/service"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 	"net/http"
 
 	member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"

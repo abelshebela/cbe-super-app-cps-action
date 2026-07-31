@@ -1,8 +1,8 @@
 package fayda
 
 import (
-	"cbe-super-app-cps-action/internal/storage"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 	"context"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"

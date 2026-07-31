@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	transactionpb "cbe-super-app-cps-action/grpc/sitota"
+	transactionpb "github.com/abelshebela/cbe-super-app-cps-action/grpc/sitota"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"

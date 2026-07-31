@@ -3,8 +3,8 @@ package core
 import (
 	"time"
 
-	fbdto "cbe-super-app-cps-action/internal/constants/dto/feedback"
-	imodel "cbe-super-app-cps-action/internal/constants/model"
+	fbdto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/feedback"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 )

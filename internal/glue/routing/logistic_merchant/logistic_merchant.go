@@ -1,9 +1,9 @@
 package logistic_merchant_router
 
 import (
-	logistics_merchant_adaptor "cbe-super-app-cps-action/internal/constants/interfaces/logistics_merchant"
-	"cbe-super-app-cps-action/internal/glue"
-	"cbe-super-app-cps-action/internal/handlers/middleware"
+	logistics_merchant_adaptor "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/interfaces/logistics_merchant"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/glue"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/handlers/middleware"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"

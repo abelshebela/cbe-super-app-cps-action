@@ -1,9 +1,9 @@
 package core
 
 import (
-	dto "cbe-super-app-cps-action/internal/constants/dto/donation_category"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/pkgs/utils"
+	dto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/donation_category"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 	"errors"
 	"net/http"
 )

@@ -7,13 +7,13 @@ import (
 	"strings"
 	"time"
 
-	"cbe-super-app-cps-action/config"
-	"cbe-super-app-cps-action/internal/constants/dto/feedback"
-	imodel "cbe-super-app-cps-action/internal/constants/model"
+	"github.com/abelshebela/cbe-super-app-cps-action/config"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/feedback"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
 
 	cfg "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 	"github.com/IBM/sarama"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"

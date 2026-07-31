@@ -1,7 +1,7 @@
 package kyc_verifier
 
 import (
-	"cbe-super-app-cps-action/internal/constants/dto/kyc_verifier"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/kyc_verifier"
 	"net/http"
 )
 

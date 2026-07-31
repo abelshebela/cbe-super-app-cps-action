@@ -1,13 +1,13 @@
 package accountblock
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/types"
-	"cbe-super-app-cps-action/internal/service"
-	"cbe-super-app-cps-action/internal/service/account_block/core"
-	cps_constants "cbe-super-app-cps-action/internal/service/cps_action"
-	"cbe-super-app-cps-action/internal/storage"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/service"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/service/account_block/core"
+	cps_constants "github.com/abelshebela/cbe-super-app-cps-action/internal/service/cps_action"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
 	"strings"
@@ -15,9 +15,9 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
-	account_block_dto "cbe-super-app-cps-action/internal/constants/dto/account_block"
-	imodel "cbe-super-app-cps-action/internal/constants/model"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	account_block_dto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/account_block"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.opentelemetry.io/otel/attribute"

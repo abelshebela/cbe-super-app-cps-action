@@ -1,10 +1,10 @@
 package core
 
 import (
-	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
-	imodel "cbe-super-app-cps-action/internal/constants/model"
-	"cbe-super-app-cps-action/internal/storage"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	cpsuser "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/cps_user"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"encoding/json"
 	"strings"

@@ -5,13 +5,13 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"cbe-super-app-cps-action/internal/constants"
-	customer_group_dto "cbe-super-app-cps-action/internal/constants/dto/customer_group"
-	cg_iface "cbe-super-app-cps-action/internal/constants/interfaces/customer_group"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/types"
-	"cbe-super-app-cps-action/internal/service"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	customer_group_dto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/customer_group"
+	cg_iface "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/interfaces/customer_group"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/service"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )

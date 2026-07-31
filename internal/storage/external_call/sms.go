@@ -1,8 +1,8 @@
 package external_call
 
 import (
-	smsDto "cbe-super-app-cps-action/internal/constants/dto/sms"
-	"cbe-super-app-cps-action/internal/constants/localization"
+	smsDto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/sms"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
 	"context"
 	"encoding/json"
 	"errors"
@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 

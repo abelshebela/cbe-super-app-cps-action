@@ -1,9 +1,9 @@
 package access_list_segmentation
 
 import (
-	accesslistsegmentation "cbe-super-app-cps-action/internal/constants/interfaces/access_list_segmentation"
-	"cbe-super-app-cps-action/internal/glue"
-	"cbe-super-app-cps-action/internal/handlers/middleware"
+	accesslistsegmentation "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/interfaces/access_list_segmentation"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/glue"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/handlers/middleware"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"

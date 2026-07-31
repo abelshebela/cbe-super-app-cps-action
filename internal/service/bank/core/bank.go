@@ -1,8 +1,8 @@
 package bank_core
 
 import (
-	bank_dto "cbe-super-app-cps-action/internal/constants/dto/bank"
-	imodel "cbe-super-app-cps-action/internal/constants/model"
+	bank_dto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/bank"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
 	"fmt"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"

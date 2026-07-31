@@ -1,9 +1,9 @@
 package customer
 
 import (
-	"cbe-super-app-cps-action/internal/constants/interfaces/customer"
-	"cbe-super-app-cps-action/internal/glue"
-	middleware "cbe-super-app-cps-action/internal/handlers/middleware"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/interfaces/customer"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/glue"
+	middleware "github.com/abelshebela/cbe-super-app-cps-action/internal/handlers/middleware"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"

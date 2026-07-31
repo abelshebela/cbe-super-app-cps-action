@@ -1,10 +1,10 @@
 package core
 
 import (
-	// "cbe-super-app-cps-action/internal/constants"
-	notify "cbe-super-app-cps-action/internal/constants/dto/notification"
+	// "github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	notify "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/notification"
 
-	local_model "cbe-super-app-cps-action/internal/constants/model"
+	local_model "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
 
 	notification_constants "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/notification/constants"
 

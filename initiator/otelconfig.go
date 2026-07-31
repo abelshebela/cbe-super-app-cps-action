@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"cbe-super-app-cps-action/platform/telemetry"
+	"github.com/abelshebela/cbe-super-app-cps-action/platform/telemetry"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )

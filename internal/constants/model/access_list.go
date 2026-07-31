@@ -1,7 +1,7 @@
 package model
 
 import (
-	"cbe-super-app-cps-action/internal/constants/types"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
 )
 
 // APPAccessList is the app/bulk-service shape (Mongo + API). Oracle persistence uses

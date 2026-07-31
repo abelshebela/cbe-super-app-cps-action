@@ -1,12 +1,12 @@
 package core
 
 import (
-	dto "cbe-super-app-cps-action/internal/constants/dto/customer_kyc"
-	"cbe-super-app-cps-action/internal/constants/model"
-	imodel "cbe-super-app-cps-action/internal/constants/model"
-	"cbe-super-app-cps-action/internal/constants/types"
-	accountLookup "cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	dto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/customer_kyc"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
+	accountLookup "github.com/abelshebela/cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"fmt"
 	"strings"

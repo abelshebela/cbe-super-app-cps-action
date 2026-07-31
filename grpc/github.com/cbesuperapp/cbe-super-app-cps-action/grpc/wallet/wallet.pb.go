@@ -561,7 +561,7 @@ const file_proto_wallet_proto_rawDesc = "" +
 	"\bmetadata\x18\x02 \x01(\v2\f.wallet.MetaR\bmetadata2\x9c\x01\n" +
 	"\rWalletService\x12@\n" +
 	"\tGetWallet\x12\x18.wallet.GetWalletRequest\x1a\x19.wallet.GetWalletResponse\x12I\n" +
-	"\fGetAllWallet\x12\x1b.wallet.GetAllWalletRequest\x1a\x1c.wallet.GetAllWalletResponseBDZBgithub.com/cbesuperapp/cbe-super-app-cps-action/grpc/wallet;walletb\x06proto3"
+	"\fGetAllWallet\x12\x1b.wallet.GetAllWalletRequest\x1a\x1c.wallet.GetAllWalletResponseBDZBgithub.com/cbesuperapp/github.com/abelshebela/cbe-super-app-cps-action/grpc/wallet;walletb\x06proto3"
 
 var (
 	file_proto_wallet_proto_rawDescOnce sync.Once

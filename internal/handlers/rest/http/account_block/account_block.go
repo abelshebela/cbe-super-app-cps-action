@@ -1,24 +1,24 @@
 package accountblock
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
-	"cbe-super-app-cps-action/internal/handlers/rest/http/account_block/core"
-	"cbe-super-app-cps-action/internal/service"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/handlers/rest/http/account_block/core"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/service"
 	"context"
 	"encoding/json"
 	"net/http"
 	"strings"
 
-	accountblock "cbe-super-app-cps-action/internal/constants/dto/account_block"
-	ab_interface "cbe-super-app-cps-action/internal/constants/interfaces/account_block"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/types"
+	accountblock "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/account_block"
+	ab_interface "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/interfaces/account_block"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
 
 	"go.opentelemetry.io/otel/attribute"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 )
 
 type paginated_account_block_resp types.PaginatedResponse[[]*accountblock.AccountBlockResponse]

@@ -1,18 +1,18 @@
 package passwordrule
 
 import (
-	dto "cbe-super-app-cps-action/internal/constants/dto/password_rule"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/handlers/rest/http/password_rule/core"
-	"cbe-super-app-cps-action/internal/service"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	dto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/password_rule"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/handlers/rest/http/password_rule/core"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/service"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"encoding/json"
 	"net/http"
 	"strings"
 
-	constants "cbe-super-app-cps-action/internal/constants"
-	types "cbe-super-app-cps-action/internal/constants/types"
+	constants "github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	types "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"

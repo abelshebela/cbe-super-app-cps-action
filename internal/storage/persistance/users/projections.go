@@ -1,7 +1,7 @@
 package users
 
 import (
-	"cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
 
 	"errors"
 

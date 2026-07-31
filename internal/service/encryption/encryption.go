@@ -11,10 +11,10 @@ import (
 	"errors"
 	"strings"
 
-	dtoEncryption "cbe-super-app-cps-action/internal/constants/dto/encryption"
-	"cbe-super-app-cps-action/internal/constants/localization"
+	dtoEncryption "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/encryption"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
 
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 	"context"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"

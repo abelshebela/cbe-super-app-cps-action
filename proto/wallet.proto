@@ -4,7 +4,7 @@ package wallet;
 
 
 
-option go_package = "github.com/cbesuperapp/cbe-super-app-cps-action/grpc/wallet;grpcwallet";
+option go_package = "github.com/cbesuperapp/github.com/abelshebela/cbe-super-app-cps-action/grpc/wallet;grpcwallet";
 
 message Wallet {
   string id = 1;

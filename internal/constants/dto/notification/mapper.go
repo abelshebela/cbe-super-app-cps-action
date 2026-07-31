@@ -1,7 +1,7 @@
 package notification
 
 import (
-	local_model "cbe-super-app-cps-action/internal/constants/model"
+	local_model "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
 )
 
 func MapNotificationToResponse(entity *local_model.NotificationDocument) *NotificationResponse {

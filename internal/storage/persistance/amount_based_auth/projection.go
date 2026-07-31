@@ -1,7 +1,7 @@
 package amount_based_auth
 
 import (
-	local_model "cbe-super-app-cps-action/internal/constants/model"
+	local_model "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )

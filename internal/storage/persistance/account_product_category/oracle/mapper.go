@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"time"
 
-	imodel "cbe-super-app-cps-action/internal/constants/model"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
 )
 
 const apcSelectCols = `

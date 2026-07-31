@@ -4,8 +4,8 @@ import (
 	"mime/multipart"
 	"strings"
 
-	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/pkgs/utils"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )

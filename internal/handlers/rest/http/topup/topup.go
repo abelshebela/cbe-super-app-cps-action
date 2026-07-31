@@ -1,20 +1,20 @@
 package topup
 
 import (
-	topupDto "cbe-super-app-cps-action/internal/constants/dto/topup"
-	topupInbound "cbe-super-app-cps-action/internal/constants/interfaces/topup"
-	"cbe-super-app-cps-action/internal/constants/types"
+	topupDto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/topup"
+	topupInbound "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/interfaces/topup"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
 	"context"
 	"net/http"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
-	"cbe-super-app-cps-action/internal/constants/localization"
-	topupcore "cbe-super-app-cps-action/internal/handlers/rest/http/topup/core"
-	"cbe-super-app-cps-action/internal/service"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	topupcore "github.com/abelshebela/cbe-super-app-cps-action/internal/handlers/rest/http/topup/core"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/service"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 
-	"cbe-super-app-cps-action/internal/constants"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"

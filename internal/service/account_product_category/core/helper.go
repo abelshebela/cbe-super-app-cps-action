@@ -3,7 +3,7 @@ package account_product_category_core
 import (
 	"encoding/json"
 
-	imodel "cbe-super-app-cps-action/internal/constants/model"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
 )
 
 // MapFromAction deserialises a CPS CurrentAction payload back to AccountProductCategory.

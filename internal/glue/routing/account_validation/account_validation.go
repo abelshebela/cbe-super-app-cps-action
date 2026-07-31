@@ -1,9 +1,9 @@
 package accountvalidation
 
 import (
-	accountvalidation "cbe-super-app-cps-action/internal/constants/interfaces/account_validation"
-	"cbe-super-app-cps-action/internal/glue"
-	"cbe-super-app-cps-action/internal/handlers/middleware"
+	accountvalidation "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/interfaces/account_validation"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/glue"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/handlers/middleware"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"

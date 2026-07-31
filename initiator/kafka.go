@@ -1,7 +1,7 @@
 package initiator
 
 import (
-	"cbe-super-app-cps-action/internal/storage/kafka"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage/kafka"
 	"strings"
 	"time"
 

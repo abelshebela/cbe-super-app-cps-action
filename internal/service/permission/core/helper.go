@@ -3,7 +3,7 @@ package core
 import (
 	"strings"
 
-	"cbe-super-app-cps-action/internal/constants/dto/permission"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/permission"
 	"encoding/json"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"

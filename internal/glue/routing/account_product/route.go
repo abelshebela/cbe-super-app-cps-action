@@ -1,9 +1,9 @@
 package account_product_routing
 
 import (
-	ap_interface "cbe-super-app-cps-action/internal/constants/interfaces/account_product"
-	"cbe-super-app-cps-action/internal/glue"
-	"cbe-super-app-cps-action/internal/handlers/middleware"
+	ap_interface "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/interfaces/account_product"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/glue"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/handlers/middleware"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"

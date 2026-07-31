@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 
-	imodel "cbe-super-app-cps-action/internal/constants/model"
-	"cbe-super-app-cps-action/internal/storage"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage"
 )
 
 func MapFromAction(raw interface{}) (imodel.AccountOpeningTerms, error) {

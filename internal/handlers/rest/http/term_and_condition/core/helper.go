@@ -5,10 +5,10 @@ import (
 	"net/http"
 	"strings"
 
-	"cbe-super-app-cps-action/internal/constants"
-	tac_dto "cbe-super-app-cps-action/internal/constants/dto/term_and_condition"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	imodel "cbe-super-app-cps-action/internal/constants/model"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	tac_dto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/term_and_condition"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
 	"mime/multipart"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"

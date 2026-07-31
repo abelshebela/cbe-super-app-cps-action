@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	tp_client "cbe-super-app-cps-action/internal/storage/external_call/token_provider"
-	"cbe-super-app-cps-action/internal/storage"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	tp_client "github.com/abelshebela/cbe-super-app-cps-action/internal/storage/external_call/token_provider"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"golang.org/x/sync/singleflight"
 )

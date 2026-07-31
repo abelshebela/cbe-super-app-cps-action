@@ -1,22 +1,22 @@
 package bulk_service
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
-	dto "cbe-super-app-cps-action/internal/constants/dto/bulk_service"
-	"cbe-super-app-cps-action/internal/constants/interfaces/bulk_service"
-	"cbe-super-app-cps-action/internal/constants/types"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	dto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/bulk_service"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/interfaces/bulk_service"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
 	"context"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	// "fmt"
 
-	"cbe-super-app-cps-action/internal/service"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/service"
 	"encoding/json"
 	"net/http"
 
-	"cbe-super-app-cps-action/internal/constants/localization"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 
 	"go.opentelemetry.io/otel/attribute"
 

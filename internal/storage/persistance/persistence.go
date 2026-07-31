@@ -1,11 +1,11 @@
 package persistance
 
 import (
-	"cbe-super-app-cps-action/internal/storage"
-	"cbe-super-app-cps-action/internal/storage/external_call/merchant_lookup"
-	"cbe-super-app-cps-action/internal/storage/kafka"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage/external_call/merchant_lookup"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage/kafka"
 
-	account_lookup "cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
+	account_lookup "github.com/abelshebela/cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
 
 	"github.com/hugokessem/coreio/core"
 	"go.mongodb.org/mongo-driver/v2/mongo"

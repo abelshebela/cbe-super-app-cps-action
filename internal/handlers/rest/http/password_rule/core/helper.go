@@ -1,8 +1,8 @@
 package core
 
 import (
-	"cbe-super-app-cps-action/internal/constants/localization"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 	"encoding/json"
 	"net/http"
 

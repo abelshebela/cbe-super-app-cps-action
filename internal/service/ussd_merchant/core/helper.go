@@ -1,16 +1,16 @@
 package core
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
 	"errors"
 	"strings"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 
-	ussd_merchant_dto "cbe-super-app-cps-action/internal/constants/dto/ussd_merchant"
-	localization "cbe-super-app-cps-action/internal/constants/localization"
-	imodel "cbe-super-app-cps-action/internal/constants/model"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	ussd_merchant_dto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/ussd_merchant"
+	localization "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 )
 
 // ExistingIdentifier checks whether any identifier (email, phone_number, account_number)

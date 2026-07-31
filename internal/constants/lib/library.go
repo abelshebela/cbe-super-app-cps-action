@@ -2,7 +2,7 @@ package lib
 
 import (
 	"bytes"
-	"cbe-super-app-cps-action/internal/constants"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
 	"encoding/csv"
 	"encoding/json"
 	"image"
@@ -12,11 +12,11 @@ import (
 	"os"
 	"reflect"
 
-	// "cbe-super-app-cps-action/internal/constants/localization"
-	erp_merchant_update_dto "cbe-super-app-cps-action/internal/constants/dto/erp_merchant_update"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/types"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	// "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	erp_merchant_update_dto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/erp_merchant_update"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
 	"fmt"
@@ -34,7 +34,7 @@ import (
 
 	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 
-	imodel "cbe-super-app-cps-action/internal/constants/model"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"

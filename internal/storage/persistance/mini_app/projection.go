@@ -1,7 +1,7 @@
 package mini_app
 
 import (
-	// "cbe-super-app-cps-action/internal/constants/model"
+	// "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
 
 	mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"

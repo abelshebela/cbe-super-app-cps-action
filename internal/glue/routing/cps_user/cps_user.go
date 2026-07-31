@@ -1,10 +1,10 @@
 package cpsuser
 
 import (
-	cps_user "cbe-super-app-cps-action/internal/constants/interfaces/cps_user"
+	cps_user "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/interfaces/cps_user"
 
-	"cbe-super-app-cps-action/internal/glue"
-	"cbe-super-app-cps-action/internal/handlers/middleware"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/glue"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/handlers/middleware"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"

@@ -1,13 +1,13 @@
 package accesslistsegmentaion
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
-	access_list_segmentation_dto "cbe-super-app-cps-action/internal/constants/dto/access_list_segmentation"
-	accesslistsegmentation "cbe-super-app-cps-action/internal/constants/interfaces/access_list_segmentation"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/types"
-	"cbe-super-app-cps-action/internal/service"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	access_list_segmentation_dto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/access_list_segmentation"
+	accesslistsegmentation "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/interfaces/access_list_segmentation"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/service"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"encoding/json"
 	"net/http"

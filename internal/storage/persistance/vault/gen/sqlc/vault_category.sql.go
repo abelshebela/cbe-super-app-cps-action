@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	imodel "cbe-super-app-cps-action/internal/constants/model"
-	"cbe-super-app-cps-action/pkgs/utils"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
+	"github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 
 	"github.com/google/uuid"
 )

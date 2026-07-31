@@ -233,7 +233,7 @@ const file_proto_topup_proto_rawDesc = "" +
 	"\rTopupResponse\x12$\n" +
 	"\x06topups\x18\x01 \x03(\v2\f.topup.TopupR\x06topups2H\n" +
 	"\fTopupService\x128\n" +
-	"\vGetAllTopup\x12\x13.topup.TopupRequest\x1a\x14.topup.TopupResponseBBZ@github.com/cbesuperapp/cbe-super-app-cps-action/grpc/topup;topupb\x06proto3"
+	"\vGetAllTopup\x12\x13.topup.TopupRequest\x1a\x14.topup.TopupResponseBBZ@github.com/cbesuperapp/github.com/abelshebela/cbe-super-app-cps-action/grpc/topup;topupb\x06proto3"
 
 var (
 	file_proto_topup_proto_rawDescOnce sync.Once

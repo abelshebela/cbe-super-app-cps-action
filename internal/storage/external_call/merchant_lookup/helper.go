@@ -2,8 +2,8 @@ package merchant_lookup
 
 import (
 	"bytes"
-	merchantDto "cbe-super-app-cps-action/internal/constants/dto/ecommerce-merchant"
-	"cbe-super-app-cps-action/internal/constants/localization"
+	merchantDto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/ecommerce-merchant"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
 	"context"
 	"encoding/json"
 	"errors"

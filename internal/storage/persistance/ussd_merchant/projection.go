@@ -1,8 +1,8 @@
 package ussd_merchant
 
 // import (
-// 	ussd_merchant_dto "cbe-super-app-cps-action/internal/constants/dto/ussd_merchant"
-// 	imodel "cbe-super-app-cps-action/internal/constants/model"
+// 	ussd_merchant_dto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/ussd_merchant"
+// 	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
 // )
 
 // func ResponseMapper(data imodel.UssdMerchant) ussd_merchant_dto.UssdMerchantResponse {

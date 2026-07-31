@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"net/http"
 
-	apc_dto "cbe-super-app-cps-action/internal/constants/dto/account_product_category"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	imodel "cbe-super-app-cps-action/internal/constants/model"
+	apc_dto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/account_product_category"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
 )
 
 func DecodeCreateRequest(r *http.Request) (apc_dto.CreateAPCRequest, error) {

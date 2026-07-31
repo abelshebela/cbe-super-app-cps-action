@@ -1,7 +1,7 @@
 package services
 
 import (
-	"cbe-super-app-cps-action/pkgs/utils"
+	"github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 	"fmt"
 	"regexp"
 	"strings"

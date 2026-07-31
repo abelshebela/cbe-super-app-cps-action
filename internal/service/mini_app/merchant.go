@@ -1,22 +1,22 @@
 package miniapp
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/service"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/service"
 
-	"cbe-super-app-cps-action/internal/storage"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
 
-	local_util "cbe-super-app-cps-action/pkgs/utils"
-	local_model "cbe-super-app-cps-action/internal/constants/model"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
+	local_model "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
 
 
 	// mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
-	"cbe-super-app-cps-action/internal/storage/external_call/merchant_lookup"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage/external_call/merchant_lookup"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.opentelemetry.io/otel/attribute"

@@ -1,11 +1,11 @@
 package account_lookup
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
-	accountLookup "cbe-super-app-cps-action/internal/constants/dto/account_lookup"
-	imodel "cbe-super-app-cps-action/internal/constants/model"
-	"cbe-super-app-cps-action/internal/constants/types"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	accountLookup "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/account_lookup"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
 	"fmt"
@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"

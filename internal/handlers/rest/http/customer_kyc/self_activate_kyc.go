@@ -1,13 +1,13 @@
 package customer
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
-	kyc_dto "cbe-super-app-cps-action/internal/constants/dto/customer_kyc"
-	inbound "cbe-super-app-cps-action/internal/constants/interfaces/customer_kyc"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/types"
-	"cbe-super-app-cps-action/internal/service"
-	util "cbe-super-app-cps-action/pkgs/utils"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	kyc_dto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/customer_kyc"
+	inbound "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/interfaces/customer_kyc"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/service"
+	util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"encoding/json"
 	"net/http"

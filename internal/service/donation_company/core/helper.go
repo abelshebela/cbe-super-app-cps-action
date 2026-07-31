@@ -1,13 +1,13 @@
 package core
 
 import (
-	dto "cbe-super-app-cps-action/internal/constants/dto/donation_company"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	imodel "cbe-super-app-cps-action/internal/constants/model"
-	"cbe-super-app-cps-action/internal/constants/types"
+	dto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/donation_company"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
 
-	"cbe-super-app-cps-action/internal/storage"
-	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
 	"context"
 	"encoding/json"
 	"errors"

@@ -1,8 +1,8 @@
 package middleware
 
 import (
-	"cbe-super-app-cps-action/internal/storage"
-	"cbe-super-app-cps-action/internal/storage/kafka"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage/kafka"
 )
 
 // GetCPSActionApproveRepo exposes the configured CPSActionApproveIndexRepository so

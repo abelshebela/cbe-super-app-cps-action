@@ -1,9 +1,9 @@
 package ussd_merchant
 
 import (
-	ussd_merchant_interface "cbe-super-app-cps-action/internal/constants/interfaces/ussd_merchant"
-	"cbe-super-app-cps-action/internal/glue"
-	"cbe-super-app-cps-action/internal/handlers/middleware"
+	ussd_merchant_interface "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/interfaces/ussd_merchant"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/glue"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/handlers/middleware"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"

@@ -3,9 +3,9 @@ package deviceversion
 import (
 	"net/http"
 
-	dviface "cbe-super-app-cps-action/internal/constants/interfaces/device_version"
-	"cbe-super-app-cps-action/internal/glue"
-	"cbe-super-app-cps-action/internal/handlers/middleware"
+	dviface "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/interfaces/device_version"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/glue"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/handlers/middleware"
 
 	"github.com/go-chi/chi/v5"
 )

@@ -1,12 +1,12 @@
 package core
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
-	service_dto "cbe-super-app-cps-action/internal/constants/dto/services"
-	"cbe-super-app-cps-action/internal/constants/lib"
-	imodel "cbe-super-app-cps-action/internal/constants/model"
-	"cbe-super-app-cps-action/internal/service"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	service_dto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/services"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/lib"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/service"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"log"
 	"strconv"

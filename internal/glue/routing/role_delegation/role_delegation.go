@@ -1,10 +1,10 @@
 package role_delegation
 
 import (
-	handlers "cbe-super-app-cps-action/internal/constants/interfaces/role_delegation"
-	"cbe-super-app-cps-action/internal/glue"
+	handlers "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/interfaces/role_delegation"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/glue"
 
-	"cbe-super-app-cps-action/internal/handlers/middleware"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/handlers/middleware"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"

@@ -3,9 +3,9 @@ package feedback
 import (
 	"net/http"
 
-	feedback "cbe-super-app-cps-action/internal/constants/interfaces/feedback"
-	"cbe-super-app-cps-action/internal/glue"
-	"cbe-super-app-cps-action/internal/handlers/middleware"
+	feedback "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/interfaces/feedback"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/glue"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/handlers/middleware"
 
 	"github.com/go-chi/chi/v5"
 )

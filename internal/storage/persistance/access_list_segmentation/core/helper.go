@@ -1,7 +1,7 @@
 package core
 
 import (
-	"cbe-super-app-cps-action/internal/storage"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage"
 	"context"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"

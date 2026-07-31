@@ -7,20 +7,20 @@ import (
 	"strings"
 	"time"
 
-	roles_dto "cbe-super-app-cps-action/internal/constants/dto/roles"
-	inbound "cbe-super-app-cps-action/internal/constants/interfaces/roles"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	imodel "cbe-super-app-cps-action/internal/constants/model"
-	service "cbe-super-app-cps-action/internal/service"
-	common_utils "cbe-super-app-cps-action/pkgs/utils"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	roles_dto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/roles"
+	inbound "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/interfaces/roles"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
+	service "github.com/abelshebela/cbe-super-app-cps-action/internal/service"
+	common_utils "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	"github.com/go-chi/chi/v5"
 
-	constants "cbe-super-app-cps-action/internal/constants"
-	"cbe-super-app-cps-action/internal/constants/types"
+	constants "github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
 )
 
 type RoleHandler struct {

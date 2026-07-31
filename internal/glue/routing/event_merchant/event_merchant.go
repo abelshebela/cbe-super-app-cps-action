@@ -1,9 +1,9 @@
 package eventmerchant
 
 import (
-	event_merchant_port "cbe-super-app-cps-action/internal/constants/interfaces/event_merchant"
-	"cbe-super-app-cps-action/internal/glue"
-	"cbe-super-app-cps-action/internal/handlers/middleware"
+	event_merchant_port "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/interfaces/event_merchant"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/glue"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/handlers/middleware"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"

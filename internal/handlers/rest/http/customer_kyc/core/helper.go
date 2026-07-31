@@ -1,9 +1,9 @@
 package core
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
-	dto "cbe-super-app-cps-action/internal/constants/dto/customer_kyc"
-	"cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	dto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/customer_kyc"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
 	"errors"
 	"net/http"
 	"regexp"

@@ -1,25 +1,25 @@
 package core
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
-	"cbe-super-app-cps-action/internal/constants/lib"
-	imodel "cbe-super-app-cps-action/internal/constants/model"
-	"cbe-super-app-cps-action/internal/constants/types"
-	"cbe-super-app-cps-action/internal/storage"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/lib"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 	"strings"
 
-	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/service"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/service"
 	"context"
 	"errors"
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
-	merchantDto "cbe-super-app-cps-action/internal/constants/dto/ecommerce-merchant"
+	merchantDto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/ecommerce-merchant"
 
-	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
 )
 
 func NonEmptyString(s, fallback string) string {

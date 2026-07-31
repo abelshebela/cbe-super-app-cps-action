@@ -1,14 +1,14 @@
 package faydaaccount
 
 import (
-	faydaInbound "cbe-super-app-cps-action/internal/constants/interfaces/fayda"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/handlers/rest/http/fayda/core"
+	faydaInbound "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/interfaces/fayda"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/handlers/rest/http/fayda/core"
 	"net/http"
 
-	"cbe-super-app-cps-action/internal/service"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/service"
 
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.opentelemetry.io/otel/attribute"

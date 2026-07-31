@@ -1,25 +1,25 @@
 package ecommercemerchant
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
-	"cbe-super-app-cps-action/internal/constants/lib"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/types"
-	"cbe-super-app-cps-action/internal/service"
-	"cbe-super-app-cps-action/internal/service/ecommerce-merchant/core"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/lib"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/service"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/service/ecommerce-merchant/core"
 	"strings"
 	"time"
 
-	"cbe-super-app-cps-action/internal/storage"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
 
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 
-	merchantDto "cbe-super-app-cps-action/internal/constants/dto/ecommerce-merchant"
-	erp_merchant_update_dto "cbe-super-app-cps-action/internal/constants/dto/erp_merchant_update"
-	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
-	"cbe-super-app-cps-action/internal/storage/external_call/merchant_lookup"
+	merchantDto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/ecommerce-merchant"
+	erp_merchant_update_dto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/erp_merchant_update"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage/external_call/merchant_lookup"
 
 	coreio "github.com/hugokessem/coreio/core"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"

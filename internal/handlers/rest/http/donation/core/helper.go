@@ -1,12 +1,12 @@
 package core
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
-	"cbe-super-app-cps-action/internal/constants/dto/donation"
-	"cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/donation"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
 	"strconv"
 
-	"cbe-super-app-cps-action/pkgs/utils"
+	"github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 	"errors"
 
 	"mime/multipart"

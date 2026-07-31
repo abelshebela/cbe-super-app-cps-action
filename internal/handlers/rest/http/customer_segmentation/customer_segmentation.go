@@ -1,17 +1,17 @@
 package customersegmentation
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
-	cust_seg "cbe-super-app-cps-action/internal/constants/dto/customer_segmentation"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/service"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	cust_seg "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/customer_segmentation"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/service"
 	"context"
 	"encoding/json"
 	"net/http"
 
-	seg "cbe-super-app-cps-action/internal/constants/interfaces/customer_segmentation"
-	"cbe-super-app-cps-action/internal/constants/types"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	seg "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/interfaces/customer_segmentation"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )

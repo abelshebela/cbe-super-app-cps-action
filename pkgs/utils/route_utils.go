@@ -2,7 +2,7 @@ package utils
 
 import (
 	"bytes"
-	"cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
 	"encoding/base64"
 	"errors"
 	"io"

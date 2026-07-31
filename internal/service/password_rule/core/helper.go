@@ -1,13 +1,13 @@
 package core
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
-	passwordrule "cbe-super-app-cps-action/internal/constants/dto/password_rule"
-	"cbe-super-app-cps-action/internal/constants/lib"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	local_model "cbe-super-app-cps-action/internal/constants/model"
-	"cbe-super-app-cps-action/internal/service"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	passwordrule "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/password_rule"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/lib"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	local_model "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/service"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
 	"log"

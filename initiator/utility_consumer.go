@@ -6,10 +6,10 @@ import (
 	"os/signal"
 	"syscall"
 
-	feedbackConfig "cbe-super-app-cps-action/config"
-	imodel "cbe-super-app-cps-action/internal/constants/model"
-	"cbe-super-app-cps-action/internal/service"
-	"cbe-super-app-cps-action/internal/storage/kafka"
+	feedbackConfig "github.com/abelshebela/cbe-super-app-cps-action/config"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/service"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage/kafka"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"

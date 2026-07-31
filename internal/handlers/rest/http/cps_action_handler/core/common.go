@@ -1,13 +1,13 @@
 package cpsactioncore
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	imodel "cbe-super-app-cps-action/internal/constants/model"
-	"cbe-super-app-cps-action/internal/constants/types"
-	mid "cbe-super-app-cps-action/internal/handlers/middleware"
-	cpsactionsvc "cbe-super-app-cps-action/internal/service/cps_action"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
+	mid "github.com/abelshebela/cbe-super-app-cps-action/internal/handlers/middleware"
+	cpsactionsvc "github.com/abelshebela/cbe-super-app-cps-action/internal/service/cps_action"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
 	"fmt"

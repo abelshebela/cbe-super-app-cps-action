@@ -1,8 +1,8 @@
 package core
 
 import (
-	deviceversion "cbe-super-app-cps-action/internal/constants/dto/device_version"
-	imodel "cbe-super-app-cps-action/internal/constants/model"
+	deviceversion "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/device_version"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
 	"context"
 	"strings"
 	"time"

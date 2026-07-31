@@ -1,12 +1,12 @@
 package transaction_handler
 
 import (
-	transaction_dto "cbe-super-app-cps-action/internal/constants/dto/transaction"
-	"cbe-super-app-cps-action/internal/constants/interfaces/transaction"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/types"
-	"cbe-super-app-cps-action/internal/service"
-	local_utils "cbe-super-app-cps-action/pkgs/utils"
+	transaction_dto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/transaction"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/interfaces/transaction"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/service"
+	local_utils "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"

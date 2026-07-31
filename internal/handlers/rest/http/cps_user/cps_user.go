@@ -6,15 +6,15 @@ import (
 	"net/http"
 	"strings"
 
-	"cbe-super-app-cps-action/internal/constants"
-	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
-	localization "cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	cpsuser "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/cps_user"
+	localization "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
 
 	"go.opentelemetry.io/otel/attribute"
 
-	"cbe-super-app-cps-action/internal/constants/types"
-	"cbe-super-app-cps-action/internal/service"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/service"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"

@@ -1,14 +1,14 @@
 package core
 
 import (
-	"cbe-super-app-cps-action/internal/constants/dto/ad"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/ad"
 
-	// "cbe-super-app-cps-action/internal/constants/localization"
+	// "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
 	"time"
 
 	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-	// local_util "cbe-super-app-cps-action/pkgs/utils"
+	// local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 )
 
 // ToDomainAdvertRequest converts an HTTP AdvertRequest to a domain-level dto.AdvertRequest

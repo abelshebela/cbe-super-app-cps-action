@@ -1,16 +1,16 @@
 package bank_core
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
-	bank_dto "cbe-super-app-cps-action/internal/constants/dto/bank"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	bank_dto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/bank"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 	"fmt"
 	"mime/multipart"
 	"net/http"
 	"strings"
 
-	imodel "cbe-super-app-cps-action/internal/constants/model"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )

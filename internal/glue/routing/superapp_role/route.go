@@ -1,9 +1,9 @@
 package superapprole
 
 import (
-	sar_iface "cbe-super-app-cps-action/internal/constants/interfaces/superapp_role"
-	"cbe-super-app-cps-action/internal/glue"
-	"cbe-super-app-cps-action/internal/handlers/middleware"
+	sar_iface "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/interfaces/superapp_role"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/glue"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/handlers/middleware"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"

@@ -4,10 +4,10 @@ package cpsroles
 // 	"context"
 // 	"strings"
 
-// 	cps_roles_dto "cbe-super-app-cps-action/internal/constants/dto/cps_roles"
-// 	"cbe-super-app-cps-action/internal/constants/types"
+// 	cps_roles_dto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/cps_roles"
+// 	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
 
-// 	local_util "cbe-super-app-cps-action/pkgs/utils"
+// 	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 
 // 	"github.com/hugokessem/coreio/core"
 // )

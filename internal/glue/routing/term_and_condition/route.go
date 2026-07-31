@@ -1,9 +1,9 @@
 package term_and_condition_routing
 
 import (
-	tac_interface "cbe-super-app-cps-action/internal/constants/interfaces/term_and_condition"
-	"cbe-super-app-cps-action/internal/glue"
-	"cbe-super-app-cps-action/internal/handlers/middleware"
+	tac_interface "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/interfaces/term_and_condition"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/glue"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/handlers/middleware"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"

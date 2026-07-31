@@ -8,8 +8,8 @@ import (
 	"runtime/debug"
 	"strings"
 
-	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/platform/logger"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/platform/logger"
 
 	"go.uber.org/zap"
 )

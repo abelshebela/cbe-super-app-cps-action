@@ -1,17 +1,17 @@
 package ussd_merchant
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
-	ussd_merchant_dto "cbe-super-app-cps-action/internal/constants/dto/ussd_merchant"
-	ussd_merchant_interface "cbe-super-app-cps-action/internal/constants/interfaces/ussd_merchant"
-	localization "cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/types"
-	"cbe-super-app-cps-action/internal/handlers/rest/http/ussd_merchant/core"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	ussd_merchant_dto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/ussd_merchant"
+	ussd_merchant_interface "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/interfaces/ussd_merchant"
+	localization "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/handlers/rest/http/ussd_merchant/core"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"mime/multipart"
 
-	"cbe-super-app-cps-action/internal/service"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/service"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"

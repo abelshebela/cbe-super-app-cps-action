@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package topup;
 
-option go_package = "github.com/cbesuperapp/cbe-super-app-cps-action/grpc/topup;topup";
+option go_package = "github.com/cbesuperapp/github.com/abelshebela/cbe-super-app-cps-action/grpc/topup;topup";
 import "google/protobuf/timestamp.proto";
 
 message TopupRequest {

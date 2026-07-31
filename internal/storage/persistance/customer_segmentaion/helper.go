@@ -1,7 +1,7 @@
 package customersegmentaion
 
 import (
-	imodel "cbe-super-app-cps-action/internal/constants/model"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
 	"time"
 
 	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"

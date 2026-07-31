@@ -1,12 +1,12 @@
 package core
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
-	accountLookupDto "cbe-super-app-cps-action/internal/constants/dto/account_lookup"
-	"cbe-super-app-cps-action/internal/constants/lib"
-	"cbe-super-app-cps-action/internal/constants/types"
-	"cbe-super-app-cps-action/internal/storage"
-	accountLookup "cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	accountLookupDto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/account_lookup"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/lib"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage"
+	accountLookup "github.com/abelshebela/cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
 	"context"
 	"strings"
 	"time"

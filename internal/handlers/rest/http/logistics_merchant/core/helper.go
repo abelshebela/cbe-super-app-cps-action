@@ -1,9 +1,9 @@
 package core
 
 import (
-	logistic_merchant_dto "cbe-super-app-cps-action/internal/constants/dto/logistics_merchant"
+	logistic_merchant_dto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/logistics_merchant"
 
-	local_model "cbe-super-app-cps-action/internal/constants/model"
+	local_model "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
 )
 
 func CreateLogisticsMerchantRequestToModel(req logistic_merchant_dto.CreateLogisticsMerchantRequest) local_model.LogisticsMerchant {

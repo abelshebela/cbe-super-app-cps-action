@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"time"
 
-	donation_dto "cbe-super-app-cps-action/internal/constants/dto/donation"
-	"cbe-super-app-cps-action/internal/constants/types"
+	donation_dto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/donation"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
 )
 
 const donationListSelectCols = `

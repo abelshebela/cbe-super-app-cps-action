@@ -1,7 +1,7 @@
 package wallet
 
 import (
-	local_model "cbe-super-app-cps-action/internal/constants/model"
+	local_model "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
 	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"

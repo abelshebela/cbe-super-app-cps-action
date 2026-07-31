@@ -1,9 +1,9 @@
 package core
 
 import (
-	imodel "cbe-super-app-cps-action/internal/constants/model"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
 
-	ab_dto "cbe-super-app-cps-action/internal/constants/dto/account_block"
+	ab_dto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/account_block"
 )
 
 func ToAccountBlockResponse(ab *imodel.AccountBlock) *ab_dto.AccountBlockResponse {

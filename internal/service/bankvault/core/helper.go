@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"cbe-super-app-cps-action/internal/constants/dto/bankvault"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/bankvault"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 

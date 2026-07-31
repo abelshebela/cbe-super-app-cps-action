@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
 	"crypto/subtle"
 	"net/http"
 	"strings"

@@ -26,10 +26,10 @@ import (
 	"strings"
 	"time"
 
-	"cbe-super-app-cps-action/internal/constants"
-	"cbe-super-app-cps-action/internal/constants/types"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
 
-	"cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
 
 	"github.com/go-chi/chi/v5"
 	validation "github.com/go-ozzo/ozzo-validation/v4"

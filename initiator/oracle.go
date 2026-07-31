@@ -33,8 +33,8 @@ func InitOracle(url string, logger utils.Logger) *sql.DB {
 		logger.Fatalf("failed to open oracle connection", zap.Error(err))
 	}
 
-	db.SetMaxOpenConns(10)
-	db.SetMaxIdleConns(5)
+	db.SetMaxOpenConns(2)
+	db.SetMaxIdleConns(1)
 	db.SetConnMaxLifetime(30 * time.Minute)
 
 	if err := db.PingContext(ctx); err != nil {

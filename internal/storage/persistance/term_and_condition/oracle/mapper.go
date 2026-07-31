@@ -3,7 +3,7 @@ package term_and_condition_oracle
 import (
 	"time"
 
-	imodel "cbe-super-app-cps-action/internal/constants/model"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
 )
 
 const tacSelectCols = `

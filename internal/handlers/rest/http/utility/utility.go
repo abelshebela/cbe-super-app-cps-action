@@ -3,12 +3,12 @@ package utility
 import (
 	"net/http"
 
-	"cbe-super-app-cps-action/internal/constants"
-	utilityInbound "cbe-super-app-cps-action/internal/constants/interfaces/utility"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/types"
-	"cbe-super-app-cps-action/internal/service"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	utilityInbound "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/interfaces/utility"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/service"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 
 	"context"
 

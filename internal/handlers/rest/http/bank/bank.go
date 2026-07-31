@@ -1,14 +1,14 @@
 package bankHandler
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
-	bank_dto "cbe-super-app-cps-action/internal/constants/dto/bank"
-	"cbe-super-app-cps-action/internal/constants/interfaces/bank"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/types"
-	bank_core "cbe-super-app-cps-action/internal/handlers/rest/http/bank/core"
-	"cbe-super-app-cps-action/internal/service"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	bank_dto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/bank"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/interfaces/bank"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
+	bank_core "github.com/abelshebela/cbe-super-app-cps-action/internal/handlers/rest/http/bank/core"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/service"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"strconv"
 

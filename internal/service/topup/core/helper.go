@@ -1,21 +1,21 @@
 package core
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
-	TopupDto "cbe-super-app-cps-action/internal/constants/dto/topup"
-	"cbe-super-app-cps-action/internal/constants/lib"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	TopupDto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/topup"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/lib"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 	"time"
 
-	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/service"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/service"
 	"context"
 	"errors"
 	"fmt"
 	"log"
 	"strings"
 
-	topupDto "cbe-super-app-cps-action/internal/constants/dto/topup"
+	topupDto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/topup"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	// shared_types "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"

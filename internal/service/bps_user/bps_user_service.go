@@ -1,15 +1,15 @@
 package bpsuser
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
-	"cbe-super-app-cps-action/internal/constants/lib"
-	localization "cbe-super-app-cps-action/internal/constants/localization"
-	imodel "cbe-super-app-cps-action/internal/constants/model"
-	"cbe-super-app-cps-action/internal/constants/types"
-	"cbe-super-app-cps-action/internal/service"
-	bps_user_core "cbe-super-app-cps-action/internal/service/bps_user/core"
-	"cbe-super-app-cps-action/internal/storage"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/lib"
+	localization "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/service"
+	bps_user_core "github.com/abelshebela/cbe-super-app-cps-action/internal/service/bps_user/core"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"encoding/csv"
 	"encoding/json"
@@ -18,12 +18,12 @@ import (
 	"strings"
 	"time"
 
-	// local_model "cbe-super-app-cps-action/internal/constants/model"
+	// local_model "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
 
 	bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
-	bpsUserDto "cbe-super-app-cps-action/internal/constants/dto/bps_user"
+	bpsUserDto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/bps_user"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"

@@ -1,7 +1,7 @@
 package account_sub_type_dto
 
 import (
-	"cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
 	"regexp"
 	"strings"
 )

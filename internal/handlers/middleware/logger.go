@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	"cbe-super-app-cps-action/internal/constants"
-	"cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	account_block_dto "cbe-super-app-cps-action/internal/constants/dto/account_block"
-	imodel "cbe-super-app-cps-action/internal/constants/model"
+	account_block_dto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/account_block"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )

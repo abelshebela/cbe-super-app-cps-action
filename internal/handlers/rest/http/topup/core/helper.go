@@ -1,9 +1,9 @@
 package core
 
 import (
-	TopupDto "cbe-super-app-cps-action/internal/constants/dto/topup"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/pkgs/utils"
+	TopupDto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/topup"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 	"errors"
 	"fmt"
 	"log"

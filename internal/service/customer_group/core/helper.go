@@ -1,7 +1,7 @@
 package core
 
 import (
-	imodel "cbe-super-app-cps-action/internal/constants/model"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
 )
 
 func MapSegmentToMap(seg imodel.Segment) map[string]interface{} {

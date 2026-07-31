@@ -5,18 +5,18 @@ import (
 	"encoding/json"
 	"net/http"
 
-	amount_based_auth_dto "cbe-super-app-cps-action/internal/constants/dto/amount_based_auth"
-	amount_based "cbe-super-app-cps-action/internal/constants/interfaces/amount_based_auth"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/types"
-	"cbe-super-app-cps-action/internal/service"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	amount_based_auth_dto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/amount_based_auth"
+	amount_based "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/interfaces/amount_based_auth"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/service"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 
 	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"go.opentelemetry.io/otel/attribute"
 
-	"cbe-super-app-cps-action/internal/constants"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )

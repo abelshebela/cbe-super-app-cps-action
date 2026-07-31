@@ -1,4 +1,4 @@
-module cbe-super-app-cps-action
+module github.com/abelshebela/cbe-super-app-cps-action
 
 go 1.26.2
 

@@ -1,16 +1,16 @@
 package server
 
 import (
-	bankpb "cbe-super-app-cps-action/grpc/bank"
-	servicepb "cbe-super-app-cps-action/grpc/service/proto"
+	bankpb "github.com/abelshebela/cbe-super-app-cps-action/grpc/bank"
+	servicepb "github.com/abelshebela/cbe-super-app-cps-action/grpc/service/proto"
 
-	topuppb "cbe-super-app-cps-action/grpc/topup/proto"
-	walletpb "cbe-super-app-cps-action/grpc/wallet/proto"
-	service_dto "cbe-super-app-cps-action/internal/constants/dto/services"
-	imodel "cbe-super-app-cps-action/internal/constants/model"
-	local_model "cbe-super-app-cps-action/internal/constants/model"
-	"cbe-super-app-cps-action/internal/constants/types"
-	"cbe-super-app-cps-action/internal/service"
+	topuppb "github.com/abelshebela/cbe-super-app-cps-action/grpc/topup/proto"
+	walletpb "github.com/abelshebela/cbe-super-app-cps-action/grpc/wallet/proto"
+	service_dto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/services"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
+	local_model "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/service"
 	"context"
 	"net"
 

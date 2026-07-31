@@ -2,7 +2,7 @@ package account_lookup
 
 import (
 	"bytes"
-	accountLookup "cbe-super-app-cps-action/internal/constants/dto/account_lookup"
+	accountLookup "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/account_lookup"
 	"context"
 	"encoding/json"
 	"errors"

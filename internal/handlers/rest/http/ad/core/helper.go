@@ -1,10 +1,10 @@
 package core
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
-	"cbe-super-app-cps-action/internal/constants/dto/ad"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/ad"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 	"errors"
 	"time"
 

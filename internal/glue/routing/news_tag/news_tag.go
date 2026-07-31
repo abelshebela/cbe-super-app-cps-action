@@ -1,9 +1,9 @@
 package newstag_routing
 
 import (
-	newstag_adaptor "cbe-super-app-cps-action/internal/constants/interfaces/news_tag"
-	"cbe-super-app-cps-action/internal/glue"
-	"cbe-super-app-cps-action/internal/handlers/middleware"
+	newstag_adaptor "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/interfaces/news_tag"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/glue"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/handlers/middleware"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"

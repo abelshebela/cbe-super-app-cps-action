@@ -1,9 +1,9 @@
 package accountblock
 
 import (
-	account_block "cbe-super-app-cps-action/internal/constants/interfaces/account_block"
-	"cbe-super-app-cps-action/internal/glue"
-	"cbe-super-app-cps-action/internal/handlers/middleware"
+	account_block "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/interfaces/account_block"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/glue"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/handlers/middleware"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"

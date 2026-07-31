@@ -1,7 +1,7 @@
 package sqlc
 
 import (
-	imodel "cbe-super-app-cps-action/internal/constants/model"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
 	"time"
 )
 

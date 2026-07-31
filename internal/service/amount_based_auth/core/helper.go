@@ -1,10 +1,10 @@
 package core
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
-	amountauthdto "cbe-super-app-cps-action/internal/constants/dto/amount_based_auth"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	local_model "cbe-super-app-cps-action/internal/constants/model"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	amountauthdto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/amount_based_auth"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	local_model "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
 	"errors"
 	"time"
 )

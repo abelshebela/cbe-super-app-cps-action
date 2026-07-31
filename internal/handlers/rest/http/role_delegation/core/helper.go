@@ -6,10 +6,10 @@ import (
 	"strings"
 	"time"
 
-	role_delegation_dto "cbe-super-app-cps-action/internal/constants/dto/role_delegation"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	imodel "cbe-super-app-cps-action/internal/constants/model"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	role_delegation_dto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/role_delegation"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 )
 
 func BuildRoleDelegationRequestForUpdate(

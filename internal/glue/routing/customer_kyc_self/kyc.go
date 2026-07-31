@@ -1,9 +1,9 @@
 package customerkycself
 
 import (
-	customer_kyc "cbe-super-app-cps-action/internal/constants/interfaces/customer_kyc"
-	"cbe-super-app-cps-action/internal/glue"
-	"cbe-super-app-cps-action/internal/handlers/middleware"
+	customer_kyc "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/interfaces/customer_kyc"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/glue"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/handlers/middleware"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"

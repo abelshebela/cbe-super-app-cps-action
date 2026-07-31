@@ -1,11 +1,11 @@
 package permission
 
 import (
-	"cbe-super-app-cps-action/internal/constants/dto/permission"
-	permission_int "cbe-super-app-cps-action/internal/constants/interfaces/permission"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/service"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/permission"
+	permission_int "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/interfaces/permission"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/service"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 	"encoding/json"
 	"net/http"
 

@@ -1,9 +1,9 @@
 package active_state
 
 import (
-	activeState "cbe-super-app-cps-action/internal/constants/interfaces/active_state"
-	"cbe-super-app-cps-action/internal/glue"
-	"cbe-super-app-cps-action/internal/handlers/middleware"
+	activeState "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/interfaces/active_state"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/glue"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/handlers/middleware"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"

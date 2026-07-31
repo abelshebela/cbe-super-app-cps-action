@@ -3,9 +3,9 @@ package budget_category
 import (
 	"net/http"
 
-	budget_category "cbe-super-app-cps-action/internal/constants/interfaces/budget_category"
-	"cbe-super-app-cps-action/internal/glue"
-	"cbe-super-app-cps-action/internal/handlers/middleware"
+	budget_category "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/interfaces/budget_category"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/glue"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/handlers/middleware"
 
 	"github.com/go-chi/chi/v5"
 )

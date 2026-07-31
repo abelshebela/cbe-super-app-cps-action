@@ -1,8 +1,8 @@
 package vault
 
 import (
-	localization "cbe-super-app-cps-action/internal/constants/localization"
-	common_utils "cbe-super-app-cps-action/pkgs/utils"
+	localization "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	common_utils "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"

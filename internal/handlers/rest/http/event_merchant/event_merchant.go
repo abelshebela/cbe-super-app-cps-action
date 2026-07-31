@@ -1,17 +1,17 @@
 package event_merchant_handler
 
 import (
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
 
-	"cbe-super-app-cps-action/internal/constants"
-	event_merchant_dto "cbe-super-app-cps-action/internal/constants/dto/event_merchant"
-	event_merchant_port "cbe-super-app-cps-action/internal/constants/interfaces/event_merchant"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/types"
-	"cbe-super-app-cps-action/internal/handlers/rest/http/event_merchant/core"
-	"cbe-super-app-cps-action/internal/service"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	event_merchant_dto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/event_merchant"
+	event_merchant_port "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/interfaces/event_merchant"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/handlers/rest/http/event_merchant/core"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/service"
 	"encoding/json"
 	"net/http"
 

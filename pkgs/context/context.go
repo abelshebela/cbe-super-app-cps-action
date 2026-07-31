@@ -4,7 +4,7 @@ package contexts
 import (
 	"net/http"
 
-	"cbe-super-app-cps-action/internal/constants"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
 )
 
 type UserContext struct {

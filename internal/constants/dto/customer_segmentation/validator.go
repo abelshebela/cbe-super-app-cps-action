@@ -1,12 +1,12 @@
 package customersegmentation
 
 import (
-	"cbe-super-app-cps-action/pkgs/utils"
+	"github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 	"errors"
 	"fmt"
 	"strings"
 
-	imodel "cbe-super-app-cps-action/internal/constants/model"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
 
 	validation "github.com/go-ozzo/ozzo-validation"
 )

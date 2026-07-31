@@ -1,6 +1,6 @@
 package customersegmentation
 
-import imodel "cbe-super-app-cps-action/internal/constants/model"
+import imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
 
 type CreateCustomerSegmentationRequest struct {
 	CustomerRole string                 `json:"customer_role"`

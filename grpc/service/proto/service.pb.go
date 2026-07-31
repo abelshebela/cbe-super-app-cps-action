@@ -853,7 +853,7 @@ const file_proto_service_proto_rawDesc = "" +
 	"\bmetadata\x18\x02 \x01(\v2\r.service.MetaR\bmetadata2\xd5\x01\n" +
 	"\x15ServiceDetailsService\x12]\n" +
 	"\x13GetOneServiceDetail\x12#.service.GetOneServiceDetailRequest\x1a!.service.GetServiceDetailResponse\x12]\n" +
-	"\x0eGetAllServices\x12$.service.GetAllServiceDetailsRequest\x1a%.service.GetAllServiceDetailsResponseBFZDgithub.com/cbesuperapp/cbe-super-app-cps-action/grpc/service;serviceb\x06proto3"
+	"\x0eGetAllServices\x12$.service.GetAllServiceDetailsRequest\x1a%.service.GetAllServiceDetailsResponseBFZDgithub.com/cbesuperapp/github.com/abelshebela/cbe-super-app-cps-action/grpc/service;serviceb\x06proto3"
 
 var (
 	file_proto_service_proto_rawDescOnce sync.Once

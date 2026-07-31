@@ -1,11 +1,11 @@
 package transaction_repo
 
 import (
-	transaction_dto "cbe-super-app-cps-action/internal/constants/dto/transaction"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/types"
-	"cbe-super-app-cps-action/internal/storage"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	transaction_dto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/transaction"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"database/sql"
 	"errors"

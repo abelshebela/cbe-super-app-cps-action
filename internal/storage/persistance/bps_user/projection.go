@@ -2,8 +2,8 @@ package bps_user
 
 import (
 	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-	// local_model "cbe-super-app-cps-action/internal/constants/model"
-	bpsUserDto "cbe-super-app-cps-action/internal/constants/dto/bps_user"
+	// local_model "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
+	bpsUserDto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/bps_user"
 
 	bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 

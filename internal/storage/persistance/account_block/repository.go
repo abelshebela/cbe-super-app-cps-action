@@ -8,15 +8,15 @@ import (
 	"strconv"
 	"strings"
 
-	"cbe-super-app-cps-action/internal/constants"
-	account_block_dto "cbe-super-app-cps-action/internal/constants/dto/account_block"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	imodel "cbe-super-app-cps-action/internal/constants/model"
-	"cbe-super-app-cps-action/internal/constants/types"
-	"cbe-super-app-cps-action/internal/storage"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	account_block_dto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/account_block"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/storage"
 
-	local_helper "cbe-super-app-cps-action/internal/storage/persistance/account_block/helper"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	local_helper "github.com/abelshebela/cbe-super-app-cps-action/internal/storage/persistance/account_block/helper"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"

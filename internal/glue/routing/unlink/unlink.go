@@ -3,9 +3,9 @@ package unlink
 import (
 	"net/http"
 
-	unlink "cbe-super-app-cps-action/internal/constants/interfaces/unlink"
-	"cbe-super-app-cps-action/internal/glue"
-	"cbe-super-app-cps-action/internal/handlers/middleware"
+	unlink "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/interfaces/unlink"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/glue"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/handlers/middleware"
 
 	"github.com/go-chi/chi/v5"
 )

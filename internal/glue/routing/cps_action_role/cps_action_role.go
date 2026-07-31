@@ -1,9 +1,9 @@
 package cps_actionrole_routing
 
 import (
-	actionrole_inbound "cbe-super-app-cps-action/internal/constants/interfaces/cps_action_role"
-	"cbe-super-app-cps-action/internal/glue"
-	"cbe-super-app-cps-action/internal/handlers/middleware"
+	actionrole_inbound "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/interfaces/cps_action_role"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/glue"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/handlers/middleware"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"

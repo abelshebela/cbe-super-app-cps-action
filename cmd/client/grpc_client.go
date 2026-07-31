@@ -1,7 +1,7 @@
 package client
 
 import (
-	cps_auth "cbe-super-app-cps-action/grpc/auth/proto"
+	cps_auth "github.com/abelshebela/cbe-super-app-cps-action/grpc/auth/proto"
 	"fmt"
 	"strings"
 

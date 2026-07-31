@@ -1,7 +1,7 @@
 package initiator
 
 import (
-	queue "cbe-super-app-cps-action/internal/storage/queue_system"
+	queue "github.com/abelshebela/cbe-super-app-cps-action/internal/storage/queue_system"
 
 	"github.com/redis/go-redis/v9"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"

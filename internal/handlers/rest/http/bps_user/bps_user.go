@@ -1,12 +1,12 @@
 package bpsmakerhandler
 
 import (
-	constants "cbe-super-app-cps-action/internal/constants"
-	"cbe-super-app-cps-action/internal/constants/interfaces/bps_user"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/types"
-	"cbe-super-app-cps-action/internal/handlers/rest/http/bps_user/core"
-	"cbe-super-app-cps-action/internal/service"
+	constants "github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/interfaces/bps_user"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/handlers/rest/http/bps_user/core"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/service"
 	"context"
 	"encoding/json"
 	"net/http"
@@ -16,19 +16,19 @@ import (
 	// "fmt"
 
 	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-	model "cbe-super-app-cps-action/internal/constants/model"
+	model "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
 
-	common_utils "cbe-super-app-cps-action/pkgs/utils"
+	common_utils "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 
 	"go.opentelemetry.io/otel/attribute"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
-	local_utils "cbe-super-app-cps-action/pkgs/utils"
+	local_utils "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 
 	// model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-	bps_user_dto "cbe-super-app-cps-action/internal/constants/dto/bps_user"
+	bps_user_dto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/bps_user"
 
 	bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 )

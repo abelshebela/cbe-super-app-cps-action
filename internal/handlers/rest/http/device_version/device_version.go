@@ -1,19 +1,19 @@
 package deviceversionhandler
 
 import (
-	dvdto "cbe-super-app-cps-action/internal/constants/dto/device_version"
-	deviceversion "cbe-super-app-cps-action/internal/constants/interfaces/device_version"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/service"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	dvdto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/device_version"
+	deviceversion "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/interfaces/device_version"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/service"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"encoding/json"
 	"net/http"
 	"strings"
 
-	types "cbe-super-app-cps-action/internal/constants/types"
+	types "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
 
-	constants "cbe-super-app-cps-action/internal/constants"
+	constants "github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"

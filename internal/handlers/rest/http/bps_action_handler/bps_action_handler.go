@@ -1,18 +1,18 @@
 package bps_action_handler
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
-	bpsactionDto "cbe-super-app-cps-action/internal/constants/dto/bps_action"
-	bps_actionrole_dto "cbe-super-app-cps-action/internal/constants/dto/bps_action_role"
-	bpsaction "cbe-super-app-cps-action/internal/constants/interfaces/bps_action"
-	"cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants"
+	bpsactionDto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/bps_action"
+	bps_actionrole_dto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/bps_action_role"
+	bpsaction "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/interfaces/bps_action"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
 
-	// imodel "cbe-super-app-cps-action/internal/constants/model"
-	"cbe-super-app-cps-action/internal/constants/types"
-	mid "cbe-super-app-cps-action/internal/handlers/middleware"
-	"cbe-super-app-cps-action/internal/service"
-	bpsactionsvc "cbe-super-app-cps-action/internal/service/bps_action"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+	// imodel "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/model"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
+	mid "github.com/abelshebela/cbe-super-app-cps-action/internal/handlers/middleware"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/service"
+	bpsactionsvc "github.com/abelshebela/cbe-super-app-cps-action/internal/service/bps_action"
+	local_util "github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"encoding/json"
 	"io"
@@ -20,7 +20,7 @@ import (
 
 	// "slices"
 
-	bpsactioncore "cbe-super-app-cps-action/internal/handlers/rest/http/bps_action_handler/core"
+	bpsactioncore "github.com/abelshebela/cbe-super-app-cps-action/internal/handlers/rest/http/bps_action_handler/core"
 	"strings"
 	"time"
 

@@ -1,10 +1,10 @@
 package core
 
 import (
-	eventdto "cbe-super-app-cps-action/internal/constants/dto/event"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/types"
-	"cbe-super-app-cps-action/pkgs/utils"
+	eventdto "github.com/abelshebela/cbe-super-app-cps-action/internal/constants/dto/event"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/localization"
+	"github.com/abelshebela/cbe-super-app-cps-action/internal/constants/types"
+	"github.com/abelshebela/cbe-super-app-cps-action/pkgs/utils"
 	"errors"
 	"net/http"
 	"net/url"
