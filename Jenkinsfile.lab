@@ -1,0 +1,57 @@
+pipeline {
+
+    agent any
+
+    environment {
+        SERVICE_NAME = "cps-action"
+        DOCKER_FILE_PATH = "scripts/Dockerfile"
+
+        // Change these later when Harbor is configured
+        HARBOR_REGISTRY = credentials("REGISTRY_ADDRESS")
+        HARBOR_PROJECT = "cbe-superapp"
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Go Build') {
+            steps {
+                sh '''
+                go version
+                go build ./...
+                '''
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                sh '''
+                docker build \
+                -f ${DOCKER_FILE_PATH} \
+                -t ${SERVICE_NAME}:build-${BUILD_NUMBER} .
+                '''
+            }
+        }
+
+        stage('Docker Login and Push') {
+            steps {
+                echo "Harbor push will be configured next"
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "BUILD SUCCESSFUL"
+        }
+
+        failure {
+            echo "BUILD FAILED"
+        }
+    }
+}
