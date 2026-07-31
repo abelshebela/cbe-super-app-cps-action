@@ -64,9 +64,11 @@ spec:
             steps {
                 container('golang') {
                     sh '''
+                    export GO111MODULE=on
+                    export CGO_ENABLED=0
                     go version
                     go mod download
-                    go build ./...
+                    go build -v ./...
                     '''
                 }
             }
