@@ -6,9 +6,10 @@ pipeline {
         SERVICE_NAME = "cps-action"
         DOCKER_FILE_PATH = "scripts/Dockerfile"
 
-        // Change these later when Harbor is configured
-        HARBOR_REGISTRY = credentials("REGISTRY_ADDRESS")
-        HARBOR_PROJECT = "cbe-superapp"
+        HARBOR_REGISTRY = "registry.eaglelionsystems.com"
+        HARBOR_PROJECT  = "cbe-superapp"
+
+        HARBOR_CREDS = credentials("harbor-creds")
     }
 
     stages {
@@ -32,26 +33,56 @@ pipeline {
             steps {
                 sh '''
                 docker build \
-                -f ${DOCKER_FILE_PATH} \
-                -t ${SERVICE_NAME}:build-${BUILD_NUMBER} .
+                  -f ${DOCKER_FILE_PATH} \
+                  -t ${SERVICE_NAME}:build-${BUILD_NUMBER} .
                 '''
             }
         }
 
-        stage('Docker Login and Push') {
+        stage('Login to Harbor') {
             steps {
-                echo "Harbor push will be configured next"
+                sh '''
+                echo "$HARBOR_CREDS_PSW" | docker login \
+                    -u "$HARBOR_CREDS_USR" \
+                    --password-stdin \
+                    $HARBOR_REGISTRY
+                '''
             }
         }
+
+        stage('Tag Image') {
+            steps {
+                sh '''
+                docker tag \
+                ${SERVICE_NAME}:build-${BUILD_NUMBER} \
+                ${HARBOR_REGISTRY}/${HARBOR_PROJECT}/${SERVICE_NAME}:build-${BUILD_NUMBER}
+                '''
+            }
+        }
+
+        stage('Push Image') {
+            steps {
+                sh '''
+                docker push \
+                ${HARBOR_REGISTRY}/${HARBOR_PROJECT}/${SERVICE_NAME}:build-${BUILD_NUMBER}
+                '''
+            }
+        }
+
     }
 
     post {
+
         success {
             echo "BUILD SUCCESSFUL"
         }
 
         failure {
             echo "BUILD FAILED"
+        }
+
+        always {
+            sh 'docker logout ${HARBOR_REGISTRY} || true'
         }
     }
 }
