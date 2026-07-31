@@ -8,17 +8,18 @@ pipeline {
 
         HARBOR_REGISTRY = "registry.eaglelionsystems.com"
         HARBOR_PROJECT  = "cbe-superapp"
-
-        HARBOR_CREDS = credentials("harbor-creds")
     }
 
+
     stages {
+
 
         stage('Checkout') {
             steps {
                 checkout scm
             }
         }
+
 
         stage('Go Build') {
             steps {
@@ -28,6 +29,7 @@ pipeline {
                 '''
             }
         }
+
 
         stage('Docker Build') {
             steps {
@@ -39,16 +41,29 @@ pipeline {
             }
         }
 
+
         stage('Login to Harbor') {
             steps {
-                sh '''
-                echo "$HARBOR_CREDS_PSW" | docker login \
-                    -u "$HARBOR_CREDS_USR" \
+
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'harbor-creds',
+                        usernameVariable: 'HARBOR_USER',
+                        passwordVariable: 'HARBOR_PASSWORD'
+                    )
+                ]) {
+
+                    sh '''
+                    echo "$HARBOR_PASSWORD" | docker login \
+                    -u "$HARBOR_USER" \
                     --password-stdin \
-                    $HARBOR_REGISTRY
-                '''
+                    ${HARBOR_REGISTRY}
+                    '''
+
+                }
             }
         }
+
 
         stage('Tag Image') {
             steps {
@@ -60,6 +75,7 @@ pipeline {
             }
         }
 
+
         stage('Push Image') {
             steps {
                 sh '''
@@ -69,7 +85,9 @@ pipeline {
             }
         }
 
+
     }
+
 
     post {
 
@@ -77,12 +95,16 @@ pipeline {
             echo "BUILD SUCCESSFUL"
         }
 
+
         failure {
             echo "BUILD FAILED"
         }
 
+
         always {
-            sh 'docker logout ${HARBOR_REGISTRY} || true'
+            echo "Pipeline finished"
         }
+
     }
+
 }
