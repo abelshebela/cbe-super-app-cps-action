@@ -2,8 +2,59 @@ pipeline {
 
     agent {
         kubernetes {
-            label "jenkins-agent"
-            defaultContainer "jnlp"
+
+            yaml '''
+apiVersion: v1
+kind: Pod
+
+spec:
+
+  containers:
+
+  - name: golang
+    image: golang:1.26
+    command:
+    - cat
+    tty: true
+    workingDir: /home/jenkins/agent
+
+    resources:
+      requests:
+        cpu: "500m"
+        memory: "1Gi"
+      limits:
+        cpu: "2"
+        memory: "2Gi"
+
+
+  - name: docker
+    image: docker:27-cli
+    command:
+    - cat
+    tty: true
+    workingDir: /home/jenkins/agent
+
+    resources:
+      requests:
+        cpu: "500m"
+        memory: "512Mi"
+      limits:
+        cpu: "1"
+        memory: "1Gi"
+
+
+    volumeMounts:
+    - name: docker-sock
+      mountPath: /var/run/docker.sock
+
+
+  volumes:
+
+  - name: docker-sock
+    hostPath:
+      path: /var/run/docker.sock
+
+'''
         }
     }
 
@@ -60,11 +111,9 @@ pipeline {
                 container('docker') {
 
                     sh '''
-
                     docker build \
                     -f ${DOCKER_FILE_PATH} \
                     -t ${SERVICE_NAME}:build-${BUILD_NUMBER} .
-
                     '''
 
                 }
@@ -74,7 +123,7 @@ pipeline {
         }
 
 
-        stage('Login to Harbor') {
+        stage('Login Harbor') {
 
             steps {
 
@@ -90,12 +139,10 @@ pipeline {
 
 
                         sh '''
-
                         echo "$HARBOR_PASSWORD" | docker login \
                         -u "$HARBOR_USER" \
                         --password-stdin \
                         ${HARBOR_REGISTRY}
-
                         '''
 
                     }
@@ -105,7 +152,6 @@ pipeline {
             }
 
         }
-
 
 
         stage('Tag Image') {
@@ -129,7 +175,6 @@ pipeline {
         }
 
 
-
         stage('Push Image') {
 
             steps {
@@ -149,34 +194,16 @@ pipeline {
 
         }
 
-
     }
-
 
 
     post {
 
-
-        success {
-
-            echo "BUILD SUCCESSFUL"
-
-        }
-
-
-        failure {
-
-            echo "BUILD FAILED"
-
-        }
-
-
         always {
 
-            echo "Pipeline completed"
+            echo "Pipeline finished"
 
         }
-
 
     }
 
