@@ -1,4 +1,5 @@
 pipeline {
+
     agent {
         kubernetes {
             yaml '''
@@ -7,111 +8,400 @@ kind: Pod
 metadata:
   labels:
     component: build-agent
+
 spec:
+
   containers:
+
   - name: golang
     image: golang:1.26-alpine
     command:
-    - cat
+      - cat
     tty: true
+
     resources:
       requests:
         memory: "1Gi"
         cpu: "500m"
+
       limits:
         memory: "2Gi"
         cpu: "2000m"
 
+
   - name: docker
     image: docker:27-cli
+
     command:
-    - cat
+      - cat
+
     tty: true
+
     resources:
       requests:
         memory: "512Mi"
         cpu: "250m"
+
       limits:
         memory: "1Gi"
         cpu: "1000m"
+
+
     volumeMounts:
     - name: docker-sock
       mountPath: /var/run/docker.sock
 
+
   volumes:
+
   - name: docker-sock
     hostPath:
       path: /var/run/docker.sock
+
 '''
         }
     }
 
-    environment {
-        SERVICE_NAME     = "cps-action"
-        DOCKER_FILE_PATH = "scripts/Dockerfile"
-        HARBOR_REGISTRY  = "registry.eaglelionsystems.com"
-        HARBOR_PROJECT   = "cbe-superapp"
+
+    options {
+
+        skipDefaultCheckout()
+
+        timestamps()
+
+        timeout(
+            time: 30,
+            unit: 'MINUTES'
+        )
     }
+
+
+    environment {
+
+        SERVICE_NAME = "cps-action"
+
+        DOCKER_FILE_PATH = "scripts/Dockerfile"
+
+        HARBOR_REGISTRY = "registry.eaglelionsystems.com"
+
+        HARBOR_PROJECT = "cbe-superapp"
+
+        IMAGE_NAME = "${HARBOR_REGISTRY}/${HARBOR_PROJECT}/${SERVICE_NAME}:${BUILD_NUMBER}"
+    }
+
 
     stages {
+
+
         stage('Checkout') {
+
             steps {
+
                 checkout scm
+
+                sh '''
+                git config --global --add safe.directory "*"
+                '''
             }
         }
+
+
 
         stage('Go Build') {
+
             steps {
+
                 container('golang') {
+
                     sh '''
-                    export GO111MODULE=on
-                    export CGO_ENABLED=0
+
+                    set -e
+
+
+                    echo "========== GO VERSION =========="
+
                     go version
+
+
+                    echo "========== MODULE DOWNLOAD =========="
+
                     go mod download
-                    go build -v ./...
+
+
+                    echo "========== GO BUILD =========="
+
+
+                    go build \
+                    -buildvcs=false \
+                    -v \
+                    ./...
+
+
+                    echo "========== GO BUILD SUCCESS =========="
+
                     '''
                 }
             }
         }
+
+
+
+
+        stage('Docker Check') {
+
+            steps {
+
+                container('docker') {
+
+                    sh '''
+
+                    set -e
+
+
+                    echo "========== DOCKER VERSION =========="
+
+                    docker version
+
+
+                    '''
+                }
+            }
+        }
+
+
+
+
 
         stage('Docker Build') {
+
             steps {
+
+
                 container('docker') {
+
+
                     sh '''
+
+                    set -e
+
+
+                    echo "========== BUILDING IMAGE =========="
+
+
                     docker build \
-                      -f ${DOCKER_FILE_PATH} \
-                      -t ${SERVICE_NAME}:build-${BUILD_NUMBER} .
+
+                    -f ${DOCKER_FILE_PATH} \
+
+                    -t ${SERVICE_NAME}:${BUILD_NUMBER} \
+
+                    .
+
+
+                    echo "========== IMAGE BUILD SUCCESS =========="
+
                     '''
                 }
+
             }
+
         }
 
-        stage('Login & Push Harbor') {
+
+
+
+
+        stage('Harbor Login') {
+
+
             steps {
+
+
                 container('docker') {
-                    withCredentials([usernamePassword(credentialsId: 'harbor-creds', usernameVariable: 'HARBOR_USER', passwordVariable: 'HARBOR_PASS')]) {
+
+
+                    withCredentials([
+
+                        usernamePassword(
+
+                            credentialsId: 'harbor-creds',
+
+                            usernameVariable: 'HARBOR_USER',
+
+                            passwordVariable: 'HARBOR_PASS'
+
+                        )
+
+                    ]) {
+
+
                         sh '''
-                        echo "$HARBOR_PASS" | docker login -u "$HARBOR_USER" --password-stdin ${HARBOR_REGISTRY}
 
-                        docker tag ${SERVICE_NAME}:build-${BUILD_NUMBER} ${HARBOR_REGISTRY}/${HARBOR_PROJECT}/${SERVICE_NAME}:build-${BUILD_NUMBER}
+                        set -e
 
-                        docker push ${HARBOR_REGISTRY}/${HARBOR_PROJECT}/${SERVICE_NAME}:build-${BUILD_NUMBER}
+
+                        echo "$HARBOR_PASS" | docker login \
+
+                        ${HARBOR_REGISTRY} \
+
+                        -u "$HARBOR_USER" \
+
+                        --password-stdin
+
+
+                        echo "========== HARBOR LOGIN SUCCESS =========="
+
+
                         '''
+
                     }
+
                 }
+
             }
+
         }
+
+
+
+
+
+        stage('Tag Image') {
+
+
+            steps {
+
+
+                container('docker') {
+
+
+                    sh '''
+
+                    set -e
+
+
+                    docker tag \
+
+                    ${SERVICE_NAME}:${BUILD_NUMBER} \
+
+                    ${IMAGE_NAME}
+
+
+                    echo "========== IMAGE TAGGED =========="
+
+                    '''
+
+                }
+
+            }
+
+        }
+
+
+
+
+
+        stage('Push Image') {
+
+
+            steps {
+
+
+                container('docker') {
+
+
+                    sh '''
+
+                    set -e
+
+
+                    docker push ${IMAGE_NAME}
+
+
+                    echo "========== IMAGE PUSHED TO HARBOR =========="
+
+                    '''
+
+                }
+
+            }
+
+        }
+
     }
+
+
+
+
 
     post {
+
+
         success {
-            echo "BUILD SUCCESS"
+
+
+            echo """
+
+            ==================================
+
+            BUILD SUCCESSFUL
+
+            Image:
+
+            ${IMAGE_NAME}
+
+
+            Ready for GitOps deployment
+
+            ==================================
+
+            """
+
         }
+
+
+
         failure {
-            echo "BUILD FAILED"
+
+
+            echo """
+
+            ==================================
+
+            BUILD FAILED
+
+            Check stage logs above
+
+            ==================================
+
+            """
+
         }
+
+
+
+
         always {
-            echo "Pipeline finished"
+
+
+            container('docker') {
+
+
+                sh '''
+
+                docker logout ${HARBOR_REGISTRY} || true
+
+
+                docker system prune -f || true
+
+
+                '''
+
+            }
+
+
         }
+
+
     }
+
 }
