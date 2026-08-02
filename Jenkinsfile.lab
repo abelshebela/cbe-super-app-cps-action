@@ -100,12 +100,6 @@ spec:
 
         IMAGE_TAG = "${BUILD_NUMBER}"
 
-
-        GITLAB_USER = credentials('SHARED_GITLAB_USER')
-
-
-        GITLAB_PAT = credentials('SHARED_GITLAB_PAT')
-
     }
 
 
@@ -166,49 +160,51 @@ spec:
 
 
             steps {
-
-
                 container('golang') {
+                    script {
+                        def gitlabUser = ""
+                        def gitlabPat = ""
+                        try {
+                            withCredentials([string(credentialsId: 'SHARED_GITLAB_USER', variable: 'GL_USER')]) {
+                                gitlabUser = env.GL_USER
+                            }
+                        } catch (Exception e) {
+                            echo "GitLab user credential (SHARED_GITLAB_USER) not found: ${e.message}"
+                        }
+                        try {
+                            withCredentials([string(credentialsId: 'SHARED_GITLAB_PAT', variable: 'GL_PAT')]) {
+                                gitlabPat = env.GL_PAT
+                            }
+                        } catch (Exception e) {
+                            echo "GitLab token credential (SHARED_GITLAB_PAT) not found: ${e.message}"
+                        }
 
-
-                    sh '''
-
-                    set -e
-
-
-                    echo "Configuring GitLab credentials for Go private modules..."
-
-                    git config --global url."https://${GITLAB_USER}:${GITLAB_PAT}@gitlab.com/".insteadOf "https://gitlab.com/"
-
-                    export GOPRIVATE="gitlab.com/bersufekadgetachew/*"
-
-                    export CGO_ENABLED=1
-
-
-                    echo "Downloading dependencies"
-
-
-                    go mod download -x
-
-
-
-                    echo "Building application"
-
-
-
-                    go build \
-                    -buildvcs=false \
-                    -v \
-                    ./... 2>&1 | tee build.log
-
-
-
-                    echo "GO BUILD SUCCESS"
-
-                    '''
-
+                        if (gitlabUser && gitlabPat) {
+                            sh """
+                            set -e
+                            echo "Configuring GitLab credentials for Go private modules..."
+                            git config --global url."https://${gitlabUser}:${gitlabPat}@gitlab.com/".insteadOf "https://gitlab.com/"
+                            export GOPRIVATE="gitlab.com/bersufekadgetachew/*"
+                            export CGO_ENABLED=1
+                            echo "Downloading dependencies"
+                            go mod download -x
+                            echo "Building application"
+                            go build -buildvcs=false -v ./... 2>&1 | tee build.log
+                            echo "GO BUILD SUCCESS"
+                            """
+                        } else {
+                            sh '''
+                            set -e
+                            export CGO_ENABLED=1
+                            echo "Downloading dependencies (unauthenticated)"
+                            go mod download -x
+                            echo "Building application"
+                            go build -buildvcs=false -v ./... 2>&1 | tee build.log
+                            echo "GO BUILD SUCCESS"
+                            '''
+                        }
+                    }
                 }
-
             }
 
         }
@@ -249,36 +245,37 @@ spec:
 
 
             steps {
-
-
                 container('docker') {
+                    script {
+                        def gitlabUser = ""
+                        def gitlabPat = ""
+                        try {
+                            withCredentials([string(credentialsId: 'SHARED_GITLAB_USER', variable: 'GL_USER')]) {
+                                gitlabUser = env.GL_USER
+                            }
+                        } catch (Exception e) {
+                            echo "GitLab user credential (SHARED_GITLAB_USER) not found: ${e.message}"
+                        }
+                        try {
+                            withCredentials([string(credentialsId: 'SHARED_GITLAB_PAT', variable: 'GL_PAT')]) {
+                                gitlabPat = env.GL_PAT
+                            }
+                        } catch (Exception e) {
+                            echo "GitLab token credential (SHARED_GITLAB_PAT) not found: ${e.message}"
+                        }
 
-
-                    sh '''
-
-                    set -e
-
-
-                    docker build \
-
-                    -f ${DOCKERFILE} \
-
-                    --build-arg GITLAB_USER=${GITLAB_USER} \
-
-                    --build-arg GITLAB_PAT=${GITLAB_PAT} \
-
-                    -t ${SERVICE_NAME}:${IMAGE_TAG} \
-
-                    .
-
-
-                    echo "DOCKER BUILD SUCCESS"
-
-
-                    '''
-
+                        sh """
+                        set -e
+                        docker build \
+                        -f ${DOCKERFILE} \
+                        --build-arg GITLAB_USER="${gitlabUser}" \
+                        --build-arg GITLAB_PAT="${gitlabPat}" \
+                        -t ${SERVICE_NAME}:${IMAGE_TAG} \
+                        .
+                        echo "DOCKER BUILD SUCCESS"
+                        """
+                    }
                 }
-
             }
 
         }
