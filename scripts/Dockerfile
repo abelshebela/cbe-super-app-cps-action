@@ -15,13 +15,17 @@ COPY go.mod .
 
 COPY go.sum .
 
-RUN go mod download
+RUN --mount=type=cache,target=/go/pkg/mod \
+    go mod download
 
 COPY . .
 
-RUN go mod tidy
+RUN --mount=type=cache,target=/go/pkg/mod \
+    go mod tidy
 
-RUN go build -o supperapp-cps-action cmd/main.go
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/go/pkg/mod \
+    go build -o supperapp-cps-action cmd/main.go
 
 FROM scratch
 
