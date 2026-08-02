@@ -302,7 +302,7 @@ spec:
 
                         usernamePassword(
 
-                            credentialsId: 'harbor-creds',
+                            credentialsId: 'harbor_creds',
 
                             usernameVariable: 'HARBOR_USERNAME',
 
