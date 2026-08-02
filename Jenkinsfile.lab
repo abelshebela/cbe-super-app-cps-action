@@ -12,7 +12,7 @@ spec:
   containers:
 
   - name: golang
-    image: golang:1.26-alpine
+    image: golang:1.26
 
     command:
     - cat
@@ -100,6 +100,12 @@ spec:
 
         IMAGE_TAG = "${BUILD_NUMBER}"
 
+
+        GITLAB_USER = credentials('SHARED_GITLAB_USER')
+
+
+        GITLAB_PAT = credentials('SHARED_GITLAB_PAT')
+
     }
 
 
@@ -170,10 +176,19 @@ spec:
                     set -e
 
 
+                    echo "Configuring GitLab credentials for Go private modules..."
+
+                    git config --global url."https://${GITLAB_USER}:${GITLAB_PAT}@gitlab.com/".insteadOf "https://gitlab.com/"
+
+                    export GOPRIVATE="gitlab.com/bersufekadgetachew/*"
+
+                    export CGO_ENABLED=1
+
+
                     echo "Downloading dependencies"
 
 
-                    go mod download
+                    go mod download -x
 
 
 
@@ -184,7 +199,7 @@ spec:
                     go build \
                     -buildvcs=false \
                     -v \
-                    ./...
+                    ./... 2>&1 | tee build.log
 
 
 
@@ -247,6 +262,10 @@ spec:
                     docker build \
 
                     -f ${DOCKERFILE} \
+
+                    --build-arg GITLAB_USER=${GITLAB_USER} \
+
+                    --build-arg GITLAB_PAT=${GITLAB_PAT} \
 
                     -t ${SERVICE_NAME}:${IMAGE_TAG} \
 
