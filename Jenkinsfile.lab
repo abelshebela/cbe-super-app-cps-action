@@ -98,7 +98,7 @@ spec:
         HARBOR_REGISTRY = "registry.eaglelionsystems.com"
 
 
-        HARBOR_PROJECT = "cbe-superapp"
+        HARBOR_PROJECT = "cbe-supperapp"
 
 
 
