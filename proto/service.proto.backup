@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package service;
 
-option go_package = "github.com/abelshebela/cbe-super-app-cps-action/grpc/service;service";
+option go_package = "github.com/cbesuperapp/github.com/abelshebela/cbe-super-app-cps-action/grpc/service;service";
 
 // Tier message
 message Tier {
