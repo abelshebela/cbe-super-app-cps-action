@@ -44,6 +44,7 @@ spec:
         HARBOR_PROJECT = "cbe-supperapp"
         IMAGE_TAG = "${BUILD_NUMBER}"
         FULL_IMAGE_PATH = "${HARBOR_REGISTRY}/${HARBOR_PROJECT}/${SERVICE_NAME}:${IMAGE_TAG}"
+        DOCKER_BUILDKIT = '1'
     }
 
     stages {
@@ -120,7 +121,7 @@ spec:
                         def githubToken = ""
                         
                         try {
-                            withCredentials([usernamePassword(credentialsId: 'github_pat', usernameVariable: 'GH_USER', passwordVariable: 'GH_TOKEN')]) {
+                            withCredentials([usernamePassword(credentialsId: 'GITHUB_CRED', usernameVariable: 'GH_USER', passwordVariable: 'GH_TOKEN')]) {
                                 githubUser = env.GH_USER
                                 githubToken = env.GH_TOKEN
                             }
@@ -132,6 +133,12 @@ spec:
                         
                         sh """
                         set -e
+                        
+                        # Install dependencies if missing (Alpine-based container)
+                        if [ -f /etc/alpine-release ]; then
+                            echo "Installing curl and bash..."
+                            apk add --no-cache curl bash git
+                        fi
                         
                         # 1. Clone the deployment repository using your GitHub PAT
                         git clone https://${githubUser}:${githubToken}@github.com/abelshebela/cbe-super-app-deployment.git /tmp/manifests
