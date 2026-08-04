@@ -17,6 +17,9 @@ RUN --mount=type=cache,target=/go/pkg/mod \
 
 COPY . .
 
+# Ensure .env exists so that COPY --from=builder /app/.env . doesn't fail
+RUN touch .env
+
 RUN --mount=type=cache,target=/go/pkg/mod \
     go mod tidy
 
