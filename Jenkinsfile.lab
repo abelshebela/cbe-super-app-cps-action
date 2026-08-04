@@ -117,48 +117,44 @@ spec:
             steps {
                 container('docker') {
                     script {
-                        def githubUser = ""
-                        def githubToken = ""
-                        
-                        try {
-                            withCredentials([usernamePassword(credentialsId: 'GITHUB_CRED', usernameVariable: 'GH_USER', passwordVariable: 'GH_TOKEN')]) {
-                                githubUser = env.GH_USER
-                                githubToken = env.GH_TOKEN
-                            }
-                        } catch (Exception e) {
-                            echo "GitHub credentials not found: ${e.message}"
+                        withCredentials([
+                            usernamePassword(
+                                credentialsId: 'GITHUB_CRED',
+                                usernameVariable: 'GH_USER',
+                                passwordVariable: 'GH_TOKEN'
+                            )
+                        ]) {
+                            echo "Updating GitOps manifest repository with new image tag: ${IMAGE_TAG}"
+                            
+                            sh '''
+                            set -e
+                            
+                            # Install dependencies if missing (Alpine-based container)
+                            if [ -f /etc/alpine-release ]; then
+                                echo "Installing curl and bash..."
+                                apk add --no-cache curl bash git
+                            fi
+                            
+                            # 1. Clone the deployment repository using GITHUB_CRED
+                            git clone https://${GH_USER}:${GH_TOKEN}@github.com/abelshebela/cbe-super-app-deployment.git /tmp/manifests
+                            
+                            cd /tmp/manifests/overlays/dev/cps-action
+                            
+                            # 2. Download the Kustomize CLI binary
+                            curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
+                            
+                            # 3. Update the image tag safely
+                            ./kustomize edit set image registry.eaglelionsystems.com/cbe-supperapp/cps-action=registry.eaglelionsystems.com/cbe-supperapp/cps-action:${IMAGE_TAG}
+                            
+                            # 4. Commit and Push back to GitHub
+                            git config user.email "jenkins-ci@eaglelionsystems.com"
+                            git config user.name "Jenkins CI"
+                            
+                            git add kustomization.yaml
+                            git commit -m "chore(dev): update cps-action image tag to ${IMAGE_TAG}"
+                            git push origin main
+                            '''
                         }
-
-                        echo "Updating GitOps manifest repository with new image tag: ${IMAGE_TAG}"
-                        
-                        sh """
-                        set -e
-                        
-                        # Install dependencies if missing (Alpine-based container)
-                        if [ -f /etc/alpine-release ]; then
-                            echo "Installing curl and bash..."
-                            apk add --no-cache curl bash git
-                        fi
-                        
-                        # 1. Clone the deployment repository using your GitHub PAT
-                        git clone https://${githubUser}:${githubToken}@github.com/abelshebela/cbe-super-app-deployment.git /tmp/manifests
-                        
-                        cd /tmp/manifests/overlays/dev/cps-action
-                        
-                        # 2. Download the Kustomize CLI binary
-                        curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
-                        
-                        # 3. Update the image tag safely
-                        ./kustomize edit set image registry.eaglelionsystems.com/cbe-supperapp/cps-action=registry.eaglelionsystems.com/cbe-supperapp/cps-action:${IMAGE_TAG}
-                        
-                        # 4. Commit and Push back to GitHub
-                        git config user.email "jenkins-ci@eaglelionsystems.com"
-                        git config user.name "Jenkins CI"
-                        
-                        git add kustomization.yaml
-                        git commit -m "chore(dev): update cps-action image tag to ${IMAGE_TAG}"
-                        git push origin main
-                        """
                     }
                 }
             }
