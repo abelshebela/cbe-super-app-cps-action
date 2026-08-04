@@ -135,8 +135,8 @@ spec:
                                 apk add --no-cache curl bash git
                             fi
                             
-                            # 1. Clone the deployment repository using GITHUB_CRED
-                            git clone https://${GH_USER}:${GH_TOKEN}@github.com/abelshebela/cbe-super-app-deployment.git /tmp/manifests
+                            # 1. Clone the dev branch of the deployment repository using GITHUB_CRED
+                            git clone -b dev https://${GH_USER}:${GH_TOKEN}@github.com/abelshebela/cbe-super-app-deployment.git /tmp/manifests
                             
                             cd /tmp/manifests/overlays/dev/cps-action
                             
@@ -152,7 +152,7 @@ spec:
                             
                             git add kustomization.yaml
                             git commit -m "chore(dev): update cps-action image tag to ${IMAGE_TAG}"
-                            git push origin main
+                            git push origin dev
                             '''
                         }
                     }
