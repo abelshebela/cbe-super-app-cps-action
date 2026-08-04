@@ -1,5 +1,4 @@
-# container image builder docker file
-
+# --------------------- Stage 1: Go Builder ---------------------
 FROM golang:1.26 AS builder
 
 WORKDIR /app
@@ -11,9 +10,7 @@ RUN git config --global url."https://${GITLAB_USER}:${GITLAB_PAT}@gitlab.com/".i
 
 ENV GOPRIVATE=gitlab.com/bersufekadgetachew/*
 
-COPY go.mod .
-
-COPY go.sum .
+COPY go.mod go.sum ./
 
 RUN --mount=type=cache,target=/go/pkg/mod \
     go mod download
@@ -25,55 +22,37 @@ RUN --mount=type=cache,target=/go/pkg/mod \
 
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
-    go build -o supperapp-cps-action cmd/main.go
-
-FROM scratch
-
-COPY --from=builder /app/supperapp-cps-action  .
-
-COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-
-COPY --from=builder /app/.env .
-
+    CGO_ENABLED=1 go build -buildvcs=false -o supperapp-cps-action cmd/main.go
 
 # --------------------- Stage 2: Minimal Ubuntu Runtime ---------------------
 FROM ubuntu:24.04
 
-# Install only what's needed to run
-RUN apt-get update && apt-get install -y wget unzip libaio1t64 ca-certificates && rm -rf /var/lib/apt/lists/*
-
-WORKDIR /opt/oracle
-RUN wget https://download.oracle.com/otn_software/linux/instantclient/2390000/instantclient-basic-linux.x64-23.9.0.25.07.zip && \
-    wget https://download.oracle.com/otn_software/linux/instantclient/2390000/instantclient-sdk-linux.x64-23.9.0.25.07.zip
-
-RUN unzip instantclient-basic-linux.x64-23.9.0.25.07.zip
-
-RUN unzip -o instantclient-sdk-linux.x64-23.9.0.25.07.zip 
-
-RUN rm *.zip && \
-    ln -s instantclient_23_9 instantclient
-
-RUN  ln -s /usr/lib/x86_64-linux-gnu/libaio.so.1t64 /usr/lib/x86_64-linux-gnu/libaio.so.1
-
-WORKDIR /app
-
-# Set environment for CGO and Oracle
+# Set environments
 ENV LD_LIBRARY_PATH=/opt/oracle/instantclient
 ENV CGO_ENABLED=1
 ENV OCI_LIB_DIR=/opt/oracle/instantclient
 ENV OCI_INC_DIR=/opt/oracle/instantclient/sdk/include
 
-# Copy compiled Go binary and env/configs
+WORKDIR /opt/oracle
+
+# Install dependencies and setup Oracle Client in a single cached layer
+RUN apt-get update && apt-get install -y wget unzip libaio1t64 ca-certificates && \
+    wget -q https://download.oracle.com/otn_software/linux/instantclient/2390000/instantclient-basic-linux.x64-23.9.0.25.07.zip && \
+    wget -q https://download.oracle.com/otn_software/linux/instantclient/2390000/instantclient-sdk-linux.x64-23.9.0.25.07.zip && \
+    unzip -q instantclient-basic-linux.x64-23.9.0.25.07.zip && \
+    unzip -q -o instantclient-sdk-linux.x64-23.9.0.25.07.zip && \
+    rm *.zip && \
+    ln -s instantclient_23_9 instantclient && \
+    ln -s /usr/lib/x86_64-linux-gnu/libaio.so.1t64 /usr/lib/x86_64-linux-gnu/libaio.so.1 && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy compiled Go binary and certificates from builder
 COPY --from=builder /app/supperapp-cps-action .
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=builder /app/.env . 
 
-# Set runtime env for Oracle
-ENV LD_LIBRARY_PATH=/opt/oracle/instantclient
-# --------------------- Stage 2: Minimal Ubuntu Runtime ---------------------
-
-
-EXPOSE 8080
-
-EXPOSE 50051
+EXPOSE 8080 50051
 
 CMD ["./supperapp-cps-action"]
