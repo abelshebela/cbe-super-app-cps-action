@@ -119,7 +119,7 @@ spec:
                     script {
                         withCredentials([
                             usernamePassword(
-                                credentialsId: 'GITHUB_CRED',
+                                credentialsId: 'github_token',
                                 usernameVariable: 'GH_USER',
                                 passwordVariable: 'GH_TOKEN'
                             )
